@@ -14,7 +14,7 @@ symphonia = { version = "0.5", features = ["all"] }
 cpal = "0.15"
 
 # Tags / metadados
-lofty = { version = "0.21", features = ["mpeg", "mp3", "id3v2", "id3v1", "flac", "vorbis", "opus", "wav"] }
+lofty = "0.21"
 
 # MPRIS2 (D-Bus)
 mpris-server = "0.8"
