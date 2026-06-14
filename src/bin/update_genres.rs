@@ -181,12 +181,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if let Some(target_genre) = get_target_genre(&artist, &album, year) {
             if current_genre != target_genre {
                 println!(
-                    "Updating \"{}\" - \"{}\": genre \"{}\" -> \"{}\" ({:?}) - FileType: {:?}",
-                    artist, album, current_genre, target_genre, path.file_name().unwrap_or_default(), tagged_file.file_type()
+                    "Updating \"{}\" - \"{}\": genre \"{}\" -> \"{}\" ({:?}) - FileType: {:?}, tag exists: {}, tag type: {:?}",
+                    artist, album, current_genre, target_genre, path.file_name().unwrap_or_default(),
+                    tagged_file.file_type(), tagged_file.primary_tag().is_some(), tagged_file.primary_tag_type()
                 );
                 
                 if let Some(tag) = tagged_file.primary_tag_mut() {
                     tag.set_genre(target_genre.to_string());
+                } else {
+                    println!("Warning: primary_tag_mut() is None!");
                 }
                 // Remove ID3v1 to avoid lofty panic crashes
                 tagged_file.remove(lofty::tag::TagType::Id3v1);
