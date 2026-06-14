@@ -212,6 +212,7 @@ pub struct TagEditorState {
     pub apply_track_num: bool,
     pub apply_disc_num: bool,
     pub apply_cover: bool,
+    pub focused_field: Option<usize>,
 }
 
 
