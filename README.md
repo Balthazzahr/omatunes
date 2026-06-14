@@ -8,18 +8,16 @@ A native Wayland music player written in Rust, built for [Omarchy](https://omarc
 
 ## Key Features
 
-- **Multi-Track Metadata Editing**: Support for bulk editing ID3 tags on multiple selected tracks. Checked fields apply only to selections (or entire albums if toggled). Year tag is fully integrated.
-- **Smart Autocomplete Suggestions**: Dynamic pills suggest matching Artists, Albums, and Genres from your library as you type. Editing a field or selecting a suggestion automatically ticks the checkbox.
-- **Customizable Track Columns**: Right-click track table headers to customize shown columns and re-order them (Move Left / Move Right). Layouts persist to the library database.
-- **Refactored Playlist Views**: Simplified two-tab playlist section:
-  - *User Playlists*: Custom folders with the `New Playlist` button placed cleanly at the bottom.
-  - *Autoplaylists*: Smart lists (`Liked Songs`, `Recently Played`, `Most Played`) rendered as standard list items.
-- **Clean Folder Tabs**: Redesigned Artist/Album/Genre and Playlist tabs to span the full sidebar width with a thin `28px` profile. Features a `4.0` border radius and `0` spacing to prevent anti-aliasing gaps.
-- **Upscaled UI Layout**: 20% larger cover art (`216x216` px) with corresponding upscaled player panel typography (Title: 24, Artist/Album: 16).
-- **Cover Art Lock**: Album art strictly follows the active playing track instead of changing to selected tracks.
-- **Privacy-First Waybar Integration**: Includes a status/statistics script (`scripts/omatunes_text.py`) with all Last.fm network requests stripped. Fetches listening milestones, stats, and leaderboards locally.
-- **Audio formats** — MP3, FLAC, OGG, Opus, WAV, AAC, M4A, AIFF and more via [Symphonia](https://github.com/pdeljanov/Symphonia).
-- **MPRIS2** — full D-Bus integration; works with `playerctl`, Waybar, AGS, EWW, etc.
+- **100% Offline & Privacy-First**: Zero tracking, zero background telemetry, and no network requirements. It logs, saves, and compiles your play counts, statistics, and leaderboard records locally.
+- **Live Omarchy Theme Switching**: Automatically maps your active system theme (`Catppuccin`, `Nord`, `Gruvbox`, etc.) to the UI palette live in under 3 seconds. No app restarts required.
+- **Native Wayland & Lightweight**: Built in native Rust for Wayland compositors (like Hyprland) using the Iced GUI toolkit. Extremely fast startup and low resource consumption.
+- **Rich Waybar MPRIS Integration**: Pre-packaged with local Waybar status scripts (`scripts/omatunes_text.py`). Provides styled progress bars, listening history milestones, and interactive tooltip stats directly on your status bar.
+- **Folder-Based Music Library**: No forced file re-organization. respects and reads your existing `~/Music` subdirectory structure exactly as it is.
+- **High-Performance Incremental Scanner**: Instantly scans your library on startup by checking file modification timestamps (`mtime` cache) to skip unchanged tracks.
+- **Advanced Bulk Metadata (ID3) Editing**: Select multiple tracks, edit fields selectively using checkboxes, utilize predictive library-based autocomplete suggestions, and apply tag updates across entire albums.
+- **Customizable Columns**: Toggle visibilities or re-order columns (Track #, Title, Artist, Album, Plays, Duration) via a right-click header menu, saving preferences to your local database.
+- **Playlists & Smart Autoplaylists**: Build custom playlists on the fly, or use automatic smart lists (`Liked Songs`, `Recently Played`, `Most Played`) that update live as you listen.
+- **MPRIS2 Server Support**: Integrates natively with `playerctl` and other system D-Bus audio widgets.
 
 ---
 
