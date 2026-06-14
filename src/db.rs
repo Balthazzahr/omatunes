@@ -74,6 +74,8 @@ pub struct OmatunesDb {
     pub hidden_artists_albums: Vec<(String, bool)>,
     #[serde(default = "default_table_columns")]
     pub table_columns: Vec<TableColumn>,
+    #[serde(default)]
+    pub group_by_album: bool,
 }
 
 impl Default for OmatunesDb {
@@ -85,6 +87,7 @@ impl Default for OmatunesDb {
             recently_played: Vec::default(),
             hidden_artists_albums: Vec::default(),
             table_columns: default_table_columns(),
+            group_by_album: false,
         }
     }
 }
