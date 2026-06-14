@@ -155,7 +155,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         
         let mut tagged_file = match Probe::open(&path).and_then(|p| p.read()) {
             Ok(tf) => tf,
-            Err(_) => continue,
+            Err(_) => {
+                // Skip files that cannot be read by lofty (e.g. unknown format)
+                continue;
+            }
         };
         
         let (artist, album, year, current_genre) = {
@@ -183,8 +186,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 // Remove ID3v1 to avoid lofty panic crashes
                 tagged_file.remove(lofty::tag::TagType::Id3v1);
-                tagged_file.save_to_path(&path, Default::default())?;
-                updated_count += 1;
+                
+                if let Err(e) = tagged_file.save_to_path(&path, Default::default()) {
+                    eprintln!("Warning: Failed to save tags for {:?}: {}", path, e);
+                } else {
+                    updated_count += 1;
+                }
             }
         }
     }
