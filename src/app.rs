@@ -961,8 +961,9 @@ impl AppState {
                     apply_track_num: false,
                     apply_disc_num: false,
                     apply_cover: false,
+                    focused_field: Some(0),
                 });
-                Task::none()
+                iced::widget::text_input::focus(iced::widget::text_input::Id::new("id3_title"))
             }
 
             Message::OpenLocalFolder(path) => {
