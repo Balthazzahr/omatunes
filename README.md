@@ -35,20 +35,39 @@ A native Wayland music player written in Rust, built for [Omarchy](https://omarc
 
 ---
 
-## Installation
+## Installation & Setup
 
-### From source
-
+### 1. Install the Player Binary (Compile from Source)
+Clone the repository, compile the release binary, and copy it to your local path:
 ```bash
 git clone https://github.com/Balthazzahr/omatunes
 cd omatunes
 cargo build --release
-./target/release/omatunes
+mkdir -p ~/.local/bin
+cp target/release/omatunes ~/.local/bin/omatunes
 ```
 
-To install directly to your local binaries path:
+### 2. Install Waybar Integration Scripts
+To set up the Waybar module and stats dashboard, copy the scripts to your scripts folder and make them executable:
 ```bash
-cp target/release/omatunes ~/.local/bin/omatunes
+mkdir -p ~/.local/bin/omatunes_scripts
+cp scripts/omatunes_text.py ~/.local/bin/omatunes_scripts/omatunes_text.py
+cp scripts/omatunes_volume.sh ~/.local/bin/omatunes_scripts/omatunes_volume.sh
+chmod +x ~/.local/bin/omatunes_scripts/omatunes_text.py
+chmod +x ~/.local/bin/omatunes_scripts/omatunes_volume.sh
+```
+
+### 3. (Optional) Setup Auto-Sync Service
+If you want to push local code edits automatically to your GitHub fork:
+```bash
+mkdir -p ~/.local/bin/omatunes_scripts
+cp scripts/git_sync.sh ~/.local/bin/omatunes_scripts/git_sync.sh
+chmod +x ~/.local/bin/omatunes_scripts/git_sync.sh
+
+mkdir -p ~/.config/systemd/user
+cp scripts/omatunes-sync.service ~/.config/systemd/user/omatunes-sync.service
+systemctl --user daemon-reload
+systemctl --user enable --now omatunes-sync.service
 ```
 
 ---
