@@ -299,7 +299,12 @@ pub struct AppState {
 
 impl AppState {
     pub fn get_display_cover(&self) -> Option<iced::widget::image::Handle> {
-        let display_track = self.current_track.as_ref();
+        let is_playing_or_paused = !matches!(self.playback_state, PlaybackState::Stopped);
+        let display_track = if is_playing_or_paused {
+            self.current_track.as_ref()
+        } else {
+            self.selected_track.as_ref()
+        };
         let track_id = display_track.map(|t| t.id);
         
         let mut cache = self.cover_cache.lock().unwrap();
