@@ -181,8 +181,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if let Some(target_genre) = get_target_genre(&artist, &album, year) {
             if current_genre != target_genre {
                 println!(
-                    "Updating \"{}\" - \"{}\": genre \"{}\" -> \"{}\" ({:?})",
-                    artist, album, current_genre, target_genre, path.file_name().unwrap_or_default()
+                    "Updating \"{}\" - \"{}\": genre \"{}\" -> \"{}\" ({:?}) - FileType: {:?}",
+                    artist, album, current_genre, target_genre, path.file_name().unwrap_or_default(), tagged_file.file_type()
                 );
                 
                 if let Some(tag) = tagged_file.primary_tag_mut() {
