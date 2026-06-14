@@ -111,33 +111,44 @@ The library database is stored at `~/.local/share/omatunes/omatunes.db`. If you 
 
 ---
 
-## Music Library Syncing
+## User Guide
 
-- **Library Location**: `omatunes` reads your music files directly from the directory specified by `music_dir` in your config file (defaults to `~/Music`).
-- **Incremental Scanner**: On startup, `omatunes` runs a high-performance incremental scanner. It checks file modification timestamps (`mtime`) to skip unchanged tracks, loading even massive libraries instantly.
-- **Auto-Sync Changes**: Any additions, renames, tags modifications, or deletions in your music folder are automatically detected on start and synced to the internal database.
+Welcome to `omatunes`! Here is how to get started using the player, from basic navigation to advanced library management.
 
----
+### 1. Library Synchronization
+On first launch, `omatunes` will automatically scan your configured music directory (defaults to `~/Music`). 
+- **Lightweight Incremental Scanner**: It checks file modification timestamps (`mtime`) to avoid scanning unchanged files, loading even massive libraries instantly.
+- **Dynamic Database**: Any files you add, rename, edit, or delete inside your music directory will automatically sync to the database (`~/.local/share/omatunes/omatunes.db`) when `omatunes` starts.
 
-## User Guide & Feature Manual
+### 2. Browsing & Filtering
+You can navigate your library using the sidebar panel on the left:
+- **Artists, Albums, and Genres Tabs**: Click these folders to filter the track list. Each folder spans full-width with a clean flat tab styling.
+- **Interactive Search**: Use the search input at the top of the sidebar to filter the lists by matching keywords instantly.
 
-### 1. Metadata Tag Editing
-- **Bulk Selection**: Select a track, then hold `Shift` and click another track to select a group. You can also select non-adjacent files. Press `E` to open the Tag Editor.
-- **Smart Fields (Auto-Ticking)**: When you type into any tag input (Title, Artist, Album, Genre, Year, etc.) or click one of the interactive autocomplete pills, the field's checkbox automatically ticks. 
-- **Selective Saving**: Only the ticked fields will be updated across all selected files. Unticked fields remain unchanged.
-- **Apply to Entire Album**: Check the option at the bottom of the editor to apply your ticked metadata fields to all tracks belonging to the selected album.
+### 3. Playback Controls
+- **Double-click a Track**: Starts playing the song.
+- **Player Panel**: Located at the top. It displays the active track title, artist, and album. It also locks and displays the playing album art (enlarged by 20% for visibility).
+- **Progress Bar & Seeking**: Click anywhere along the timeline bar to seek directly to that part of the track.
+- **Volume & States**: Control the volume slider, and toggle shuffle or repeat directly in the player bar.
 
-### 2. Custom Playlists
-- **Access**: Select the **User Playlists** tab on the left sidebar panel to view your playlists.
-- **Creation**: Click the **New Playlist** button at the bottom of the list. Type a name and hit enter.
-- **Management**: Hover over any custom playlist item to display inline buttons for renaming (pencil icon) or deleting (trash can icon).
+### 4. Custom & Automatic Playlists
+Navigate to the bottom panel of the sidebar to manage your playlists:
+- **User Playlists**: Click this tab to view your custom playlists. Create a new one by clicking the **New Playlist** button at the bottom of the list. Hovering over a playlist allows you to rename (pencil icon) or delete (trash can icon) it.
+- **Autoplaylists**: Click this tab to view smart, self-updating lists:
+  - *Liked Songs*: Aggregates all tracks you have favorited (by clicking the heart icon).
+  - *Recently Played*: Chronologically lists your most recently played tracks.
+  - *Most Played*: Sorts your tracks by play count.
 
-### 3. Autoplaylists (Smart Playlists)
-- Select the **Autoplaylists** tab on the left sidebar to access automatic lists:
-  - **Liked Songs**: Gathers all tracks that you have favorited (starred).
-  - **Recently Played**: Automatically lists recently played tracks chronologically.
-  - **Most Played**: Lists tracks sorted by play count.
-- These lists update live as you listen.
+### 5. Advanced Feature: Column Customization
+- You can customize the track table columns to show exactly what you want (Track #, Title, Artist, Album, Genre, Year, Plays, Duration, etc.).
+- **Right-Click Customization**: Right-click the track table header to toggle column visibilities or re-order them (Move Left / Move Right). Column preferences are saved automatically.
+
+### 6. Advanced Feature: Bulk Metadata (ID3) Tagging
+`omatunes` features a powerful metadata editor:
+- **Bulk Selection**: Select a track, then hold `Shift` and click another track to select a group. Press `E` to open the Tag Editor.
+- **Autocomplete Suggestions**: Start typing in the Artist, Album, or Genre fields to see suggestion pills matching the spelling of tags already in your library.
+- **Targeted Fields (Auto-Ticking)**: When you type in a field or click a suggestion pill, that field's checkbox automatically ticks. Only checked fields will apply changes to all selected tracks when saved.
+- **Apply to Entire Album**: Check the "Apply to Entire Album" toggle at the bottom to write the modified tags to every track in the album.
 
 ---
 
