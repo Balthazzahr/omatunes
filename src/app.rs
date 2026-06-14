@@ -2625,6 +2625,9 @@ impl AppState {
             row_item("F5", "Rescan Music Library Folder"),
             row_item("+ / -", "Increase / Decrease Volume"),
             row_item("Right/Left", "Seek Forward / Backward"),
+            row_item("Tab", "Focus next field / cycle ID3 inputs"),
+            row_item("Shift + Tab", "Cycle ID3 input backwards"),
+            row_item("/", "Focus song search input"),
         ]
         .spacing(10)
         .padding(24);
