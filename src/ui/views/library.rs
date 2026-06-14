@@ -90,6 +90,7 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
 
     let sidebar_search_input = row![
         text_input("Search...", &state.sidebar_search)
+            .id(iced::widget::text_input::Id::new("sidebar_search_input"))
             .on_input(Message::SidebarSearchChanged)
             .padding(6)
             .size(12)
@@ -615,6 +616,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
 
     let song_search_input = row![
         text_input("Search songs...", &state.search_query)
+            .id(iced::widget::text_input::Id::new("song_search_input"))
             .on_input(Message::SearchChanged)
             .padding(6)
             .size(12)

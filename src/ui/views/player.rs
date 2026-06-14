@@ -22,11 +22,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             theme::text()
         };
 
-        let title_text = if is_queued {
-            format!("{} (Queued)", track.title)
-        } else {
-            track.title.clone()
-        };
+        let title_text = track.title.clone();
 
         let song_btn = button(
             text(title_text)
