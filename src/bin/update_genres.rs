@@ -153,10 +153,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         
         total_files += 1;
         
-        let mut tagged_file = match Probe::open(&path).and_then(|p| p.read()) {
+        let mut tagged_file = match (|| -> Result<lofty::file::TaggedFile, lofty::error::LoftyError> {
+            let mut probe = Probe::open(&path)?;
+            probe = probe.guess_file_type()?;
+            let tf = probe.read()?;
+            Ok(tf)
+        })() {
             Ok(tf) => tf,
             Err(_) => {
-                // Skip files that cannot be read by lofty (e.g. unknown format)
                 continue;
             }
         };
