@@ -8,6 +8,7 @@ A native Wayland music player written in Rust, built for [Omarchy](https://omarc
 
 ## Key Features
 
+- **Wide Audio Format Support**: Plays MP3, FLAC, OGG, Opus, WAV, AAC, M4A, AIFF, and more natively via the high-performance [Symphonia](https://github.com/pdeljanov/Symphonia) library.
 - **100% Offline & Privacy-First**: Zero tracking, zero background telemetry, and no network requirements. It logs, saves, and compiles your play counts, statistics, and leaderboard records locally.
 - **Live Omarchy Theme Switching**: Automatically maps your active system theme (`Catppuccin`, `Nord`, `Gruvbox`, etc.) to the UI palette live in under 3 seconds. No app restarts required.
 - **Native Wayland & Lightweight**: Built in native Rust for Wayland compositors (like Hyprland) using the Iced GUI toolkit. Extremely fast startup and low resource consumption.
