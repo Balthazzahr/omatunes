@@ -107,7 +107,37 @@ seek_step = 5
 volume_step = 0.05
 ```
 
-The library database is stored at `~/.local/share/omatunes/omatunes.db`. Delete this file to force a clean re-scan.
+The library database is stored at `~/.local/share/omatunes/omatunes.db`. If you need to force a full clean re-scan, you can delete this file.
+
+---
+
+## Music Library Syncing
+
+- **Library Location**: `omatunes` reads your music files directly from the directory specified by `music_dir` in your config file (defaults to `~/Music`).
+- **Incremental Scanner**: On startup, `omatunes` runs a high-performance incremental scanner. It checks file modification timestamps (`mtime`) to skip unchanged tracks, loading even massive libraries instantly.
+- **Auto-Sync Changes**: Any additions, renames, tags modifications, or deletions in your music folder are automatically detected on start and synced to the internal database.
+
+---
+
+## User Guide & Feature Manual
+
+### 1. Metadata Tag Editing
+- **Bulk Selection**: Select a track, then hold `Shift` and click another track to select a group. You can also select non-adjacent files. Press `E` to open the Tag Editor.
+- **Smart Fields (Auto-Ticking)**: When you type into any tag input (Title, Artist, Album, Genre, Year, etc.) or click one of the interactive autocomplete pills, the field's checkbox automatically ticks. 
+- **Selective Saving**: Only the ticked fields will be updated across all selected files. Unticked fields remain unchanged.
+- **Apply to Entire Album**: Check the option at the bottom of the editor to apply your ticked metadata fields to all tracks belonging to the selected album.
+
+### 2. Custom Playlists
+- **Access**: Select the **User Playlists** tab on the left sidebar panel to view your playlists.
+- **Creation**: Click the **New Playlist** button at the bottom of the list. Type a name and hit enter.
+- **Management**: Hover over any custom playlist item to display inline buttons for renaming (pencil icon) or deleting (trash can icon).
+
+### 3. Autoplaylists (Smart Playlists)
+- Select the **Autoplaylists** tab on the left sidebar to access automatic lists:
+  - **Liked Songs**: Gathers all tracks that you have favorited (starred).
+  - **Recently Played**: Automatically lists recently played tracks chronologically.
+  - **Most Played**: Lists tracks sorted by play count.
+- These lists update live as you listen.
 
 ---
 
