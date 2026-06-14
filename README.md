@@ -37,8 +37,18 @@ A native Wayland music player written in Rust, built for [Omarchy](https://omarc
 
 ## Installation & Setup
 
-### 1. Install the Player Binary (Compile from Source)
-Clone the repository, compile the release binary, and copy it to your local path:
+### 1. Install the Player Binary
+
+#### Option A: Download Pre-compiled Release (Recommended)
+Download the pre-compiled binary directly from the latest GitHub release:
+```bash
+mkdir -p ~/.local/bin
+curl -L -o ~/.local/bin/omatunes https://github.com/Balthazzahr/omatunes/releases/latest/download/omatunes
+chmod +x ~/.local/bin/omatunes
+```
+
+#### Option B: Compile from Source
+If you prefer to compile manually:
 ```bash
 git clone https://github.com/Balthazzahr/omatunes
 cd omatunes
