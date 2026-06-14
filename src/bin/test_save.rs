@@ -3,7 +3,7 @@ use lofty::probe::Probe;
 use std::path::Path;
 
 fn main() {
-    let path = Path::new("/home/user/Music/Counting Crows/August And Everything After/05 - Anna Begins.mp3");
+    let path = Path::new("/tmp/test.flac");
     println!("Opening file {:?}", path);
     let mut tagged_file = match Probe::open(path).and_then(|p| p.read()) {
         Ok(tf) => tf,
