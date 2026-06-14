@@ -20,13 +20,15 @@ fn main() {
         println!("No primary tag!");
     }
     
-    tagged_file.remove(lofty::tag::TagType::Id3v1);
-    
     println!("Saving...");
-    match tagged_file.save_to_path(path, Default::default()) {
-        Ok(_) => println!("Save OK!"),
-        Err(e) => {
-            println!("Save Error: {:?}", e);
+    if let Some(tag) = tagged_file.primary_tag() {
+        match tag.save_to_path(path, Default::default()) {
+            Ok(_) => println!("Save OK!"),
+            Err(e) => {
+                println!("Save Error: {:?}", e);
+            }
         }
+    } else {
+        println!("No primary tag to save!");
     }
 }
