@@ -54,35 +54,43 @@ pub fn view(
     unique_genres: &[String],
 ) -> Element<'static, Message> {
     let title_input = text_input("Title", &state.title)
+        .id(iced::widget::text_input::Id::new("id3_title"))
         .on_input(Message::UpdateTagFieldTitle)
         .padding(8);
 
     let artist_input = text_input("Artist", &state.artist)
+        .id(iced::widget::text_input::Id::new("id3_artist"))
         .on_input(Message::UpdateTagFieldArtist)
         .padding(8);
 
     let album_input = text_input("Album", &state.album)
+        .id(iced::widget::text_input::Id::new("id3_album"))
         .on_input(Message::UpdateTagFieldAlbum)
         .padding(8);
 
     let genre_input = text_input("Genre", &state.genre)
+        .id(iced::widget::text_input::Id::new("id3_genre"))
         .on_input(Message::UpdateTagFieldGenre)
         .padding(8);
 
     let track_num_input = text_input("Track Number", &state.track_number)
+        .id(iced::widget::text_input::Id::new("id3_track"))
         .on_input(Message::UpdateTagFieldTrackNumber)
         .padding(8);
 
     let disc_num_input = text_input("Disc Number", &state.disc_number)
+        .id(iced::widget::text_input::Id::new("id3_disc"))
         .on_input(Message::UpdateTagFieldDiscNumber)
         .padding(8);
 
     let year_input = text_input("Year", &state.year)
+        .id(iced::widget::text_input::Id::new("id3_year"))
         .on_input(Message::UpdateTagFieldYear)
         .padding(8);
 
     let cover_path_val = state.cover_path.clone().unwrap_or_default();
     let cover_input = text_input("Cover Image Path (jpg/png)", &cover_path_val)
+        .id(iced::widget::text_input::Id::new("id3_cover"))
         .on_input(Message::UpdateTagFieldCoverPath)
         .padding(8);
 
