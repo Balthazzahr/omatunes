@@ -1808,7 +1808,28 @@ impl AppState {
                         }
                     }
                     Key::Named(Named::Tab) => {
-                        if !has_tag_editor && !has_playlist_dialog && !has_shortcuts && !has_context_menu {
+                        if has_tag_editor {
+                            if let Some(ref mut state) = self.show_tag_editor {
+                                let fields = &[
+                                    "id3_title",
+                                    "id3_artist",
+                                    "id3_album",
+                                    "id3_genre",
+                                    "id3_track",
+                                    "id3_disc",
+                                    "id3_year",
+                                    "id3_cover",
+                                ];
+                                let current = state.focused_field.unwrap_or(0);
+                                let next = if self.modifiers.shift() {
+                                    if current == 0 { fields.len() - 1 } else { current - 1 }
+                                } else {
+                                    (current + 1) % fields.len()
+                                };
+                                state.focused_field = Some(next);
+                                return iced::widget::text_input::focus(iced::widget::text_input::Id::new(fields[next]));
+                            }
+                        } else if !has_playlist_dialog && !has_shortcuts && !has_context_menu {
                             if self.active_focus == Some(ActiveFocus::SidebarSearch) {
                                 self.active_focus = Some(ActiveFocus::SidebarList);
                                 match self.view_mode {
@@ -1838,6 +1859,18 @@ impl AppState {
                                     }
                                 }
                                 return Task::none();
+                            } else if self.active_focus == Some(ActiveFocus::SidebarList) {
+                                self.active_focus = Some(ActiveFocus::Tracklist);
+                                if self.selected_track.is_none() {
+                                    if let Some(track) = self.tracks.first().cloned() {
+                                        let cover_data = load_cover(&track.path);
+                                        let track = Track { cover_data, ..track };
+                                        self.selected_track = Some(track.clone());
+                                        self.selected_tracks = vec![track.clone()];
+                                        self.last_clicked_track = Some(track.clone());
+                                    }
+                                }
+                                return Task::none();
                             } else if self.active_focus == Some(ActiveFocus::SongSearch) {
                                 self.active_focus = Some(ActiveFocus::Tracklist);
                                 if self.selected_track.is_none() {
@@ -1850,6 +1883,9 @@ impl AppState {
                                     }
                                 }
                                 return Task::none();
+                            } else if self.active_focus == Some(ActiveFocus::Tracklist) {
+                                self.active_focus = Some(ActiveFocus::SongSearch);
+                                return iced::widget::text_input::focus(iced::widget::text_input::Id::new("song_search_input"));
                             }
                         }
                     }
