@@ -6,7 +6,7 @@ A native Wayland music player written in Rust, built for [Omarchy](https://omarc
 
 ---
 
-## Key Enhancements & Features
+## Key Features
 
 - **Multi-Track Metadata Editing**: Support for bulk editing ID3 tags on multiple selected tracks. Checked fields apply only to selections (or entire albums if toggled). Year tag is fully integrated.
 - **Smart Autocomplete Suggestions**: Dynamic pills suggest matching Artists, Albums, and Genres from your library as you type. Editing a field or selecting a suggestion automatically ticks the checkbox.
