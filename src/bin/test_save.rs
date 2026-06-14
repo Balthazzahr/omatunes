@@ -13,6 +13,7 @@ fn main() {
         }
     };
     println!("FileType: {:?}", tagged_file.file_type());
+    println!("All tags: {:?}", tagged_file.tags().iter().map(|t| t.tag_type()).collect::<Vec<_>>());
     if let Some(tag) = tagged_file.primary_tag_mut() {
         println!("Primary tag type: {:?}", tag.tag_type());
         tag.set_genre("Alternative Rock".to_string());
