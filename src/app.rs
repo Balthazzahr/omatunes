@@ -377,7 +377,7 @@ impl AppState {
             is_hovering_sidebar_list: false,
             is_hovering_sidebar_resizer: false,
             is_hovering_playlist_resizer: false,
-            group_by_album: false,
+            group_by_album: crate::db::get(|db| db.group_by_album),
             sidebar_search: String::new(),
             show_shortcuts: false,
             last_click_track: None,
@@ -1696,6 +1696,7 @@ impl AppState {
 
             Message::ToggleGroupByAlbum => {
                 self.group_by_album = !self.group_by_album;
+                crate::db::write(|db| db.group_by_album = self.group_by_album);
                 self.update_filtered_tracks();
                 Task::none()
             }
