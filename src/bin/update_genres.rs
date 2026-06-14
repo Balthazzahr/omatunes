@@ -181,21 +181,49 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if let Some(target_genre) = get_target_genre(&artist, &album, year) {
             if current_genre != target_genre {
                 println!(
-                    "Updating \"{}\" - \"{}\": genre \"{}\" -> \"{}\" ({:?}) - FileType: {:?}, tag exists: {}, tag type: {:?}",
-                    artist, album, current_genre, target_genre, path.file_name().unwrap_or_default(),
-                    tagged_file.file_type(), tagged_file.primary_tag().is_some(), tagged_file.primary_tag_type()
+                    "Updating \"{}\" - \"{}\": genre \"{}\" -> \"{}\" ({:?})",
+                    artist, album, current_genre, target_genre, path.file_name().unwrap_or_default()
                 );
                 
                 if let Some(tag) = tagged_file.primary_tag_mut() {
                     tag.set_genre(target_genre.to_string());
-                } else {
-                    println!("Warning: primary_tag_mut() is None!");
                 }
                 // Remove ID3v1 to avoid lofty panic crashes
                 tagged_file.remove(lofty::tag::TagType::Id3v1);
                 
                 if let Err(e) = tagged_file.save_to_path(&path, Default::default()) {
-                    eprintln!("Warning: Failed to save tags for {:?}: {}", path, e);
+                    eprintln!("Warning: Failed to save tags with lofty for {:?}: {}. Trying ffmpeg fallback...", path, e);
+                    
+                    let parent = path.parent().unwrap_or_else(|| Path::new("/tmp"));
+                    // Use a unique file name to avoid collisions
+                    let rand_num = rand::random::<u32>();
+                    let temp_path = parent.join(format!("temp_ffmpeg_tag_{}.mp3", rand_num));
+                    
+                    let status = std::process::Command::new("ffmpeg")
+                        .arg("-y")
+                        .arg("-i")
+                        .arg(&path)
+                        .arg("-metadata")
+                        .arg(format!("genre={}", target_genre))
+                        .arg("-c")
+                        .arg("copy")
+                        .arg(&temp_path)
+                        .output();
+                        
+                    match status {
+                        Ok(output) if output.status.success() => {
+                            if let Err(err) = std::fs::rename(&temp_path, &path) {
+                                eprintln!("Error: Failed to replace file with ffmpeg output: {}", err);
+                                let _ = std::fs::remove_file(&temp_path);
+                            } else {
+                                updated_count += 1;
+                            }
+                        }
+                        other => {
+                            eprintln!("Error: ffmpeg fallback failed: {:?}", other);
+                            let _ = std::fs::remove_file(&temp_path);
+                        }
+                    }
                 } else {
                     updated_count += 1;
                 }
