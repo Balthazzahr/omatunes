@@ -180,11 +180,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 
                 if let Some(tag) = tagged_file.primary_tag_mut() {
                     tag.set_genre(target_genre.to_string());
-                    // Remove ID3v1 to avoid lofty panic crashes
-                    tagged_file.remove(lofty::tag::TagType::Id3v1);
-                    tag.save_to_path(&path)?;
-                    updated_count += 1;
                 }
+                // Remove ID3v1 to avoid lofty panic crashes
+                tagged_file.remove(lofty::tag::TagType::Id3v1);
+                tagged_file.save_to_path(&path, Default::default())?;
+                updated_count += 1;
             }
         }
     }
