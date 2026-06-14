@@ -1908,7 +1908,12 @@ impl AppState {
                                 "r" | "R" => return Task::done(Message::ToggleRepeat),
                                 "+" | "=" => return Task::done(Message::VolumeStep(vol)),
                                 "-"       => return Task::done(Message::VolumeStep(-vol)),
-                                "/"       => return Task::done(Message::SearchChanged(String::new())),
+                                "/" => {
+                                    self.active_focus = Some(ActiveFocus::SongSearch);
+                                    self.search_query.clear();
+                                    self.update_filtered_tracks();
+                                    return iced::widget::text_input::focus(iced::widget::text_input::Id::new("song_search_input"));
+                                }
                                 "l" | "L" | "f" | "F" => return Task::done(Message::KeyboardLike),
                                 "e" | "E" => return Task::done(Message::KeyboardEdit),
                                 "c" | "C" => return Task::done(Message::OpenPlaylistDialog(PlaylistDialogMode::Create)),
