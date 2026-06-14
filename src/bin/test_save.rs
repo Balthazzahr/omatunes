@@ -3,7 +3,7 @@ use lofty::probe::Probe;
 use std::path::Path;
 
 fn main() {
-    let path = Path::new("/tmp/test_crows.mp3");
+    let path = Path::new("/tmp/test2.mp3");
     println!("Opening file {:?}", path);
     let mut tagged_file = match Probe::open(path).and_then(|p| p.read()) {
         Ok(tf) => tf,
@@ -21,15 +21,13 @@ fn main() {
         println!("No primary tag!");
     }
     
+    tagged_file.remove(lofty::tag::TagType::Id3v1);
+    
     println!("Saving...");
-    if let Some(tag) = tagged_file.primary_tag() {
-        match tag.save_to_path(path, Default::default()) {
-            Ok(_) => println!("Save OK!"),
-            Err(e) => {
-                println!("Save Error: {:?}", e);
-            }
+    match tagged_file.save_to_path(path, Default::default()) {
+        Ok(_) => println!("Save OK!"),
+        Err(e) => {
+            println!("Save Error: {:?}", e);
         }
-    } else {
-        println!("No primary tag to save!");
     }
 }
