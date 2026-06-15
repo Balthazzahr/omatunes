@@ -129,7 +129,7 @@ pub enum Message {
     ToggleTagFieldApplyDiscNum(bool),
     ToggleTagFieldApplyCover(bool),
     SelectTagEditorTab(TagEditorTab),
-    UpdateTagFieldLyrics(String),
+    UpdateTagFieldLyrics(iced::widget::text_editor::Action),
     ToggleTagFieldApplyLyrics(bool),
     SearchLyricsOnline,
     SaveTags,
