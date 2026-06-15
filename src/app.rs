@@ -299,6 +299,7 @@ pub struct AppState {
     pub hidden_artists_albums: Vec<(String, bool)>,       // (Name, IsArtistOrAlbum)
 
     pub playlist_tab: PlaylistTab,
+    pub right_panel_tab: Option<RightPanelTab>,
     audio: AudioPlayer,
     mpris_cmd_rx: tokio::sync::mpsc::UnboundedReceiver<MprisCommand>,
     mpris_update_tx: tokio::sync::mpsc::UnboundedSender<MprisUpdate>,
@@ -405,6 +406,7 @@ impl AppState {
             last_clicked_track: None,
             hidden_artists_albums: crate::db::get(|db| db.hidden_artists_albums.clone()),
             playlist_tab: PlaylistTab::Playlists,
+            right_panel_tab: None,
             audio,
             mpris_cmd_rx,
             mpris_update_tx,
@@ -2283,6 +2285,15 @@ impl AppState {
                 }
                 self.show_context_menu = None;
                 self.update_filtered_tracks();
+                Task::none()
+            }
+
+            Message::ToggleRightPanelTab(tab) => {
+                if self.right_panel_tab == Some(tab) {
+                    self.right_panel_tab = None;
+                } else {
+                    self.right_panel_tab = Some(tab);
+                }
                 Task::none()
             }
         }
