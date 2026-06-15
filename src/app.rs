@@ -906,7 +906,7 @@ impl AppState {
             }
 
             Message::SelectPlaylist(name) => {
-                if name == "Liked Songs" || name == "Recently Played" || name == "Most Played" {
+                if name == "Liked Songs" || name == "Recently Played" || name == "Most Played" || name == "New Music" {
                     self.playlist_tab = PlaylistTab::Autoplaylists;
                 } else {
                     self.playlist_tab = PlaylistTab::Playlists;
