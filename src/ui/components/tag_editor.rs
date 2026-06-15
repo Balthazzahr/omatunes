@@ -49,9 +49,9 @@ fn render_suggestions(
 
 pub fn view<'a>(
     state: &'a TagEditorState,
-    unique_artists: &'a [String],
-    unique_albums: &'a [String],
-    unique_genres: &'a [String],
+    unique_artists: &[String],
+    unique_albums: &[String],
+    unique_genres: &[String],
 ) -> Element<'a, Message> {
     let title_input = text_input("Title", &state.title)
         .id(iced::widget::text_input::Id::new("id3_title"))
