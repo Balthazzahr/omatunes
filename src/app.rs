@@ -231,6 +231,7 @@ pub struct TagEditorState {
     pub apply_cover: bool,
     pub apply_lyrics: bool,
     pub lyrics: String,
+    pub lyrics_content: iced::widget::text_editor::Content,
     pub active_tab: TagEditorTab,
     pub focused_field: Option<usize>,
 }
