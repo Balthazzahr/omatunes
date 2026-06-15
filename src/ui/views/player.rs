@@ -253,8 +253,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     ]
     .spacing(0)
     .align_y(Alignment::Center)
-    .width(Length::Fill)
-    .height(Length::Fill);
+    .width(Length::Fill);
 
     if let Some(pane) = content_pane {
         main_row = main_row.push(pane);
