@@ -2330,6 +2330,48 @@ impl AppState {
                 }
                 Task::none()
             }
+
+            Message::SelectTagEditorTab(tab) => {
+                if let Some(ref mut state) = self.show_tag_editor {
+                    state.active_tab = tab;
+                }
+                Task::none()
+            }
+
+            Message::UpdateTagFieldLyrics(val) => {
+                if let Some(ref mut state) = self.show_tag_editor {
+                    state.lyrics = val;
+                    state.apply_lyrics = true;
+                }
+                Task::none()
+            }
+
+            Message::ToggleTagFieldApplyLyrics(val) => {
+                if let Some(ref mut state) = self.show_tag_editor {
+                    state.apply_lyrics = val;
+                }
+                Task::none()
+            }
+
+            Message::SearchLyricsOnline => {
+                if let Some(ref state) = self.show_tag_editor {
+                    let artist = state.artist.trim();
+                    let title = state.title.trim();
+                    if !artist.is_empty() && !title.is_empty() {
+                        let query = format!("{} {}", artist, title);
+                        let encoded = query.replace(' ', "+");
+                        let url = format!("https://lrclib.net/#search?q={}", encoded);
+                        let _ = std::process::Command::new("xdg-open")
+                            .arg(&url)
+                            .spawn();
+                    } else {
+                        let _ = std::process::Command::new("xdg-open")
+                            .arg("https://lrclib.net")
+                            .spawn();
+                    }
+                }
+                Task::none()
+            }
         }
 
     }
