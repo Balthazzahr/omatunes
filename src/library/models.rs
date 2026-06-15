@@ -19,6 +19,7 @@ pub struct Track {
     pub play_count: u32,
     pub liked: bool,
     pub date_played: Option<String>,
+    pub lyrics: String,
 }
 
 impl Track {
