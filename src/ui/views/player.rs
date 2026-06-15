@@ -145,13 +145,68 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     .align_y(Alignment::Center)
     .padding(16);
 
+    let tab_btn = |tab: crate::app::RightPanelTab, label: &'static str| {
+        let is_active = state.right_panel_tab == Some(tab);
+        let btn_text = text(label)
+            .size(11)
+            .font(crate::ui::icons::UI_FONT_BOLD);
+        
+        button(container(btn_text).center_x(Length::Fill).center_y(Length::Fill))
+            .on_press(Message::ToggleRightPanelTab(tab))
+            .width(Length::Fill)
+            .height(28.0)
+            .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                iced::widget::button::Style {
+                    background: Some(iced::Background::Color(if is_active {
+                        theme::mantle()
+                    } else if is_hovered {
+                        theme::surface0()
+                    } else {
+                        iced::Color::TRANSPARENT
+                    })),
+                    border: iced::Border {
+                        color: if is_active { theme::accent() } else { iced::Color::TRANSPARENT },
+                        width: if is_active { 1.0 } else { 0.0 },
+                        radius: iced::border::Radius {
+                            top_left: 4.0,
+                            top_right: 4.0,
+                            bottom_left: 4.0,
+                            bottom_right: 4.0,
+                        },
+                    },
+                    text_color: if is_active { theme::accent() } else { theme::subtext() },
+                    ..Default::default()
+                }
+            })
+            .padding(0)
+    };
+
+    let tab_strip = container(
+        column![
+            tab_btn(crate::app::RightPanelTab::Visualizer, "Visualizer"),
+            tab_btn(crate::app::RightPanelTab::Lyrics, "Lyrics"),
+        ]
+        .spacing(8)
+        .width(84.0)
+    )
+    .padding([0, 8])
+    .height(Length::Fill)
+    .align_y(iced::alignment::Vertical::Center);
+
+    let left_side_width = if state.right_panel_tab.is_some() {
+        Length::FillPortion(1)
+    } else {
+        Length::Fill
+    };
+
     let player_container = container(player_row)
         .style(theme::player_panel)
-        .width(Length::Fill);
+        .width(left_side_width);
 
     let vol_step = crate::config::get().volume_step;
 
-    mouse_area(player_container)
+    let player_with_scroll = mouse_area(player_container)
         .on_scroll(move |delta| {
             match delta {
                 iced::mouse::ScrollDelta::Lines { y, .. } | iced::mouse::ScrollDelta::Pixels { y, .. } => {
@@ -164,6 +219,46 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                     }
                 }
             }
-        })
-        .into()
+        });
+
+    let content_pane = if let Some(tab) = state.right_panel_tab {
+        let placeholder_text = match tab {
+            crate::app::RightPanelTab::Visualizer => "visualizer to be added here soon",
+            crate::app::RightPanelTab::Lyrics => "lyrics to be added here soon",
+        };
+        
+        let content = container(
+            text(placeholder_text)
+                .color(theme::overlay0())
+                .size(16)
+        )
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .center_x(Length::Fill)
+        .center_y(Length::Fill);
+
+        Some(
+            container(content)
+                .style(theme::player_panel)
+                .width(Length::FillPortion(1))
+                .height(Length::Fill)
+        )
+    } else {
+        None
+    };
+
+    let mut main_row = row![
+        player_with_scroll,
+        tab_strip,
+    ]
+    .spacing(0)
+    .align_y(Alignment::Center)
+    .width(Length::Fill)
+    .height(Length::Fill);
+
+    if let Some(pane) = content_pane {
+        main_row = main_row.push(pane);
+    }
+
+    main_row.into()
 }
