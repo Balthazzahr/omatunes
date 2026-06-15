@@ -235,9 +235,9 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         });
 
     let content_pane = if let Some(tab) = state.right_panel_tab {
-        match tab {
+        let pane_content: Element<'_, Message> = match tab {
             crate::app::RightPanelTab::Visualizer => {
-                let content = container(
+                container(
                     text("visualizer to be added here soon")
                         .color(theme::overlay0())
                         .size(16)
@@ -245,14 +245,8 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 .width(Length::Fill)
                 .height(Length::Fill)
                 .center_x(Length::Fill)
-                .center_y(Length::Fill);
-
-                Some(
-                    container(content)
-                        .style(theme::player_panel)
-                        .width(Length::FillPortion(1))
-                        .height(Length::Fixed(248.0))
-                )
+                .center_y(Length::Fill)
+                .into()
             }
             crate::app::RightPanelTab::Lyrics => {
                 let display_track = if !matches!(state.playback_state, crate::audio::PlaybackState::Stopped) {
@@ -261,7 +255,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                     state.selected_track.as_ref()
                 };
 
-                let content: Element<'_, Message> = if let Some(track) = display_track {
+                if let Some(track) = display_track {
                     if track.lyrics.trim().is_empty() {
                         container(
                             text("No lyrics available.\nRight click song -> Edit ID3 tags to add lyrics.")
@@ -327,16 +321,50 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                     .center_x(Length::Fill)
                     .center_y(Length::Fill)
                     .into()
-                };
-
-                Some(
-                    container(content)
-                        .style(theme::player_panel)
-                        .width(Length::FillPortion(1))
-                        .height(Length::Fixed(248.0))
-                )
+                }
             }
-        }
+        };
+
+        let close_btn = button(
+            text("\u{f00d}")
+                .font(crate::ui::icons::NERD_FONT_MONO)
+                .size(14)
+        )
+        .on_press(Message::ToggleRightPanelTab(tab))
+        .padding(6)
+        .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+            iced::widget::button::Style {
+                background: if is_hovered { Some(iced::Background::Color(theme::surface0())) } else { None },
+                text_color: if is_hovered { theme::accent() } else { theme::subtext() },
+                border: iced::Border {
+                    radius: 4.0.into(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            }
+        });
+
+        let close_container = container(close_btn)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .align_x(iced::alignment::Horizontal::Right)
+            .align_y(iced::alignment::Vertical::Top)
+            .padding([8, 8]);
+
+        let pane_stack = stack![
+            pane_content,
+            close_container,
+        ]
+        .width(Length::Fill)
+        .height(Length::Fill);
+
+        Some(
+            container(pane_stack)
+                .style(theme::player_panel)
+                .width(Length::FillPortion(1))
+                .height(Length::Fixed(248.0))
+        )
     } else {
         None
     };
