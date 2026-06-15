@@ -44,5 +44,5 @@ pub const ICON_PLUS:     &str = "\u{f067}";  //
 pub const ICON_TRASH:    &str = "\u{f1f8}";  //
 pub const ICON_COPY:     &str = "\u{f0c5}";  //
 pub const ICON_PODIUM:   &str = "\u{f0d25}"; //
-pub const ICON_VISUALIZER: &str = "\u{f080}";  // bar-chart
-pub const ICON_LYRICS:     &str = "\u{f15c}";  // file-text
+pub const ICON_VISUALIZER: &str = "\u{f147d}"; // waveform
+pub const ICON_LYRICS:     &str = "\u{f0cb9}"; // lyrics custom
