@@ -235,27 +235,108 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         });
 
     let content_pane = if let Some(tab) = state.right_panel_tab {
-        let placeholder_text = match tab {
-            crate::app::RightPanelTab::Visualizer => "visualizer to be added here soon",
-            crate::app::RightPanelTab::Lyrics => "lyrics to be added here soon",
-        };
-        
-        let content = container(
-            text(placeholder_text)
-                .color(theme::overlay0())
-                .size(16)
-        )
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .center_x(Length::Fill)
-        .center_y(Length::Fill);
+        match tab {
+            crate::app::RightPanelTab::Visualizer => {
+                let content = container(
+                    text("visualizer to be added here soon")
+                        .color(theme::overlay0())
+                        .size(16)
+                )
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .center_x(Length::Fill)
+                .center_y(Length::Fill);
 
-        Some(
-            container(content)
-                .style(theme::player_panel)
-                .width(Length::FillPortion(1))
-                .height(Length::Fixed(248.0))
-        )
+                Some(
+                    container(content)
+                        .style(theme::player_panel)
+                        .width(Length::FillPortion(1))
+                        .height(Length::Fixed(248.0))
+                )
+            }
+            crate::app::RightPanelTab::Lyrics => {
+                let display_track = if !matches!(state.playback_state, crate::audio::PlaybackState::Stopped) {
+                    state.current_track.as_ref()
+                } else {
+                    state.selected_track.as_ref()
+                };
+
+                let content: Element<'_, Message> = if let Some(track) = display_track {
+                    if track.lyrics.trim().is_empty() {
+                        container(
+                            text("No lyrics available.\nRight click song -> Edit ID3 tags to add lyrics.")
+                                .color(theme::overlay0())
+                                .size(14)
+                                .align_y(iced::alignment::Vertical::Center)
+                                .align_x(iced::alignment::Horizontal::Center)
+                        )
+                        .width(Length::Fill)
+                        .height(Length::Fill)
+                        .center_x(Length::Fill)
+                        .center_y(Length::Fill)
+                        .into()
+                    } else {
+                        let lrc_lines = parse_lrc(&track.lyrics);
+                        if !lrc_lines.is_empty() {
+                            let active_idx = lrc_lines.iter().position(|l| l.time > state.position)
+                                .map(|idx| if idx > 0 { idx - 1 } else { 0 })
+                                .unwrap_or_else(|| lrc_lines.len() - 1);
+
+                            let start_idx = active_idx.saturating_sub(2);
+                            let end_idx = (active_idx + 3).min(lrc_lines.len());
+                            let mut lines_col = column![].spacing(10).align_y(Alignment::Center);
+                            for i in start_idx..end_idx {
+                                let line = &lrc_lines[i];
+                                let is_active = i == active_idx;
+                                let text_element = text(&line.text)
+                                    .size(if is_active { 15 } else { 12 })
+                                    .font(if is_active { crate::ui::icons::UI_FONT_BOLD } else { crate::ui::icons::UI_FONT })
+                                    .color(if is_active { theme::accent() } else { theme::overlay0() });
+                                lines_col = lines_col.push(text_element);
+                            }
+
+                            container(lines_col)
+                                .width(Length::Fill)
+                                .height(Length::Fill)
+                                .center_x(Length::Fill)
+                                .center_y(Length::Fill)
+                                .into()
+                        } else {
+                            iced::widget::scrollable(
+                                container(
+                                    text(&track.lyrics)
+                                        .color(theme::text())
+                                        .size(13)
+                                )
+                                .width(Length::Fill)
+                                .padding(12)
+                                .center_x(Length::Fill)
+                            )
+                            .height(Length::Fill)
+                            .into()
+                        }
+                    }
+                } else {
+                    container(
+                        text("No track selected")
+                            .color(theme::overlay0())
+                            .size(16)
+                    )
+                    .width(Length::Fill)
+                    .height(Length::Fill)
+                    .center_x(Length::Fill)
+                    .center_y(Length::Fill)
+                    .into()
+                };
+
+                Some(
+                    container(content)
+                        .style(theme::player_panel)
+                        .width(Length::FillPortion(1))
+                        .height(Length::Fixed(248.0))
+                )
+            }
+        }
     } else {
         None
     };
@@ -291,4 +372,37 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     }
 
     main_row.into()
+}
+
+struct LrcLine {
+    time: std::time::Duration,
+    text: String,
+}
+
+fn parse_lrc(lyrics: &str) -> Vec<LrcLine> {
+    let mut lines = Vec::new();
+    for line in lyrics.lines() {
+        let line = line.trim();
+        if line.starts_with('[') {
+            if let Some(end_bracket) = line.find(']') {
+                let time_str = &line[1..end_bracket];
+                let text_str = &line[end_bracket + 1..];
+                if let Some((min_str, sec_str)) = time_str.split_once(':') {
+                    if let Ok(min) = min_str.parse::<u64>() {
+                        if let Ok(sec) = sec_str.parse::<f32>() {
+                            let total_secs = min * 60 + sec.floor() as u64;
+                            let ms = ((sec - sec.floor()) * 1000.0) as u32;
+                            let time = std::time::Duration::new(total_secs, ms * 1_000_000);
+                            lines.push(LrcLine {
+                                time,
+                                text: text_str.trim().to_string(),
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+    lines.sort_by_key(|l| l.time);
+    lines
 }
