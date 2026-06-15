@@ -7,7 +7,7 @@ use crate::ui::components::progress;
 use crate::ui::{icons, theme};
 
 /// Half-second offset so lyrics don't appear ahead of the audio
-const LYRICS_OFFSET: std::time::Duration = std::time::Duration::from_millis(500);
+pub const LYRICS_OFFSET: std::time::Duration = std::time::Duration::from_millis(500);
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
     // 1. Determine which track to display (active track or selected track as queue fallback)
@@ -337,6 +337,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                                     .padding([16, 12])
                                     .center_x(Length::Fill)
                             )
+                            .id(state.lyrics_scroll_id.clone())
                             .height(Length::Fill)
                             .into()
                         } else {
@@ -467,12 +468,12 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     main_row.into()
 }
 
-struct LrcLine {
-    time: std::time::Duration,
-    text: String,
+pub struct LrcLine {
+    pub time: std::time::Duration,
+    pub text: String,
 }
 
-fn parse_lrc(lyrics: &str) -> Vec<LrcLine> {
+pub fn parse_lrc(lyrics: &str) -> Vec<LrcLine> {
     let mut lines = Vec::new();
     for line in lyrics.lines() {
         let line = line.trim();
