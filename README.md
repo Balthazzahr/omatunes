@@ -4,6 +4,8 @@ A native Wayland music player written in Rust, built for [Omarchy](https://omarc
 
 `omatunes` is a customized fork of [sheep-farm/lavanda](https://github.com/sheep-farm/lavanda) by [Balthazzahr](https://github.com/Balthazzahr).
 
+![omatunes Screenshot](screenshot.png)
+
 ---
 
 ## Key Features
