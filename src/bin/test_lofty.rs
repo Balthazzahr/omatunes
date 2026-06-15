@@ -1,6 +1,9 @@
 use lofty::tag::{ItemKey, TagExt};
 
-fn main() {
-    let key1 = ItemKey::Lyrics;
-    println!("Compiled: {:?}", key1);
+fn test_read(tag: &dyn TagExt) {
+    if let Some(lyrics) = tag.get_string(&ItemKey::Lyrics) {
+        println!("Lyrics: {}", lyrics);
+    }
 }
+
+fn main() {}
