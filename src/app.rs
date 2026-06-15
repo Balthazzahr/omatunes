@@ -1265,6 +1265,7 @@ impl AppState {
                     let track_num = state.track_number.trim().parse::<u32>().ok();
                     let disc_num = state.disc_number.trim().parse::<u32>().ok();
                     let year_num = state.year.trim().parse::<u32>().ok();
+                    let lyrics_text = state.lyrics_content.text();
 
                     let mut tracks_to_update = Vec::new();
                     if state.apply_to_album {
@@ -1290,7 +1291,7 @@ impl AppState {
                         let disc_number = if state.apply_disc_num { disc_num } else { track.disc_number };
                         let year = if state.apply_year { year_num } else { track.year };
                         let cover_path = if state.apply_cover { state.cover_path.as_deref() } else { None };
-                        let lyrics_val = if state.apply_lyrics { Some(state.lyrics.as_str()) } else { None };
+                        let lyrics_val = if state.apply_lyrics { Some(lyrics_text.as_str()) } else { None };
 
                         let res = crate::library::write_tags(
                             &track.path,
@@ -1316,7 +1317,7 @@ impl AppState {
                                 t.disc_number = disc_number;
                                 t.year = year;
                                 if state.apply_lyrics {
-                                    t.lyrics = state.lyrics.clone();
+                                    t.lyrics = lyrics_text.clone();
                                 }
                                 if cover_path.is_some() {
                                     t.cover_data = load_cover(&t.path);
@@ -1331,7 +1332,7 @@ impl AppState {
                                 t.disc_number = disc_number;
                                 t.year = year;
                                 if state.apply_lyrics {
-                                    t.lyrics = state.lyrics.clone();
+                                    t.lyrics = lyrics_text.clone();
                                 }
                                 if cover_path.is_some() {
                                     t.cover_data = load_cover(&t.path);
@@ -1347,7 +1348,7 @@ impl AppState {
                                     ct.disc_number = disc_number;
                                     ct.year = year;
                                     if state.apply_lyrics {
-                                        ct.lyrics = state.lyrics.clone();
+                                        ct.lyrics = lyrics_text.clone();
                                     }
                                     if cover_path.is_some() {
                                         ct.cover_data = load_cover(&ct.path);
@@ -1364,7 +1365,7 @@ impl AppState {
                                     st.disc_number = disc_number;
                                     st.year = year;
                                     if state.apply_lyrics {
-                                        st.lyrics = state.lyrics.clone();
+                                        st.lyrics = lyrics_text.clone();
                                     }
                                     if cover_path.is_some() {
                                         st.cover_data = load_cover(&st.path);
@@ -1380,7 +1381,7 @@ impl AppState {
                                 t.disc_number = disc_number;
                                 t.year = year;
                                 if state.apply_lyrics {
-                                    t.lyrics = state.lyrics.clone();
+                                    t.lyrics = lyrics_text.clone();
                                 }
                                 if cover_path.is_some() {
                                     t.cover_data = load_cover(&t.path);
