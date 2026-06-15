@@ -95,6 +95,12 @@ pub enum Message {
     PlaylistDragMove(f32),
     PlaylistDragEnd,
 
+    RightPanelDragStart,
+    RightPanelDragMove(f32),
+    RightPanelDragEnd,
+
+    SeekToLyric(Duration),
+
     PollAudio,
     CheckTheme,
 
@@ -183,6 +189,7 @@ pub enum Message {
 
     HoverSidebarResizer(bool),
     HoverPlaylistResizer(bool),
+    HoverRightPanelResizer(bool),
     RestoreHiddenItems,
     CreatePlaylistFromContext(String, bool),
     ModifiersChanged(iced::keyboard::Modifiers),
@@ -290,6 +297,11 @@ pub struct AppState {
     pub sidebar_width: f32,
     pub dragging_sidebar: bool,
 
+    pub right_panel_width: f32,
+    pub dragging_right_panel: bool,
+    pub is_hovering_right_panel_resizer: bool,
+    pub window_width: f32,
+
     pub iced_theme: iced::Theme,
     loaded_theme_name: String,
 
@@ -344,6 +356,7 @@ pub struct AppState {
 
     pub playlist_tab: PlaylistTab,
     pub right_panel_tab: Option<RightPanelTab>,
+    pub right_panel_tab_user_scrolled: bool,
     audio: AudioPlayer,
     mpris_cmd_rx: tokio::sync::mpsc::UnboundedReceiver<MprisCommand>,
     mpris_update_tx: tokio::sync::mpsc::UnboundedSender<MprisUpdate>,
@@ -406,6 +419,10 @@ impl AppState {
             folder_cache: HashMap::new(),
             sidebar_width: load_sidebar_width(),
             dragging_sidebar: false,
+            right_panel_width: load_right_panel_width(),
+            dragging_right_panel: false,
+            is_hovering_right_panel_resizer: false,
+            window_width: 960.0,
             iced_theme,
             loaded_theme_name,
             strings: crate::locale::get(),
@@ -451,6 +468,7 @@ impl AppState {
             hidden_artists_albums: crate::db::get(|db| db.hidden_artists_albums.clone()),
             playlist_tab: PlaylistTab::Playlists,
             right_panel_tab: None,
+            right_panel_tab_user_scrolled: false,
             audio,
             mpris_cmd_rx,
             mpris_update_tx,
@@ -754,6 +772,13 @@ impl AppState {
                 Task::none()
             }
 
+            Message::SeekToLyric(dur) => {
+                self.audio.send(AudioCommand::Seek(dur));
+                self.position = dur;
+                self.right_panel_tab_user_scrolled = false;
+                Task::none()
+            }
+
             Message::SeekRelative(delta_secs) => {
                 let new_pos = if delta_secs < 0 {
                     self.position.saturating_sub(Duration::from_secs(delta_secs.unsigned_abs()))
@@ -806,6 +831,29 @@ impl AppState {
             Message::SidebarDragEnd => {
                 self.dragging_sidebar = false;
                 save_sidebar_width(self.sidebar_width);
+                Task::none()
+            }
+
+            Message::RightPanelDragStart => {
+                self.dragging_right_panel = true;
+                Task::none()
+            }
+
+            Message::RightPanelDragMove(x) => {
+                // x is cursor position from left of window.
+                // The right panel's left edge is at (window_width - right_panel_width - tab_strip_width - separator).
+                // We want: right_panel_width = window_width - x - some offset for the tab strip/separator on the right.
+                // Actually the panel is to the right of the drag handle, so:
+                // new_width = window_width - x
+                // But we need to account for the separator width. The drag handle sits between player and panel.
+                let new_width = (self.window_width - x).clamp(150.0, self.window_width * 0.6);
+                self.right_panel_width = new_width;
+                Task::none()
+            }
+
+            Message::RightPanelDragEnd => {
+                self.dragging_right_panel = false;
+                save_right_panel_width(self.right_panel_width);
                 Task::none()
             }
 
@@ -1639,8 +1687,9 @@ impl AppState {
                 Task::none()
             }
 
-            Message::WindowResized(_w, h) => {
+            Message::WindowResized(w, h) => {
                 self.window_height = h;
+                self.window_width = w;
                 if !self.playlist_height_initialized {
                     self.playlist_height = ((h - 212.0) * 0.33).max(50.0);
                     self.playlist_height_initialized = true;
@@ -1655,6 +1704,11 @@ impl AppState {
 
             Message::HoverSidebarList(val) => {
                 self.is_hovering_sidebar_list = val;
+                Task::none()
+            }
+
+            Message::HoverRightPanelResizer(val) => {
+                self.is_hovering_right_panel_resizer = val;
                 Task::none()
             }
 
@@ -2906,6 +2960,21 @@ impl AppState {
             }));
         }
 
+        if self.dragging_right_panel {
+            subs.push(iced::event::listen_with(|event, _, _| {
+                use iced::mouse;
+                match event {
+                    iced::Event::Mouse(mouse::Event::CursorMoved { position }) => {
+                        Some(Message::RightPanelDragMove(position.x))
+                    }
+                    iced::Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) => {
+                        Some(Message::RightPanelDragEnd)
+                    }
+                    _ => None,
+                }
+            }));
+        }
+
         Subscription::batch(subs)
     }
 
@@ -3065,6 +3134,27 @@ fn load_sidebar_width() -> f32 {
 
 fn save_sidebar_width(width: f32) {
     let path = sidebar_width_path();
+    if let Some(dir) = path.parent() {
+        std::fs::create_dir_all(dir).ok();
+    }
+    std::fs::write(path, width.to_string()).ok();
+}
+
+fn right_panel_width_path() -> PathBuf {
+    let xdg = std::env::var("XDG_CONFIG_HOME")
+        .unwrap_or_else(|_| format!("{}/.config", std::env::var("HOME").unwrap_or_else(|_| "/tmp".into())));
+    PathBuf::from(xdg).join("omatunes").join("right_panel_width")
+}
+
+fn load_right_panel_width() -> f32 {
+    std::fs::read_to_string(right_panel_width_path())
+        .ok()
+        .and_then(|s| s.trim().parse().ok())
+        .unwrap_or(400.0)
+}
+
+fn save_right_panel_width(width: f32) {
+    let path = right_panel_width_path();
     if let Some(dir) = path.parent() {
         std::fs::create_dir_all(dir).ok();
     }
