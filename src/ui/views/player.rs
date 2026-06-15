@@ -191,7 +191,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .width(84.0)
     )
     .padding([0, 8])
-    .height(Length::Fill)
+    .height(Length::Fixed(248.0))
     .align_y(iced::alignment::Vertical::Center);
 
     let left_side_width = if state.right_panel_tab.is_some() {
@@ -202,7 +202,8 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
 
     let player_container = container(player_row)
         .style(theme::player_panel)
-        .width(left_side_width);
+        .width(left_side_width)
+        .height(Length::Fixed(248.0));
 
     let vol_step = crate::config::get().volume_step;
 
@@ -241,7 +242,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             container(content)
                 .style(theme::player_panel)
                 .width(Length::FillPortion(1))
-                .height(Length::Fill)
+                .height(Length::Fixed(248.0))
         )
     } else {
         None
@@ -253,7 +254,8 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     ]
     .spacing(0)
     .align_y(Alignment::Center)
-    .width(Length::Fill);
+    .width(Length::Fill)
+    .height(Length::Fixed(248.0));
 
     if let Some(pane) = content_pane {
         main_row = main_row.push(pane);
