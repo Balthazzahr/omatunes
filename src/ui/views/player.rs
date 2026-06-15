@@ -284,7 +284,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
 
                             let start_idx = active_idx.saturating_sub(2);
                             let end_idx = (active_idx + 3).min(lrc_lines.len());
-                            let mut lines_col = column![].spacing(10).align_y(Alignment::Center);
+                            let mut lines_col = column![].spacing(10).align_x(Alignment::Center);
                             for i in start_idx..end_idx {
                                 let line = &lrc_lines[i];
                                 let is_active = i == active_idx;
