@@ -317,7 +317,9 @@ pub fn view<'a>(
     .padding(24)
     .width(500);
 
-    content = content.push(apply_to_album_checkbox);
+    if state.active_tab == crate::app::TagEditorTab::Main {
+        content = content.push(apply_to_album_checkbox);
+    }
     content = content.push(Space::with_height(16));
 
     content = content.push(

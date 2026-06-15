@@ -283,7 +283,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                                 let line = &lrc_lines[i];
                                 let is_active = i == active_idx;
                                 let text_element = text(line.text.clone())
-                                    .size(if is_active { 15 } else { 12 })
+                                    .size(if is_active { 19 } else { 16 })
                                     .font(if is_active { crate::ui::icons::UI_FONT_BOLD } else { crate::ui::icons::UI_FONT })
                                     .color(if is_active { theme::accent() } else { theme::overlay0() });
                                 lines_col = lines_col.push(text_element);
@@ -300,7 +300,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                                 container(
                                     text(track.lyrics.clone())
                                         .color(theme::text())
-                                        .size(13)
+                                        .size(17)
                                 )
                                 .width(Length::Fill)
                                 .padding(12)
