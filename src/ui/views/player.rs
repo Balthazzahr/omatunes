@@ -145,16 +145,16 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     .align_y(Alignment::Center)
     .padding(16);
 
-    let tab_btn = |tab: crate::app::RightPanelTab, label: &'static str| {
+    let tab_btn = |tab: crate::app::RightPanelTab, icon_str: &'static str| {
         let is_active = state.right_panel_tab == Some(tab);
-        let btn_text = text(label)
-            .size(11)
-            .font(crate::ui::icons::UI_FONT_BOLD);
+        let btn_icon = text(icon_str)
+            .size(16)
+            .font(crate::ui::icons::NERD_FONT_MONO);
         
-        button(container(btn_text).center_x(Length::Fill).center_y(Length::Fill))
+        button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
             .on_press(Message::ToggleRightPanelTab(tab))
-            .width(Length::Fill)
-            .height(28.0)
+            .width(36.0)
+            .height(36.0)
             .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
                 let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
                 iced::widget::button::Style {
@@ -184,11 +184,11 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
 
     let tab_strip = container(
         column![
-            tab_btn(crate::app::RightPanelTab::Visualizer, "Visualizer"),
-            tab_btn(crate::app::RightPanelTab::Lyrics, "Lyrics"),
+            tab_btn(crate::app::RightPanelTab::Visualizer, crate::ui::icons::ICON_VISUALIZER),
+            tab_btn(crate::app::RightPanelTab::Lyrics, crate::ui::icons::ICON_LYRICS),
         ]
-        .spacing(8)
-        .width(84.0)
+        .spacing(12)
+        .width(36.0)
     )
     .padding([0, 8])
     .height(Length::Fixed(248.0))
@@ -248,6 +248,14 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         None
     };
 
+    let separator = container(Space::new(Length::Fixed(1.0), Length::Fill))
+        .style(|_| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::surface0())),
+            ..Default::default()
+        })
+        .width(1.0)
+        .height(Length::Fixed(248.0));
+
     let mut main_row = row![
         player_with_scroll,
         tab_strip,
@@ -258,7 +266,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     .height(Length::Fixed(248.0));
 
     if let Some(pane) = content_pane {
-        main_row = main_row.push(pane);
+        main_row = main_row.push(separator).push(pane);
     }
 
     main_row.into()
