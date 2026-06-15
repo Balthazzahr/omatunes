@@ -148,51 +148,63 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     let tab_btn = |tab: crate::app::RightPanelTab, icon_str: &'static str| {
         let is_active = state.right_panel_tab == Some(tab);
         let btn_icon = text(icon_str)
-            .size(16)
+            .size(28)
             .font(crate::ui::icons::NERD_FONT_MONO);
         
         button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
             .on_press(Message::ToggleRightPanelTab(tab))
-            .width(36.0)
-            .height(36.0)
+            .width(Length::Fill)
+            .height(Length::Fill)
             .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
                 let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
                 iced::widget::button::Style {
                     background: Some(iced::Background::Color(if is_active {
-                        theme::mantle()
+                        theme::surface0()
                     } else if is_hovered {
                         theme::surface0()
                     } else {
                         iced::Color::TRANSPARENT
                     })),
-                    border: iced::Border {
-                        color: if is_active { theme::accent() } else { iced::Color::TRANSPARENT },
-                        width: if is_active { 1.0 } else { 0.0 },
-                        radius: iced::border::Radius {
-                            top_left: 4.0,
-                            top_right: 4.0,
-                            bottom_left: 4.0,
-                            bottom_right: 4.0,
-                        },
+                    text_color: if is_active {
+                        theme::accent()
+                    } else if is_hovered {
+                        theme::text()
+                    } else {
+                        theme::subtext()
                     },
-                    text_color: if is_active { theme::accent() } else { theme::subtext() },
+                    border: iced::Border {
+                        radius: 0.0.into(),
+                        ..Default::default()
+                    },
                     ..Default::default()
                 }
             })
             .padding(0)
     };
 
+    let horizontal_sep = container(Space::new(Length::Fill, Length::Fixed(1.0)))
+        .style(|_| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::surface0())),
+            ..Default::default()
+        })
+        .width(Length::Fill)
+        .height(1.0);
+
     let tab_strip = container(
         column![
             tab_btn(crate::app::RightPanelTab::Visualizer, crate::ui::icons::ICON_VISUALIZER),
+            horizontal_sep,
             tab_btn(crate::app::RightPanelTab::Lyrics, crate::ui::icons::ICON_LYRICS),
         ]
-        .spacing(12)
-        .width(36.0)
+        .width(Length::Fill)
+        .height(Length::Fill)
     )
-    .padding([0, 8])
+    .width(56.0)
     .height(Length::Fixed(248.0))
-    .align_y(iced::alignment::Vertical::Center);
+    .style(|_| iced::widget::container::Style {
+        background: Some(iced::Background::Color(theme::mantle())),
+        ..Default::default()
+    });
 
     let left_side_width = if state.right_panel_tab.is_some() {
         Length::FillPortion(1)
@@ -258,6 +270,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
 
     let mut main_row = row![
         player_with_scroll,
+        separator,
         tab_strip,
     ]
     .spacing(0)
@@ -266,7 +279,15 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     .height(Length::Fixed(248.0));
 
     if let Some(pane) = content_pane {
-        main_row = main_row.push(separator).push(pane);
+        // Add another vertical separator before the sliding pane
+        let pane_separator = container(Space::new(Length::Fixed(1.0), Length::Fill))
+            .style(|_| iced::widget::container::Style {
+                background: Some(iced::Background::Color(theme::surface0())),
+                ..Default::default()
+            })
+            .width(1.0)
+            .height(Length::Fixed(248.0));
+        main_row = main_row.push(pane_separator).push(pane);
     }
 
     main_row.into()
