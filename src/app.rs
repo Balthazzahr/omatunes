@@ -492,6 +492,63 @@ impl AppState {
                     }
                 }
                 self.tracks = temp_tracks;
+            } else if playlist_name == "New Music" {
+                use std::time::SystemTime;
+                let mut album_times: std::collections::HashMap<String, SystemTime> = std::collections::HashMap::new();
+                for t in &self.all_tracks {
+                    let mtime = std::fs::metadata(&t.path)
+                        .and_then(|meta| meta.modified())
+                        .unwrap_or(SystemTime::UNIX_EPOCH);
+                    let entry = album_times.entry(t.album.clone()).or_insert(SystemTime::UNIX_EPOCH);
+                    if mtime > *entry {
+                        *entry = mtime;
+                    }
+                }
+                
+                let mut albums_sorted: Vec<(String, SystemTime)> = album_times.into_iter().collect();
+                albums_sorted.sort_by(|a, b| b.1.cmp(&a.1));
+                
+                let now = SystemTime::now();
+                let forty_eight_hours = std::time::Duration::from_secs(48 * 3600);
+                
+                let mut target_albums = std::collections::HashSet::new();
+                for (idx, (album_title, added_time)) in albums_sorted.iter().enumerate() {
+                    let is_in_last_48h = now.duration_since(*added_time)
+                        .map(|d| d < forty_eight_hours)
+                        .unwrap_or(false);
+                    if idx < 5 || is_in_last_48h {
+                        target_albums.insert(album_title.clone());
+                    }
+                }
+                
+                let mut temp_tracks: Vec<Track> = self.all_tracks.iter()
+                    .filter(|t| target_albums.contains(&t.album))
+                    .cloned()
+                    .collect();
+                    
+                let album_times_ref = &albums_sorted.into_iter().collect::<std::collections::HashMap<_, _>>();
+                temp_tracks.sort_by(|a, b| {
+                    let time_a = album_times_ref.get(&a.album).unwrap_or(&SystemTime::UNIX_EPOCH);
+                    let time_b = album_times_ref.get(&b.album).unwrap_or(&SystemTime::UNIX_EPOCH);
+                    let cmp_time = time_b.cmp(time_a);
+                    if cmp_time == std::cmp::Ordering::Equal {
+                        let cmp_album = a.album.cmp(&b.album);
+                        if cmp_album == std::cmp::Ordering::Equal {
+                            let cmp_disc = a.disc_number.unwrap_or(0).cmp(&b.disc_number.unwrap_or(0));
+                            if cmp_disc == std::cmp::Ordering::Equal {
+                                a.track_number.unwrap_or(0).cmp(&b.track_number.unwrap_or(0))
+                            } else {
+                                cmp_disc
+                            }
+                        } else {
+                            cmp_album
+                        }
+                    } else {
+                        cmp_time
+                    }
+                });
+                
+                self.tracks = temp_tracks;
             } else {
                 let paths = crate::db::get(|db| db.playlists.get(playlist_name).cloned().unwrap_or_default());
                 self.tracks = self.all_tracks.iter().filter(|t| paths.contains(&t.path)).cloned().collect();

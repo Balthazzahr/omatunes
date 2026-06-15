@@ -351,7 +351,7 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
 
     let playlist_tabs = row![
         playlist_tab_btn(crate::app::PlaylistTab::Playlists, "User Playlists"),
-        playlist_tab_btn(crate::app::PlaylistTab::Autoplaylists, "Autoplaylists"),
+        playlist_tab_btn(crate::app::PlaylistTab::Autoplaylists, "Auto Playlists"),
     ]
     .spacing(0)
     .align_y(Alignment::Center)
@@ -392,6 +392,7 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
         auto_playlists_col = auto_playlists_col.push(render_playlist_item("Liked Songs".to_string(), true));
         auto_playlists_col = auto_playlists_col.push(render_playlist_item("Recently Played".to_string(), true));
         auto_playlists_col = auto_playlists_col.push(render_playlist_item("Most Played".to_string(), true));
+        auto_playlists_col = auto_playlists_col.push(render_playlist_item("New Music".to_string(), true));
 
         playlists_area_col = playlists_area_col.push(
             container(scrollable(auto_playlists_col))
