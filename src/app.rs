@@ -199,6 +199,12 @@ pub enum PlaylistTab {
 
 // ── Estado global ─────────────────────────────────────────────────────────────
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TagEditorTab {
+    Main,
+    Lyrics,
+}
+
 #[derive(Clone, Debug)]
 pub struct TagEditorState {
     pub tracks: Vec<Track>,
@@ -219,6 +225,9 @@ pub struct TagEditorState {
     pub apply_track_num: bool,
     pub apply_disc_num: bool,
     pub apply_cover: bool,
+    pub apply_lyrics: bool,
+    pub lyrics: String,
+    pub active_tab: TagEditorTab,
     pub focused_field: Option<usize>,
 }
 
