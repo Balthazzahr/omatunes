@@ -13,7 +13,7 @@ A native Wayland music player written in Rust, built for [Omarchy](https://omarc
 - **Wide Audio Format Support**: Plays MP3, FLAC, OGG, Opus, WAV, AAC, M4A, AIFF, and more natively via the high-performance [Symphonia](https://github.com/pdeljanov/Symphonia) library.
 - **100% Offline & Privacy-First**: Zero tracking, zero background telemetry, and no network requirements. It logs, saves, and compiles your play counts, statistics, and leaderboard records locally.
 - **Live Omarchy Theme Switching**: Automatically maps your active system theme (`Catppuccin`, `Nord`, `Gruvbox`, etc.) to the UI palette live in under 3 seconds. No app restarts required.
-- **Native Wayland & Lightweight**: Built in native Rust for Wayland compositors (like Hyprland) using the Iced GUI toolkit. Extremely fast startup and low resource consumption.
+- **Native Wayland/X11 & Lightweight**: Built in native Rust using the Iced GUI toolkit. Runs on any Wayland compositor (Hyprland, GNOME, KDE) or traditional X11 window managers. Extremely fast startup and low resource consumption.
 - **Rich Waybar MPRIS Integration**: Pre-packaged with local Waybar status scripts (`scripts/omatunes_text.py`). Provides styled progress bars, listening history milestones, and interactive tooltip stats directly on your status bar.
 - **Folder-Based Music Library**: No forced file re-organization. respects and reads your existing `~/Music` subdirectory structure exactly as it is.
 - **High-Performance Incremental Scanner**: Instantly scans your library on startup by checking file modification timestamps (`mtime` cache) to skip unchanged tracks.
@@ -32,7 +32,7 @@ A native Wayland music player written in Rust, built for [Omarchy](https://omarc
 | A Nerd Font | `JetBrainsMono Nerd Font Mono` by default; any Nerd Font works |
 | PipeWire or PulseAudio | Audio output via cpal |
 | D-Bus session bus | For MPRIS2 (`DBUS_SESSION_BUS_ADDRESS` must be set) |
-| Wayland compositor | Tested on Hyprland; works on any wlroots compositor |
+| Wayland or X11 | Tested on Hyprland; works on GNOME, KDE, and any standard Wayland/X11 window manager |
 
 ---
 
