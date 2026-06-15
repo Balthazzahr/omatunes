@@ -1044,6 +1044,7 @@ impl AppState {
                     apply_cover: false,
                     apply_lyrics: false,
                     lyrics: if all_same_lyrics { first.lyrics.clone() } else { String::new() },
+                    lyrics_content: iced::widget::text_editor::Content::with_text(if all_same_lyrics { &first.lyrics } else { "" }),
                     active_tab: TagEditorTab::Main,
                     focused_field: Some(0),
                 });
