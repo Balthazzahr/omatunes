@@ -29,6 +29,12 @@ pub enum ViewMode {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RightPanelTab {
+    Visualizer,
+    Lyrics,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ActiveFocus {
     SidebarSearch,
     SongSearch,
@@ -182,6 +188,7 @@ pub enum Message {
     MoveColumnLeft(crate::db::TableColumn),
     MoveColumnRight(crate::db::TableColumn),
     SelectPlaylistTab(PlaylistTab),
+    ToggleRightPanelTab(RightPanelTab),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
