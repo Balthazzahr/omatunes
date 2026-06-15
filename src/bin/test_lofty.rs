@@ -1,7 +1,6 @@
-use lofty::tag::ItemKey;
+use lofty::tag::{ItemKey, TagExt};
 
 fn main() {
     let key1 = ItemKey::Lyrics;
-    let key2 = ItemKey::UnsynchronizedLyrics;
-    println!("Compiled: {:?}, {:?}", key1, key2);
+    println!("Compiled: {:?}", key1);
 }
