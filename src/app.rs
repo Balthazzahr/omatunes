@@ -209,7 +209,7 @@ pub enum TagEditorTab {
     Lyrics,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct TagEditorState {
     pub tracks: Vec<Track>,
     pub title: String,
@@ -234,6 +234,36 @@ pub struct TagEditorState {
     pub lyrics_content: iced::widget::text_editor::Content,
     pub active_tab: TagEditorTab,
     pub focused_field: Option<usize>,
+}
+
+impl Clone for TagEditorState {
+    fn clone(&self) -> Self {
+        TagEditorState {
+            tracks: self.tracks.clone(),
+            title: self.title.clone(),
+            artist: self.artist.clone(),
+            album: self.album.clone(),
+            genre: self.genre.clone(),
+            track_number: self.track_number.clone(),
+            disc_number: self.disc_number.clone(),
+            cover_path: self.cover_path.clone(),
+            apply_to_album: self.apply_to_album,
+            year: self.year.clone(),
+            apply_title: self.apply_title,
+            apply_artist: self.apply_artist,
+            apply_album: self.apply_album,
+            apply_year: self.apply_year,
+            apply_genre: self.apply_genre,
+            apply_track_num: self.apply_track_num,
+            apply_disc_num: self.apply_disc_num,
+            apply_cover: self.apply_cover,
+            apply_lyrics: self.apply_lyrics,
+            lyrics: self.lyrics.clone(),
+            lyrics_content: iced::widget::text_editor::Content::with_text(&self.lyrics_content.text()),
+            active_tab: self.active_tab,
+            focused_field: self.focused_field,
+        }
+    }
 }
 
 
