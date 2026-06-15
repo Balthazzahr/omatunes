@@ -52,7 +52,7 @@ pub fn view(
     unique_artists: &[String],
     unique_albums: &[String],
     unique_genres: &[String],
-) -> Element<'static, Message> {
+) -> Element<'_, Message> {
     let title_input = text_input("Title", &state.title)
         .id(iced::widget::text_input::Id::new("id3_title"))
         .on_input(Message::UpdateTagFieldTitle)
