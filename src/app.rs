@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::Duration;
 
-use iced::widget::{button, container, column, row, text, Space, stack};
+use iced::widget::{button, container, column, row, text, Space, stack, scrollable};
 use iced::{Alignment, Element, Length, Subscription, Task, Theme};
 use mpris_server::{LoopStatus, PlaybackStatus};
 
@@ -357,6 +357,8 @@ pub struct AppState {
     pub playlist_tab: PlaylistTab,
     pub right_panel_tab: Option<RightPanelTab>,
     pub right_panel_tab_user_scrolled: bool,
+    pub lyrics_scroll_id: scrollable::Id,
+    pub last_active_lyric_idx: Option<usize>,
     audio: AudioPlayer,
     mpris_cmd_rx: tokio::sync::mpsc::UnboundedReceiver<MprisCommand>,
     mpris_update_tx: tokio::sync::mpsc::UnboundedSender<MprisUpdate>,
@@ -469,6 +471,8 @@ impl AppState {
             playlist_tab: PlaylistTab::Playlists,
             right_panel_tab: None,
             right_panel_tab_user_scrolled: false,
+            lyrics_scroll_id: scrollable::Id::unique(),
+            last_active_lyric_idx: None,
             audio,
             mpris_cmd_rx,
             mpris_update_tx,
@@ -957,6 +961,40 @@ impl AppState {
                             self.volume = clamped;
                             self.audio.send(AudioCommand::SetVolume(clamped));
                             self.send_mpris(MprisUpdate::Volume(v));
+                        }
+                    }
+                }
+
+                // Auto-scroll lyrics if the active lyric line has changed
+                if self.right_panel_tab == Some(RightPanelTab::Lyrics) {
+                    if let Some(track) = self.current_track.as_ref() {
+                        if !track.lyrics.trim().is_empty() {
+                            let lrc_lines = crate::ui::views::player::parse_lrc(&track.lyrics);
+                            if !lrc_lines.is_empty() {
+                                let adjusted_pos = self.position.saturating_sub(
+                                    crate::ui::views::player::LYRICS_OFFSET
+                                );
+                                let active_idx = lrc_lines.iter().position(|l| l.time > adjusted_pos)
+                                    .map(|idx| if idx > 0 { idx - 1 } else { 0 })
+                                    .unwrap_or_else(|| lrc_lines.len() - 1);
+
+                                if self.last_active_lyric_idx != Some(active_idx) {
+                                    self.last_active_lyric_idx = Some(active_idx);
+                                    // Compute relative scroll position to center active line
+                                    let total = lrc_lines.len();
+                                    let fraction = if total <= 1 {
+                                        0.0
+                                    } else {
+                                        active_idx as f32 / (total - 1) as f32
+                                    };
+                                    tasks.push(
+                                        scrollable::snap_to(
+                                            self.lyrics_scroll_id.clone(),
+                                            scrollable::RelativeOffset { x: 0.0, y: fraction },
+                                        )
+                                    );
+                                }
+                            }
                         }
                     }
                 }
