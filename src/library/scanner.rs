@@ -66,6 +66,7 @@ pub fn scan_folder(dir: &Path) -> Vec<Track> {
             play_count,
             liked,
             date_played: None,
+            lyrics: info.lyrics,
         }
     }).collect()
 }
@@ -96,6 +97,7 @@ struct TrackInfo {
     duration_ms: u64,
     genre: String,
     year: Option<u32>,
+    lyrics: String,
 }
 
 fn read_tags(path: &Path) -> Result<TrackInfo> {
@@ -147,7 +149,12 @@ fn read_tags(path: &Path) -> Result<TrackInfo> {
         .map(|s| s.to_string())
         .unwrap_or_else(|| unknown.to_string());
 
-    Ok(TrackInfo { title, artist, album, track_number, disc_number, duration_ms, genre, year })
+    let lyrics = tags
+        .and_then(|t| t.get_string(&lofty::tag::ItemKey::Lyrics))
+        .map(|s| s.to_string())
+        .unwrap_or_default();
+
+    Ok(TrackInfo { title, artist, album, track_number, disc_number, duration_ms, genre, year, lyrics })
 }
 
 fn cover_from_folder(path: &Path) -> Option<Vec<u8>> {
@@ -170,6 +177,7 @@ pub fn write_tags(
     disc_number: Option<u32>,
     cover_path: Option<&str>,
     year: Option<u32>,
+    lyrics: Option<&str>,
 ) -> Result<()> {
     let mut tagged_file = Probe::open(path)?.read()?;
     
@@ -195,6 +203,10 @@ pub fn write_tags(
             tag.set_year(yr);
         } else {
             tag.remove_year();
+        }
+        
+        if let Some(lyr) = lyrics {
+            tag.insert_text(lofty::tag::ItemKey::Lyrics, lyr.to_string());
         }
         
         if let Some(cp) = cover_path {
@@ -236,6 +248,10 @@ pub fn write_tags(
             tag.set_year(yr);
         } else {
             tag.remove_year();
+        }
+        
+        if let Some(lyr) = lyrics {
+            tag.insert_text(lofty::tag::ItemKey::Lyrics, lyr.to_string());
         }
         
         if let Some(cp) = cover_path {
