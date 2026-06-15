@@ -155,7 +155,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             .on_press(Message::ToggleRightPanelTab(tab))
             .width(Length::Fill)
             .height(28.0)
-            .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+            .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
                 let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
                 iced::widget::button::Style {
                     background: Some(iced::Background::Color(if is_active {
