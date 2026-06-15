@@ -1,9 +1,7 @@
 use lofty::tag::{ItemKey, Tag, TagExt};
 
-fn test_read(tag: &Tag) {
-    if let Some(lyrics) = tag.get_string(&ItemKey::Lyrics) {
-        println!("Lyrics: {}", lyrics);
-    }
+fn test_write(tag: &mut Tag) {
+    tag.insert_text(ItemKey::Lyrics, "test lyrics".to_string());
 }
 
 fn main() {}
