@@ -2342,7 +2342,7 @@ impl AppState {
 
             Message::UpdateTagFieldLyrics(val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
-                    state.lyrics = val;
+                    state.lyrics_content.perform(val);
                     state.apply_lyrics = true;
                 }
                 Task::none()
