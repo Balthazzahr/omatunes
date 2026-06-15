@@ -105,136 +105,212 @@ pub fn view(
     let album_suggestions = get_suggestions(&state.album, unique_albums);
     let genre_suggestions = get_suggestions(&state.genre, unique_genres);
 
+    let tab_btn = |tab: crate::app::TagEditorTab, label: &'static str| {
+        let is_active = state.active_tab == tab;
+        
+        button(container(text(label).font(crate::ui::icons::UI_FONT_BOLD).size(12)).center_x(Length::Fill).center_y(Length::Fill))
+            .on_press(Message::SelectTagEditorTab(tab))
+            .width(Length::FillPortion(1))
+            .height(36.0)
+            .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                iced::widget::button::Style {
+                    background: Some(iced::Background::Color(if is_active {
+                        theme::surface0()
+                    } else if is_hovered {
+                        theme::surface0()
+                    } else {
+                        iced::Color::TRANSPARENT
+                    })),
+                    border: iced::Border {
+                        color: if is_active { theme::accent() } else { theme::surface0() },
+                        width: if is_active { 1.0 } else { 0.5 },
+                        radius: 0.0.into(),
+                    },
+                    text_color: if is_active { theme::accent() } else { theme::subtext() },
+                    ..Default::default()
+                }
+            })
+            .padding(0)
+    };
+
+    let tabs_header = row![
+        tab_btn(crate::app::TagEditorTab::Main, "Main"),
+        tab_btn(crate::app::TagEditorTab::Lyrics, "Lyrics"),
+    ]
+    .width(Length::Fill);
+
+    let mut body = column![].spacing(6);
+
+    if state.active_tab == crate::app::TagEditorTab::Main {
+        body = body
+            .push(
+                row![
+                    checkbox("", state.apply_title)
+                        .on_toggle(Message::ToggleTagFieldApplyTitle)
+                        .size(16),
+                    column![
+                        text("Title").size(12).color(theme::subtext()),
+                        title_input
+                    ].width(Length::Fill)
+                ].align_y(Alignment::Center).spacing(8)
+            )
+            .push(Space::with_height(2))
+            .push(
+                row![
+                    checkbox("", state.apply_artist)
+                        .on_toggle(Message::ToggleTagFieldApplyArtist)
+                        .size(16),
+                    column![
+                        text("Artist").size(12).color(theme::subtext()),
+                        artist_input,
+                        if !artist_suggestions.is_empty() {
+                            iced::Element::from(column![
+                                Space::with_height(4),
+                                render_suggestions(&artist_suggestions, Message::UpdateTagFieldArtist)
+                            ])
+                        } else {
+                            iced::Element::from(Space::with_height(0))
+                        }
+                    ].width(Length::Fill)
+                ].align_y(Alignment::Center).spacing(8)
+            )
+            .push(Space::with_height(2))
+            .push(
+                row![
+                    checkbox("", state.apply_album)
+                        .on_toggle(Message::ToggleTagFieldApplyAlbum)
+                        .size(16),
+                    column![
+                        text("Album").size(12).color(theme::subtext()),
+                        album_input,
+                        if !album_suggestions.is_empty() {
+                            iced::Element::from(column![
+                                Space::with_height(4),
+                                render_suggestions(&album_suggestions, Message::UpdateTagFieldAlbum)
+                            ])
+                        } else {
+                            iced::Element::from(Space::with_height(0))
+                        }
+                    ].width(Length::Fill)
+                ].align_y(Alignment::Center).spacing(8)
+            )
+            .push(Space::with_height(2))
+            .push(
+                row![
+                    checkbox("", state.apply_genre)
+                        .on_toggle(Message::ToggleTagFieldApplyGenre)
+                        .size(16),
+                    column![
+                        text("Genre").size(12).color(theme::subtext()),
+                        genre_input,
+                        if !genre_suggestions.is_empty() {
+                            iced::Element::from(column![
+                                Space::with_height(4),
+                                render_suggestions(&genre_suggestions, Message::UpdateTagFieldGenre)
+                            ])
+                        } else {
+                            iced::Element::from(Space::with_height(0))
+                        }
+                    ].width(Length::Fill)
+                ].align_y(Alignment::Center).spacing(8)
+            )
+            .push(Space::with_height(2))
+            .push(
+                row![
+                    row![
+                        checkbox("", state.apply_track_num)
+                            .on_toggle(Message::ToggleTagFieldApplyTrackNum)
+                            .size(16),
+                        column![
+                            text("Track #").size(12).color(theme::subtext()),
+                            track_num_input
+                        ].width(Length::Fill)
+                    ].align_y(Alignment::Center).spacing(8).width(Length::FillPortion(1)),
+                    Space::with_width(12),
+                    row![
+                        checkbox("", state.apply_disc_num)
+                            .on_toggle(Message::ToggleTagFieldApplyDiscNum)
+                            .size(16),
+                        column![
+                            text("Disc #").size(12).color(theme::subtext()),
+                            disc_num_input
+                        ].width(Length::Fill)
+                    ].align_y(Alignment::Center).spacing(8).width(Length::FillPortion(1)),
+                    Space::with_width(12),
+                    row![
+                        checkbox("", state.apply_year)
+                            .on_toggle(Message::ToggleTagFieldApplyYear)
+                            .size(16),
+                        column![
+                            text("Year").size(12).color(theme::subtext()),
+                            year_input
+                        ].width(Length::Fill)
+                    ].align_y(Alignment::Center).spacing(8).width(Length::FillPortion(1)),
+                ]
+            )
+            .push(Space::with_height(2))
+            .push(
+                row![
+                    checkbox("", state.apply_cover)
+                        .on_toggle(Message::ToggleTagFieldApplyCover)
+                        .size(16),
+                    column![
+                        row![
+                            text("Cover Path").size(12).color(theme::subtext()),
+                            Space::with_width(Length::Fill),
+                            button(text("Search Online").size(10))
+                                .on_press(Message::SearchCoverOnline)
+                                .style(theme::secondary_button)
+                                .padding([2, 6])
+                        ].align_y(Alignment::Center),
+                        cover_input
+                    ].width(Length::Fill)
+                ].align_y(Alignment::Center).spacing(8)
+            );
+    } else {
+        body = body.push(
+            row![
+                checkbox("", state.apply_lyrics)
+                    .on_toggle(Message::ToggleTagFieldApplyLyrics)
+                    .size(16),
+                column![
+                    row![
+                        text("Lyrics").size(12).color(theme::subtext()),
+                        Space::with_width(Length::Fill),
+                        button(text("Search Online").size(10))
+                            .on_press(Message::SearchLyricsOnline)
+                            .style(theme::secondary_button)
+                            .padding([2, 6])
+                    ].align_y(Alignment::Center),
+                    Space::with_height(4),
+                    container(
+                        iced::widget::text_editor(&state.lyrics_content)
+                            .on_action(Message::UpdateTagFieldLyrics)
+                            .height(Length::Fixed(240.0))
+                    )
+                    .style(|_| iced::widget::container::Style {
+                        border: iced::Border {
+                            color: theme::surface0(),
+                            width: 1.0,
+                            radius: 4.0.into(),
+                        },
+                        ..Default::default()
+                    })
+                ].width(Length::Fill)
+            ].spacing(8)
+        );
+    }
+
     let mut content = column![
         text("Edit ID3 Tags")
             .size(18)
             .font(crate::ui::icons::UI_FONT_BOLD)
             .color(theme::accent()),
+        Space::with_height(8),
+        tabs_header,
         Space::with_height(12),
-        
-        row![
-            checkbox("", state.apply_title)
-                .on_toggle(Message::ToggleTagFieldApplyTitle)
-                .size(16),
-            column![
-                text("Title").size(12).color(theme::subtext()),
-                title_input
-            ].width(Length::Fill)
-        ].align_y(Alignment::Center).spacing(8),
-        
-        Space::with_height(8),
-        
-        row![
-            checkbox("", state.apply_artist)
-                .on_toggle(Message::ToggleTagFieldApplyArtist)
-                .size(16),
-            column![
-                text("Artist").size(12).color(theme::subtext()),
-                artist_input,
-                if !artist_suggestions.is_empty() {
-                    iced::Element::from(column![
-                        Space::with_height(4),
-                        render_suggestions(&artist_suggestions, Message::UpdateTagFieldArtist)
-                    ])
-                } else {
-                    iced::Element::from(Space::with_height(0))
-                }
-            ].width(Length::Fill)
-        ].align_y(Alignment::Center).spacing(8),
-        
-        Space::with_height(8),
-        
-        row![
-            checkbox("", state.apply_album)
-                .on_toggle(Message::ToggleTagFieldApplyAlbum)
-                .size(16),
-            column![
-                text("Album").size(12).color(theme::subtext()),
-                album_input,
-                if !album_suggestions.is_empty() {
-                    iced::Element::from(column![
-                        Space::with_height(4),
-                        render_suggestions(&album_suggestions, Message::UpdateTagFieldAlbum)
-                    ])
-                } else {
-                    iced::Element::from(Space::with_height(0))
-                }
-            ].width(Length::Fill)
-        ].align_y(Alignment::Center).spacing(8),
-        
-        Space::with_height(8),
-        
-        row![
-            checkbox("", state.apply_genre)
-                .on_toggle(Message::ToggleTagFieldApplyGenre)
-                .size(16),
-            column![
-                text("Genre").size(12).color(theme::subtext()),
-                genre_input,
-                if !genre_suggestions.is_empty() {
-                    iced::Element::from(column![
-                        Space::with_height(4),
-                        render_suggestions(&genre_suggestions, Message::UpdateTagFieldGenre)
-                    ])
-                } else {
-                    iced::Element::from(Space::with_height(0))
-                }
-            ].width(Length::Fill)
-        ].align_y(Alignment::Center).spacing(8),
-        
-        Space::with_height(8),
-        
-        row![
-            row![
-                checkbox("", state.apply_track_num)
-                    .on_toggle(Message::ToggleTagFieldApplyTrackNum)
-                    .size(16),
-                column![
-                    text("Track #").size(12).color(theme::subtext()),
-                    track_num_input
-                ].width(Length::Fill)
-            ].align_y(Alignment::Center).spacing(8).width(Length::FillPortion(1)),
-            Space::with_width(12),
-            row![
-                checkbox("", state.apply_disc_num)
-                    .on_toggle(Message::ToggleTagFieldApplyDiscNum)
-                    .size(16),
-                column![
-                    text("Disc #").size(12).color(theme::subtext()),
-                    disc_num_input
-                ].width(Length::Fill)
-            ].align_y(Alignment::Center).spacing(8).width(Length::FillPortion(1)),
-            Space::with_width(12),
-            row![
-                checkbox("", state.apply_year)
-                    .on_toggle(Message::ToggleTagFieldApplyYear)
-                    .size(16),
-                column![
-                    text("Year").size(12).color(theme::subtext()),
-                    year_input
-                ].width(Length::Fill)
-            ].align_y(Alignment::Center).spacing(8).width(Length::FillPortion(1)),
-        ],
-        
-        Space::with_height(8),
-        
-        row![
-            checkbox("", state.apply_cover)
-                .on_toggle(Message::ToggleTagFieldApplyCover)
-                .size(16),
-            column![
-                row![
-                    text("Cover Path").size(12).color(theme::subtext()),
-                    Space::with_width(Length::Fill),
-                    button(text("Search Online").size(10))
-                        .on_press(Message::SearchCoverOnline)
-                        .style(theme::secondary_button)
-                        .padding([2, 6])
-                ].align_y(Alignment::Center),
-                cover_input
-            ].width(Length::Fill)
-        ].align_y(Alignment::Center).spacing(8),
-        
+        body,
         Space::with_height(12)
     ]
     .spacing(4)
