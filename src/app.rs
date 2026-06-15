@@ -1020,6 +1020,7 @@ impl AppState {
                 let all_same_track_num = tracks.iter().all(|t| t.track_number == first.track_number);
                 let all_same_disc_num = tracks.iter().all(|t| t.disc_number == first.disc_number);
                 let all_same_year = tracks.iter().all(|t| t.year == first.year);
+                let all_same_lyrics = tracks.iter().all(|t| t.lyrics == first.lyrics);
 
                 self.show_tag_editor = Some(TagEditorState {
                     tracks: tracks.clone(),
@@ -1040,6 +1041,9 @@ impl AppState {
                     apply_track_num: false,
                     apply_disc_num: false,
                     apply_cover: false,
+                    apply_lyrics: false,
+                    lyrics: if all_same_lyrics { first.lyrics.clone() } else { String::new() },
+                    active_tab: TagEditorTab::Main,
                     focused_field: Some(0),
                 });
                 iced::widget::text_input::focus(iced::widget::text_input::Id::new("id3_title"))
