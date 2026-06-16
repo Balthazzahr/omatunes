@@ -8,6 +8,7 @@ use mpris_server::{LoopStatus, PlaybackStatus};
 
 use crate::audio::{AudioCommand, AudioEvent, AudioPlayer, MprisCommand, MprisUpdate, PlaybackState};
 use crate::audio::mpris;
+use crate::audio::spectrum::SpectrumAnalyzer;
 use crate::library::models::Track;
 use crate::library::{load_cover, scan_folder};
 use crate::ui::{theme, views};
@@ -359,6 +360,8 @@ pub struct AppState {
     pub right_panel_tab_user_scrolled: bool,
     pub lyrics_scroll_id: scrollable::Id,
     pub last_active_lyric_idx: Option<usize>,
+    pub spectrum_bands: [f32; crate::audio::spectrum::NUM_BANDS],
+    spectrum_analyzer: SpectrumAnalyzer,
     audio: AudioPlayer,
     mpris_cmd_rx: tokio::sync::mpsc::UnboundedReceiver<MprisCommand>,
     mpris_update_tx: tokio::sync::mpsc::UnboundedSender<MprisUpdate>,
@@ -387,6 +390,7 @@ impl AppState {
 
     fn new() -> (Self, Task<Message>) {
         let audio = AudioPlayer::spawn();
+        let spectrum_analyzer = SpectrumAnalyzer::new(audio.sample_buffer.clone());
 
         let cfg = crate::config::get();
         let folders = music_subfolders(&cfg.music_path());
@@ -473,6 +477,8 @@ impl AppState {
             right_panel_tab_user_scrolled: false,
             lyrics_scroll_id: scrollable::Id::unique(),
             last_active_lyric_idx: None,
+            spectrum_bands: [0.0; crate::audio::spectrum::NUM_BANDS],
+            spectrum_analyzer,
             audio,
             mpris_cmd_rx,
             mpris_update_tx,
