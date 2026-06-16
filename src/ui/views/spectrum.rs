@@ -34,10 +34,13 @@ impl<Message> canvas::Program<Message> for SpectrumView {
         let bar_width = (width / NUM_BANDS as f32) - 2.0;
         let gap = 2.0;
 
+        let cy = height / 2.0;
+
         for (i, &amplitude) in self.bands.iter().enumerate() {
             let x = i as f32 * (bar_width + gap);
-            let bar_height = (amplitude * height * 0.9).max(2.0);
-            let y = height - bar_height;
+            let half_height = (amplitude * height * 0.45).max(1.0);
+            let y = cy - half_height;
+            let bar_height = half_height * 2.0;
 
             let color = theme::spectrum_bar_color(amplitude);
 
@@ -55,6 +58,6 @@ impl<Message> canvas::Program<Message> for SpectrumView {
 pub fn view(bands: [f32; NUM_BANDS]) -> Element<'static, Message> {
     Canvas::new(SpectrumView { bands })
         .width(Length::Fill)
-        .height(60)
+        .height(Length::Fill)
         .into()
 }
