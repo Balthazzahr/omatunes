@@ -241,9 +241,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         let pane_content: Element<'_, Message> = match tab {
             crate::app::RightPanelTab::Visualizer => {
                 container(
-                    text("visualizer to be added here soon")
-                        .color(theme::overlay0())
-                        .size(16)
+                    crate::ui::views::spectrum::view(state.spectrum_bands)
                 )
                 .width(Length::Fill)
                 .height(Length::Fill)
