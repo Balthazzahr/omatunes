@@ -103,6 +103,7 @@ pub enum Message {
     SeekToLyric(Duration),
 
     PollAudio,
+    PollSpectrum,
     CheckTheme,
 
     // Omatunes feature additions
@@ -1018,6 +1019,17 @@ impl AppState {
                 } else {
                     Task::batch(tasks)
                 }
+            }
+
+            Message::PollSpectrum => {
+                if self.right_panel_tab == Some(RightPanelTab::Visualizer) {
+                    if matches!(self.playback_state, PlaybackState::Playing) {
+                        self.spectrum_bands = self.spectrum_analyzer.compute();
+                    } else {
+                        self.spectrum_bands = [0.0; crate::audio::spectrum::NUM_BANDS];
+                    }
+                }
+                Task::none()
             }
 
             Message::CheckTheme => {
@@ -2963,6 +2975,7 @@ impl AppState {
     fn subscription(&self) -> Subscription<Message> {
         let base = Subscription::batch([
             iced::time::every(Duration::from_millis(100)).map(|_| Message::PollAudio),
+            iced::time::every(Duration::from_millis(33)).map(|_| Message::PollSpectrum),
             iced::time::every(Duration::from_secs(3)).map(|_| Message::CheckTheme),
             iced::keyboard::on_key_press(|key, _mods| {
                 Some(Message::KeyPressed(key))
