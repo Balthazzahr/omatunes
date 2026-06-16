@@ -112,7 +112,7 @@ impl AudioPlayer {
 fn audio_thread(
     mut cmd_rx: mpsc::UnboundedReceiver<AudioCommand>,
     event_tx: mpsc::UnboundedSender<AudioEvent>,
-    _sample_buffer: Arc<Mutex<VecDeque<f32>>>,
+    sample_buffer: Arc<Mutex<VecDeque<f32>>>,
 ) {
     let host   = cpal::default_host();
     let device = match host.default_output_device() {
@@ -144,6 +144,7 @@ fn audio_thread(
     let pcm_cb     = pcm.clone();
     let paused_cb  = paused.clone();
     let vol_cb     = shared_vol.clone();
+    let vis_cb     = sample_buffer.clone();
     let err_fn     = |e| eprintln!("Erro stream: {e}");
 
     let stream = match sample_format {
@@ -151,11 +152,12 @@ fn audio_thread(
             let pcm2     = pcm.clone();
             let paused2  = paused.clone();
             let vol2     = shared_vol.clone();
+            let vis2     = sample_buffer.clone();
             device.build_output_stream(
                 &stream_config,
                 move |data: &mut [i16], _| {
                     let mut tmp = vec![0f32; data.len()];
-                    fill_output(&mut tmp, &pcm2, &paused2, &vol2);
+                    fill_output(&mut tmp, &pcm2, &paused2, &vol2, &vis2);
                     for (d, s) in data.iter_mut().zip(tmp.iter()) {
                         *d = cpal::Sample::from_sample(*s);
                     }
@@ -165,7 +167,7 @@ fn audio_thread(
         }
         _ => device.build_output_stream(
             &stream_config,
-            move |data: &mut [f32], _| fill_output(data, &pcm_cb, &paused_cb, &vol_cb),
+            move |data: &mut [f32], _| fill_output(data, &pcm_cb, &paused_cb, &vol_cb, &vis_cb),
             err_fn, None,
         ),
     };
@@ -285,6 +287,7 @@ fn fill_output(
     pcm: &Arc<Mutex<VecDeque<f32>>>,
     paused: &Arc<AtomicBool>,
     volume: &Arc<Mutex<f32>>,
+    vis_buffer: &Arc<Mutex<VecDeque<f32>>>,
 ) {
     if paused.load(Ordering::SeqCst) {
         for s in output.iter_mut() { *s = 0.0; }
@@ -292,8 +295,14 @@ fn fill_output(
     }
     let vol = *volume.lock().unwrap();
     let mut buf = pcm.lock().unwrap();
+    let mut vis = vis_buffer.lock().unwrap();
     for sample in output.iter_mut() {
-        *sample = buf.pop_front().unwrap_or(0.0) * vol;
+        let s = buf.pop_front().unwrap_or(0.0) * vol;
+        *sample = s;
+        vis.push_back(s);
+        if vis.len() > 8192 {
+            vis.pop_front();
+        }
     }
 }
 
