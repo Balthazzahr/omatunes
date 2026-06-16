@@ -9,6 +9,7 @@ const FFT_SIZE: usize = 2048;
 pub struct SpectrumAnalyzer {
     planner: FftPlanner<f32>,
     sample_buffer: Arc<Mutex<VecDeque<f32>>>,
+    peak_hold: [f32; NUM_BANDS],
 }
 
 impl SpectrumAnalyzer {
@@ -16,6 +17,7 @@ impl SpectrumAnalyzer {
         SpectrumAnalyzer {
             planner: FftPlanner::new(),
             sample_buffer,
+            peak_hold: [1e-6; NUM_BANDS],
         }
     }
 
@@ -67,10 +69,18 @@ impl SpectrumAnalyzer {
             *band = sum / count;
         }
 
-        // Normalizar para [0.0, 1.0] com escala dB
-        let max_val = bands.iter().cloned().fold(0.0f32, f32::max).max(1e-10);
-        for b in bands.iter_mut() {
-            *b = (*b / max_val).clamp(0.0, 1.0);
+        // Per-band peak normalisation with slow decay.
+        // Each band normalises against its own recent peak so bass cannot
+        // permanently dominate mids and highs.
+        const PEAK_DECAY: f32 = 0.995;
+        const PEAK_FLOOR: f32 = 1e-6;
+
+        for (i, band) in bands.iter_mut().enumerate() {
+            self.peak_hold[i] = (self.peak_hold[i] * PEAK_DECAY).max(PEAK_FLOOR);
+            if *band > self.peak_hold[i] {
+                self.peak_hold[i] = *band;
+            }
+            *band = (*band / self.peak_hold[i]).clamp(0.0, 1.0);
         }
 
         bands
