@@ -1005,7 +1005,15 @@ impl AppState {
                     }
                 }
 
+                // Update spectrum when visualizer panel is open and playing
+                if self.right_panel_tab == Some(RightPanelTab::Visualizer)
+                    && matches!(self.playback_state, PlaybackState::Playing)
+                {
+                    self.spectrum_bands = self.spectrum_analyzer.compute();
+                }
+
                 if tasks.is_empty() {
+
                     Task::none()
                 } else {
                     Task::batch(tasks)
