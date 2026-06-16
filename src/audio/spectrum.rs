@@ -102,5 +102,25 @@ impl SpectrumAnalyzer {
             
             let raw_energy = *band;
             *band = (raw_energy / self.peak_hold[i]).clamp(0.0, AMPLITUDE_CAP);
+            
+            if raw_energy < MIN_VISUAL_THRESHOLD {
+                let scaling_factor = raw_energy / MIN_VISUAL_THRESHOLD;
+                *band *= scaling_factor;
+            }
+        }
 
+        const ATTACK: f32 = 0.6;
+        const DECAY: f32  = 0.12;
 
+        for (i, band) in bands.iter().enumerate() {
+            let prev = self.smoothed[i];
+            self.smoothed[i] = if *band > prev {
+                prev + (*band - prev) * ATTACK
+            } else {
+                prev + (*band - prev) * DECAY
+            };
+        }
+
+        self.smoothed
+    }
+}
