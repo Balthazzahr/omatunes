@@ -3,14 +3,9 @@ use std::sync::{Arc, Mutex};
 
 use rustfft::{num_complex::Complex, FftPlanner};
 
-// Display 48 bands instead of 64 — gives each band more FFT bins,
-// eliminating the blocky identical-bar problem in the low frequencies.
-pub const NUM_BANDS: usize = 48;
+pub const NUM_BANDS: usize = 144;
 const FFT_SIZE: usize = 2048;
 
-// Frequency range to display. Starting at 80Hz cuts the sub-bass mud
-// where log-scale bands are too narrow to be meaningful visually.
-// 20kHz is the top of human hearing.
 const FREQ_MIN: f32 = 80.0;
 const FREQ_MAX: f32 = 20000.0;
 const SAMPLE_RATE: f32 = 44100.0;
@@ -18,9 +13,7 @@ const SAMPLE_RATE: f32 = 44100.0;
 pub struct SpectrumAnalyzer {
     planner: FftPlanner<f32>,
     sample_buffer: Arc<Mutex<VecDeque<f32>>>,
-    // Per-band peak for normalisation
     peak_hold: [f32; NUM_BANDS],
-    // Per-band smoothed output — CAVA-style attack/decay
     smoothed: [f32; NUM_BANDS],
 }
 
@@ -43,14 +36,11 @@ impl SpectrumAnalyzer {
             buf.iter().rev().take(FFT_SIZE).cloned().collect()
         };
 
-        // Normalise raw samples so volume knob doesn't affect visualiser height.
-        // Find the peak sample magnitude and scale everything to [-1, 1].
         let peak = samples.iter().cloned().map(f32::abs).fold(1e-6f32, f32::max);
         let samples: Vec<f32> = samples.iter().map(|s| s / peak).collect();
 
         let fft = self.planner.plan_fft_forward(FFT_SIZE);
 
-        // Hann window to reduce spectral leakage
         let mut input: Vec<Complex<f32>> = samples
             .iter()
             .enumerate()
@@ -72,12 +62,10 @@ impl SpectrumAnalyzer {
             .map(|c| (c.re * c.re + c.im * c.im).sqrt() / FFT_SIZE as f32)
             .collect();
 
-        // Map frequency Hz to FFT bin index
         let hz_to_bin = |hz: f32| -> usize {
             ((hz / SAMPLE_RATE) * FFT_SIZE as f32) as usize
         };
 
-        // Aggregate into NUM_BANDS on a log scale between FREQ_MIN and FREQ_MAX
         let mut bands = [0.0f32; NUM_BANDS];
         let log_min = FREQ_MIN.log2();
         let log_max = FREQ_MAX.log2();
@@ -94,13 +82,9 @@ impl SpectrumAnalyzer {
             *band = sum / count;
         }
 
-        // Per-band peak normalisation with slow decay.
-        // Each band normalises against its own recent peak so no frequency
-        // range permanently dominates the display.
         const PEAK_DECAY: f32 = 0.995;
         const PEAK_FLOOR: f32 = 1e-6;
-        // Cap at 0.85 so bars never fully fill — gives visual headroom.
-        const AMPLITUDE_CAP: f32 = 0.85;
+        const AMPLITUDE_CAP: f32 = 1.0;
 
         for (i, band) in bands.iter_mut().enumerate() {
             self.peak_hold[i] = (self.peak_hold[i] * PEAK_DECAY).max(PEAK_FLOOR);
@@ -110,10 +94,6 @@ impl SpectrumAnalyzer {
             *band = (*band / self.peak_hold[i]).clamp(0.0, AMPLITUDE_CAP);
         }
 
-        // CAVA-style smoothing: fast attack, slow decay.
-        // When signal rises, snap up quickly (attack = 0.6).
-        // When signal falls, glide down slowly (decay = 0.12).
-        // This gives the fluid organic movement of a good visualiser.
         const ATTACK: f32 = 0.6;
         const DECAY: f32  = 0.12;
 
