@@ -30,14 +30,13 @@ impl<Message> canvas::Program<Message> for SpectrumView {
 
         let width = bounds.width;
         let height = bounds.height;
-        let bar_width = (width / NUM_BANDS as f32) - 2.0;
-        let gap = 2.0;
+        let bar_width = (width / NUM_BANDS as f32) - 1.0;
+        let gap = 1.0;
         let cy = height / 2.0;
 
         for (i, &amplitude) in self.bands.iter().enumerate() {
             let x = i as f32 * (bar_width + gap);
-            // Centre-anchored: bars extend equally above and below midline
-            let half_h = (amplitude * height * 0.45).max(1.0);
+            let half_h = (amplitude * height * 0.5).max(1.0);
             let y = cy - half_h;
             let bar_height = half_h * 2.0;
 
@@ -57,6 +56,6 @@ impl<Message> canvas::Program<Message> for SpectrumView {
 pub fn view(bands: [f32; NUM_BANDS]) -> Element<'static, Message> {
     Canvas::new(SpectrumView { bands })
         .width(Length::Fill)
-        .height(60)
+        .height(120)
         .into()
 }
