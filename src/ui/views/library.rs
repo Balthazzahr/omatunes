@@ -585,6 +585,37 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
     .into()
 }
 
+#[derive(Debug, Clone)]
+struct TrackListDependency {
+    tracks: Vec<crate::library::models::Track>,
+    current_track_id: Option<i64>,
+    selected_tracks: Vec<crate::library::models::Track>,
+    group_by_album: bool,
+    sort_column: Option<SortColumn>,
+    sort_ascending: bool,
+    strings: &'static crate::locale::Strings,
+}
+
+impl PartialEq for TrackListDependency {
+    fn eq(&self, other: &Self) -> bool {
+        self.group_by_album == other.group_by_album
+            && self.sort_column == other.sort_column
+            && self.sort_ascending == other.sort_ascending
+            && self.current_track_id == other.current_track_id
+            && self.selected_tracks.len() == other.selected_tracks.len()
+            && self.tracks.len() == other.tracks.len()
+            && self.selected_tracks.iter().zip(other.selected_tracks.iter()).all(|(a, b)| a.id == b.id)
+            && self.tracks.iter().zip(other.tracks.iter()).all(|(a, b)| {
+                a.id == b.id
+                    && a.liked == b.liked
+                    && a.play_count == b.play_count
+                    && a.title == b.title
+                    && a.artist == b.artist
+                    && a.album == b.album
+            })
+    }
+}
+
 fn track_list_view(state: &AppState) -> Element<'_, Message> {
     if state.tracks.is_empty() {
         return container(
@@ -656,58 +687,70 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
     })
     .width(Length::Fill);
 
-    let current_id = state.current_track.as_ref().map(|t| t.id);
+    let track_list_dep = TrackListDependency {
+        tracks: state.tracks.clone(),
+        current_track_id: state.current_track.as_ref().map(|t| t.id),
+        selected_tracks: state.selected_tracks.clone(),
+        group_by_album,
+        sort_column: state.sort_column,
+        sort_ascending: state.sort_ascending,
+        strings: state.strings,
+    };
 
-    let mut rows: Vec<Element<Message>> = Vec::new();
+    let tracklist_scroll = iced::widget::lazy(track_list_dep, move |dep| {
+        let current_id = dep.current_track_id;
+        let mut rows: Vec<Element<Message>> = Vec::new();
 
-    if group_by_album {
-        // Group tracks by album keeping insertion order
-        let mut groups: Vec<(String, Vec<&crate::library::models::Track>)> = Vec::new();
-        for track in &state.tracks {
-            if let Some(last) = groups.last_mut() {
-                if last.0 == track.album {
-                    last.1.push(track);
-                    continue;
+        if dep.group_by_album {
+            // Group tracks by album keeping insertion order
+            let mut groups: Vec<(String, Vec<&crate::library::models::Track>)> = Vec::new();
+            for track in &dep.tracks {
+                if let Some(last) = groups.last_mut() {
+                    if last.0 == track.album {
+                        last.1.push(track);
+                        continue;
+                    }
                 }
+                groups.push((track.album.clone(), vec![track]));
             }
-            groups.push((track.album.clone(), vec![track]));
-        }
 
-        for (album_name, tracks) in groups.into_iter() {
-            let n = tracks.len();
-            let header = container(
-                row![
-                    text(album_name)
-                        .color(theme::accent())
-                        .size(13)
-                        .font(crate::ui::icons::UI_FONT_BOLD),
-                    Space::with_width(Length::Fill),
-                    text(state.strings.track_count(n))
-                        .color(theme::overlay0())
-                        .size(11),
-                ]
-                .align_y(Alignment::Center)
-                .padding([6, 12]),
-            )
-            .style(theme::album_header)
-            .width(Length::Fill);
+            for (album_name, tracks) in groups.into_iter() {
+                let n = tracks.len();
+                let header = container(
+                    row![
+                        text(album_name)
+                            .color(theme::accent())
+                            .size(13)
+                            .font(crate::ui::icons::UI_FONT_BOLD),
+                        Space::with_width(Length::Fill),
+                        text(dep.strings.track_count(n))
+                            .color(theme::overlay0())
+                            .size(11),
+                    ]
+                    .align_y(Alignment::Center)
+                    .padding([6, 12]),
+                )
+                .style(theme::album_header)
+                .width(Length::Fill);
 
-            rows.push(header.into());
+                rows.push(header.into());
 
-            for track in tracks.into_iter() {
-                rows.push(render_track_row(state, track, true, current_id));
+                for track in tracks.into_iter() {
+                    rows.push(render_track_row(dep, track, true, current_id));
+                }
+                rows.push(Space::with_height(8).into());
             }
-            rows.push(Space::with_height(8).into());
+        } else {
+            for track in &dep.tracks {
+                rows.push(render_track_row(dep, track, false, current_id));
+            }
         }
-    } else {
-        for track in &state.tracks {
-            rows.push(render_track_row(state, track, false, current_id));
-        }
-    }
 
-    let tracklist_scroll = mouse_area(scrollable(column(rows).spacing(0)).id(scrollable::Id::new("tracklist_scroll")))
-        .on_enter(Message::HoverTracklist(true))
-        .on_exit(Message::HoverTracklist(false));
+        mouse_area(scrollable(column(rows).spacing(0)).id(scrollable::Id::new("tracklist_scroll")))
+            .on_enter(Message::HoverTracklist(true))
+            .on_exit(Message::HoverTracklist(false))
+            .into()
+    });
 
     let shortcuts_btn = button(
         text("\u{f11c}")
@@ -814,13 +857,13 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
 }
 
 fn render_track_row(
-    state: &AppState,
+    dep: &TrackListDependency,
     track: &crate::library::models::Track,
     grouped: bool,
     current_id: Option<i64>,
 ) -> Element<'static, Message> {
     let is_current = current_id == Some(track.id);
-    let is_selected_track = state.selected_tracks.iter().any(|t| t.id == track.id);
+    let is_selected_track = dep.selected_tracks.iter().any(|t| t.id == track.id);
     let row_color = if is_current { theme::accent() } else { theme::text() };
 
 
@@ -910,19 +953,19 @@ fn render_track_row(
         .align_y(Alignment::Center)
         .padding([5, 12]);
 
-    let current_idx = state.tracks.iter().position(|t| t.id == track.id);
+    let current_idx = dep.tracks.iter().position(|t| t.id == track.id);
     let prev_selected = current_idx
-        .and_then(|idx| if idx > 0 { state.tracks.get(idx - 1) } else { None })
+        .and_then(|idx| if idx > 0 { dep.tracks.get(idx - 1) } else { None })
         .map(|prev_t| {
             let same_album = !grouped || prev_t.album == track.album;
-            same_album && state.selected_tracks.iter().any(|t| t.id == prev_t.id)
+            same_album && dep.selected_tracks.iter().any(|t| t.id == prev_t.id)
         })
         .unwrap_or(false);
     let next_selected = current_idx
-        .and_then(|idx| state.tracks.get(idx + 1))
+        .and_then(|idx| dep.tracks.get(idx + 1))
         .map(|next_t| {
             let same_album = !grouped || next_t.album == track.album;
-            same_album && state.selected_tracks.iter().any(|t| t.id == next_t.id)
+            same_album && dep.selected_tracks.iter().any(|t| t.id == next_t.id)
         })
         .unwrap_or(false);
 
@@ -1034,8 +1077,8 @@ fn render_track_row(
         .width(Length::Fill)
         .padding(0);
 
-    let row_target = if state.selected_tracks.len() > 1 && state.selected_tracks.iter().any(|t| t.id == track.id) {
-        crate::app::ContextMenuTarget::MultipleTracks(state.selected_tracks.clone())
+    let row_target = if dep.selected_tracks.len() > 1 && dep.selected_tracks.iter().any(|t| t.id == track.id) {
+        crate::app::ContextMenuTarget::MultipleTracks(dep.selected_tracks.clone())
     } else {
         crate::app::ContextMenuTarget::Track(track_no_cover)
     };
