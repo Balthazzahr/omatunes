@@ -406,11 +406,14 @@ fn decode_file(
 
         sample_count += samples.len() as u64 / 2;
 
-        if let (Some(tb), Some(nf)) = (time_base, n_frames) {
-            let position = Duration::from_secs_f64(sample_count as f64 / OUTPUT_RATE as f64);
-            let duration = Duration::from_secs_f64(nf as f64 * tb.numer as f64 / tb.denom as f64);
-            let _ = event_tx.send(AudioEvent::Progress { position, duration });
-        }
+        let position = Duration::from_secs_f64(sample_count as f64 / OUTPUT_RATE as f64);
+        let duration = if let (Some(tb), Some(nf)) = (time_base, n_frames) {
+            Duration::from_secs_f64(nf as f64 * tb.numer as f64 / tb.denom as f64)
+        } else {
+            // Opus/OGG: duration unknown until EOF, mirror position so UI stays responsive
+            position
+        };
+        let _ = event_tx.send(AudioEvent::Progress { position, duration });
 
         loop {
             if cancel.load(Ordering::SeqCst) {
