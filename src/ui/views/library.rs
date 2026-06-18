@@ -585,7 +585,6 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
     .into()
 }
 
-#[derive(Debug, Clone)]
 struct TrackListDependency {
     tracks: Vec<crate::library::models::Track>,
     current_track_id: Option<i64>,
@@ -596,23 +595,25 @@ struct TrackListDependency {
     strings: &'static crate::locale::Strings,
 }
 
-impl PartialEq for TrackListDependency {
-    fn eq(&self, other: &Self) -> bool {
-        self.group_by_album == other.group_by_album
-            && self.sort_column == other.sort_column
-            && self.sort_ascending == other.sort_ascending
-            && self.current_track_id == other.current_track_id
-            && self.selected_tracks.len() == other.selected_tracks.len()
-            && self.tracks.len() == other.tracks.len()
-            && self.selected_tracks.iter().zip(other.selected_tracks.iter()).all(|(a, b)| a.id == b.id)
-            && self.tracks.iter().zip(other.tracks.iter()).all(|(a, b)| {
-                a.id == b.id
-                    && a.liked == b.liked
-                    && a.play_count == b.play_count
-                    && a.title == b.title
-                    && a.artist == b.artist
-                    && a.album == b.album
-            })
+impl std::hash::Hash for TrackListDependency {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.group_by_album.hash(state);
+        self.sort_column.hash(state);
+        self.sort_ascending.hash(state);
+        self.current_track_id.hash(state);
+        self.selected_tracks.len().hash(state);
+        self.tracks.len().hash(state);
+        for t in &self.selected_tracks {
+            t.id.hash(state);
+        }
+        for t in &self.tracks {
+            t.id.hash(state);
+            t.liked.hash(state);
+            t.play_count.hash(state);
+            t.title.hash(state);
+            t.artist.hash(state);
+            t.album.hash(state);
+        }
     }
 }
 
