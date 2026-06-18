@@ -438,12 +438,131 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
         sidebar_items_col = sidebar_items_col.push(Space::with_height(4)).push(restore_btn);
     }
 
+    let all_category_row: Element<'_, Message> = match state.view_mode {
+        ViewMode::Artists => {
+            let is_selected = state.selected_artist.is_none() && state.selected_playlist.is_none();
+            let label = text("All Artists")
+                .color(if is_selected { theme::accent() } else { theme::text() })
+                .font(crate::ui::icons::UI_FONT_BOLD)
+                .size(13);
+            let btn = button(label)
+                .on_press(Message::SelectAllArtists)
+                .style(iced::widget::button::text)
+                .width(Length::Fill)
+                .padding([6, 12]);
+            let row_container = if is_selected {
+                container(btn)
+                    .style(|_| iced::widget::container::Style {
+                        background: Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.15))),
+                        border: iced::Border {
+                            color: theme::with_alpha(theme::accent(), 0.4),
+                            width: 1.0,
+                            radius: 4.0.into(),
+                        },
+                        ..Default::default()
+                    })
+                    .width(Length::Fill)
+            } else {
+                container(btn)
+                    .style(|_| iced::widget::container::Style {
+                        background: Some(iced::Background::Color(theme::surface0())),
+                        border: iced::Border {
+                            color: iced::Color::TRANSPARENT,
+                            width: 0.0,
+                            radius: 4.0.into(),
+                        },
+                        ..Default::default()
+                    })
+                    .width(Length::Fill)
+            };
+            row_container.into()
+        }
+        ViewMode::Albums => {
+            let is_selected = state.selected_album.is_none() && state.selected_playlist.is_none();
+            let label = text("All Albums")
+                .color(if is_selected { theme::accent() } else { theme::text() })
+                .font(crate::ui::icons::UI_FONT_BOLD)
+                .size(13);
+            let btn = button(label)
+                .on_press(Message::SelectAllAlbums)
+                .style(iced::widget::button::text)
+                .width(Length::Fill)
+                .padding([6, 12]);
+            let row_container = if is_selected {
+                container(btn)
+                    .style(|_| iced::widget::container::Style {
+                        background: Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.15))),
+                        border: iced::Border {
+                            color: theme::with_alpha(theme::accent(), 0.4),
+                            width: 1.0,
+                            radius: 4.0.into(),
+                        },
+                        ..Default::default()
+                    })
+                    .width(Length::Fill)
+            } else {
+                container(btn)
+                    .style(|_| iced::widget::container::Style {
+                        background: Some(iced::Background::Color(theme::surface0())),
+                        border: iced::Border {
+                            color: iced::Color::TRANSPARENT,
+                            width: 0.0,
+                            radius: 4.0.into(),
+                        },
+                        ..Default::default()
+                    })
+                    .width(Length::Fill)
+            };
+            row_container.into()
+        }
+        ViewMode::Genres => {
+            let is_selected = state.selected_genre.is_none() && state.selected_playlist.is_none();
+            let label = text("All Genres")
+                .color(if is_selected { theme::accent() } else { theme::text() })
+                .font(crate::ui::icons::UI_FONT_BOLD)
+                .size(13);
+            let btn = button(label)
+                .on_press(Message::SelectAllGenres)
+                .style(iced::widget::button::text)
+                .width(Length::Fill)
+                .padding([6, 12]);
+            let row_container = if is_selected {
+                container(btn)
+                    .style(|_| iced::widget::container::Style {
+                        background: Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.15))),
+                        border: iced::Border {
+                            color: theme::with_alpha(theme::accent(), 0.4),
+                            width: 1.0,
+                            radius: 4.0.into(),
+                        },
+                        ..Default::default()
+                    })
+                    .width(Length::Fill)
+            } else {
+                container(btn)
+                    .style(|_| iced::widget::container::Style {
+                        background: Some(iced::Background::Color(theme::surface0())),
+                        border: iced::Border {
+                            color: iced::Color::TRANSPARENT,
+                            width: 0.0,
+                            radius: 4.0.into(),
+                        },
+                        ..Default::default()
+                    })
+                    .width(Length::Fill)
+            };
+            row_container.into()
+        }
+    };
+
     container(
         column![
             tabs,
             Space::with_height(6),
             sidebar_search_input,
             Space::with_height(8),
+            all_category_row,
+            Space::with_height(4),
             container(sidebar_items_col)
                 .height(Length::Fill),
             playlist_drag_handle,

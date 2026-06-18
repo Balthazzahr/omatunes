@@ -1603,6 +1603,42 @@ impl AppState {
                 Task::none()
             }
 
+            Message::SelectAllArtists => {
+                self.selected_artist = None;
+                self.selected_playlist = None;
+                self.selected_folder = None;
+                self.selected_album = None;
+                self.selected_genre = None;
+                self.active_focus = Some(ActiveFocus::SidebarList);
+                self.search_query.clear();
+                self.update_filtered_tracks();
+                Task::none()
+            }
+
+            Message::SelectAllAlbums => {
+                self.selected_album = None;
+                self.selected_playlist = None;
+                self.selected_folder = None;
+                self.selected_artist = None;
+                self.selected_genre = None;
+                self.active_focus = Some(ActiveFocus::SidebarList);
+                self.search_query.clear();
+                self.update_filtered_tracks();
+                Task::none()
+            }
+
+            Message::SelectAllGenres => {
+                self.selected_genre = None;
+                self.selected_playlist = None;
+                self.selected_folder = None;
+                self.selected_artist = None;
+                self.selected_album = None;
+                self.active_focus = Some(ActiveFocus::SidebarList);
+                self.search_query.clear();
+                self.update_filtered_tracks();
+                Task::none()
+            }
+
             Message::SelectArtist(artist) => {
                 let now = std::time::Instant::now();
                 if let Some((ref prev_artist, last_time)) = self.last_click_artist {
