@@ -12,6 +12,9 @@ A native Wayland music player written in Rust, built for [Omarchy](https://omarc
 
 - **Wide Audio Format Support**: Plays MP3, FLAC, OGG, Opus, WAV, AAC, M4A, AIFF, and more natively via the high-performance [Symphonia](https://github.com/pdeljanov/Symphonia) library.
 - **100% Offline & Privacy-First**: Zero tracking, zero background telemetry, and no network requirements. It logs, saves, and compiles your play counts, statistics, and leaderboard records locally.
+- **Synchronized LRC Lyrics & Interactivity**: Parses LRC metadata to highlight and auto-scroll the active lyric line, supporting interactive seek-on-click to any lyric's timestamp.
+- **Logarithmic Audio Spectrum Visualizer**: Computes real-time 2048-point Hann-windowed FFT to render 64 logarithmic bands colored with an amplitude gradient.
+- **Resizable Panel UI**: Toggle vertical tabs on the right side to open lyrics or spectrum views, adjustable with a click-and-drag handle and width state persistence.
 - **Live Omarchy Theme Switching**: Automatically maps your active system theme (`Catppuccin`, `Nord`, `Gruvbox`, etc.) to the UI palette live in under 3 seconds. No app restarts required.
 - **Native Wayland/X11 & Lightweight**: Built in native Rust using the Iced GUI toolkit. Runs on any Wayland compositor (Hyprland, GNOME, KDE) or traditional X11 window managers. Extremely fast startup and low resource consumption.
 - **Rich Waybar MPRIS Integration**: Pre-packaged with local Waybar status scripts (`scripts/omatunes_text.py`). Provides styled progress bars, listening history milestones, and interactive tooltip stats directly on your status bar.
@@ -150,6 +153,13 @@ Navigate to the bottom panel of the sidebar to manage your playlists:
 - **Autocomplete Suggestions**: Start typing in the Artist, Album, or Genre fields to see suggestion pills matching the spelling of tags already in your library.
 - **Targeted Fields (Auto-Ticking)**: When you type in a field or click a suggestion pill, that field's checkbox automatically ticks. Only checked fields will apply changes to all selected tracks when saved.
 - **Apply to Entire Album**: Check the "Apply to Entire Album" toggle at the bottom to write the modified tags to every track in the album.
+
+### 7. Interactive Synchronized Lyrics & Audio Spectrum Visualizer
+- **Right Panel Tabs**: Click the vertical tabs on the right side of the window to slide out either the **Lyrics** or **Visualizer** section.
+- **Resizable Interface**: Grab the separator handle between the track list and right panel to resize it dynamically. Width preferences are saved automatically.
+- **Synchronized Lyrics**: Parses `.lrc` formatted lyrics, highlighting the current line in the accent color and auto-centering it in the viewport.
+- **Interactive Lyric Seeking**: Click any line in the synchronized lyrics view to seek playback instantly to that specific lyric's timestamp.
+- **Logarithmic Spectrum Analyzer**: Render a 64-band visualizer that maps frequencies dynamically using an amplitude gradient (green → lavender → pink).
 
 ---
 
