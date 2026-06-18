@@ -1597,24 +1597,8 @@ impl AppState {
                 self.selected_artist = None;
                 self.selected_album = None;
                 self.selected_genre = None;
+                self.selected_tracks.clear();
                 self.search_query.clear();
-                match mode {
-                    ViewMode::Artists => {
-                        if self.selected_artist.is_none() {
-                            self.selected_artist = self.artists().first().cloned();
-                        }
-                    }
-                    ViewMode::Albums => {
-                        if self.selected_album.is_none() {
-                            self.selected_album = self.albums().first().cloned();
-                        }
-                    }
-                    ViewMode::Genres => {
-                        if self.selected_genre.is_none() {
-                            self.selected_genre = self.genres().first().cloned();
-                        }
-                    }
-                }
                 self.update_filtered_tracks();
                 Task::none()
             }
