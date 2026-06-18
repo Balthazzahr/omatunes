@@ -152,6 +152,9 @@ pub enum Message {
     SelectViewMode(ViewMode),
     SelectArtist(String),
     SelectAlbum(String),
+    SelectAllArtists,
+    SelectAllAlbums,
+    SelectAllGenres,
     SortBy(SortColumn),
     OpenPlaylistDialog(PlaylistDialogMode),
     ClosePlaylistDialog,
@@ -645,7 +648,7 @@ impl AppState {
                             a == artist_name
                         }).cloned().collect();
                     } else {
-                        self.tracks = Vec::new();
+                        self.tracks = self.all_tracks.clone();
                     }
                 }
                 ViewMode::Albums => {
@@ -655,7 +658,7 @@ impl AppState {
                             al == album_name
                         }).cloned().collect();
                     } else {
-                        self.tracks = Vec::new();
+                        self.tracks = self.all_tracks.clone();
                     }
                 }
                 ViewMode::Genres => {
@@ -665,7 +668,7 @@ impl AppState {
                             g == genre_name
                         }).cloned().collect();
                     } else {
-                        self.tracks = Vec::new();
+                        self.tracks = self.all_tracks.clone();
                     }
                 }
             }
@@ -1520,9 +1523,6 @@ impl AppState {
                 keys.sort();
                 self.folders = keys;
 
-                if self.selected_artist.is_none() && self.selected_album.is_none() && self.selected_playlist.is_none() {
-                    self.selected_artist = self.artists().first().cloned();
-                }
                 self.update_filtered_tracks();
                 Task::none()
             }
