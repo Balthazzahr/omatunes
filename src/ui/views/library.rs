@@ -698,7 +698,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         strings: state.strings,
     };
 
-    let tracklist_scroll = iced::widget::lazy(track_list_dep, move |dep| {
+    let tracklist_scroll = iced::widget::lazy(track_list_dep, move |dep| -> Element<'static, Message> {
         let current_id = dep.current_track_id;
         let mut rows: Vec<Element<Message>> = Vec::new();
 
