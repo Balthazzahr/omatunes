@@ -767,11 +767,17 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                         theme::subtext()
                     };
 
+                    let btn_label = if is_current_album_playing {
+                        "  PLAYING "
+                    } else {
+                        "  PLAY ALBUM "
+                    };
+
                     button(
                         row![
-                            text("Play Album")
+                            text(btn_label)
                                 .size(11)
-                                .font(crate::ui::icons::UI_FONT),
+                                .font(crate::ui::icons::UI_FONT_BOLD),
                             text(crate::ui::icons::ICON_PLAY)
                                 .font(crate::ui::icons::NERD_FONT_MONO)
                                 .size(10)
