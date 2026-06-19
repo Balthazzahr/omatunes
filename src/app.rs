@@ -376,6 +376,8 @@ pub struct AppState {
     pub cover_cache: std::sync::Mutex<CoverCache>,
     pub font_scale: f32,
     pub hovered_album_header: Option<String>,
+    pub track_list_start: usize,
+    pub track_list_end: usize,
 }
 
 impl AppState {
@@ -495,6 +497,8 @@ impl AppState {
             cover_cache: std::sync::Mutex::new(CoverCache { id: None, handle: None }),
             font_scale: cfg.font_scale(),
             hovered_album_header: None,
+            track_list_start: 0,
+            track_list_end: 500,
         };
 
         (state, scan_task)
