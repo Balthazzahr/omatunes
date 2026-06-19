@@ -2989,6 +2989,7 @@ impl AppState {
             row_item("Arrow Up/Down", "Navigate Lists (Sidebar/Tracks)"),
             row_item("F5", "Rescan Music Library Folder"),
             row_item("+ / -", "Increase / Decrease Volume"),
+            row_item("Ctrl + + / -", "Increase / Decrease Scaling"),
             row_item("Right/Left", "Seek Forward / Backward"),
             row_item("Tab", "Focus next field / cycle ID3 inputs"),
             row_item("Shift + Tab", "Cycle ID3 input backwards"),
@@ -3305,6 +3306,7 @@ pub fn run() -> iced::Result {
             style: iced::font::Style::Normal,
         })
         .theme(|state: &AppState| state.iced_theme.clone())
+        .scale_factor(|state: &AppState| state.font_scale as f64)
         .window(iced::window::Settings {
             size: iced::Size::new(960.0, 640.0),
             min_size: Some(iced::Size::new(700.0, 480.0)),
