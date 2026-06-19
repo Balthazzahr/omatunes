@@ -295,37 +295,32 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                                     .align_x(iced::alignment::Horizontal::Center);
 
                                 // Each line is clickable to seek to that timestamp
-                                let line_btn = button(
-                                    container(text_element)
-                                        .width(Length::Fill)
-                                        .center_x(Length::Fill)
-                                        .padding([4, 8])
-                                )
-                                .on_press(Message::SeekToLyric(line_time))
-                                .width(Length::Fill)
-                                .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
-                                    let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-                                    iced::widget::button::Style {
-                                        background: if is_hovered {
-                                            Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.1)))
-                                        } else {
-                                            None
-                                        },
-                                        text_color: if is_active {
-                                            theme::accent()
-                                        } else if is_hovered {
-                                            theme::text()
-                                        } else {
-                                            theme::overlay0()
-                                        },
-                                        border: iced::Border {
-                                            radius: 4.0.into(),
+                                let line_btn = button(text_element)
+                                    .on_press(Message::SeekToLyric(line_time))
+                                    .width(Length::Fill)
+                                    .padding([4, 8])
+                                    .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+                                        let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                                        iced::widget::button::Style {
+                                            background: if is_hovered {
+                                                Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.1)))
+                                            } else {
+                                                None
+                                            },
+                                            text_color: if is_active {
+                                                theme::accent()
+                                            } else if is_hovered {
+                                                theme::text()
+                                            } else {
+                                                theme::overlay0()
+                                            },
+                                            border: iced::Border {
+                                                radius: 4.0.into(),
+                                                ..Default::default()
+                                            },
                                             ..Default::default()
-                                        },
-                                        ..Default::default()
-                                    }
-                                })
-                                .padding(0);
+                                        }
+                                    });
 
                                 lines_col = lines_col.push(line_btn);
                             }
