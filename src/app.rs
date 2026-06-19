@@ -2651,26 +2651,33 @@ impl AppState {
             Message::SearchLyricsOnline => {
                 if let Some(ref state) = self.show_tag_editor {
                     let artist = state.artist.trim();
+                    let album = state.album.trim();
                     let title = state.title.trim();
-                    if !artist.is_empty() && !title.is_empty() {
-                        let query = format!("{} {}", artist, title);
+                    
+                    let mut query_parts = Vec::new();
+                    if !artist.is_empty() { query_parts.push(artist); }
+                    if !album.is_empty() { query_parts.push(album); }
+                    if !title.is_empty() { query_parts.push(title); }
+                    
+                    if !query_parts.is_empty() {
+                        let query = query_parts.join(" ");
                         let mut encoded = String::new();
                         for c in query.chars() {
                             match c {
-                                ' ' => encoded.push('+'),
+                                ' ' => encoded.push_str("%20"),
                                 'A'..='Z' | 'a'..='z' | '0'..='9' | '-' | '_' | '.' | '~' => encoded.push(c),
                                 _ => {
                                     encoded.push_str(&format!("%{:02X}", c as u32));
                                 }
                             }
                         }
-                        let url = format!("https://lrclib.net/api/search?q={}", encoded);
+                        let url = format!("https://lrclib.net/search/{}", encoded);
                         let _ = std::process::Command::new("xdg-open")
                             .arg(&url)
                             .spawn();
                     } else {
                         let _ = std::process::Command::new("xdg-open")
-                            .arg("https://lrclib.net/api/search")
+                            .arg("https://lrclib.net")
                             .spawn();
                     }
                 }
