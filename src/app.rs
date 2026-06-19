@@ -910,6 +910,7 @@ impl AppState {
                         AudioEvent::Progress { position, duration } => {
                             self.position = position;
                             self.duration = duration;
+                            self.send_mpris(MprisUpdate::Position(position));
                             if !self.current_track_play_counted && duration > Duration::ZERO && position >= duration / 2 {
                                 if let Some(ref mut track) = self.current_track {
                                     let count = crate::db::increment_play_count(track.path.clone());
