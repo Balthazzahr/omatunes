@@ -593,6 +593,7 @@ struct TrackListDependency {
     sort_column: Option<SortColumn>,
     sort_ascending: bool,
     strings: &'static crate::locale::Strings,
+    hovered_album_header: Option<String>,
 }
 
 impl std::hash::Hash for TrackListDependency {
@@ -603,6 +604,7 @@ impl std::hash::Hash for TrackListDependency {
         self.current_track_id.hash(state);
         self.selected_tracks.len().hash(state);
         self.tracks.len().hash(state);
+        self.hovered_album_header.hash(state);
         for t in &self.selected_tracks {
             t.id.hash(state);
         }
