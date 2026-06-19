@@ -1,11 +1,11 @@
 use std::path::PathBuf;
 use std::sync::OnceLock;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 static CONFIG: OnceLock<Config> = OnceLock::new();
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize, Clone)]
 #[serde(default)]
 pub struct Config {
     pub music_dir:   String,   // String para suportar "~" antes de expandir
