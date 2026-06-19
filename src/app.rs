@@ -836,7 +836,7 @@ impl AppState {
             Message::TracklistScrolled(viewport) => {
                 let rel_y = viewport.relative_offset().y;
                 let absolute_y = viewport.absolute_offset().y;
-                let content_height = viewport.content_size().height;
+                let content_height = viewport.content_bounds().height;
                 let bounds_height = viewport.bounds().height;
                 let total_tracks = self.tracks.len();
                 
