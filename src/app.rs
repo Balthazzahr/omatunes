@@ -1897,9 +1897,10 @@ impl AppState {
                 self.window_height = h;
                 self.window_width = w;
                 if !self.playlist_height_initialized {
-                    self.playlist_height = ((h - 212.0) * 0.33).max(50.0);
+                    self.playlist_height = ((h - 212.0) * 0.30).max(50.0);
                     self.playlist_height_initialized = true;
                 }
+                self.right_panel_width = self.right_panel_width.min(w * 0.5);
                 Task::none()
             }
 
