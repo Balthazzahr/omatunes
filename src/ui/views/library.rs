@@ -698,6 +698,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         sort_column: state.sort_column,
         sort_ascending: state.sort_ascending,
         strings: state.strings,
+        hovered_album_header: state.hovered_album_header.clone(),
     };
 
     let tracklist_scroll = iced::widget::lazy(track_list_dep, move |dep| -> Element<'static, Message> {
@@ -719,22 +720,46 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
 
             for (album_name, tracks) in groups.into_iter() {
                 let n = tracks.len();
-                let header = container(
-                    row![
-                        text(album_name)
+                let is_hovered = dep.hovered_album_header.as_ref() == Some(&album_name);
+
+                let play_btn: Element<'static, Message> = if is_hovered {
+                    let tracks_to_play: Vec<crate::library::models::Track> = tracks.iter().map(|t| (*t).clone()).collect();
+                    button(
+                        text(crate::ui::icons::ICON_PLAY)
+                            .font(crate::ui::icons::NERD_FONT_MONO)
                             .color(theme::accent())
-                            .size(13)
-                            .font(crate::ui::icons::UI_FONT_BOLD),
-                        Space::with_width(Length::Fill),
-                        text(dep.strings.track_count(n))
-                            .color(theme::overlay0())
-                            .size(11),
-                    ]
-                    .align_y(Alignment::Center)
-                    .padding([6, 12]),
+                            .size(10)
+                    )
+                    .on_press(Message::PlayTracks(tracks_to_play))
+                    .style(iced::widget::button::text)
+                    .padding(2)
+                    .into()
+                } else {
+                    Space::with_width(0).into()
+                };
+
+                let header = mouse_area(
+                    container(
+                        row![
+                            text(album_name.clone())
+                                .color(theme::accent())
+                                .size(13)
+                                .font(crate::ui::icons::UI_FONT_BOLD),
+                            Space::with_width(8),
+                            play_btn,
+                            Space::with_width(Length::Fill),
+                            text(dep.strings.track_count(n))
+                                .color(theme::overlay0())
+                                .size(11),
+                        ]
+                        .align_y(Alignment::Center)
+                        .padding([6, 12]),
+                    )
+                    .style(theme::album_header)
+                    .width(Length::Fill)
                 )
-                .style(theme::album_header)
-                .width(Length::Fill);
+                .on_enter(Message::HoverAlbumHeader(Some(album_name.clone())))
+                .on_exit(Message::HoverAlbumHeader(None));
 
                 rows.push(header.into());
 
