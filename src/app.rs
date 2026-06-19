@@ -3194,7 +3194,7 @@ impl AppState {
         }
 
         struct UdpSubscriptionId;
-        subs.push(iced::subscription::channel(
+        subs.push(iced::Subscription::channel(
             std::any::TypeId::of::<UdpSubscriptionId>(),
             10,
             |mut output| async move {
