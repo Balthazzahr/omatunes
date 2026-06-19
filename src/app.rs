@@ -3194,28 +3194,34 @@ impl AppState {
         }
 
         struct UdpSubscriptionId;
-        subs.push(iced::Subscription::channel(
+        subs.push(iced::Subscription::run_with_id(
             std::any::TypeId::of::<UdpSubscriptionId>(),
-            10,
-            |mut output| async move {
-                let socket = match tokio::net::UdpSocket::bind("127.0.0.1:18888").await {
-                    Ok(s) => s,
-                    Err(_) => {
-                        loop {
-                            tokio::time::sleep(std::time::Duration::from_secs(3600)).await;
+            iced::futures::stream::unfold(None, |state| async {
+                let socket = match state {
+                    Some(s) => Some(s),
+                    None => match tokio::net::UdpSocket::bind("127.0.0.1:18888").await {
+                        Ok(s) => Some(s),
+                        Err(_) => {
+                            tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+                            None
                         }
                     }
                 };
-                let mut buf = [0u8; 1024];
-                loop {
-                    if let Ok((len, _)) = socket.recv_from(&mut buf).await {
-                        let msg = String::from_utf8_lossy(&buf[..len]);
-                        if msg.trim() == "like" {
-                            let _ = output.try_send(Message::ToggleLikeCurrent);
+                
+                if let Some(s) = socket {
+                    let mut buf = [0u8; 1024];
+                    loop {
+                        if let Ok((len, _)) = s.recv_from(&mut buf).await {
+                            let msg = String::from_utf8_lossy(&buf[..len]);
+                            if msg.trim() == "like" {
+                                return Some((Message::ToggleLikeCurrent, Some(s)));
+                            }
                         }
                     }
+                } else {
+                    Some((Message::PollAudio, None))
                 }
-            }
+            })
         ));
 
         Subscription::batch(subs)
