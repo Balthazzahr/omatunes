@@ -413,6 +413,7 @@ impl AppState {
         let (mpris_cmd_tx, mpris_cmd_rx) = tokio::sync::mpsc::unbounded_channel();
         let (mpris_update_tx, mpris_update_rx) = tokio::sync::mpsc::unbounded_channel();
         mpris::launch(mpris_cmd_tx, mpris_update_rx);
+        let _ = mpris_update_tx.send(crate::audio::mpris::MprisUpdate::Volume(cfg.volume.clamp(0.0, 1.0) as f64));
 
         let loaded_theme_name = crate::ui::theme::read_current_theme_name();
         let iced_theme = build_iced_theme();
