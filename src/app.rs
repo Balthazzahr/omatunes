@@ -2990,7 +2990,7 @@ impl AppState {
             row_item("Arrow Up/Down", "Navigate Lists (Sidebar/Tracks)"),
             row_item("F5", "Rescan Music Library Folder"),
             row_item("+ / -", "Increase / Decrease Volume"),
-            row_item("Ctrl + + / -", "Increase / Decrease Scaling"),
+            row_item("] / [", "Increase / Decrease Scaling"),
             row_item("Right/Left", "Seek Forward / Backward"),
             row_item("Tab", "Focus next field / cycle ID3 inputs"),
             row_item("Shift + Tab", "Cycle ID3 input backwards"),
