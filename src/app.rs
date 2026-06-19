@@ -776,6 +776,46 @@ impl AppState {
                 }
             }
 
+            Message::ToggleAlbumPlayPause(album_name) => {
+                let is_current_album_playing = self.current_track.as_ref().map(|t| &t.album) == Some(&album_name);
+                if is_current_album_playing {
+                    match self.playback_state {
+                        PlaybackState::Playing => {
+                            self.audio.send(AudioCommand::Pause);
+                            self.playback_state = PlaybackState::Paused;
+                            self.send_mpris(MprisUpdate::Status(PlaybackStatus::Paused));
+                        }
+                        PlaybackState::Paused => {
+                            self.audio.send(AudioCommand::Resume);
+                            self.playback_state = PlaybackState::Playing;
+                            self.send_mpris(MprisUpdate::Status(PlaybackStatus::Playing));
+                        }
+                        PlaybackState::Stopped => {
+                            self.selected_album = Some(album_name);
+                            self.selected_playlist = None;
+                            self.search_query.clear();
+                            self.update_filtered_tracks();
+                            let tracks_to_play = self.tracks.clone();
+                            if let Some(first) = tracks_to_play.first().cloned() {
+                                self.queue = tracks_to_play;
+                                return self.play_track_internal(first);
+                            }
+                        }
+                    }
+                } else {
+                    self.selected_album = Some(album_name);
+                    self.selected_playlist = None;
+                    self.search_query.clear();
+                    self.update_filtered_tracks();
+                    let tracks_to_play = self.tracks.clone();
+                    if let Some(first) = tracks_to_play.first().cloned() {
+                        self.queue = tracks_to_play;
+                        return self.play_track_internal(first);
+                    }
+                }
+                Task::none()
+            }
+
             Message::HoverAlbumHeader(album) => {
                 self.hovered_album_header = album;
                 Task::none()
@@ -795,10 +835,14 @@ impl AppState {
 
             Message::TracklistScrolled(viewport) => {
                 let rel_y = viewport.relative_offset().y;
+                let absolute_y = viewport.absolute_offset().y;
+                let content_height = viewport.content_size().height;
+                let bounds_height = viewport.bounds().height;
                 let total_tracks = self.tracks.len();
                 
-                if rel_y > 0.80 && self.track_list_end < total_tracks {
-                    // Scroll near bottom -> load 200 more tracks at the bottom
+                let near_bottom = rel_y > 0.75 || (absolute_y + bounds_height >= content_height - 1000.0);
+                
+                if near_bottom && self.track_list_end < total_tracks {
                     self.track_list_end = (self.track_list_end + 200).min(total_tracks);
                 }
                 Task::none()
