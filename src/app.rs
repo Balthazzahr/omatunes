@@ -80,6 +80,7 @@ pub enum Message {
     PlayTrack(Track),
     PlayTracks(Vec<Track>),
     PlayAlbum(String),
+    ToggleAlbumPlayPause(String),
     PlayPause,
     NextTrack,
     PreviousTrack,
