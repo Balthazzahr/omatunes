@@ -59,7 +59,7 @@ pub fn view<'a>(
             .on_input(Message::UpdateTagFieldTitle)
             .padding(8)
     )
-    .padding([0, 0, 2, 0]);
+    .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 2.0, left: 0.0 });
 
     let artist_input = container(
         text_input("Artist", &state.artist)
@@ -67,7 +67,7 @@ pub fn view<'a>(
             .on_input(Message::UpdateTagFieldArtist)
             .padding(8)
     )
-    .padding([0, 0, 2, 0]);
+    .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 2.0, left: 0.0 });
 
     let album_input = container(
         text_input("Album", &state.album)
@@ -75,7 +75,7 @@ pub fn view<'a>(
             .on_input(Message::UpdateTagFieldAlbum)
             .padding(8)
     )
-    .padding([0, 0, 2, 0]);
+    .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 2.0, left: 0.0 });
 
     let genre_input = container(
         text_input("Genre", &state.genre)
@@ -83,7 +83,7 @@ pub fn view<'a>(
             .on_input(Message::UpdateTagFieldGenre)
             .padding(8)
     )
-    .padding([0, 0, 2, 0]);
+    .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 2.0, left: 0.0 });
 
     let track_num_input = container(
         text_input("Track Number", &state.track_number)
@@ -91,7 +91,7 @@ pub fn view<'a>(
             .on_input(Message::UpdateTagFieldTrackNumber)
             .padding(8)
     )
-    .padding([0, 0, 2, 0]);
+    .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 2.0, left: 0.0 });
 
     let disc_num_input = container(
         text_input("Disc Number", &state.disc_number)
@@ -99,7 +99,7 @@ pub fn view<'a>(
             .on_input(Message::UpdateTagFieldDiscNumber)
             .padding(8)
     )
-    .padding([0, 0, 2, 0]);
+    .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 2.0, left: 0.0 });
 
     let year_input = container(
         text_input("Year", &state.year)
@@ -107,7 +107,7 @@ pub fn view<'a>(
             .on_input(Message::UpdateTagFieldYear)
             .padding(8)
     )
-    .padding([0, 0, 2, 0]);
+    .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 2.0, left: 0.0 });
 
     let cover_path_val = state.cover_path.clone().unwrap_or_default();
     let cover_input = container(
@@ -116,7 +116,7 @@ pub fn view<'a>(
             .on_input(Message::UpdateTagFieldCoverPath)
             .padding(8)
     )
-    .padding([0, 0, 2, 0]);
+    .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 2.0, left: 0.0 });
 
     let apply_to_album_checkbox = checkbox(
         "Apply changes (ticked fields) to entire album",
