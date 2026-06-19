@@ -761,6 +761,20 @@ impl AppState {
                 }
             }
 
+            Message::PlayAlbum(album_name) => {
+                self.selected_album = Some(album_name);
+                self.selected_playlist = None;
+                self.search_query.clear();
+                self.update_filtered_tracks();
+                let tracks_to_play = self.tracks.clone();
+                if let Some(first) = tracks_to_play.first().cloned() {
+                    self.queue = tracks_to_play;
+                    self.play_track_internal(first)
+                } else {
+                    Task::none()
+                }
+            }
+
             Message::HoverAlbumHeader(album) => {
                 self.hovered_album_header = album;
                 Task::none()
