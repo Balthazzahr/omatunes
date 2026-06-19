@@ -2210,8 +2210,8 @@ impl AppState {
                                 "p" | "P" => return Task::done(Message::PreviousTrack),
                                 "s" | "S" => return Task::done(Message::ToggleShuffle),
                                 "r" | "R" => return Task::done(Message::ToggleRepeat),
-                                "+" | "=" if self.modifiers.control() => return Task::done(Message::IncreaseScale),
-                                "-"       if self.modifiers.control() => return Task::done(Message::DecreaseScale),
+                                "]" => return Task::done(Message::IncreaseScale),
+                                "[" => return Task::done(Message::DecreaseScale),
                                 "+" | "=" => return Task::done(Message::VolumeStep(vol)),
                                 "-"       => return Task::done(Message::VolumeStep(-vol)),
                                 "/" => {
