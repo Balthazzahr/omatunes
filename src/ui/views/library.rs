@@ -694,7 +694,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
     })
     .width(Length::Fill);
 
-    let pulse_tick = if state.playback_state == crate::app::PlaybackState::Playing {
+    let pulse_tick = if matches!(state.playback_state, crate::audio::PlaybackState::Playing) {
         (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_millis() / 250) as u32
     } else {
         0
