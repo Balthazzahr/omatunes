@@ -760,11 +760,13 @@ impl AppState {
 
             Message::IncreaseScale => {
                 self.font_scale = (self.font_scale + 0.05).min(3.0);
+                crate::config::update_font_scale(self.font_scale);
                 Task::none()
             }
 
             Message::DecreaseScale => {
                 self.font_scale = (self.font_scale - 0.05).max(0.5);
+                crate::config::update_font_scale(self.font_scale);
                 Task::none()
             }
 

@@ -53,6 +53,15 @@ pub fn get() -> &'static Config {
     CONFIG.get_or_init(|| read_or_default())
 }
 
+pub fn update_font_scale(scale: f32) {
+    let mut current = read_or_default();
+    current.font_scale = Some(scale);
+    if let Ok(toml_str) = toml::to_string_pretty(&current) {
+        let path = config_path();
+        std::fs::write(path, toml_str).ok();
+    }
+}
+
 fn read_or_default() -> Config {
     let path = config_path();
 
