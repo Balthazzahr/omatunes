@@ -98,7 +98,7 @@ if len(sys.argv) > 1:
             except:
                 pass
         elif button == "left":
-            subprocess.run(["hyprctl", "dispatch", "focuswindow", "class:omatunes"])
+            subprocess.run(["hyprctl", "dispatch", "focuswindow", "title:^omatunes$"])
         sys.exit(0)
 
 # -------------------
