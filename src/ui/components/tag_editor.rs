@@ -53,46 +53,70 @@ pub fn view<'a>(
     unique_albums: &[String],
     unique_genres: &[String],
 ) -> Element<'a, Message> {
-    let title_input = text_input("Title", &state.title)
-        .id(iced::widget::text_input::Id::new("id3_title"))
-        .on_input(Message::UpdateTagFieldTitle)
-        .padding(8);
+    let title_input = container(
+        text_input("Title", &state.title)
+            .id(iced::widget::text_input::Id::new("id3_title"))
+            .on_input(Message::UpdateTagFieldTitle)
+            .padding(8)
+    )
+    .padding([0, 0, 2, 0]);
 
-    let artist_input = text_input("Artist", &state.artist)
-        .id(iced::widget::text_input::Id::new("id3_artist"))
-        .on_input(Message::UpdateTagFieldArtist)
-        .padding(8);
+    let artist_input = container(
+        text_input("Artist", &state.artist)
+            .id(iced::widget::text_input::Id::new("id3_artist"))
+            .on_input(Message::UpdateTagFieldArtist)
+            .padding(8)
+    )
+    .padding([0, 0, 2, 0]);
 
-    let album_input = text_input("Album", &state.album)
-        .id(iced::widget::text_input::Id::new("id3_album"))
-        .on_input(Message::UpdateTagFieldAlbum)
-        .padding(8);
+    let album_input = container(
+        text_input("Album", &state.album)
+            .id(iced::widget::text_input::Id::new("id3_album"))
+            .on_input(Message::UpdateTagFieldAlbum)
+            .padding(8)
+    )
+    .padding([0, 0, 2, 0]);
 
-    let genre_input = text_input("Genre", &state.genre)
-        .id(iced::widget::text_input::Id::new("id3_genre"))
-        .on_input(Message::UpdateTagFieldGenre)
-        .padding(8);
+    let genre_input = container(
+        text_input("Genre", &state.genre)
+            .id(iced::widget::text_input::Id::new("id3_genre"))
+            .on_input(Message::UpdateTagFieldGenre)
+            .padding(8)
+    )
+    .padding([0, 0, 2, 0]);
 
-    let track_num_input = text_input("Track Number", &state.track_number)
-        .id(iced::widget::text_input::Id::new("id3_track"))
-        .on_input(Message::UpdateTagFieldTrackNumber)
-        .padding(8);
+    let track_num_input = container(
+        text_input("Track Number", &state.track_number)
+            .id(iced::widget::text_input::Id::new("id3_track"))
+            .on_input(Message::UpdateTagFieldTrackNumber)
+            .padding(8)
+    )
+    .padding([0, 0, 2, 0]);
 
-    let disc_num_input = text_input("Disc Number", &state.disc_number)
-        .id(iced::widget::text_input::Id::new("id3_disc"))
-        .on_input(Message::UpdateTagFieldDiscNumber)
-        .padding(8);
+    let disc_num_input = container(
+        text_input("Disc Number", &state.disc_number)
+            .id(iced::widget::text_input::Id::new("id3_disc"))
+            .on_input(Message::UpdateTagFieldDiscNumber)
+            .padding(8)
+    )
+    .padding([0, 0, 2, 0]);
 
-    let year_input = text_input("Year", &state.year)
-        .id(iced::widget::text_input::Id::new("id3_year"))
-        .on_input(Message::UpdateTagFieldYear)
-        .padding(8);
+    let year_input = container(
+        text_input("Year", &state.year)
+            .id(iced::widget::text_input::Id::new("id3_year"))
+            .on_input(Message::UpdateTagFieldYear)
+            .padding(8)
+    )
+    .padding([0, 0, 2, 0]);
 
     let cover_path_val = state.cover_path.clone().unwrap_or_default();
-    let cover_input = text_input("Cover Image Path (jpg/png)", &cover_path_val)
-        .id(iced::widget::text_input::Id::new("id3_cover"))
-        .on_input(Message::UpdateTagFieldCoverPath)
-        .padding(8);
+    let cover_input = container(
+        text_input("Cover Image Path (jpg/png)", &cover_path_val)
+            .id(iced::widget::text_input::Id::new("id3_cover"))
+            .on_input(Message::UpdateTagFieldCoverPath)
+            .padding(8)
+    )
+    .padding([0, 0, 2, 0]);
 
     let apply_to_album_checkbox = checkbox(
         "Apply changes (ticked fields) to entire album",

@@ -370,6 +370,8 @@ pub struct AppState {
     mpris_cmd_rx: tokio::sync::mpsc::UnboundedReceiver<MprisCommand>,
     mpris_update_tx: tokio::sync::mpsc::UnboundedSender<MprisUpdate>,
     pub cover_cache: std::sync::Mutex<CoverCache>,
+    pub font_scale: f32,
+    pub hovered_album_header: Option<String>,
 }
 
 impl AppState {
@@ -487,6 +489,8 @@ impl AppState {
             mpris_cmd_rx,
             mpris_update_tx,
             cover_cache: std::sync::Mutex::new(CoverCache { id: None, handle: None }),
+            font_scale: cfg.font_scale(),
+            hovered_album_header: None,
         };
 
         (state, scan_task)
