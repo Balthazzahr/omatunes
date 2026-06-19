@@ -1191,6 +1191,13 @@ impl AppState {
                 Task::none()
             }
 
+            Message::ToggleLikeCurrent => {
+                if let Some(track) = self.current_track.clone() {
+                    return Task::done(Message::ToggleLikeTrack(track));
+                }
+                Task::none()
+            }
+
             Message::ToggleLikeTrack(track) => {
                 self.show_context_menu = None;
                 let liked = crate::db::toggle_favorite(track.path.clone());
@@ -3177,6 +3184,31 @@ impl AppState {
                 }
             }));
         }
+
+        struct UdpSubscriptionId;
+        subs.push(iced::subscription::channel(
+            std::any::TypeId::of::<UdpSubscriptionId>(),
+            10,
+            |mut output| async move {
+                let socket = match tokio::net::UdpSocket::bind("127.0.0.1:18888").await {
+                    Ok(s) => s,
+                    Err(_) => {
+                        loop {
+                            tokio::time::sleep(std::time::Duration::from_secs(3600)).await;
+                        }
+                    }
+                };
+                let mut buf = [0u8; 1024];
+                loop {
+                    if let Ok((len, _)) = socket.recv_from(&mut buf).await {
+                        let msg = String::from_utf8_lossy(&buf[..len]);
+                        if msg.trim() == "like" {
+                            let _ = output.try_send(Message::ToggleLikeCurrent);
+                        }
+                    }
+                }
+            }
+        ));
 
         Subscription::batch(subs)
     }
