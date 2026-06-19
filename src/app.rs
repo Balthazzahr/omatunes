@@ -87,6 +87,7 @@ pub enum Message {
     HoverAlbumHeader(Option<String>),
     IncreaseScale,
     DecreaseScale,
+    TracklistScrolled(iced::widget::scrollable::Viewport),
     ToggleShuffle,
     ToggleRepeat,
     SeekRelative(i64),
@@ -773,6 +774,30 @@ impl AppState {
             Message::DecreaseScale => {
                 self.font_scale = (self.font_scale - 0.05).max(0.5);
                 crate::config::update_font_scale(self.font_scale);
+                Task::none()
+            }
+
+            Message::TracklistScrolled(viewport) => {
+                let rel_y = viewport.relative_offset().y;
+                let total_tracks = self.tracks.len();
+                
+                if rel_y > 0.90 && self.track_list_end < total_tracks {
+                    // Scroll to bottom -> shift window down
+                    self.track_list_end = (self.track_list_end + 200).min(total_tracks);
+                    self.track_list_start = if self.track_list_end > 500 {
+                        self.track_list_end - 500
+                    } else {
+                        0
+                    };
+                } else if rel_y < 0.10 && self.track_list_start > 0 {
+                    // Scroll to top -> shift window up
+                    self.track_list_start = if self.track_list_start > 100 {
+                        self.track_list_start - 100
+                    } else {
+                        0
+                    };
+                    self.track_list_end = self.track_list_start + 500;
+                }
                 Task::none()
             }
 
