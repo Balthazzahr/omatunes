@@ -82,6 +82,7 @@ pub enum Message {
     PlayAlbum(String),
     ToggleAlbumPlayPause(String),
     PlayPause,
+    ToggleLikeCurrent,
     NextTrack,
     PreviousTrack,
     Seek(Duration),
