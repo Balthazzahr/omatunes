@@ -720,30 +720,71 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         if dep.group_by_album {
             // Group tracks by album keeping insertion order
             let mut groups: Vec<(String, Vec<&crate::library::models::Track>)> = Vec::new();
+            let limit = 500;
+            let mut track_count = 0;
+            let mut truncated = false;
+
             for track in &dep.tracks {
+                if track_count >= limit {
+                    truncated = true;
+                    break;
+                }
                 if let Some(last) = groups.last_mut() {
                     if last.0 == track.album {
                         last.1.push(track);
+                        track_count += 1;
                         continue;
                     }
                 }
                 groups.push((track.album.clone(), vec![track]));
+                track_count += 1;
             }
 
             for (album_name, tracks) in groups.into_iter() {
                 let n = tracks.len();
                 let is_hovered = dep.hovered_album_header.as_ref() == Some(&album_name);
+                let is_current_album_playing = dep.current_track_album.as_deref() == Some(&album_name);
+                let tracks_to_play: Vec<crate::library::models::Track> = tracks.iter().map(|t| (*t).clone()).collect();
 
-                let play_btn: Element<'static, Message> = if is_hovered {
-                    let tracks_to_play: Vec<crate::library::models::Track> = tracks.iter().map(|t| (*t).clone()).collect();
+                let album_name_btn = button(
+                    text(album_name.clone())
+                        .color(theme::accent())
+                        .size(13)
+                        .font(crate::ui::icons::UI_FONT_BOLD)
+                )
+                .on_press(Message::PlayTracks(tracks_to_play.clone()))
+                .style(iced::widget::button::text)
+                .padding(0);
+
+                let play_btn: Element<'static, Message> = if is_current_album_playing || is_hovered {
+                    let btn_color = if is_current_album_playing {
+                        let pulse = (std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap_or_default()
+                            .as_millis() as f32 / 300.0).sin().abs();
+                        theme::lerp_color(theme::accent(), theme::subtext(), pulse * 0.5)
+                    } else {
+                        theme::subtext()
+                    };
+
                     button(
-                        text(crate::ui::icons::ICON_PLAY)
-                            .font(crate::ui::icons::NERD_FONT_MONO)
-                            .color(theme::accent())
-                            .size(10)
+                        row![
+                            text("Play Album")
+                                .size(11)
+                                .font(crate::ui::icons::UI_FONT),
+                            text(crate::ui::icons::ICON_PLAY)
+                                .font(crate::ui::icons::NERD_FONT_MONO)
+                                .size(10)
+                        ]
+                        .spacing(4)
+                        .align_y(Alignment::Center)
                     )
                     .on_press(Message::PlayTracks(tracks_to_play))
-                    .style(iced::widget::button::text)
+                    .style(move |_, _| iced::widget::button::Style {
+                        text_color: btn_color,
+                        background: Some(iced::Background::Color(iced::Color::TRANSPARENT)),
+                        ..Default::default()
+                    })
                     .padding(2)
                     .into()
                 } else {
@@ -753,10 +794,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 let header = mouse_area(
                     container(
                         row![
-                            text(album_name.clone())
-                                .color(theme::accent())
-                                .size(13)
-                                .font(crate::ui::icons::UI_FONT_BOLD),
+                            album_name_btn,
                             Space::with_width(8),
                             play_btn,
                             Space::with_width(Length::Fill),
@@ -780,9 +818,40 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 }
                 rows.push(Space::with_height(8).into());
             }
+
+            if truncated {
+                rows.push(
+                    container(
+                        text(format!("Showing first {} of {} tracks. Use search to find more.", track_count, dep.tracks.len()))
+                            .color(theme::subtext())
+                            .size(12)
+                    )
+                    .padding(12)
+                    .center_x(Length::Fill)
+                    .into()
+                );
+            }
         } else {
-            for track in &dep.tracks {
+            let limit = 500;
+            let tracks_to_render = if dep.tracks.len() > limit {
+                &dep.tracks[..limit]
+            } else {
+                &dep.tracks
+            };
+            for track in tracks_to_render {
                 rows.push(render_track_row(dep, track, false, current_id));
+            }
+            if dep.tracks.len() > limit {
+                rows.push(
+                    container(
+                        text(format!("Showing first {} of {} tracks. Use search to find more.", limit, dep.tracks.len()))
+                            .color(theme::subtext())
+                            .size(12)
+                    )
+                    .padding(12)
+                    .center_x(Length::Fill)
+                    .into()
+                );
             }
         }
 
