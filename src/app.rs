@@ -744,6 +744,30 @@ impl AppState {
                 self.play_track_internal(track)
             }
 
+            Message::PlayTracks(tracks) => {
+                if let Some(first) = tracks.first().cloned() {
+                    self.queue = tracks;
+                    self.play_track_internal(first)
+                } else {
+                    Task::none()
+                }
+            }
+
+            Message::HoverAlbumHeader(album) => {
+                self.hovered_album_header = album;
+                Task::none()
+            }
+
+            Message::IncreaseScale => {
+                self.font_scale = (self.font_scale + 0.05).min(3.0);
+                Task::none()
+            }
+
+            Message::DecreaseScale => {
+                self.font_scale = (self.font_scale - 0.05).max(0.5);
+                Task::none()
+            }
+
             Message::PlayPause => {
                 match self.playback_state {
                     PlaybackState::Playing => {
@@ -2185,6 +2209,8 @@ impl AppState {
                                 "p" | "P" => return Task::done(Message::PreviousTrack),
                                 "s" | "S" => return Task::done(Message::ToggleShuffle),
                                 "r" | "R" => return Task::done(Message::ToggleRepeat),
+                                "+" | "=" if self.modifiers.control() => return Task::done(Message::IncreaseScale),
+                                "-"       if self.modifiers.control() => return Task::done(Message::DecreaseScale),
                                 "+" | "=" => return Task::done(Message::VolumeStep(vol)),
                                 "-"       => return Task::done(Message::VolumeStep(-vol)),
                                 "/" => {
