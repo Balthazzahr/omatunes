@@ -24,6 +24,7 @@ pub enum MprisUpdate {
     Volume(f64),
     Shuffle(bool),
     Loop(LoopStatus),
+    Position(std::time::Duration),
 }
 
 pub fn launch(
@@ -104,6 +105,9 @@ pub fn launch(
                     }
                     MprisUpdate::Loop(l) => {
                         player.set_loop_status(l).await.ok();
+                    }
+                    MprisUpdate::Position(d) => {
+                        player.set_position(Time::from_micros(d.as_micros() as i64));
                     }
                 }
             }
