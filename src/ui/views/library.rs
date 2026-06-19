@@ -588,6 +588,8 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
 struct TrackListDependency {
     tracks: Vec<crate::library::models::Track>,
     current_track_id: Option<i64>,
+    current_track_album: Option<String>,
+    pulse_tick: u32,
     selected_tracks: Vec<crate::library::models::Track>,
     group_by_album: bool,
     sort_column: Option<SortColumn>,
@@ -602,6 +604,8 @@ impl std::hash::Hash for TrackListDependency {
         self.sort_column.hash(state);
         self.sort_ascending.hash(state);
         self.current_track_id.hash(state);
+        self.current_track_album.hash(state);
+        self.pulse_tick.hash(state);
         self.selected_tracks.len().hash(state);
         self.tracks.len().hash(state);
         self.hovered_album_header.hash(state);
