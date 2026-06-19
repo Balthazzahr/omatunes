@@ -754,19 +754,19 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 let is_hovered = dep.hovered_album_header.as_ref() == Some(&album_name);
                 let is_current_album_playing = dep.current_track_album.as_deref() == Some(&album_name);
 
-                let click_action = if is_current_album_playing {
-                    Message::PlayPause
+                let album_display_name = if album_name.trim().is_empty() {
+                    "Unknown Album".to_string()
                 } else {
-                    Message::PlayAlbum(album_name.clone())
+                    album_name.clone()
                 };
 
                 let album_name_btn = button(
-                    text(album_name.clone())
+                    text(album_display_name)
                         .color(theme::accent())
                         .size(13)
                         .font(crate::ui::icons::UI_FONT_BOLD)
                 )
-                .on_press(click_action.clone())
+                .on_press(Message::ToggleAlbumPlayPause(album_name.clone()))
                 .style(iced::widget::button::text)
                 .padding(0);
 
@@ -785,7 +785,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                         if dep.is_playing {
                             (crate::ui::icons::ICON_PAUSE, "  PLAYING ")
                         } else {
-                            (crate::ui::icons::ICON_PLAY, "  PAUSED ")
+                            (crate::ui::icons::ICON_PAUSE, "  PAUSED ")
                         }
                     } else {
                         (crate::ui::icons::ICON_PLAY, "  PLAY ALBUM ")
@@ -795,7 +795,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                         row![
                             text(btn_icon)
                                 .font(crate::ui::icons::NERD_FONT_MONO)
-                                .size(11),
+                                .size(13),
                             text(btn_label)
                                 .size(13)
                                 .font(crate::ui::icons::UI_FONT_BOLD),
@@ -803,13 +803,13 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                         .spacing(4)
                         .align_y(Alignment::Center)
                     )
-                    .on_press(click_action)
+                    .on_press(Message::ToggleAlbumPlayPause(album_name.clone()))
                     .style(move |_, _| iced::widget::button::Style {
                         text_color: btn_color,
                         background: Some(iced::Background::Color(iced::Color::TRANSPARENT)),
                         ..Default::default()
                     })
-                    .padding(2)
+                    .padding(0)
                     .into()
                 } else {
                     Space::with_width(0).into()
