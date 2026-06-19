@@ -715,6 +715,8 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         sort_ascending: state.sort_ascending,
         strings: state.strings,
         hovered_album_header: state.hovered_album_header.clone(),
+        visible_start: state.track_list_start,
+        visible_end: state.track_list_end,
     };
 
     let tracklist_scroll = iced::widget::lazy(track_list_dep, move |dep| -> Element<'static, Message> {
@@ -722,26 +724,20 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         let mut rows: Vec<Element<Message>> = Vec::new();
 
         if dep.group_by_album {
-            // Group tracks by album keeping insertion order
-            let mut groups: Vec<(String, Vec<&crate::library::models::Track>)> = Vec::new();
-            let limit = 500;
-            let mut track_count = 0;
-            let mut truncated = false;
+            // Group tracks in the visible window by album keeping insertion order
+            let start = dep.visible_start;
+            let end = dep.visible_end.min(dep.tracks.len());
+            let tracks_in_window = &dep.tracks[start..end];
 
-            for track in &dep.tracks {
-                if track_count >= limit {
-                    truncated = true;
-                    break;
-                }
+            let mut groups: Vec<(String, Vec<&crate::library::models::Track>)> = Vec::new();
+            for track in tracks_in_window {
                 if let Some(last) = groups.last_mut() {
                     if last.0 == track.album {
                         last.1.push(track);
-                        track_count += 1;
                         continue;
                     }
                 }
                 groups.push((track.album.clone(), vec![track]));
-                track_count += 1;
             }
 
             for (album_name, tracks) in groups.into_iter() {
@@ -828,47 +824,23 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 }
                 rows.push(Space::with_height(8).into());
             }
-
-            if truncated {
-                rows.push(
-                    container(
-                        text(format!("Showing first {} of {} tracks. Use search to find more.", track_count, dep.tracks.len()))
-                            .color(theme::subtext())
-                            .size(12)
-                    )
-                    .padding(12)
-                    .center_x(Length::Fill)
-                    .into()
-                );
-            }
         } else {
-            let limit = 500;
-            let tracks_to_render = if dep.tracks.len() > limit {
-                &dep.tracks[..limit]
-            } else {
-                &dep.tracks
-            };
+            let start = dep.visible_start;
+            let end = dep.visible_end.min(dep.tracks.len());
+            let tracks_to_render = &dep.tracks[start..end];
             for track in tracks_to_render {
                 rows.push(render_track_row(dep, track, false, current_id));
             }
-            if dep.tracks.len() > limit {
-                rows.push(
-                    container(
-                        text(format!("Showing first {} of {} tracks. Use search to find more.", limit, dep.tracks.len()))
-                            .color(theme::subtext())
-                            .size(12)
-                    )
-                    .padding(12)
-                    .center_x(Length::Fill)
-                    .into()
-                );
-            }
         }
 
-        mouse_area(scrollable(column(rows).spacing(0)).id(scrollable::Id::new("tracklist_scroll")))
-            .on_enter(Message::HoverTracklist(true))
-            .on_exit(Message::HoverTracklist(false))
-            .into()
+        mouse_area(
+            scrollable(column(rows).spacing(0))
+                .id(scrollable::Id::new("tracklist_scroll"))
+                .on_scroll(Message::TracklistScrolled)
+        )
+        .on_enter(Message::HoverTracklist(true))
+        .on_exit(Message::HoverTracklist(false))
+        .into()
     });
 
     let shortcuts_btn = button(
