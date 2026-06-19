@@ -15,6 +15,7 @@ pub struct Config {
     pub language:    String,
     pub seek_step:   u64,
     pub volume_step: f32,
+    pub font_scale:  Option<f32>,
 }
 
 impl Default for Config {
@@ -27,11 +28,15 @@ impl Default for Config {
             language:    "auto".into(),
             seek_step:   5,
             volume_step: 0.05,
+            font_scale:  Some(1.0),
         }
     }
 }
 
 impl Config {
+    pub fn font_scale(&self) -> f32 {
+        self.font_scale.unwrap_or(1.0)
+    }
     /// Retorna `music_dir` com `~` expandido para `$HOME`.
     pub fn music_path(&self) -> PathBuf {
         expand_tilde(&self.music_dir)
@@ -118,4 +123,7 @@ seek_step = 5
 
 # Volume delta per + / - keypress
 volume_step = 0.05
+
+# UI font size scale multiplier (default: 1.0)
+# font_scale = 1.0
 "#;
