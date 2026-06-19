@@ -974,7 +974,7 @@ impl AppState {
                 // Actually the panel is to the right of the drag handle, so:
                 // new_width = window_width - x
                 // But we need to account for the separator width. The drag handle sits between player and panel.
-                let new_width = (self.window_width - x).clamp(150.0, self.window_width * 0.6);
+                let new_width = (self.window_width - x).clamp(150.0, self.window_width * 0.5);
                 self.right_panel_width = new_width;
                 Task::none()
             }

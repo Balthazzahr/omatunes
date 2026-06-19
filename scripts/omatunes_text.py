@@ -87,6 +87,19 @@ if len(sys.argv) > 1:
         elif button == "middle":
             subprocess.run(["playerctl", "-p", "omatunes", "previous"])
         sys.exit(0)
+    elif arg == "--double-click" and len(sys.argv) > 2:
+        button = sys.argv[2]
+        if button == "right":
+            import socket
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.sendto(b"like", ("127.0.0.1", 18888))
+                s.close()
+            except:
+                pass
+        elif button == "left":
+            subprocess.run(["hyprctl", "dispatch", "focuswindow", "class:omatunes"])
+        sys.exit(0)
 
 # -------------------
 # Session tracking
