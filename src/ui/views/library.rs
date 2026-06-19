@@ -708,11 +708,16 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         0
     };
 
+    let is_playing = matches!(state.playback_state, crate::audio::PlaybackState::Playing);
+    let is_paused = matches!(state.playback_state, crate::audio::PlaybackState::Paused);
+
     let track_list_dep = TrackListDependency {
         tracks: state.tracks.clone(),
         current_track_id: state.current_track.as_ref().map(|t| t.id),
         current_track_album: state.current_track.as_ref().map(|t| t.album.clone()),
         pulse_tick,
+        is_playing,
+        is_paused,
         selected_tracks: state.selected_tracks.clone(),
         group_by_album,
         sort_column: state.sort_column,
