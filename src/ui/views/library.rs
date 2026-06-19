@@ -694,9 +694,17 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
     })
     .width(Length::Fill);
 
+    let pulse_tick = if state.playback_state == crate::app::PlaybackState::Playing {
+        (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_millis() / 250) as u32
+    } else {
+        0
+    };
+
     let track_list_dep = TrackListDependency {
         tracks: state.tracks.clone(),
         current_track_id: state.current_track.as_ref().map(|t| t.id),
+        current_track_album: state.current_track.as_ref().map(|t| t.album.clone()),
+        pulse_tick,
         selected_tracks: state.selected_tracks.clone(),
         group_by_album,
         sort_column: state.sort_column,
