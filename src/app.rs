@@ -559,6 +559,8 @@ impl AppState {
     }
 
     pub fn update_filtered_tracks(&mut self) {
+        self.track_list_start = 0;
+        self.track_list_end = 500;
         if !self.search_query.is_empty() {
             let query = self.search_query.to_lowercase();
             self.tracks = self.all_tracks.iter().filter(|t| {
