@@ -254,6 +254,7 @@ pub struct TagEditorState {
     pub lyrics_content: iced::widget::text_editor::Content,
     pub active_tab: TagEditorTab,
     pub focused_field: Option<usize>,
+    pub pending_offset: f64,
 }
 
 impl Clone for TagEditorState {
@@ -282,6 +283,7 @@ impl Clone for TagEditorState {
             lyrics_content: iced::widget::text_editor::Content::with_text(&self.lyrics_content.text()),
             active_tab: self.active_tab,
             focused_field: self.focused_field,
+            pending_offset: self.pending_offset,
         }
     }
 }
@@ -1314,6 +1316,7 @@ impl AppState {
                     lyrics_content: iced::widget::text_editor::Content::with_text(if all_same_lyrics { &first.lyrics } else { "" }),
                     active_tab: TagEditorTab::Main,
                     focused_field: Some(0),
+                    pending_offset: 0.0,
                 });
                 iced::widget::text_input::focus(iced::widget::text_input::Id::new("id3_title"))
             }
