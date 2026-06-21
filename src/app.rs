@@ -2655,6 +2655,31 @@ impl AppState {
                 Task::none()
             }
 
+            Message::ChangePendingLyricOffset(offset) => {
+                if let Some(ref mut state) = self.show_tag_editor {
+                    state.pending_offset += offset;
+                }
+                Task::none()
+            }
+
+            Message::ApplyPendingLyricOffset => {
+                if let Some(ref mut state) = self.show_tag_editor {
+                    let current_text = state.lyrics_content.text();
+                    let new_text = crate::ui::lyrics_shift::shift_lrc_timestamps(&current_text, state.pending_offset);
+                    state.lyrics_content = iced::widget::text_editor::Content::with_text(&new_text);
+                    state.apply_lyrics = true;
+                    state.pending_offset = 0.0;
+                }
+                Task::none()
+            }
+
+            Message::ResetPendingLyricOffset => {
+                if let Some(ref mut state) = self.show_tag_editor {
+                    state.pending_offset = 0.0;
+                }
+                Task::none()
+            }
+
             Message::SearchLyricsOnline => {
                 if let Some(ref state) = self.show_tag_editor {
                     let artist = state.artist.trim();
