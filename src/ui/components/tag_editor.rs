@@ -323,42 +323,45 @@ pub fn view<'a>(
                     }),
                     Space::with_height(8),
                     row![
-                        button(text("-1.0s").size(10).color(theme::text()))
+                        button(text("-1.0s").size(13).color(theme::text()))
                             .on_press(Message::ChangePendingLyricOffset(-1.0))
                             .style(theme::secondary_button)
-                            .padding([3, 8]),
-                        button(text("-0.1s").size(10).color(theme::text()))
+                            .padding([4, 10]),
+                        button(text("-0.1s").size(13).color(theme::text()))
                             .on_press(Message::ChangePendingLyricOffset(-0.1))
                             .style(theme::secondary_button)
-                            .padding([3, 8]),
-                        button(text("+0.1s").size(10).color(theme::text()))
+                            .padding([4, 10]),
+                        button(text("+0.1s").size(13).color(theme::text()))
                             .on_press(Message::ChangePendingLyricOffset(0.1))
                             .style(theme::secondary_button)
-                            .padding([3, 8]),
-                        button(text("+1.0s").size(10).color(theme::text()))
+                            .padding([4, 10]),
+                        button(text("+1.0s").size(13).color(theme::text()))
                             .on_press(Message::ChangePendingLyricOffset(1.0))
                             .style(theme::secondary_button)
-                            .padding([3, 8]),
-                        Space::with_width(4),
+                            .padding([4, 10]),
+                    ].spacing(8).align_y(Alignment::Center),
+                    Space::with_height(8),
+                    row![
                         text(format!("Pending shift: {:+.2}s", state.pending_offset))
-                            .size(11)
+                            .size(12)
                             .color(theme::subtext()),
                         Space::with_width(Length::Fill),
-                        button(text("Reset").size(10).color(theme::text()))
+                        button(text("Reset").size(11).color(theme::text()))
                             .on_press(Message::ResetPendingLyricOffset)
                             .style(theme::secondary_button)
-                            .padding([3, 8]),
+                            .padding([4, 10]),
+                        Space::with_width(6),
                         if state.pending_offset.abs() > 0.0001 {
-                            button(text("Apply").size(10).color(theme::base()))
+                            button(text("Apply").size(11).color(theme::base()))
                                 .on_press(Message::ApplyPendingLyricOffset)
                                 .style(theme::primary_button)
-                                .padding([3, 8])
+                                .padding([4, 10])
                         } else {
-                            button(text("Apply").size(10).color(theme::subtext()))
+                            button(text("Apply").size(11).color(theme::subtext()))
                                 .style(theme::secondary_button)
-                                .padding([3, 8])
+                                .padding([4, 10])
                         }
-                    ].align_y(Alignment::Center).spacing(4)
+                    ].align_y(Alignment::Center)
                 ].width(Length::Fill)
             ].spacing(8)
         );
