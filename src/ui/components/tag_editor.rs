@@ -320,7 +320,45 @@ pub fn view<'a>(
                             radius: 4.0.into(),
                         },
                         ..Default::default()
-                    })
+                    }),
+                    Space::with_height(8),
+                    row![
+                        button(text("-1.0s").size(10).color(theme::text()))
+                            .on_press(Message::ChangePendingLyricOffset(-1.0))
+                            .style(theme::secondary_button)
+                            .padding([3, 8]),
+                        button(text("-0.1s").size(10).color(theme::text()))
+                            .on_press(Message::ChangePendingLyricOffset(-0.1))
+                            .style(theme::secondary_button)
+                            .padding([3, 8]),
+                        button(text("+0.1s").size(10).color(theme::text()))
+                            .on_press(Message::ChangePendingLyricOffset(0.1))
+                            .style(theme::secondary_button)
+                            .padding([3, 8]),
+                        button(text("+1.0s").size(10).color(theme::text()))
+                            .on_press(Message::ChangePendingLyricOffset(1.0))
+                            .style(theme::secondary_button)
+                            .padding([3, 8]),
+                        Space::with_width(4),
+                        text(format!("Pending shift: {:+.2}s", state.pending_offset))
+                            .size(11)
+                            .color(theme::subtext()),
+                        Space::with_width(Length::Fill),
+                        button(text("Reset").size(10).color(theme::text()))
+                            .on_press(Message::ResetPendingLyricOffset)
+                            .style(theme::secondary_button)
+                            .padding([3, 8]),
+                        if state.pending_offset.abs() > 0.0001 {
+                            button(text("Apply").size(10).color(theme::base()))
+                                .on_press(Message::ApplyPendingLyricOffset)
+                                .style(theme::primary_button)
+                                .padding([3, 8])
+                        } else {
+                            button(text("Apply").size(10).color(theme::subtext()))
+                                .style(theme::secondary_button)
+                                .padding([3, 8])
+                        }
+                    ].align_y(Alignment::Center).spacing(4)
                 ].width(Length::Fill)
             ].spacing(8)
         );
