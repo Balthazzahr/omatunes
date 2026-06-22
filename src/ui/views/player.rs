@@ -81,11 +81,13 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             .content_fit(iced::ContentFit::Cover)
             .into()
     } else {
+        let note_bytes = include_bytes!("../../../assets/OmaTUNES NOTE.png");
+        let handle = iced::widget::image::Handle::from_bytes(note_bytes.to_vec());
         container(
-            text(icons::ICON_MUSIC)
-                .font(icons::NERD_FONT_MONO)
-                .color(theme::overlay0())
-                .size(58),
+            image(handle)
+                .width(216)
+                .height(216)
+                .content_fit(iced::ContentFit::Cover)
         )
         .width(216)
         .height(216)
