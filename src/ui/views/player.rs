@@ -298,8 +298,12 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                                      .width(Length::Fill)
                                      .align_x(iced::alignment::Horizontal::Center);
 
+                                 let container_element = container(text_element)
+                                     .width(Length::Fill)
+                                     .align_x(iced::alignment::Horizontal::Center);
+
                                  // Each line is clickable to seek to that timestamp
-                                 let line_btn = button(text_element)
+                                 let line_btn = button(container_element)
                                      .on_press(Message::SeekToLyric(line_time))
                                      .width(Length::Fill)
                                      .padding([4, 8])
