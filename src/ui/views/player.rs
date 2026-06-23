@@ -293,7 +293,6 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                                     .size(if is_active { 20 } else { 17 })
                                     .font(if is_active { crate::ui::icons::UI_FONT_BOLD } else { crate::ui::icons::UI_FONT })
                                     .color(if is_active { theme::accent() } else { theme::overlay0() })
-                                    .width(Length::Fill)
                                     .align_x(iced::alignment::Horizontal::Center);
 
                                 // Each line is clickable to seek to that timestamp
