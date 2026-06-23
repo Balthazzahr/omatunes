@@ -36,6 +36,12 @@ A native Wayland music player written in Rust, built for [Omarchy](https://omarc
 
 ---
 
+## 📖 User Manual
+
+A comprehensive feature-by-feature guide, configuration reference, and full keybinding sheet is available in the [USER_MANUAL.md](USER_MANUAL.md).
+
+---
+
 ## Requirements
 
 | Requirement | Notes |
