@@ -224,16 +224,10 @@ if len(sys.argv) > 1:
         import socket
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            if button == "shuffle":
-                s.sendto(b"shuffle", ("127.0.0.1", 18888))
-            elif button == "prev":
-                s.sendto(b"prev", ("127.0.0.1", 18888))
-            elif button == "play":
+            if button == "play":
                 s.sendto(b"play-pause", ("127.0.0.1", 18888))
             elif button == "next":
                 s.sendto(b"next", ("127.0.0.1", 18888))
-            elif button == "repeat":
-                s.sendto(b"repeat", ("127.0.0.1", 18888))
             elif button == "like":
                 s.sendto(b"like", ("127.0.0.1", 18888))
             s.close()
@@ -256,35 +250,20 @@ if len(sys.argv) > 1:
             sys.exit(0)
 
         status = state["status"]
-        shuffle = state["shuffle"]
-        loop = state["loop"]
         liked = state["liked"]
 
-        green = COLORS.get("green", "#00ff00")
         red = COLORS.get("red", "#ff0000")
         gray = "#565f89"
         cyan = COLORS.get("cyan", "#00ffff")
 
-        if button_name == "shuffle":
-            icon = ""
-            color = green if shuffle == "on" else gray
-            tooltip = f"Shuffle: {shuffle.title()}"
-        elif button_name == "prev":
-            icon = ""
-            color = cyan
-            tooltip = "Previous Track"
-        elif button_name == "play":
+        if button_name == "play":
             icon = "" if status == "playing" else ""
-            color = green if status == "playing" else gray
+            color = cyan
             tooltip = "Pause" if status == "playing" else "Play"
         elif button_name == "next":
             icon = ""
             color = cyan
             tooltip = "Next Track"
-        elif button_name == "repeat":
-            icon = ""
-            color = green if loop.lower() != "none" else gray
-            tooltip = f"Repeat: {loop}"
         elif button_name == "like":
             icon = "" if liked else ""
             color = red if liked else gray
