@@ -8,24 +8,29 @@ A native Wayland music player written in Rust, built for [Omarchy](https://omarc
 
 `omatunes` is a customized fork of [sheep-farm/lavanda](https://github.com/sheep-farm/lavanda) by [Balthazzahr](https://github.com/Balthazzahr).
 
-![omatunes Screenshot](screenshot.png)
+> [!TIP]
+> For a detailed feature-by-feature guide, configuration options, advanced tag editing tips, and database details, see the [USER_MANUAL.md](USER_MANUAL.md).
+
+<p align="center">
+  <img src="assets/Main UI.png" alt="OmaTUNES Main UI Screenshot" width="800">
+</p>
 
 ---
 
 ## Key Features
 
 - **Wide Audio Format Support**: Plays MP3, FLAC, OGG, Opus, WAV, AAC, M4A, AIFF, and more natively via the high-performance [Symphonia](https://github.com/pdeljanov/Symphonia) library.
-- **100% Offline & Privacy-First**: Zero tracking, zero background telemetry, and no network requirements. It logs, saves, and compiles your play counts, statistics, and leaderboard records locally.
+- **100% Offline & Privacy-First**: Zero tracking, zero background telemetry, and no network requirements. Logs and saves play counts, stats, and custom user playlists locally.
+- **JSON Database**: Stores favorites, play counts, recently played tracks, hidden artists/albums, column settings, and user playlists in a single portable JSON file (`~/.config/omatunes/db.json`).
 - **Synchronized LRC Lyrics & Interactivity**: Parses LRC metadata to highlight and auto-scroll the active lyric line, supporting interactive seek-on-click to any lyric's timestamp.
 - **Logarithmic Audio Spectrum Visualizer**: Computes real-time 2048-point Hann-windowed FFT to render 64 logarithmic bands colored with an amplitude gradient.
 - **Resizable Panel UI**: Toggle vertical tabs on the right side to open lyrics or spectrum views, adjustable with a click-and-drag handle and width state persistence.
 - **Live Omarchy Theme Switching**: Automatically maps your active system theme (`Catppuccin`, `Nord`, `Gruvbox`, etc.) to the UI palette live in under 3 seconds. No app restarts required.
-- **Native Wayland/X11 & Lightweight**: Built in native Rust using the Iced GUI toolkit. Runs on any Wayland compositor (Hyprland, GNOME, KDE) or traditional X11 window managers. Extremely fast startup and low resource consumption.
-- **Rich Waybar MPRIS Integration**: Pre-packaged with local Waybar status scripts (`scripts/omatunes_text.py`). Provides styled progress bars, listening history milestones, and interactive tooltip stats directly on your status bar.
-- **Folder-Based Music Library**: No forced file re-organization. respects and reads your existing `~/Music` subdirectory structure exactly as it is.
-- **High-Performance Incremental Scanner**: Instantly scans your library on startup by checking file modification timestamps (`mtime` cache) to skip unchanged tracks.
+- **Native Wayland/X11 & Lightweight**: Built in native Rust using the Iced GUI toolkit. Runs on any Wayland compositor (Hyprland, GNOME, KDE) or traditional X11 window managers. Features extremely fast startup and low resource consumption.
+- **Rich Waybar Integration**: Pre-packaged with local Waybar status scripts (`scripts/omatunes_text.py`) and a control group mapping play, next, and like controls. Provides styled progress bars, listening history milestones, and interactive tooltip stats.
+- **Folder-Based Music Library**: No forced file re-organization. Respects and reads your existing music library subdirectories exactly as they are.
 - **Advanced Bulk Metadata (ID3) Editing**: Select multiple tracks, edit fields selectively using checkboxes, utilize predictive library-based autocomplete suggestions, and apply tag updates across entire albums.
-- **Customizable Columns**: Toggle visibilities or re-order columns (Track #, Title, Artist, Album, Plays, Duration) via a right-click header menu, saving preferences to your local database.
+- **Customizable Columns**: Toggle visibilities or re-order columns (Track #, Title, Artist, Album, Genre, Year, Plays, Duration) via a right-click header menu, saving preferences to your local database.
 - **Playlists & Smart Autoplaylists**: Build custom playlists on the fly, or use automatic smart lists (`Liked Songs`, `Recently Played`, `Most Played`) that update live as you listen.
 - **MPRIS2 Server Support**: Integrates natively with `playerctl` and other system D-Bus audio widgets.
 
@@ -35,7 +40,7 @@ A native Wayland music player written in Rust, built for [Omarchy](https://omarc
 
 | Requirement | Notes |
 |---|---|
-| Rust ≥ 1.75 | `rustup` recommended |
+| Rust &geq; 1.75 | `rustup` recommended |
 | A Nerd Font | `JetBrainsMono Nerd Font Mono` by default; any Nerd Font works |
 | PipeWire or PulseAudio | Audio output via cpal |
 | D-Bus session bus | For MPRIS2 (`DBUS_SESSION_BUS_ADDRESS` must be set) |
@@ -115,77 +120,65 @@ seek_step = 5
 volume_step = 0.05
 ```
 
-The library database is stored at `~/.local/share/omatunes/omatunes.db`. If you need to force a full clean re-scan, you can delete this file.
-
----
-
-## User Guide
-
-Welcome to `omatunes`! Here is how to get started using the player, from basic navigation to advanced library management.
-
-### 1. Library Synchronization
-On first launch, `omatunes` will automatically scan your configured music directory (defaults to `~/Music`). 
-- **Lightweight Incremental Scanner**: It checks file modification timestamps (`mtime`) to avoid scanning unchanged files, loading even massive libraries instantly.
-- **Dynamic Database**: Any files you add, rename, edit, or delete inside your music directory will automatically sync to the database (`~/.local/share/omatunes/omatunes.db`) when `omatunes` starts.
-
-### 2. Browsing & Filtering
-You can navigate your library using the sidebar panel on the left:
-- **Artists, Albums, and Genres Tabs**: Click these folders to filter the track list. Each folder spans full-width with a clean flat tab styling.
-- **Interactive Search**: Use the search input at the top of the sidebar to filter the lists by matching keywords instantly.
-
-### 3. Playback Controls
-- **Double-click a Track**: Starts playing the song.
-- **Player Panel**: Located at the top. It displays the active track title, artist, and album. It also locks and displays the playing album art (enlarged by 20% for visibility).
-- **Progress Bar & Seeking**: Click anywhere along the timeline bar to seek directly to that part of the track.
-- **Volume & States**: Control the volume slider, and toggle shuffle or repeat directly in the player bar.
-
-### 4. Custom & Automatic Playlists
-Navigate to the bottom panel of the sidebar to manage your playlists:
-- **User Playlists**: Click this tab to view your custom playlists. Create a new one by clicking the **New Playlist** button at the bottom of the list. Hovering over a playlist allows you to rename (pencil icon) or delete (trash can icon) it.
-- **Autoplaylists**: Click this tab to view smart, self-updating lists:
-  - *Liked Songs*: Aggregates all tracks you have favorited (by clicking the heart icon).
-  - *Recently Played*: Chronologically lists your most recently played tracks.
-  - *Most Played*: Sorts your tracks by play count.
-
-### 5. Advanced Feature: Column Customization
-- You can customize the track table columns to show exactly what you want (Track #, Title, Artist, Album, Genre, Year, Plays, Duration, etc.).
-- **Right-Click Customization**: Right-click the track table header to toggle column visibilities or re-order them (Move Left / Move Right). Column preferences are saved automatically.
-
-### 6. Advanced Feature: Bulk Metadata (ID3) Tagging
-`omatunes` features a powerful metadata editor:
-- **Bulk Selection**: Select a track, then hold `Shift` and click another track to select a group. Press `E` to open the Tag Editor.
-- **Autocomplete Suggestions**: Start typing in the Artist, Album, or Genre fields to see suggestion pills matching the spelling of tags already in your library.
-- **Targeted Fields (Auto-Ticking)**: When you type in a field or click a suggestion pill, that field's checkbox automatically ticks. Only checked fields will apply changes to all selected tracks when saved.
-- **Apply to Entire Album**: Check the "Apply to Entire Album" toggle at the bottom to write the modified tags to every track in the album.
-
-### 7. Interactive Synchronized Lyrics & Audio Spectrum Visualizer
-- **Right Panel Tabs**: Click the vertical tabs on the right side of the window to slide out either the **Lyrics** or **Visualizer** section.
-- **Resizable Interface**: Grab the separator handle between the track list and right panel to resize it dynamically. Width preferences are saved automatically.
-- **Synchronized Lyrics**: Parses `.lrc` formatted lyrics, highlighting the current line in the accent color and auto-centering it in the viewport.
-- **Interactive Lyric Seeking**: Click any line in the synchronized lyrics view to seek playback instantly to that specific lyric's timestamp.
-- **Logarithmic Spectrum Analyzer**: Render a 64-band visualizer that maps frequencies dynamically using an amplitude gradient (green → lavender → pink).
-
 ---
 
 ## Waybar Integration
 
-Use the provided script under `/scripts/omatunes_text.py` for Waybar status and hover-tooltip details. 
+The Waybar integration uses four discrete modules grouped together in `config.jsonc`. This provides specific button components for controlling playback while displaying active track details and listening history statistics.
 
-To connect clicks, add custom commands to the module configuration in `~/.config/waybar/config.jsonc`:
+Add the following to your `~/.config/waybar/config.jsonc` file:
 
 ```jsonc
-"custom/omatunes": {
-    "exec": "~/.local/bin/omatunes_scripts/omatunes_text.py",
+  "modules-left": [
+    ...
+    "group/omatunes-group"
+  ],
+
+  "group/omatunes-group": {
+    "orientation": "horizontal",
+    "modules": [
+      "custom/omatunes-play",
+      "custom/omatunes-next",
+      "custom/omatunes-text",
+      "custom/omatunes-like"
+    ]
+  },
+
+  "custom/omatunes-play": {
+    "exec": "/home/user/.local/bin/omatunes_scripts/omatunes_text.py --button play",
+    "interval": 1,
     "return-type": "json",
-    "format": "{text}",
-    "on-click": "~/.local/bin/omatunes_scripts/omatunes_text.py --click left",
-    "on-click-right": "~/.local/bin/omatunes_scripts/omatunes_text.py --click right",
-    "on-click-middle": "~/.local/bin/omatunes_scripts/omatunes_text.py --click middle",
-    "on-scroll-up": "~/.local/bin/omatunes_scripts/omatunes_volume.sh up",
-    "on-scroll-down": "~/.local/bin/omatunes_scripts/omatunes_volume.sh down",
-    "interval": 2
-}
+    "format": "{}",
+    "on-click": "/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click play"
+  },
+  "custom/omatunes-next": {
+    "exec": "/home/user/.local/bin/omatunes_scripts/omatunes_text.py --button next",
+    "interval": 1,
+    "return-type": "json",
+    "format": "{}",
+    "on-click": "/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click next"
+  },
+  "custom/omatunes-like": {
+    "exec": "/home/user/.local/bin/omatunes_scripts/omatunes_text.py --button like",
+    "interval": 1,
+    "return-type": "json",
+    "format": "{}",
+    "on-click": "/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click like"
+  },
+  "custom/omatunes-text": {
+    "exec": "/home/user/.local/bin/omatunes_scripts/omatunes_text.py",
+    "interval": 1,
+    "return-type": "json",
+    "format": "{}",
+    "markup": "pango",
+    "on-click": "hyprctl dispatch focuswindow class:^omatunes$ || hyprctl dispatch focuswindow title:^omatunes$",
+    "on-scroll-up": "/home/user/.local/bin/omatunes_scripts/omatunes_volume.sh up",
+    "on-scroll-down": "/home/user/.local/bin/omatunes_scripts/omatunes_volume.sh down",
+    "tooltip": true
+  }
 ```
+
+For the CSS styling details to combine these modules into a single pill layout that collapses cleanly when OmaTunes is closed, refer to the **Waybar Integration** section in the [USER_MANUAL.md](USER_MANUAL.md).
 
 ---
 
@@ -196,13 +189,15 @@ These work when the omatunes window is focused:
 | Key | Action |
 |---|---|
 | `Space` | Play / Pause |
-| `→` / `←` | Seek +5s / −5s |
+| `&rightarrow;` / `&leftarrow;` | Seek &plus;5s / &minus;5s |
 | `n` / `p` | Next / Previous track |
 | `s` | Toggle Shuffle |
 | `r` | Toggle Repeat |
-| `+` or `=` | Volume +5% |
-| `-` | Volume −5% |
+| `+` or `=` | Volume &plus;5% |
+| `-` | Volume &minus;5% |
 | `E` | Edit metadata for selected tracks |
+
+For the complete list of keyboard shortcuts (including focus navigation), see the **Full Keybinding Reference** in the [USER_MANUAL.md](USER_MANUAL.md).
 
 ---
 
