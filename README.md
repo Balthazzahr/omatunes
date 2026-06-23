@@ -8,8 +8,6 @@ A native Wayland music player written in Rust, built for [Omarchy](https://omarc
 
 `omatunes` is a customized fork of [sheep-farm/lavanda](https://github.com/sheep-farm/lavanda) by [Balthazzahr](https://github.com/Balthazzahr).
 
-> [!TIP]
-> For a detailed feature-by-feature guide, configuration options, advanced tag editing tips, and database details, see the [USER_MANUAL.md](USER_MANUAL.md).
 
 <p align="center">
   <img src="assets/Main UI.png" alt="OmaTUNES Main UI Screenshot" width="800">
@@ -36,9 +34,11 @@ A native Wayland music player written in Rust, built for [Omarchy](https://omarc
 
 ---
 
-## 📖 User Manual
+## 📖 User Manual 
 
-A comprehensive feature-by-feature guide, configuration reference, and full keybinding sheet is available in the [USER_MANUAL.md](USER_MANUAL.md).
+<img width="512" height="512" alt="image" src="https://github.com/user-attachments/assets/c9d355f6-6f3f-4b16-96db-4aba15baf73e" />
+
+For an in-depth reference covering all application features, including playback controls, keybindings, live lyrics scroll-seeking, database details, bulk ID3 metadata editing, and advanced Waybar integration styling, please see the [USER_MANUAL.md](USER_MANUAL.md).
 
 ---
 
