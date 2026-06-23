@@ -286,19 +286,30 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                              let mut lines_col = column![].spacing(6).align_x(Alignment::Center).width(Length::Fill);
                              lines_col = lines_col.push(iced::widget::Space::with_height(108.0));
 
+                             let available_width = (state.right_panel_width - 40.0).max(100.0);
+
                              for i in 0..lrc_lines.len() {
                                  let line = &lrc_lines[i];
                                  let is_active = i == active_idx;
                                  let is_interim = (active_idx > 0 && i == active_idx - 1) || (i == active_idx + 1);
                                  let line_time = line.time;
 
-                                 let text_element = text(line.text.clone())
-                                     .size(if is_active { 20 } else { 17 })
-                                     .font(if is_active { crate::ui::icons::UI_FONT_BOLD } else { crate::ui::icons::UI_FONT })
-                                     .width(Length::Fill)
-                                     .align_x(iced::alignment::Horizontal::Center);
+                                 let font_size = if is_active { 20 } else { 17 };
+                                 let char_width = 0.60 * font_size as f32;
+                                 let max_chars = ((available_width / char_width).floor() as usize).max(10);
+                                 let sub_lines = wrap_text(&line.text, max_chars);
 
-                                 let container_element = container(text_element)
+                                 let mut text_col = column![].spacing(2).align_x(Alignment::Center).width(Length::Fill);
+                                 for sub_line in sub_lines {
+                                     let txt = text(sub_line)
+                                         .size(font_size)
+                                         .font(if is_active { crate::ui::icons::UI_FONT_BOLD } else { crate::ui::icons::UI_FONT })
+                                         .width(Length::Fill)
+                                         .align_x(iced::alignment::Horizontal::Center);
+                                     text_col = text_col.push(txt);
+                                 }
+
+                                 let container_element = container(text_col)
                                      .width(Length::Fill)
                                      .align_x(iced::alignment::Horizontal::Center);
 
