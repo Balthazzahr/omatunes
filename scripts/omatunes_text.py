@@ -196,12 +196,122 @@ theme_colors = {
     "progress": COLORS.get("blue"),
 }
 
+def is_track_liked(track_url):
+    if not track_url:
+        return False
+    path_str = track_url
+    if path_str.startswith("file://"):
+        path_str = urllib.parse.unquote(path_str[7:])
+    db_path = pathlib.Path.home() / ".config/omatunes/db.json"
+    if not db_path.exists():
+        return False
+    try:
+        with open(db_path, "r") as f:
+            db_data = json.load(f)
+        favorites = db_data.get("favorites", [])
+        norm_path = os.path.abspath(os.path.expanduser(path_str))
+        for fav in favorites:
+            if os.path.abspath(os.path.expanduser(fav)) == norm_path:
+                return True
+    except:
+        pass
+    return False
+
+if len(sys.argv) > 1:
+    arg = sys.argv[1]
+    if arg == "--click" and len(sys.argv) > 2:
+        button = sys.argv[2]
+        import socket
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            if button == "shuffle":
+                s.sendto(b"shuffle", ("127.0.0.1", 18888))
+            elif button == "prev":
+                s.sendto(b"prev", ("127.0.0.1", 18888))
+            elif button == "play":
+                s.sendto(b"play-pause", ("127.0.0.1", 18888))
+            elif button == "next":
+                s.sendto(b"next", ("127.0.0.1", 18888))
+            elif button == "repeat":
+                s.sendto(b"repeat", ("127.0.0.1", 18888))
+            elif button == "like":
+                s.sendto(b"like", ("127.0.0.1", 18888))
+            s.close()
+        except:
+            pass
+        sys.exit(0)
+    elif arg == "--button" and len(sys.argv) > 2:
+        button_name = sys.argv[2]
+        state = None
+        state_path = "/tmp/omatunes_waybar_state.json"
+        try:
+            if os.path.exists(state_path) and (time.time() - os.path.getmtime(state_path)) < 3.0:
+                with open(state_path, "r") as f:
+                    state = json.load(f)
+        except:
+            pass
+
+        if not state or state.get("status", "stopped") == "stopped":
+            print(json.dumps({}))
+            sys.exit(0)
+
+        status = state["status"]
+        shuffle = state["shuffle"]
+        loop = state["loop"]
+        liked = state["liked"]
+
+        green = COLORS.get("green", "#00ff00")
+        red = COLORS.get("red", "#ff0000")
+        gray = "#565f89"
+        cyan = COLORS.get("cyan", "#00ffff")
+
+        if button_name == "shuffle":
+            icon = ""
+            color = green if shuffle == "on" else gray
+            tooltip = f"Shuffle: {shuffle.title()}"
+        elif button_name == "prev":
+            icon = ""
+            color = cyan
+            tooltip = "Previous Track"
+        elif button_name == "play":
+            icon = "" if status == "playing" else ""
+            color = green if status == "playing" else gray
+            tooltip = "Pause" if status == "playing" else "Play"
+        elif button_name == "next":
+            icon = ""
+            color = cyan
+            tooltip = "Next Track"
+        elif button_name == "repeat":
+            icon = ""
+            color = green if loop.lower() != "none" else gray
+            tooltip = f"Repeat: {loop}"
+        elif button_name == "like":
+            icon = "" if liked else ""
+            color = red if liked else gray
+            tooltip = "Unlike" if liked else "Like"
+        else:
+            print(json.dumps({}))
+            sys.exit(0)
+
+        print(json.dumps({
+            "text": f"<span foreground='{color}'>{icon}</span>",
+            "tooltip": tooltip,
+            "markup": "pango",
+            "class": button_name
+        }))
+        sys.exit(0)
+
 # -------------------
 # Main OmaTunes Logic
 # -------------------
 status = get("playerctl --player=omatunes status").lower()
 
 if not status or status == "stopped":
+    try:
+        if os.path.exists("/tmp/omatunes_waybar_state.json"):
+            os.unlink("/tmp/omatunes_waybar_state.json")
+    except:
+        pass
     print(json.dumps({}))
     exit()
 
