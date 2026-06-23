@@ -73,22 +73,35 @@ def send_notify(title, message, icon="multimedia-audio-player", sound_file=None)
     except:
         pass
 
-# -------------------
-# Handle Arguments
-# -------------------
 if len(sys.argv) > 1:
     arg = sys.argv[1]
+    CACHE_DIR = pathlib.Path.home() / ".cache"
+    CACHE_DIR.mkdir(exist_ok=True)
+    CLICK_PENDING = CACHE_DIR / "omatunes_click_pending"
+
     if arg == "--click" and len(sys.argv) > 2:
         button = sys.argv[2]
-        if button == "left":
-            subprocess.run(["playerctl", "-p", "omatunes", "play-pause"])
-        elif button == "right":
-            subprocess.run(["playerctl", "-p", "omatunes", "next"])
-        elif button == "middle":
-            subprocess.run(["playerctl", "-p", "omatunes", "previous"])
+        # Write intent to file
+        CLICK_PENDING.write_text(f"{button}:{time.time()}")
+        time.sleep(0.3)  # wait to see if double click cancels it
+        try:
+            if CLICK_PENDING.exists():
+                content = CLICK_PENDING.read_text().strip()
+                if content.startswith(f"{button}:"):
+                    CLICK_PENDING.unlink(missing_ok=True)
+                    if button == "left":
+                        subprocess.run(["playerctl", "-p", "omatunes", "play-pause"])
+                    elif button == "right":
+                        subprocess.run(["playerctl", "-p", "omatunes", "next"])
+                    elif button == "middle":
+                        subprocess.run(["playerctl", "-p", "omatunes", "previous"])
+        except Exception:
+            pass
         sys.exit(0)
     elif arg == "--double-click" and len(sys.argv) > 2:
         button = sys.argv[2]
+        # Cancel any pending single-click
+        CLICK_PENDING.unlink(missing_ok=True)
         if button == "right":
             import socket
             try:
@@ -98,7 +111,10 @@ if len(sys.argv) > 1:
             except:
                 pass
         elif button == "left":
-            subprocess.run(["hyprctl", "dispatch", "focuswindow", "title:^omatunes$"])
+            # Focus using window class/app ID if possible, fallback to title
+            res = subprocess.run(["hyprctl", "dispatch", "focuswindow", "class:^omatunes$"], capture_output=True)
+            if res.returncode != 0:
+                subprocess.run(["hyprctl", "dispatch", "focuswindow", "title:^omatunes$"])
         sys.exit(0)
 
 # -------------------
