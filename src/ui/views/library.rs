@@ -936,38 +936,42 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
     })
     .width(Length::Fill);
 
-    if state.tracks.is_empty() {
-        column![
-            container(
-                text(if state.selected_folder.is_some() || state.selected_playlist.is_some() || !state.search_query.is_empty() {
-                    state.strings.no_tracks_found
-                } else {
-                    state.strings.select_folder
-                })
-                .color(theme::overlay0())
-                .size(15),
-            )
-            .center_x(Length::Fill)
-            .center_y(Length::Fill)
-            .width(Length::Fill)
-            .height(Length::Fill),
-            toolbar,
-        ]
+    let headers: Element<'_, Message> = if state.tracks.is_empty() {
+        Space::with_height(0.0).into()
+    } else {
+        table_headers.into()
+    };
+
+    let content_area: Element<'_, Message> = if state.tracks.is_empty() {
+        container(
+            text(if state.selected_folder.is_some() || state.selected_playlist.is_some() || !state.search_query.is_empty() {
+                state.strings.no_tracks_found
+            } else {
+                state.strings.select_folder
+            })
+            .color(theme::overlay0())
+            .size(15),
+        )
+        .center_x(Length::Fill)
+        .center_y(Length::Fill)
         .width(Length::Fill)
         .height(Length::Fill)
         .into()
     } else {
-        column![
-            table_headers,
-            container(tracklist_scroll)
-                .width(Length::Fill)
-                .height(Length::Fill),
-            toolbar,
-        ]
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .into()
-    }
+        container(tracklist_scroll)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .into()
+    };
+
+    column![
+        headers,
+        content_area,
+        toolbar,
+    ]
+    .width(Length::Fill)
+    .height(Length::Fill)
+    .into()
 }
 
 fn render_track_row(
