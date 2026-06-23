@@ -3245,8 +3245,14 @@ impl AppState {
                     loop {
                         if let Ok((len, _)) = s.recv_from(&mut buf).await {
                             let msg = String::from_utf8_lossy(&buf[..len]);
-                            if msg.trim() == "like" {
-                                return Some((Message::ToggleLikeCurrent, Some(s)));
+                            match msg.trim() {
+                                "like" => return Some((Message::ToggleLikeCurrent, Some(s))),
+                                "play-pause" => return Some((Message::PlayPause, Some(s))),
+                                "next" => return Some((Message::NextTrack, Some(s))),
+                                "prev" => return Some((Message::PreviousTrack, Some(s))),
+                                "shuffle" => return Some((Message::ToggleShuffle, Some(s))),
+                                "repeat" => return Some((Message::ToggleRepeat, Some(s))),
+                                _ => {}
                             }
                         }
                     }

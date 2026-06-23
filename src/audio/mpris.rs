@@ -19,6 +19,7 @@ pub enum MprisUpdate {
         artist: String,
         album: String,
         duration_us: i64,
+        url: String,
     },
     Status(PlaybackStatus),
     Volume(f64),
