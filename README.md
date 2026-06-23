@@ -36,8 +36,6 @@ A native Wayland music player written in Rust, built for [Omarchy](https://omarc
 
 ## 📖 User Manual 
 
-<img width="512" height="512" alt="image" src="https://github.com/user-attachments/assets/c9d355f6-6f3f-4b16-96db-4aba15baf73e" />
-
 For an in-depth reference covering all application features, including playback controls, keybindings, live lyrics scroll-seeking, database details, bulk ID3 metadata editing, and advanced Waybar integration styling, please see the [USER_MANUAL.md](USER_MANUAL.md).
 
 ---
