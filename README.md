@@ -2,7 +2,7 @@
   <img src="assets/OmaTUNES Logo Transparent.png" alt="OmaTUNES Logo" width="400">
 </p>
 
-# omatunes
+# omaTUNES
 
 A native Wayland music player written in Rust, built for [Omarchy](https://omarchy.org/) / Hyprland rices. Follows the active Omarchy theme automatically — colors update live when you switch themes.
 
