@@ -282,49 +282,55 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                                 .map(|idx| if idx > 0 { idx - 1 } else { 0 })
                                 .unwrap_or_else(|| lrc_lines.len() - 1);
 
-                            // Show ALL lines in a scrollable container; highlight the active one
-                            let mut lines_col = column![].spacing(6).align_x(Alignment::Center).width(Length::Fill);
-                            for i in 0..lrc_lines.len() {
-                                let line = &lrc_lines[i];
-                                let is_active = i == active_idx;
-                                let line_time = line.time;
+                             // Show ALL lines in a scrollable container; highlight the active one
+                             let mut lines_col = column![].spacing(6).align_x(Alignment::Center).width(Length::Fill);
+                             lines_col = lines_col.push(iced::widget::Space::with_height(108.0));
 
-                                let text_element = text(line.text.clone())
-                                    .size(if is_active { 20 } else { 17 })
-                                    .font(if is_active { crate::ui::icons::UI_FONT_BOLD } else { crate::ui::icons::UI_FONT })
-                                    .color(if is_active { theme::accent() } else { theme::overlay0() })
-                                    .align_x(iced::alignment::Horizontal::Center);
+                             for i in 0..lrc_lines.len() {
+                                 let line = &lrc_lines[i];
+                                 let is_active = i == active_idx;
+                                 let is_interim = (active_idx > 0 && i == active_idx - 1) || (i == active_idx + 1);
+                                 let line_time = line.time;
 
-                                // Each line is clickable to seek to that timestamp
-                                let line_btn = button(text_element)
-                                    .on_press(Message::SeekToLyric(line_time))
-                                    .width(Length::Fill)
-                                    .padding([4, 8])
-                                    .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
-                                        let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-                                        iced::widget::button::Style {
-                                            background: if is_hovered {
-                                                Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.1)))
-                                            } else {
-                                                None
-                                            },
-                                            text_color: if is_active {
-                                                theme::accent()
-                                            } else if is_hovered {
-                                                theme::text()
-                                            } else {
-                                                theme::overlay0()
-                                            },
-                                            border: iced::Border {
-                                                radius: 4.0.into(),
-                                                ..Default::default()
-                                            },
-                                            ..Default::default()
-                                        }
-                                    });
+                                 let text_element = text(line.text.clone())
+                                     .size(if is_active { 20 } else { 17 })
+                                     .font(if is_active { crate::ui::icons::UI_FONT_BOLD } else { crate::ui::icons::UI_FONT })
+                                     .width(Length::Fill)
+                                     .align_x(iced::alignment::Horizontal::Center);
 
-                                lines_col = lines_col.push(line_btn);
-                            }
+                                 // Each line is clickable to seek to that timestamp
+                                 let line_btn = button(text_element)
+                                     .on_press(Message::SeekToLyric(line_time))
+                                     .width(Length::Fill)
+                                     .padding([4, 8])
+                                     .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+                                         let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                                         iced::widget::button::Style {
+                                             background: if is_hovered {
+                                                 Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.1)))
+                                             } else {
+                                                 None
+                                             },
+                                             text_color: if is_active {
+                                                 theme::accent()
+                                             } else if is_hovered {
+                                                 theme::text()
+                                             } else if is_interim {
+                                                 theme::lerp_color(theme::accent(), theme::overlay0(), 0.5)
+                                             } else {
+                                                 theme::overlay0()
+                                             },
+                                             border: iced::Border {
+                                                 radius: 4.0.into(),
+                                                 ..Default::default()
+                                             },
+                                             ..Default::default()
+                                         }
+                                     });
+
+                                 lines_col = lines_col.push(line_btn);
+                             }
+                             lines_col = lines_col.push(iced::widget::Space::with_height(108.0));
 
                             scrollable(
                                 container(lines_col)
