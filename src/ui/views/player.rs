@@ -505,3 +505,34 @@ pub fn parse_lrc(lyrics: &str) -> Vec<LrcLine> {
     lines.sort_by_key(|l| l.time);
     lines
 }
+
+fn wrap_text(text: &str, max_chars: usize) -> Vec<String> {
+    let mut sub_lines = Vec::new();
+    let text_trimmed = text.trim();
+    if text_trimmed.is_empty() {
+        return vec![String::new()];
+    }
+
+    for paragraph in text_trimmed.lines() {
+        let mut current_line = String::new();
+        for word in paragraph.split_whitespace() {
+            if current_line.is_empty() {
+                current_line.push_str(word);
+            } else if current_line.len() + 1 + word.len() <= max_chars {
+                current_line.push(' ');
+                current_line.push_str(word);
+            } else {
+                sub_lines.push(current_line);
+                current_line = String::from(word);
+            }
+        }
+        if !current_line.is_empty() {
+            sub_lines.push(current_line);
+        }
+    }
+
+    if sub_lines.is_empty() {
+        sub_lines.push(String::new());
+    }
+    sub_lines
+}
