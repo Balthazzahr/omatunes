@@ -526,6 +526,7 @@ impl AppState {
                 artist: track.artist.clone(),
                 album: track.album.clone(),
                 duration_us: track.duration.as_micros() as i64,
+                url: track.path.to_string_lossy().to_string(),
             });
         }
         self.send_mpris(MprisUpdate::Status(status));
@@ -1115,7 +1116,7 @@ impl AppState {
                                     let fraction = if total <= 1 {
                                         0.0
                                     } else {
-                                        active_idx as f32 / (total - 1) as f32
+                                        (active_idx as f32 + 0.5) / total as f32
                                     };
                                     tasks.push(
                                         scrollable::snap_to(
