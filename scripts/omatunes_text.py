@@ -559,22 +559,37 @@ pad = get_pad(footer_text, max_w, ratio)
 
 tooltip.append(f"<span font_family='monospace' size='{f_size}' foreground='{COLORS['white']}'>{' ' * pad}{footer_text}</span>")
 
-status_icon = "" if status == "playing" else ""
+# Write state cache for button modules
+state_cache = {
+    "status": status,
+    "title": title_raw,
+    "artist": artist_raw,
+    "album": album,
+    "volume": volume,
+    "position": position,
+    "length": length,
+    "shuffle": shuffle,
+    "loop": loop,
+    "liked": is_track_liked(get("playerctl --player=omatunes metadata xesam:url")),
+    "timestamp": time.time()
+}
+try:
+    with open("/tmp/omatunes_waybar_state.json", "w") as f:
+        json.dump(state_cache, f)
+except:
+    pass
+
 icon_color = COLORS.get("cyan") if status == "playing" else theme_colors['artist']
 
 if status == "playing":
-    status_icon = ""
-    icon_color = COLORS.get("cyan")
     artist_color = theme_colors['artist']
     song_color = theme_colors['song']
 else:
-    status_icon = ""
     icon_color = "#565f89" 
     artist_color = "#565f89"
     song_color = "#565f89"
 
 display_text = (
-    f"<span foreground='{icon_color}'>{status_icon} </span>"
     f"<span foreground='{artist_color}'><b>{artist}</b></span> - "
     f"<span foreground='{song_color}'><i>{truncate_text(title, 24)}</i></span>"
 )
@@ -584,7 +599,4 @@ print(json.dumps({
     "tooltip": "\n".join(tooltip),
     "markup": "pango",
     "class": status,
-    "on-click": "playerctl --player=omatunes play-pause",
-    "on-right-click": "playerctl --player=omatunes next",
-    "on-middle-click": "playerctl --player=omatunes previous",
 }))
