@@ -3471,7 +3471,7 @@ pub fn run() -> iced::Result {
             size: iced::Size::new(960.0, 640.0),
             min_size: Some(iced::Size::new(700.0, 480.0)),
             platform_specific: iced::window::settings::PlatformSpecific {
-                application_id: Some("omatunes".to_string()),
+                application_id: "omatunes".to_string(),
                 ..Default::default()
             },
             ..Default::default()
