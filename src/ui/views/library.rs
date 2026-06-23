@@ -632,23 +632,6 @@ impl std::hash::Hash for TrackListDependency {
 }
 
 fn track_list_view(state: &AppState) -> Element<'_, Message> {
-    if state.tracks.is_empty() {
-        return container(
-            text(if state.selected_folder.is_some() || state.selected_playlist.is_some() || !state.search_query.is_empty() {
-                state.strings.no_tracks_found
-            } else {
-                state.strings.select_folder
-            })
-            .color(theme::overlay0())
-            .size(15),
-        )
-        .center_x(Length::Fill)
-        .center_y(Length::Fill)
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .into();
-    }
-
     let is_recently_played = state.selected_playlist.as_deref() == Some("Recently Played");
     let group_by_album = state.group_by_album && !is_recently_played;
 
