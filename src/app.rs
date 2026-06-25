@@ -1669,11 +1669,12 @@ impl AppState {
                                 }
                             }
                         }
-                    if let Some(ref mut state) = self.show_tag_editor {
-                        for track in &mut state.tracks {
-                            if let Some(updated_track) = self.all_tracks.iter().find(|t| t.path == track.path) {
-                                *track = updated_track.clone();
-                            }
+                    }
+                }
+                if let Some(ref mut state) = self.show_tag_editor {
+                    for track in &mut state.tracks {
+                        if let Some(updated_track) = self.all_tracks.iter().find(|t| t.path == track.path) {
+                            *track = updated_track.clone();
                         }
                     }
                 }
