@@ -394,6 +394,24 @@ pub fn view<'a>(
                 .padding([8, 16])
                 .style(theme::secondary_button),
             Space::with_width(12),
+            button(
+                text(crate::ui::icons::ICON_PREV)
+                    .font(crate::ui::icons::NERD_FONT)
+                    .color(theme::text())
+            )
+            .on_press(Message::TagEditorPrevTrack)
+            .padding([8, 12])
+            .style(theme::secondary_button),
+            Space::with_width(6),
+            button(
+                text(crate::ui::icons::ICON_NEXT)
+                    .font(crate::ui::icons::NERD_FONT)
+                    .color(theme::text())
+            )
+            .on_press(Message::TagEditorNextTrack)
+            .padding([8, 12])
+            .style(theme::secondary_button),
+            Space::with_width(12),
             button(text("Save").color(theme::base()))
                 .on_press(Message::SaveTags)
                 .padding([8, 16])

@@ -1669,10 +1669,45 @@ impl AppState {
                                 }
                             }
                         }
+                    if let Some(ref mut state) = self.show_tag_editor {
+                        for track in &mut state.tracks {
+                            if let Some(updated_track) = self.all_tracks.iter().find(|t| t.path == track.path) {
+                                *track = updated_track.clone();
+                            }
+                        }
                     }
                 }
-                self.show_tag_editor = None;
                 self.update_filtered_tracks();
+                Task::none()
+            }
+
+            Message::TagEditorPrevTrack => {
+                if let Some(ref state) = self.show_tag_editor {
+                    if let Some(first_track) = state.tracks.first() {
+                        if let Some(pos) = self.tracks.iter().position(|t| t.path == first_track.path) {
+                            let prev_idx = if pos == 0 { self.tracks.len() - 1 } else { pos - 1 };
+                            if let Some(track) = self.tracks.get(prev_idx).cloned() {
+                                self.load_track_in_tag_editor(track);
+                                return iced::widget::text_input::focus(iced::widget::text_input::Id::new("id3_title"));
+                            }
+                        }
+                    }
+                }
+                Task::none()
+            }
+
+            Message::TagEditorNextTrack => {
+                if let Some(ref state) = self.show_tag_editor {
+                    if let Some(first_track) = state.tracks.first() {
+                        if let Some(pos) = self.tracks.iter().position(|t| t.path == first_track.path) {
+                            let next_idx = (pos + 1) % self.tracks.len();
+                            if let Some(track) = self.tracks.get(next_idx).cloned() {
+                                self.load_track_in_tag_editor(track);
+                                return iced::widget::text_input::focus(iced::widget::text_input::Id::new("id3_title"));
+                            }
+                        }
+                    }
+                }
                 Task::none()
             }
 
