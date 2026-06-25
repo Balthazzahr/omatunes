@@ -152,6 +152,8 @@ pub enum Message {
     ApplyPendingLyricOffset,
     ResetPendingLyricOffset,
     SaveTags,
+    TagEditorPrevTrack,
+    TagEditorNextTrack,
     LibraryScanned(Vec<Track>),
     RescanLibrary,
     KeyboardLike,
@@ -571,6 +573,41 @@ impl AppState {
             genres.retain(|g| g.to_lowercase().contains(&query));
         }
         genres
+    }
+
+    pub fn load_track_in_tag_editor(&mut self, track: Track) {
+        let active_tab = self.show_tag_editor.as_ref()
+            .map(|state| state.active_tab)
+            .unwrap_or(TagEditorTab::Main);
+
+        let tracks = vec![track.clone()];
+        let first = &tracks[0];
+        self.show_tag_editor = Some(TagEditorState {
+            tracks: tracks.clone(),
+            title: first.title.clone(),
+            artist: first.artist.clone(),
+            album: first.album.clone(),
+            genre: first.genre.clone(),
+            track_number: first.track_number.map(|n| n.to_string()).unwrap_or_default(),
+            disc_number: first.disc_number.map(|n| n.to_string()).unwrap_or_default(),
+            cover_path: None,
+            apply_to_album: false,
+            year: first.year.map(|n| n.to_string()).unwrap_or_default(),
+            apply_title: false,
+            apply_artist: false,
+            apply_album: false,
+            apply_year: false,
+            apply_genre: false,
+            apply_track_num: false,
+            apply_disc_num: false,
+            apply_cover: false,
+            apply_lyrics: false,
+            lyrics: first.lyrics.clone(),
+            lyrics_content: iced::widget::text_editor::Content::with_text(&first.lyrics),
+            active_tab,
+            focused_field: Some(0),
+            pending_offset: 0.0,
+        });
     }
 
     pub fn update_filtered_tracks(&mut self) {
