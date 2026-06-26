@@ -2802,6 +2802,7 @@ impl AppState {
             Message::ToggleTagFieldApplyLyrics(val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.apply_lyrics = val;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
@@ -2809,6 +2810,7 @@ impl AppState {
             Message::ChangePendingLyricOffset(offset) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.pending_offset += offset;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
