@@ -452,7 +452,7 @@ pub fn view<'a>(
                 button(text("Save"))
                     .on_press(Message::SaveTags)
                     .padding([8, 16])
-                    .style(theme::save_button)
+                    .style(if state.is_saved { theme::save_button_saved } else { theme::save_button })
             ]
             .align_y(Alignment::Center),
             Space::with_width(Length::Fill),
