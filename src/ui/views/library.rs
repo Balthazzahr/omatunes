@@ -870,15 +870,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         .into()
     });
 
-    let shortcuts_btn = button(
-        text("\u{f11c}")
-            .font(crate::ui::icons::NERD_FONT_MONO)
-            .color(theme::subtext())
-            .size(13)
-    )
-    .on_press(Message::OpenShortcuts)
-    .style(iced::widget::button::text)
-    .padding(4);
+
 
     let song_clear_btn: Element<'_, Message> = if !state.search_query.is_empty() {
         button(
