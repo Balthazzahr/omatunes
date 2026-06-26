@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use std::sync::OnceLock;
+use std::sync::{OnceLock, Mutex};
 
 use serde::{Deserialize, Serialize};
 

@@ -76,6 +76,32 @@ pub struct OmatunesDb {
     pub table_columns: Vec<TableColumn>,
     #[serde(default)]
     pub group_by_album: bool,
+    #[serde(default)]
+    pub sidebar_width: Option<f32>,
+    #[serde(default)]
+    pub playlist_height: Option<f32>,
+    #[serde(default)]
+    pub right_panel_width: Option<f32>,
+    #[serde(default)]
+    pub right_panel_tab: Option<crate::app::RightPanelTab>,
+    #[serde(default)]
+    pub last_view_mode: Option<crate::app::ViewMode>,
+    #[serde(default)]
+    pub last_selected_playlist: Option<String>,
+    #[serde(default)]
+    pub last_selected_folder: Option<PathBuf>,
+    #[serde(default)]
+    pub last_selected_artist: Option<String>,
+    #[serde(default)]
+    pub last_selected_album: Option<String>,
+    #[serde(default)]
+    pub last_selected_genre: Option<String>,
+    #[serde(default)]
+    pub last_track_path: Option<PathBuf>,
+    #[serde(default)]
+    pub last_queue_paths: Vec<PathBuf>,
+    #[serde(default)]
+    pub last_position_secs: u64,
 }
 
 impl Default for OmatunesDb {
