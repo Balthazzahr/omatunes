@@ -947,9 +947,9 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                             let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
                             iced::widget::button::Style {
                                 background: Some(iced::Background::Color(if is_active {
-                                    theme::surface0()
+                                    theme::mantle()
                                 } else if is_hovered {
-                                    theme::surface1()
+                                    theme::surface0()
                                 } else {
                                     iced::Color::TRANSPARENT
                                 })),
