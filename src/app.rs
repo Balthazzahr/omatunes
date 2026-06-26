@@ -3628,7 +3628,7 @@ fn load_sidebar_width() -> f32 {
     std::fs::read_to_string(sidebar_width_path())
         .ok()
         .and_then(|s| s.trim().parse().ok())
-        .unwrap_or(200.0)
+        .unwrap_or(200.0f32)
         .clamp(MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH)
 }
 
@@ -3646,11 +3646,10 @@ fn right_panel_width_path() -> PathBuf {
     PathBuf::from(xdg).join("omatunes").join("right_panel_width")
 }
 
-fn load_right_panel_width() -> f32 {
+fn load_right_panel_width() -> Option<f32> {
     std::fs::read_to_string(right_panel_width_path())
         .ok()
         .and_then(|s| s.trim().parse().ok())
-        .unwrap_or(400.0)
 }
 
 fn save_right_panel_width(width: f32) {
