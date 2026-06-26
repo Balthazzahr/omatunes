@@ -22,7 +22,10 @@ A native Wayland music player written in Rust, built for [Omarchy](https://omarc
 - **JSON Database**: Stores favorites, play counts, recently played tracks, hidden artists/albums, column settings, and user playlists in a single portable JSON file (`~/.config/omatunes/db.json`).
 - **Synchronized LRC Lyrics & Interactivity**: Parses LRC metadata to highlight and auto-scroll the active lyric line, supporting interactive seek-on-click to any lyric's timestamp.
 - **Logarithmic Audio Spectrum Visualizer**: Computes real-time 2048-point Hann-windowed FFT to render 64 logarithmic bands colored with an amplitude gradient.
-- **Resizable Panel UI**: Toggle vertical tabs on the right side to open lyrics or spectrum views, adjustable with a click-and-drag handle and width state persistence.
+- **Resizable Panel UI**: Toggle vertical tabs on the right side to open lyrics or spectrum views, adjustable with a click-and-drag handle and width state persistence. Restricted to the top section height (`298px`) to keep the main song list area fully clear.
+- **Unified Header Panel**: Stacks player controls (`270px` height) and tab row/search bar controls seamlessly with a `1px` stack overlap to hide borders and visually merge the sections.
+- **Enlarged Album Artwork**: Displays cover art at `238x238` pixels with expanded player height to ensure high resolution on large screens without cropping.
+- **Aligned Settings Button**: Sits at the far-right of the library tab row, custom styled to `56px` width (matching the tab strip above) with top and side dividers, aligned perfectly on integer pixels to avoid subpixel blur.
 - **Live Omarchy Theme Switching**: Automatically maps your active system theme (`Catppuccin`, `Nord`, `Gruvbox`, etc.) to the UI palette live in under 3 seconds. No app restarts required.
 - **Native Wayland/X11 & Lightweight**: Built in native Rust using the Iced GUI toolkit. Runs on any Wayland compositor (Hyprland, GNOME, KDE) or traditional X11 window managers. Features extremely fast startup and low resource consumption.
 - **Rich Waybar Integration**: Pre-packaged with local Waybar status scripts (`scripts/omatunes_text.py`) and a control group mapping play, next, and like controls. Provides styled progress bars, listening history milestones, and interactive tooltip stats.

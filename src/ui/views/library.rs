@@ -1443,7 +1443,24 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         .size(16)
         .font(crate::ui::icons::NERD_FONT_MONO);
 
-    let settings_btn = button(container(settings_icon).center_x(Length::Fill).center_y(Length::Fill))
+    let settings_top_sep = container(Space::new(Length::Fill, Length::Fixed(1.0)))
+        .style(|_| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::surface0())),
+            ..Default::default()
+        })
+        .width(Length::Fill)
+        .height(1.0);
+
+    let settings_btn_content = column![
+        settings_top_sep,
+        container(settings_icon)
+            .center_x(Length::Fill)
+            .center_y(Length::Fill)
+            .height(Length::Fixed(27.0))
+    ]
+    .spacing(0);
+
+    let settings_btn = button(settings_btn_content)
         .on_press(Message::OpenSettings)
         .width(56.0)
         .height(28.0)

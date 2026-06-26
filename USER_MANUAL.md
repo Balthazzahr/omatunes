@@ -23,12 +23,19 @@ The player interface is located in the upper panel of the application. It handle
 ### Album Art Behavior
 - OmaTUNES dynamically extracts album art from the playing track (embedded ID3 tags) or reads a fallback image (e.g., `cover.jpg`, `Cover.jpg`, `folder.png`) inside the track's local folder.
 - If no art is found, it renders a custom default note artwork.
-- The album art is displayed in the upper-left of the player row, enlarged by **20%** (`216x216` pixels) for high visibility on high-resolution screens.
+- The album art is displayed in the upper-left of the player row, enlarged to `238x238` pixels for high visibility on high-resolution screens.
+- The player controls container is set to `270px` height (with the total top section height being `298px`) to ensure the artwork renders cleanly without top/bottom cropping.
 - **Interactivity**: Clicking the album art focuses the player back on the active track view (returns to the currently playing album/track).
 
 ### Disabled States
 - When no track is loaded, the playhead timeline remains empty, volume controls remain active, and clicking play/pause or double-clicking in the tracklist will automatically load and play the first track in the current view.
 - The Like (heart) button is hidden from the player row when no track is currently playing.
+
+### Unified Top Layout & Settings Button
+- **Combined Header Row**: The player controls (height `270px`) and library tabs/search bar (height `28px`) are stacked vertically as a single visual panel (total height `298px`). The horizontal separator between them is removed using a `1px` stack overlap.
+- **Top Drawer Alignment**: The lyrics/visualizer right-hand drawer occupies exactly `298px` next to this left column, creating a aligned top section that does not cover the main song list area.
+- **Tab Row Integration**: The `Now Playing` tab resides in the same row as `Artists`, `Albums`, and `Genres`, shifted slightly to the right to visually demarcate it. Search options, grouping controls, and queue controls reside on the right-aligned side of this tab row.
+- **Settings Button Placement**: The settings button (`\u{f013}`) is positioned at the far right of the library tab row. It is styled to be exactly `56px` wide (matching the width of the tab strip above it), separated by a vertical divider, and contains a top horizontal divider line. Its borders align perfectly on integer pixels due to rounded sidebar width layouts.
 
 ---
 
