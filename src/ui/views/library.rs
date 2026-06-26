@@ -1318,7 +1318,7 @@ fn col_to_sort_col(col: crate::db::TableColumn) -> SortColumn {
     }
 }
 
-fn library_top_bar(state: &AppState) -> Element<'_, Message> {
+pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     let tab_btn = |mode: ViewMode, label: &'static str| {
         let is_active = state.view_mode == mode && state.selected_playlist.is_none();
         let btn_text = text(label)
@@ -1340,8 +1340,8 @@ fn library_top_bar(state: &AppState) -> Element<'_, Message> {
                         iced::Color::TRANSPARENT
                     })),
                     border: iced::Border {
-                        color: if is_active { theme::accent() } else { iced::Color::TRANSPARENT },
-                        width: if is_active { 1.0 } else { 0.0 },
+                        color: if is_active { theme::accent() } else { theme::surface0() },
+                        width: 1.0,
                         radius: iced::border::Radius {
                             top_left: 4.0,
                             top_right: 4.0,
@@ -1389,8 +1389,8 @@ fn library_top_bar(state: &AppState) -> Element<'_, Message> {
                     iced::Color::TRANSPARENT
                 })),
                 border: iced::Border {
-                    color: if is_now_playing_active { theme::accent() } else { iced::Color::TRANSPARENT },
-                    width: if is_now_playing_active { 1.0 } else { 0.0 },
+                    color: if is_now_playing_active { theme::accent() } else { theme::surface0() },
+                    width: 1.0,
                     radius: iced::border::Radius {
                         top_left: 4.0,
                         top_right: 4.0,
