@@ -46,20 +46,27 @@ impl Config {
 // ── Inicialização ─────────────────────────────────────────────────────────────
 
 pub fn load() {
-    CONFIG.get_or_init(|| read_or_default());
+    CONFIG.get_or_init(|| Mutex::new(read_or_default()));
 }
 
-pub fn get() -> &'static Config {
-    CONFIG.get_or_init(|| read_or_default())
+pub fn get() -> Config {
+    let guard = CONFIG.get_or_init(|| Mutex::new(read_or_default())).lock().unwrap();
+    guard.clone()
 }
 
-pub fn update_font_scale(scale: f32) {
-    let mut current = read_or_default();
-    current.font_scale = Some(scale);
-    if let Ok(toml_str) = toml::to_string_pretty(&current) {
+pub fn save(cfg: Config) {
+    let mut guard = CONFIG.get_or_init(|| Mutex::new(read_or_default())).lock().unwrap();
+    *guard = cfg.clone();
+    if let Ok(toml_str) = toml::to_string_pretty(&cfg) {
         let path = config_path();
         std::fs::write(path, toml_str).ok();
     }
+}
+
+pub fn update_font_scale(scale: f32) {
+    let mut current = get();
+    current.font_scale = Some(scale);
+    save(current);
 }
 
 fn read_or_default() -> Config {
