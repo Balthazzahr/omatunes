@@ -499,11 +499,7 @@ impl AppState {
             folder_cache: HashMap::new(),
             sidebar_width: db_sidebar_width.unwrap_or(200.0).clamp(MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH),
             dragging_sidebar: false,
-            right_panel_width: if let Some(w) = db_right_panel_width {
-                w.clamp(150.0, (960.0f32 - MIN_NON_DRAWER_WIDTH).max(150.0))
-            } else {
-                (960.0f32 * 0.33).clamp(150.0, (960.0f32 - MIN_NON_DRAWER_WIDTH).max(150.0))
-            },
+            right_panel_width: db_right_panel_width.unwrap_or(960.0f32 * 0.33),
             right_panel_width_initialized: db_right_panel_width.is_some(),
             dragging_right_panel: false,
             is_hovering_right_panel_resizer: false,
