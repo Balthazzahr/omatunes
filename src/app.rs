@@ -701,6 +701,21 @@ impl AppState {
     pub fn update_filtered_tracks(&mut self) {
         self.track_list_start = 0;
         self.track_list_end = 500;
+        if self.view_mode == ViewMode::NowPlaying {
+            if !self.search_query.is_empty() {
+                let query = self.search_query.to_lowercase();
+                self.tracks = self.queue.iter().filter(|t| {
+                    let match_title = self.filter_title && t.title.to_lowercase().contains(&query);
+                    let match_artist = self.filter_artist && t.artist.to_lowercase().contains(&query);
+                    let match_album = self.filter_album && t.album.to_lowercase().contains(&query);
+                    let match_genre = self.filter_genre && t.genre.to_lowercase().contains(&query);
+                    match_title || match_artist || match_album || match_genre
+                }).cloned().collect();
+            } else {
+                self.tracks = self.queue.clone();
+            }
+            return;
+        }
         if !self.search_query.is_empty() {
             let query = self.search_query.to_lowercase();
             self.tracks = self.all_tracks.iter().filter(|t| {
