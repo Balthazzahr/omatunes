@@ -619,6 +619,13 @@ impl std::hash::Hash for TrackListDependency {
         self.visible_end.hash(state);
         for t in &self.selected_tracks {
             t.id.hash(state);
+            t.title.hash(state);
+            t.artist.hash(state);
+            t.album.hash(state);
+            t.genre.hash(state);
+            t.year.hash(state);
+            t.track_number.hash(state);
+            t.disc_number.hash(state);
         }
         for t in &self.tracks {
             t.id.hash(state);
@@ -627,6 +634,11 @@ impl std::hash::Hash for TrackListDependency {
             t.title.hash(state);
             t.artist.hash(state);
             t.album.hash(state);
+            t.genre.hash(state);
+            t.year.hash(state);
+            t.track_number.hash(state);
+            t.disc_number.hash(state);
+            t.lyrics.hash(state);
         }
     }
 }
