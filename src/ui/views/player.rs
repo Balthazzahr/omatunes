@@ -102,10 +102,17 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .style(iced::widget::button::text)
         .padding(0);
 
+    let player_width = if state.right_panel_tab.is_some() {
+        state.window_width - 63.0 - state.right_panel_width
+    } else {
+        state.window_width - 57.0
+    };
+    let vol_slider_width = (player_width - PLAYER_FIXED_WIDTH).clamp(MIN_VOLUME_SLIDER_WIDTH, MAX_VOLUME_SLIDER_WIDTH);
+
     // Right-aligned volume control
     let vol_slider = slider(0.0..=1.0f32, state.volume, Message::VolumeChanged)
         .step(0.01)
-        .width(150);
+        .width(vol_slider_width);
 
     let volume_control = row![
         text(icons::ICON_VOL_UP)
