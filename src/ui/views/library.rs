@@ -1366,7 +1366,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     .width(Length::Fill);
 
     let left_tabs_container = container(left_tabs)
-        .width(state.sidebar_width)
+        .width(state.sidebar_width.round())
         .padding([0, 8])
         .height(28.0);
 
