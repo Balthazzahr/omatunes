@@ -234,9 +234,26 @@ pub enum Message {
     CreatePlaylistWithTracks(String, Vec<Track>),
     ToggleColumnVisibility(crate::db::TableColumn),
     MoveColumnLeft(crate::db::TableColumn),
-    MoveColumnRight(crate::db::TableColumn),
     SelectPlaylistTab(PlaylistTab),
     ToggleRightPanelTab(RightPanelTab),
+
+    OpenSettings,
+    CloseSettings,
+    SettingsMusicDirChanged(String),
+    SettingsLanguageChanged(String),
+    SettingsSeekStepChanged(String),
+    SettingsVolumeStepChanged(f32),
+    SettingsFontScaleChanged(f32),
+    SettingsSave,
+}
+
+#[derive(Debug, Clone)]
+pub struct SettingsState {
+    pub music_dir: String,
+    pub language: String,
+    pub seek_step: String,
+    pub volume_step: f32,
+    pub font_scale: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
