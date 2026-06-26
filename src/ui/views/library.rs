@@ -1465,7 +1465,7 @@ fn col_width(col: crate::db::TableColumn) -> Length {
         crate::db::TableColumn::Genre => Length::FillPortion(2),
         crate::db::TableColumn::Year => Length::Fixed(50.0),
         crate::db::TableColumn::DiscNumber => Length::Fixed(50.0),
-        crate::db::TableColumn::Duration => Length::Fixed(60.0),
+        crate::db::TableColumn::Duration => Length::Fixed(80.0),
         crate::db::TableColumn::Plays => Length::Fixed(40.0),
         crate::db::TableColumn::DatePlayed => Length::FillPortion(2),
     }
