@@ -121,7 +121,7 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
     .width(Length::Fill);
 
     let sidebar_items: Element<Message> = match state.view_mode {
-        ViewMode::Artists => {
+        ViewMode::Artists | ViewMode::NowPlaying => {
             column(
                 state.artists().into_iter().map(|artist| {
                     let is_selected = state.selected_artist.as_ref() == Some(&artist) && state.selected_playlist.is_none();
@@ -450,7 +450,7 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
     }
 
     let all_category_row: Element<'_, Message> = match state.view_mode {
-        ViewMode::Artists => {
+        ViewMode::Artists | ViewMode::NowPlaying => {
             let is_selected = state.selected_artist.is_none() && state.selected_playlist.is_none();
             let label = text("All Artists")
                 .color(if is_selected { theme::accent() } else { theme::text() })
