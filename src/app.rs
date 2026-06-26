@@ -762,9 +762,16 @@ impl AppState {
             self.tracks.sort_by(|a, b| {
                 let cmp = match col {
                     SortColumn::TrackNumber => {
-                        let a_num = a.track_number.unwrap_or(u32::MAX);
-                        let b_num = b.track_number.unwrap_or(u32::MAX);
-                        a_num.cmp(&b_num)
+                        let a_dc = a.disc_number.unwrap_or(0);
+                        let b_dc = b.disc_number.unwrap_or(0);
+                        let cmp_dc = a_dc.cmp(&b_dc);
+                        if cmp_dc == std::cmp::Ordering::Equal {
+                            let a_num = a.track_number.unwrap_or(u32::MAX);
+                            let b_num = b.track_number.unwrap_or(u32::MAX);
+                            a_num.cmp(&b_num)
+                        } else {
+                            cmp_dc
+                        }
                     }
                     SortColumn::Title => a.title.to_lowercase().cmp(&b.title.to_lowercase()),
                     SortColumn::Artist => a.artist.to_lowercase().cmp(&b.artist.to_lowercase()),
@@ -778,7 +785,14 @@ impl AppState {
                     SortColumn::DiscNumber => {
                         let a_dc = a.disc_number.unwrap_or(u32::MAX);
                         let b_dc = b.disc_number.unwrap_or(u32::MAX);
-                        a_dc.cmp(&b_dc)
+                        let cmp_dc = a_dc.cmp(&b_dc);
+                        if cmp_dc == std::cmp::Ordering::Equal {
+                            let a_num = a.track_number.unwrap_or(u32::MAX);
+                            let b_num = b.track_number.unwrap_or(u32::MAX);
+                            a_num.cmp(&b_num)
+                        } else {
+                            cmp_dc
+                        }
                     }
                     SortColumn::Duration => a.duration.cmp(&b.duration),
                     SortColumn::Plays => a.play_count.cmp(&b.play_count),
