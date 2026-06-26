@@ -6,6 +6,8 @@ use iced::widget::{button, container, column, row, text, Space, stack, scrollabl
 use iced::{Alignment, Element, Length, Subscription, Task, Theme};
 use mpris_server::{LoopStatus, PlaybackStatus};
 
+use serde::{Serialize, Deserialize};
+
 use crate::audio::{AudioCommand, AudioEvent, AudioPlayer, MprisCommand, MprisUpdate, PlaybackState};
 use crate::audio::mpris;
 use crate::audio::spectrum::SpectrumAnalyzer;
@@ -38,14 +40,14 @@ pub enum ContextMenuTarget {
     Header(crate::db::TableColumn),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ViewMode {
     Artists,
     Albums,
     Genres,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RightPanelTab {
     Visualizer,
     Lyrics,
