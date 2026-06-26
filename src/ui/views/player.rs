@@ -76,8 +76,8 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     // Album cover (Click returns to active source)
     let cover_art: Element<Message> = if let Some(handle) = state.get_display_cover() {
         image(handle)
-            .width(216)
-            .height(216)
+            .width(238)
+            .height(238)
             .content_fit(iced::ContentFit::Cover)
             .into()
     } else {
@@ -85,12 +85,12 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         let handle = iced::widget::image::Handle::from_bytes(note_bytes.to_vec());
         container(
             image(handle)
-                .width(216)
-                .height(216)
+                .width(238)
+                .height(238)
                 .content_fit(iced::ContentFit::Cover)
         )
-        .width(216)
-        .height(216)
+        .width(238)
+        .height(238)
         .align_x(iced::alignment::Horizontal::Center)
         .align_y(iced::alignment::Vertical::Center)
         .style(theme::card)
