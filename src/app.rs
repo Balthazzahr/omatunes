@@ -598,6 +598,7 @@ impl AppState {
         self.show_tag_editor = Some(TagEditorState {
             tracks: tracks.clone(),
             original_tracks,
+            is_saved: false,
             title: first.title.clone(),
             artist: first.artist.clone(),
             album: first.album.clone(),
@@ -1751,6 +1752,7 @@ impl AppState {
                     state.apply_disc_num = false;
                     state.apply_cover = false;
                     state.apply_lyrics = false;
+                    state.is_saved = true;
                 }
                 self.update_filtered_tracks();
                 Task::none()
