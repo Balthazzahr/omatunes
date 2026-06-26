@@ -1128,6 +1128,12 @@ impl AppState {
                             self.position = position;
                             self.duration = duration;
                             self.send_mpris(MprisUpdate::Position(position));
+
+                            let current_secs = position.as_secs();
+                            let old_secs = crate::db::get(|db| db.last_position_secs);
+                            if current_secs != old_secs {
+                                crate::db::write(|db| db.last_position_secs = current_secs);
+                            }
                             if !self.current_track_play_counted && duration > Duration::ZERO && position >= duration / 2 {
                                 if let Some(ref mut track) = self.current_track {
                                     let count = crate::db::increment_play_count(track.path.clone());
@@ -3711,6 +3717,19 @@ impl AppState {
         self.duration = Duration::ZERO;
         self.current_track_play_counted = false;
         self.notify_mpris_track(PlaybackStatus::Playing);
+
+        let queue_paths: Vec<PathBuf> = self.queue.iter().map(|t| t.path.clone()).collect();
+        crate::db::write(|db| {
+            db.last_track_path = Some(track.path.clone());
+            db.last_queue_paths = queue_paths;
+            db.last_position_secs = 0;
+            db.last_view_mode = Some(self.view_mode);
+            db.last_selected_playlist = self.selected_playlist.clone();
+            db.last_selected_folder = self.selected_folder.clone();
+            db.last_selected_artist = self.selected_artist.clone();
+            db.last_selected_album = self.selected_album.clone();
+            db.last_selected_genre = self.selected_genre.clone();
+        });
 
         crate::db::add_to_recently_played(track.path.clone());
         if self.selected_playlist.as_deref() == Some("Recently Played") {
