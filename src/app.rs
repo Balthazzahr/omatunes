@@ -2794,6 +2794,7 @@ impl AppState {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.lyrics_content.perform(val);
                     state.apply_lyrics = true;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
