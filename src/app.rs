@@ -582,10 +582,19 @@ impl AppState {
             .map(|state| state.active_tab)
             .unwrap_or(TagEditorTab::Main);
 
+        let mut original_tracks = self.show_tag_editor.as_mut()
+            .map(|state| std::mem::take(&mut state.original_tracks))
+            .unwrap_or_default();
+
+        if !original_tracks.contains_key(&track.path) {
+            original_tracks.insert(track.path.clone(), track.clone());
+        }
+
         let tracks = vec![track.clone()];
         let first = &tracks[0];
         self.show_tag_editor = Some(TagEditorState {
             tracks: tracks.clone(),
+            original_tracks,
             title: first.title.clone(),
             artist: first.artist.clone(),
             album: first.album.clone(),
@@ -1335,8 +1344,14 @@ impl AppState {
                 let all_same_year = tracks.iter().all(|t| t.year == first.year);
                 let all_same_lyrics = tracks.iter().all(|t| t.lyrics == first.lyrics);
 
+                let mut original_tracks = std::collections::HashMap::new();
+                for t in &tracks {
+                    original_tracks.insert(t.path.clone(), t.clone());
+                }
+
                 self.show_tag_editor = Some(TagEditorState {
                     tracks: tracks.clone(),
+                    original_tracks,
                     title: if all_same_title { first.title.clone() } else { String::new() },
                     artist: if all_same_artist { first.artist.clone() } else { String::new() },
                     album: if all_same_album { first.album.clone() } else { String::new() },
