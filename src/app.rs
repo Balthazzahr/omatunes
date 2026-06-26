@@ -251,6 +251,7 @@ pub enum Message {
     PlayNext(Vec<Track>),
     AddToQueue(Vec<Track>),
     PlayQueueTrack(usize),
+    SelectQueueTrack(usize, Track),
     RemoveQueueTrack(usize),
     MoveQueueTrackUp(usize),
     MoveQueueTrackDown(usize),
