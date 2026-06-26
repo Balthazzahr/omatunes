@@ -5,14 +5,6 @@ use crate::app::{AppState, Message, ViewMode, SortColumn, PlaylistDialogMode};
 use crate::ui::theme;
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
-    let top_bar = library_top_bar(state);
-    
-    let top_bar_divider = container(Space::new(Length::Fill, Length::Fixed(1.0)))
-        .style(|_| iced::widget::container::Style {
-            background: Some(iced::Background::Color(theme::surface0())),
-            ..Default::default()
-        });
-
     let sidebar = folder_sidebar(state);
     let track_list = track_list_view(state);
 
@@ -37,16 +29,10 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     .on_exit(Message::HoverSidebarResizer(false))
     .interaction(iced::mouse::Interaction::ResizingHorizontally);
 
-    column![
-        top_bar,
-        top_bar_divider,
-        row![sidebar, drag_handle, track_list]
-            .width(Length::Fill)
-            .height(Length::Fill)
-    ]
-    .width(Length::Fill)
-    .height(Length::Fill)
-    .into()
+    row![sidebar, drag_handle, track_list]
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
 }
 
 fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
