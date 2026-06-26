@@ -943,6 +943,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             for (idx, track) in state.tracks.iter().enumerate() {
                 let original_idx = state.queue.iter().position(|t| t.id == track.id).unwrap_or(idx);
                 let is_current = current_track_id == Some(track.id);
+                let is_selected_track = state.selected_tracks.iter().any(|t| t.id == track.id);
                 let row_color = if is_current { theme::accent() } else { theme::text() };
                 
                 let drag_handle = container(
@@ -1025,18 +1026,29 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                         .padding([6, 12])
                     )
                     .style(move |_| iced::widget::container::Style {
-                        background: if is_current {
+                        background: if is_selected_track {
+                            Some(iced::Background::Color(theme::surface0()))
+                        } else if is_current {
                             Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.15)))
                         } else if idx % 2 == 1 {
                             Some(iced::Background::Color(theme::mantle()))
                         } else {
                             None
                         },
+                        border: if is_selected_track {
+                            iced::Border {
+                                color: theme::accent(),
+                                width: 1.0,
+                                radius: 4.0.into(),
+                            }
+                        } else {
+                            iced::Border::default()
+                        },
                         ..Default::default()
                     })
                     .width(Length::Fill)
                 )
-                .on_press(Message::PlayQueueTrack(original_idx))
+                .on_press(Message::SelectQueueTrack(original_idx, track.clone()))
                 .on_right_press(Message::ToggleContextMenu(Some(crate::app::ContextMenuTarget::Track(track.clone()))));
 
                 let row_with_drag_over = if state.dragging_queue_index.is_some() {
