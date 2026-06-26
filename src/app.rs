@@ -239,6 +239,7 @@ pub enum TagEditorTab {
 pub struct TagEditorState {
     pub tracks: Vec<Track>,
     pub original_tracks: std::collections::HashMap<std::path::PathBuf, Track>,
+    pub is_saved: bool,
     pub title: String,
     pub artist: String,
     pub album: String,
@@ -269,6 +270,7 @@ impl Clone for TagEditorState {
         TagEditorState {
             tracks: self.tracks.clone(),
             original_tracks: self.original_tracks.clone(),
+            is_saved: self.is_saved,
             title: self.title.clone(),
             artist: self.artist.clone(),
             album: self.album.clone(),
