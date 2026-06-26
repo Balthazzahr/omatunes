@@ -1011,6 +1011,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
     let headers: Element<'_, Message> = if state.view_mode == ViewMode::NowPlaying {
         container(
             row![
+                Space::with_width(Length::Fixed(28.0)),
                 text("#").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::Fixed(30.0)),
                 text("Title").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::FillPortion(3)),
                 text("Artist").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::FillPortion(2)),
@@ -1063,22 +1064,47 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             .width(Length::Fill)
             .height(Length::Fill)
             .into()
+        } else if state.tracks.is_empty() {
+            container(
+                text("No matching queue items found.")
+                    .color(theme::overlay0())
+                    .size(15),
+            )
+            .center_x(Length::Fill)
+            .center_y(Length::Fill)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .into()
         } else {
             let current_track_id = state.current_track.as_ref().map(|t| t.id);
             let mut rows: Vec<Element<'_, Message>> = Vec::new();
             
-            for (idx, track) in state.queue.iter().enumerate() {
+            for (idx, track) in state.tracks.iter().enumerate() {
+                let original_idx = state.queue.iter().position(|t| t.id == track.id).unwrap_or(idx);
                 let is_current = current_track_id == Some(track.id);
                 let row_color = if is_current { theme::accent() } else { theme::text() };
                 
-                let up_btn: Element<'_, Message> = if idx > 0 {
+                let drag_handle = container(
+                    text("\u{f0c9}")
+                        .font(crate::ui::icons::NERD_FONT_MONO)
+                        .color(if state.dragging_queue_index == Some(original_idx) { theme::accent() } else { theme::overlay0() })
+                        .size(12)
+                )
+                .padding([4, 8]);
+                
+                let drag_handle_widget = mouse_area(drag_handle)
+                    .on_press(Message::QueueDragStart(original_idx))
+                    .on_release(Message::QueueDragEnd)
+                    .interaction(iced::mouse::Interaction::Grab);
+
+                let up_btn: Element<'_, Message> = if original_idx > 0 {
                     button(
                         text("\u{f062}")
                             .font(crate::ui::icons::NERD_FONT_MONO)
                             .color(theme::overlay0())
                             .size(12)
                     )
-                    .on_press(Message::MoveQueueTrackUp(idx))
+                    .on_press(Message::MoveQueueTrackUp(original_idx))
                     .style(iced::widget::button::text)
                     .padding(2)
                     .into()
@@ -1086,14 +1112,14 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                     Space::with_width(16.0).into()
                 };
 
-                let down_btn: Element<'_, Message> = if idx < state.queue.len() - 1 {
+                let down_btn: Element<'_, Message> = if original_idx < state.queue.len() - 1 {
                     button(
                         text("\u{f063}")
                             .font(crate::ui::icons::NERD_FONT_MONO)
                             .color(theme::overlay0())
                             .size(12)
                     )
-                    .on_press(Message::MoveQueueTrackDown(idx))
+                    .on_press(Message::MoveQueueTrackDown(original_idx))
                     .style(iced::widget::button::text)
                     .padding(2)
                     .into()
@@ -1107,7 +1133,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                         .color(theme::red())
                         .size(12)
                 )
-                .on_press(Message::RemoveQueueTrack(idx))
+                .on_press(Message::RemoveQueueTrack(original_idx))
                 .style(iced::widget::button::text)
                 .padding(2);
 
@@ -1120,10 +1146,11 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 .align_y(Alignment::Center)
                 .width(Length::Fixed(120.0));
 
-                let track_no = (idx + 1).to_string();
+                let track_no = (original_idx + 1).to_string();
                 let row_content = mouse_area(
                     container(
                         row![
+                            drag_handle_widget.into(),
                             text(track_no).color(theme::overlay0()).size(13).width(Length::Fixed(30.0)),
                             text(track.title.clone()).color(row_color).size(14).width(Length::FillPortion(3)),
                             text(track.artist.clone()).color(theme::subtext()).size(13).width(Length::FillPortion(2)),
@@ -1147,10 +1174,17 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                     })
                     .width(Length::Fill)
                 )
-                .on_press(Message::PlayQueueTrack(idx))
+                .on_press(Message::PlayQueueTrack(original_idx))
                 .on_right_press(Message::ToggleContextMenu(Some(crate::app::ContextMenuTarget::Track(track.clone()))));
 
-                rows.push(row_content.into());
+                let row_with_drag_over = if state.dragging_queue_index.is_some() {
+                    mouse_area(row_content)
+                        .on_enter(Message::QueueDragOver(original_idx))
+                } else {
+                    row_content
+                };
+
+                rows.push(row_with_drag_over.into());
             }
 
             container(scrollable(column(rows).spacing(0)))
