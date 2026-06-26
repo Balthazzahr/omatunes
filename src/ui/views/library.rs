@@ -895,18 +895,24 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         Space::with_width(0.0).into()
     };
 
+    let search_placeholder = if state.view_mode == ViewMode::NowPlaying {
+        "Search queue..."
+    } else {
+        "Search songs..."
+    };
+
     let song_search_input = row![
-        text_input("Search songs...", &state.search_query)
+        text_input(search_placeholder, &state.search_query)
             .id(iced::widget::text_input::Id::new("song_search_input"))
             .on_input(Message::SearchChanged)
-            .padding(6)
-            .size(12)
+            .padding(4)
+            .size(11)
             .width(Length::Fill),
         song_clear_btn
     ]
     .align_y(Alignment::Center)
     .spacing(4)
-    .width(Length::Fixed(400.0));
+    .width(Length::Fixed(200.0));
 
     let filter_options: Element<'_, Message> = if !state.search_query.is_empty() {
         container(
@@ -925,55 +931,71 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         Space::new(Length::Fixed(0.0), Length::Fixed(0.0)).into()
     };
 
+    let is_now_playing_active = state.view_mode == ViewMode::NowPlaying;
+    let now_playing_text = text("Now Playing")
+        .size(11)
+        .font(crate::ui::icons::UI_FONT_BOLD);
+    
+    let now_playing_tab = button(container(now_playing_text).center_x(Length::Shrink).center_y(Length::Fill).padding([0, 16]))
+        .on_press(Message::SelectViewMode(ViewMode::NowPlaying))
+        .height(28.0)
+        .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+            iced::widget::button::Style {
+                background: Some(iced::Background::Color(if is_now_playing_active {
+                    theme::mantle()
+                } else if is_hovered {
+                    theme::surface0()
+                } else {
+                    iced::Color::TRANSPARENT
+                })),
+                border: iced::Border {
+                    color: if is_now_playing_active { theme::accent() } else { iced::Color::TRANSPARENT },
+                    width: if is_now_playing_active { 1.0 } else { 0.0 },
+                    radius: iced::border::Radius {
+                        top_left: 4.0,
+                        top_right: 4.0,
+                        bottom_left: 0.0,
+                        bottom_right: 0.0,
+                    },
+                },
+                text_color: if is_now_playing_active { theme::accent() } else { theme::subtext() },
+                ..Default::default()
+            }
+        })
+        .padding(0);
+
+    let settings_btn = button(
+        text("\u{f013}")
+            .font(crate::ui::icons::NERD_FONT_MONO)
+            .color(theme::subtext())
+            .size(14)
+    )
+    .on_press(Message::OpenSettings)
+    .style(iced::widget::button::text)
+    .padding(4);
+
     let toolbar = container(
         column![
             row![
+                now_playing_tab,
+                Space::with_width(Length::Fill),
                 row![
-                    button(text("Now Playing").size(12))
-                        .on_press(Message::SelectViewMode(ViewMode::NowPlaying))
-                        .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
-                            let is_active = state.view_mode == ViewMode::NowPlaying;
-                            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-                            iced::widget::button::Style {
-                                background: Some(iced::Background::Color(if is_active {
-                                    theme::mantle()
-                                } else if is_hovered {
-                                    theme::surface0()
-                                } else {
-                                    iced::Color::TRANSPARENT
-                                })),
-                                text_color: if is_active { theme::accent() } else { theme::text() },
-                                border: iced::Border {
-                                    color: if is_active { theme::accent() } else { theme::surface0() },
-                                    width: 1.0,
-                                    radius: 4.0.into(),
-                                },
-                                ..Default::default()
-                            }
-                        })
-                        .padding([4, 8]),
-                    Space::with_width(12),
                     checkbox("Group by Album", state.group_by_album)
                         .on_toggle(|_| Message::ToggleGroupByAlbum)
-                        .size(16)
+                        .size(14),
+                    Space::with_width(12),
+                    song_search_input,
+                    Space::with_width(12),
+                    settings_btn
                 ]
-                .width(Length::FillPortion(1))
-                .align_y(Alignment::Center),
-                Space::with_width(Length::Fill),
-                song_search_input,
-                Space::with_width(Length::Fill),
-                row![
-                    Space::with_width(Length::Fill),
-                    shortcuts_btn
-                ]
-                .width(Length::FillPortion(1))
                 .align_y(Alignment::Center),
             ]
-            .align_y(Alignment::Center),
+            .align_y(Alignment::End)
+            .height(28.0),
             filter_options,
         ]
-        .spacing(4)
-        .padding([8, 12])
+        .spacing(0)
     )
     .style(|_| iced::widget::container::Style {
         background: Some(iced::Background::Color(theme::mantle())),
