@@ -3120,6 +3120,94 @@ impl AppState {
                 }
                 Task::none()
             }
+
+            Message::PlayNext(tracks) => {
+                if self.queue.is_empty() {
+                    self.queue = tracks;
+                    if let Some(first) = self.queue.first().cloned() {
+                        return self.play_track_internal(first);
+                    }
+                } else {
+                    let current_idx = self.current_track.as_ref()
+                        .and_then(|ct| self.queue.iter().position(|t| t.id == ct.id));
+                    if let Some(idx) = current_idx {
+                        for (offset, track) in tracks.into_iter().enumerate() {
+                            self.queue.insert(idx + 1 + offset, track);
+                        }
+                    } else {
+                        self.queue.extend(tracks);
+                    }
+                    let queue_paths: Vec<PathBuf> = self.queue.iter().map(|t| t.path.clone()).collect();
+                    crate::db::write(|db| {
+                        db.last_queue_paths = queue_paths;
+                    });
+                }
+                Task::none()
+            }
+
+            Message::AddToQueue(tracks) => {
+                let play_first = self.queue.is_empty();
+                self.queue.extend(tracks);
+                let queue_paths: Vec<PathBuf> = self.queue.iter().map(|t| t.path.clone()).collect();
+                crate::db::write(|db| {
+                    db.last_queue_paths = queue_paths;
+                });
+                if play_first {
+                    if let Some(first) = self.queue.first().cloned() {
+                        return self.play_track_internal(first);
+                    }
+                }
+                Task::none()
+            }
+
+            Message::PlayQueueTrack(index) => {
+                if let Some(track) = self.queue.get(index).cloned() {
+                    return self.play_track_internal(track);
+                }
+                Task::none()
+            }
+
+            Message::RemoveQueueTrack(index) => {
+                if index < self.queue.len() {
+                    self.queue.remove(index);
+                    let queue_paths: Vec<PathBuf> = self.queue.iter().map(|t| t.path.clone()).collect();
+                    crate::db::write(|db| {
+                        db.last_queue_paths = queue_paths;
+                    });
+                }
+                Task::none()
+            }
+
+            Message::MoveQueueTrackUp(index) => {
+                if index > 0 && index < self.queue.len() {
+                    self.queue.swap(index, index - 1);
+                    let queue_paths: Vec<PathBuf> = self.queue.iter().map(|t| t.path.clone()).collect();
+                    crate::db::write(|db| {
+                        db.last_queue_paths = queue_paths;
+                    });
+                }
+                Task::none()
+            }
+
+            Message::MoveQueueTrackDown(index) => {
+                if index < self.queue.len() - 1 {
+                    self.queue.swap(index, index + 1);
+                    let queue_paths: Vec<PathBuf> = self.queue.iter().map(|t| t.path.clone()).collect();
+                    crate::db::write(|db| {
+                        db.last_queue_paths = queue_paths;
+                    });
+                }
+                Task::none()
+            }
+
+            Message::ClearQueue => {
+                self.queue.clear();
+                let queue_paths: Vec<PathBuf> = self.queue.iter().map(|t| t.path.clone()).collect();
+                crate::db::write(|db| {
+                    db.last_queue_paths = queue_paths;
+                });
+                Task::none()
+            }
         }
 
     }
