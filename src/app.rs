@@ -814,6 +814,9 @@ impl AppState {
                         self.tracks = self.all_tracks.clone();
                     }
                 }
+                ViewMode::NowPlaying => {
+                    self.tracks = self.queue.clone();
+                }
             }
         }
 
@@ -2319,6 +2322,7 @@ impl AppState {
                                 }
                             }
                         }
+                        ViewMode::NowPlaying => {}
                     }
                 }
                 Task::none()
@@ -2393,6 +2397,7 @@ impl AppState {
                                 }
                             }
                         }
+                        ViewMode::NowPlaying => {}
                     }
                 }
                 Task::none()
@@ -2572,6 +2577,7 @@ impl AppState {
                                             }
                                         }
                                     }
+                                    ViewMode::NowPlaying => {}
                                 }
                                 return Task::none();
                             } else if self.active_focus == Some(ActiveFocus::SidebarList) {
