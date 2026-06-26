@@ -3209,6 +3209,50 @@ impl AppState {
                 Task::none()
             }
 
+            Message::SelectQueueTrack(index, track) => {
+                let now = std::time::Instant::now();
+                if let Some((prev_id, last_time)) = self.last_click_track {
+                    if prev_id == track.id && now.duration_since(last_time) < std::time::Duration::from_millis(350) {
+                        self.last_click_track = None;
+                        return Task::done(Message::PlayQueueTrack(index));
+                    }
+                }
+                self.last_click_track = Some((track.id, now));
+                self.active_focus = Some(ActiveFocus::Tracklist);
+                let cover_data = load_cover(&track.path);
+                let track = Track { cover_data, ..track };
+
+                let shift_held = self.modifiers.shift();
+                let ctrl_held = self.modifiers.control() || self.modifiers.command();
+
+                if ctrl_held {
+                    if self.selected_tracks.iter().any(|t| t.id == track.id) {
+                        self.selected_tracks.retain(|t| t.id != track.id);
+                    } else {
+                        self.selected_tracks.push(track.clone());
+                    }
+                    self.last_clicked_track = Some(track.clone());
+                } else if shift_held {
+                    if let Some(ref start_track) = self.last_clicked_track {
+                        let start_idx = self.tracks.iter().position(|t| t.id == start_track.id);
+                        let end_idx = self.tracks.iter().position(|t| t.id == track.id);
+                        if let (Some(s), Some(e)) = (start_idx, end_idx) {
+                            let (min, max) = if s < e { (s, e) } else { (e, s) };
+                            self.selected_tracks = self.tracks[min..=max].to_vec();
+                        }
+                    } else {
+                        self.selected_tracks = vec![track.clone()];
+                        self.last_clicked_track = Some(track.clone());
+                    }
+                } else {
+                    self.selected_tracks = vec![track.clone()];
+                    self.last_clicked_track = Some(track.clone());
+                }
+
+                self.selected_track = Some(track);
+                Task::none()
+            }
+
             Message::RemoveQueueTrack(index) => {
                 if index < self.queue.len() {
                     self.queue.remove(index);
