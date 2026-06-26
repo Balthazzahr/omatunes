@@ -3333,18 +3333,18 @@ impl AppState {
         let left_top = stack![
             container(player_controls)
                 .width(Length::Fill)
-                .height(iced::Length::Fixed(220.0)),
+                .height(iced::Length::Fixed(270.0)),
             container(library_tabs)
-                .padding(iced::Padding { top: 219.0, right: 0.0, bottom: 0.0, left: 0.0 })
+                .padding(iced::Padding { top: 269.0, right: 0.0, bottom: 0.0, left: 0.0 })
                 .width(Length::Fill)
-                .height(iced::Length::Fixed(248.0)),
+                .height(iced::Length::Fixed(298.0)),
         ]
         .width(Length::Fill)
-        .height(iced::Length::Fixed(248.0));
+        .height(iced::Length::Fixed(298.0));
 
         let mut top_row = row![left_top]
             .width(Length::Fill)
-            .height(iced::Length::Fixed(248.0));
+            .height(iced::Length::Fixed(298.0));
 
         if let Some(pane) = views::player::right_panel(self) {
             top_row = top_row.push(pane);

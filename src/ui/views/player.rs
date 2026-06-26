@@ -212,7 +212,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .height(Length::Fill)
     )
     .width(56.0)
-    .height(Length::Fixed(220.0))
+    .height(Length::Fixed(270.0))
     .style(|_| iced::widget::container::Style {
         background: Some(iced::Background::Color(theme::mantle())),
         ..Default::default()
@@ -227,7 +227,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     let player_container = container(player_row)
         .style(theme::player_panel)
         .width(left_side_width)
-        .height(Length::Fixed(220.0));
+        .height(Length::Fixed(270.0));
 
     let vol_step = crate::config::get().volume_step;
 
@@ -252,7 +252,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             ..Default::default()
         })
         .width(1.0)
-        .height(Length::Fixed(220.0));
+        .height(Length::Fixed(270.0));
 
     row![
         player_with_scroll,
@@ -262,7 +262,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     .spacing(0)
     .align_y(Alignment::Center)
     .width(Length::Fill)
-    .height(Length::Fixed(220.0))
+    .height(Length::Fixed(270.0))
     .into()
 }
 
@@ -452,7 +452,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
     let pane = container(pane_stack)
         .style(theme::player_panel)
         .width(Length::Fixed(state.right_panel_width))
-        .height(Length::Fixed(248.0));
+        .height(Length::Fixed(298.0));
 
     // Add a draggable resize handle between player and panel
     let panel_drag_handle = mouse_area(
@@ -487,7 +487,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
             panel_drag_handle,
             pane
         ]
-        .height(Length::Fixed(248.0))
+        .height(Length::Fixed(298.0))
         .into()
     )
 }
