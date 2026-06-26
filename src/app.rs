@@ -45,6 +45,7 @@ pub enum ViewMode {
     Artists,
     Albums,
     Genres,
+    NowPlaying,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
