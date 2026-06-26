@@ -94,6 +94,28 @@ pub fn view(state: &SettingsState) -> Element<'static, Message> {
         .spacing(2)
     ).push(Space::with_height(20));
 
+    // Key Bindings
+    let shortcuts_btn = button(
+        row![
+            text("\u{f11c}").font(crate::ui::icons::NERD_FONT_MONO).size(13),
+            Space::with_width(8),
+            text("Key Bindings").size(12).font(crate::ui::icons::UI_FONT_BOLD)
+        ]
+        .align_y(Alignment::Center)
+    )
+    .on_press(Message::OpenShortcuts)
+    .padding([8, 12])
+    .style(theme::secondary_button);
+
+    content = content.push(
+        column![
+            text("Shortcuts").size(12).font(crate::ui::icons::UI_FONT_BOLD).color(theme::subtext()),
+            Space::with_height(4),
+            shortcuts_btn,
+        ]
+        .spacing(2)
+    ).push(Space::with_height(16));
+
     // Buttons
     let save_btn = button(text("Save Settings").color(theme::base()))
         .on_press(Message::SettingsSave)

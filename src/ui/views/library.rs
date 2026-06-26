@@ -88,16 +88,6 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
         Space::with_width(0.0).into()
     };
 
-    let settings_btn = button(
-        text("\u{f013}")
-            .font(crate::ui::icons::NERD_FONT_MONO)
-            .color(theme::subtext())
-            .size(16)
-    )
-    .on_press(Message::OpenSettings)
-    .style(iced::widget::button::text)
-    .padding(4);
-
     let sidebar_search_input = row![
         text_input("Search...", &state.sidebar_search)
             .id(iced::widget::text_input::Id::new("sidebar_search_input"))
@@ -106,7 +96,6 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             .size(12)
             .width(Length::Fill),
         sidebar_clear_btn,
-        settings_btn,
     ]
     .align_y(Alignment::Center)
     .spacing(4);
