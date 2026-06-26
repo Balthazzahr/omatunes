@@ -2970,6 +2970,92 @@ impl AppState {
                 }
                 Task::none()
             }
+
+            Message::OpenSettings => {
+                let cfg = crate::config::get();
+                self.show_settings = Some(SettingsState {
+                    music_dir: cfg.music_dir,
+                    language: cfg.language,
+                    seek_step: cfg.seek_step.to_string(),
+                    volume_step: cfg.volume_step,
+                    font_scale: self.font_scale,
+                });
+                Task::none()
+            }
+
+            Message::CloseSettings => {
+                self.show_settings = None;
+                Task::none()
+            }
+
+            Message::SettingsMusicDirChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.music_dir = val;
+                }
+                Task::none()
+            }
+
+            Message::SettingsLanguageChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.language = val;
+                }
+                Task::none()
+            }
+
+            Message::SettingsSeekStepChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.seek_step = val;
+                }
+                Task::none()
+            }
+
+            Message::SettingsVolumeStepChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.volume_step = val;
+                }
+                Task::none()
+            }
+
+            Message::SettingsFontScaleChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.font_scale = val;
+                    self.font_scale = val;
+                }
+                Task::none()
+            }
+
+            Message::SettingsSave => {
+                if let Some(ref state) = self.show_settings {
+                    let mut cfg = crate::config::get();
+                    let old_music_path = cfg.music_path();
+                    
+                    cfg.music_dir = state.music_dir.clone();
+                    cfg.language = state.language.clone();
+                    if let Ok(seek) = state.seek_step.trim().parse::<u64>() {
+                        cfg.seek_step = seek;
+                    }
+                    cfg.volume_step = state.volume_step;
+                    cfg.font_scale = Some(state.font_scale);
+                    
+                    crate::config::save(cfg.clone());
+                    
+                    // Reload strings/locale
+                    self.strings = crate::locale::get();
+                    
+                    self.show_settings = None;
+                    
+                    if cfg.music_path() != old_music_path {
+                        let new_music_dir = cfg.music_path();
+                        return Task::perform(
+                            async move {
+                                scan_folder(&new_music_dir)
+                            },
+                            Message::LibraryScanned,
+                        );
+                    }
+                }
+                Task::none()
+            }
         }
 
     }
