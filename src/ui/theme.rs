@@ -254,6 +254,14 @@ pub fn album_header(_: &iced::Theme) -> container::Style {
     }
 }
 
+pub fn album_header_active(_: &iced::Theme) -> container::Style {
+    container::Style {
+        background: Some(iced::Background::Color(with_alpha(accent(), 0.15))),
+        border: Border { color: with_alpha(accent(), 0.3), width: 1.0, radius: 4.0.into() },
+        ..Default::default()
+    }
+}
+
 pub fn spectrum_bar_color(amplitude: f32) -> Color {
     if amplitude < 0.5 {
         lerp_color(green(), accent(), amplitude * 2.0)
