@@ -1411,7 +1411,7 @@ impl AppState {
 
             Message::CancelTagEditor => {
                 if let Some(state) = self.show_tag_editor.take() {
-                    for (path, original_track) in state.original_tracks {
+                    for (_, original_track) in state.original_tracks {
                         let res = crate::library::write_tags(
                             &original_track.path,
                             &original_track.title,
