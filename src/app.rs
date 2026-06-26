@@ -3818,6 +3818,16 @@ impl AppState {
                     _ => None,
                 }
             }));
+        if self.dragging_queue_index.is_some() {
+            subs.push(iced::event::listen_with(|event, _, _| {
+                use iced::mouse;
+                match event {
+                    iced::Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) => {
+                        Some(Message::QueueDragEnd)
+                    }
+                    _ => None,
+                }
+            }));
         }
 
         struct UdpSubscriptionId;
