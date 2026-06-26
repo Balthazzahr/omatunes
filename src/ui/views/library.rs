@@ -1174,7 +1174,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                     )
                     .style(move |_| iced::widget::container::Style {
                         background: if is_current {
-                            Some(iced::Background::Color(theme::surface1()))
+                            Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.15)))
                         } else if idx % 2 == 1 {
                             Some(iced::Background::Color(theme::mantle()))
                         } else {
