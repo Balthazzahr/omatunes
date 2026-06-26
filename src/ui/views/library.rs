@@ -1462,25 +1462,24 @@ fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     .style(iced::widget::button::text)
     .padding(4);
 
-    let clear_queue_btn = if state.view_mode == ViewMode::NowPlaying {
-        Element::from(
-            button(text("Clear Queue").size(11))
-                .on_press(Message::ClearQueue)
-                .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
-                    let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-                    iced::widget::button::Style {
-                        text_color: theme::red(),
-                        background: Some(iced::Background::Color(if is_hovered { theme::surface0() } else { iced::Color::TRANSPARENT })),
-                        border: iced::Border {
-                            color: theme::red(),
-                            width: 1.0,
-                            radius: 4.0.into(),
-                        },
-                        ..Default::default()
-                    }
-                })
-                .padding([4, 8])
-        )
+    let clear_queue_btn: Element<'_, Message> = if state.view_mode == ViewMode::NowPlaying {
+        button(text("Clear Queue").size(11))
+            .on_press(Message::ClearQueue)
+            .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                iced::widget::button::Style {
+                    text_color: theme::red(),
+                    background: Some(iced::Background::Color(if is_hovered { theme::surface0() } else { iced::Color::TRANSPARENT })),
+                    border: iced::Border {
+                        color: theme::red(),
+                        width: 1.0,
+                        radius: 4.0.into(),
+                    },
+                    ..Default::default()
+                }
+            })
+            .padding([4, 8])
+            .into()
     } else {
         Space::with_width(0.0).into()
     };
