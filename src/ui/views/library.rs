@@ -1084,10 +1084,11 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 )
                 .padding([4, 8]);
                 
-                let drag_handle_widget = mouse_area(drag_handle)
+                let drag_handle_widget: Element<'_, Message> = mouse_area(drag_handle)
                     .on_press(Message::QueueDragStart(original_idx))
                     .on_release(Message::QueueDragEnd)
-                    .interaction(iced::mouse::Interaction::Grab);
+                    .interaction(iced::mouse::Interaction::Grab)
+                    .into();
 
                 let up_btn: Element<'_, Message> = if original_idx > 0 {
                     button(
@@ -1142,7 +1143,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 let row_content = mouse_area(
                     container(
                         row![
-                            drag_handle_widget.into(),
+                            drag_handle_widget,
                             text(track_no).color(theme::overlay0()).size(13).width(Length::Fixed(30.0)),
                             text(track.title.clone()).color(row_color).size(14).width(Length::FillPortion(3)),
                             text(track.artist.clone()).color(theme::subtext()).size(13).width(Length::FillPortion(2)),
