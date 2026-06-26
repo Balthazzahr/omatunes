@@ -2118,11 +2118,16 @@ impl AppState {
                 self.window_height = h;
                 self.window_width = w;
                 if !self.playlist_height_initialized {
-                    self.playlist_height = ((h - 212.0) * 0.30).max(MIN_PLAYLIST_HEIGHT);
+                    self.playlist_height = ((h - 212.0) * 0.27).max(MIN_PLAYLIST_HEIGHT);
                     self.playlist_height_initialized = true;
                 }
                 let max_drawer_width = (w - MIN_NON_DRAWER_WIDTH).max(150.0);
-                self.right_panel_width = self.right_panel_width.clamp(150.0, max_drawer_width);
+                if !self.right_panel_width_initialized {
+                    self.right_panel_width = (w * 0.33).clamp(150.0, max_drawer_width);
+                    self.right_panel_width_initialized = true;
+                } else {
+                    self.right_panel_width = self.right_panel_width.clamp(150.0, max_drawer_width);
+                }
                 Task::none()
             }
 
