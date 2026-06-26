@@ -1918,7 +1918,7 @@ impl AppState {
             }
 
             Message::PlaylistDragMove(y) => {
-                self.playlist_height = (self.window_height - y - 60.0).clamp(50.0, self.window_height - 200.0);
+                self.playlist_height = (self.window_height - y - 60.0).clamp(MIN_PLAYLIST_HEIGHT, (self.window_height - 300.0).max(MIN_PLAYLIST_HEIGHT));
                 Task::none()
             }
 
