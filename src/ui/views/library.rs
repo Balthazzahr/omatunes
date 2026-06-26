@@ -940,6 +940,30 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         column![
             row![
                 row![
+                    button(text("Now Playing").size(12))
+                        .on_press(Message::SelectViewMode(ViewMode::NowPlaying))
+                        .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+                            let is_active = state.view_mode == ViewMode::NowPlaying;
+                            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                            iced::widget::button::Style {
+                                background: Some(iced::Background::Color(if is_active {
+                                    theme::surface0()
+                                } else if is_hovered {
+                                    theme::surface1()
+                                } else {
+                                    iced::Color::TRANSPARENT
+                                })),
+                                text_color: if is_active { theme::accent() } else { theme::text() },
+                                border: iced::Border {
+                                    color: if is_active { theme::accent() } else { theme::surface0() },
+                                    width: 1.0,
+                                    radius: 4.0.into(),
+                                },
+                                ..Default::default()
+                            }
+                        })
+                        .padding([4, 8]),
+                    Space::with_width(12),
                     checkbox("Group by Album", state.group_by_album)
                         .on_toggle(|_| Message::ToggleGroupByAlbum)
                         .size(16)
@@ -973,13 +997,157 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
     })
     .width(Length::Fill);
 
-    let headers: Element<'_, Message> = if state.tracks.is_empty() {
+    let headers: Element<'_, Message> = if state.view_mode == ViewMode::NowPlaying {
+        container(
+            row![
+                text("#").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::Fixed(30.0)),
+                text("Title").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::FillPortion(3)),
+                text("Artist").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::FillPortion(2)),
+                text("Album").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::FillPortion(2)),
+                text("Duration").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::Fixed(60.0)),
+                row![
+                    button(text("Clear Queue").size(11))
+                        .on_press(Message::ClearQueue)
+                        .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+                            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                            iced::widget::button::Style {
+                                text_color: theme::red(),
+                                background: Some(iced::Background::Color(if is_hovered { theme::surface0() } else { iced::Color::TRANSPARENT })),
+                                border: iced::Border {
+                                    color: theme::red(),
+                                    width: 1.0,
+                                    radius: 4.0.into(),
+                                },
+                                ..Default::default()
+                            }
+                        })
+                        .padding([2, 6]),
+                ]
+                .spacing(8)
+                .align_y(Alignment::Center)
+                .width(Length::Fixed(120.0))
+            ]
+            .spacing(12)
+            .align_y(Alignment::Center)
+            .padding([8, 12])
+        )
+        .style(theme::header)
+        .width(Length::Fill)
+        .into()
+    } else if state.tracks.is_empty() {
         Space::with_height(0.0).into()
     } else {
         table_headers.into()
     };
 
-    let content_area: Element<'_, Message> = if state.tracks.is_empty() {
+    let content_area: Element<'_, Message> = if state.view_mode == ViewMode::NowPlaying {
+        if state.queue.is_empty() {
+            container(
+                text("The play queue is empty.")
+                    .color(theme::overlay0())
+                    .size(15),
+            )
+            .center_x(Length::Fill)
+            .center_y(Length::Fill)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .into()
+        } else {
+            let current_track_id = state.current_track.as_ref().map(|t| t.id);
+            let mut rows: Vec<Element<'_, Message>> = Vec::new();
+            
+            for (idx, track) in state.queue.iter().enumerate() {
+                let is_current = current_track_id == Some(track.id);
+                let row_color = if is_current { theme::accent() } else { theme::text() };
+                
+                let up_btn: Element<'_, Message> = if idx > 0 {
+                    button(
+                        text("\u{f062}")
+                            .font(crate::ui::icons::NERD_FONT_MONO)
+                            .color(theme::overlay0())
+                            .size(12)
+                    )
+                    .on_press(Message::MoveQueueTrackUp(idx))
+                    .style(iced::widget::button::text)
+                    .padding(2)
+                    .into()
+                } else {
+                    Space::with_width(16.0).into()
+                };
+
+                let down_btn: Element<'_, Message> = if idx < state.queue.len() - 1 {
+                    button(
+                        text("\u{f063}")
+                            .font(crate::ui::icons::NERD_FONT_MONO)
+                            .color(theme::overlay0())
+                            .size(12)
+                    )
+                    .on_press(Message::MoveQueueTrackDown(idx))
+                    .style(iced::widget::button::text)
+                    .padding(2)
+                    .into()
+                } else {
+                    Space::with_width(16.0).into()
+                };
+
+                let remove_btn = button(
+                    text("\u{f00d}")
+                        .font(crate::ui::icons::NERD_FONT_MONO)
+                        .color(theme::red())
+                        .size(12)
+                )
+                .on_press(Message::RemoveQueueTrack(idx))
+                .style(iced::widget::button::text)
+                .padding(2);
+
+                let controls = row![
+                    up_btn,
+                    down_btn,
+                    remove_btn,
+                ]
+                .spacing(8)
+                .align_y(Alignment::Center)
+                .width(Length::Fixed(120.0));
+
+                let track_no = (idx + 1).to_string();
+                let row_content = mouse_area(
+                    container(
+                        row![
+                            text(track_no).color(theme::overlay0()).size(13).width(Length::Fixed(30.0)),
+                            text(track.title.clone()).color(row_color).size(14).width(Length::FillPortion(3)),
+                            text(track.artist.clone()).color(theme::subtext()).size(13).width(Length::FillPortion(2)),
+                            text(track.album.clone()).color(theme::subtext()).size(13).width(Length::FillPortion(2)),
+                            text(track.duration_str()).color(theme::subtext()).size(13).width(Length::Fixed(60.0)),
+                            controls,
+                        ]
+                        .spacing(12)
+                        .align_y(Alignment::Center)
+                        .padding([6, 12])
+                    )
+                    .style(move |_| iced::widget::container::Style {
+                        background: if is_current {
+                            Some(iced::Background::Color(theme::surface0()))
+                        } else if idx % 2 == 1 {
+                            Some(iced::Background::Color(theme::mantle()))
+                        } else {
+                            None
+                        },
+                        ..Default::default()
+                    })
+                    .width(Length::Fill)
+                )
+                .on_press(Message::PlayQueueTrack(idx))
+                .on_right_press(Message::ToggleContextMenu(Some(crate::app::ContextMenuTarget::Track(track.clone()))));
+
+                rows.push(row_content.into());
+            }
+
+            container(scrollable(column(rows).spacing(0)))
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .into()
+        }
+    } else if state.tracks.is_empty() {
         container(
             text(if state.selected_folder.is_some() || state.selected_playlist.is_some() || !state.search_query.is_empty() {
                 state.strings.no_tracks_found
@@ -1002,9 +1170,9 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
     };
 
     column![
+        toolbar,
         headers,
         content_area,
-        toolbar,
     ]
     .width(Length::Fill)
     .height(Length::Fill)
