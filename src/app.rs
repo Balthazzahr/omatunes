@@ -237,6 +237,7 @@ pub enum TagEditorTab {
 #[derive(Debug)]
 pub struct TagEditorState {
     pub tracks: Vec<Track>,
+    pub original_tracks: std::collections::HashMap<std::path::PathBuf, Track>,
     pub title: String,
     pub artist: String,
     pub album: String,
