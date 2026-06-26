@@ -422,7 +422,7 @@ pub fn view<'a>(
             Space::with_width(Length::Fill),
             row![
                 button(text("Cancel").color(theme::text()))
-                    .on_press(Message::CloseTagEditor)
+                    .on_press(Message::CancelTagEditor)
                     .padding([8, 16])
                     .style(theme::secondary_button),
                 Space::with_width(12),

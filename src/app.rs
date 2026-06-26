@@ -1405,6 +1405,11 @@ impl AppState {
             }
 
             Message::CloseTagEditor => {
+                self.show_tag_editor = None;
+                Task::none()
+            }
+
+            Message::CancelTagEditor => {
                 if let Some(state) = self.show_tag_editor.take() {
                     for (path, original_track) in state.original_tracks {
                         let res = crate::library::write_tags(
