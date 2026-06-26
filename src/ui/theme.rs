@@ -292,3 +292,56 @@ pub fn secondary_button(_: &iced::Theme, status: iced::widget::button::Status) -
     }
 }
 
+pub fn save_button(_: &iced::Theme, status: iced::widget::button::Status) -> iced::widget::button::Style {
+    match status {
+        iced::widget::button::Status::Pressed => {
+            iced::widget::button::Style {
+                background: Some(iced::Background::Color(green())),
+                text_color: base(),
+                border: Border {
+                    radius: 4.0.into(),
+                    width: 0.0,
+                    color: Color::TRANSPARENT,
+                },
+                ..Default::default()
+            }
+        }
+        iced::widget::button::Status::Hovered => {
+            iced::widget::button::Style {
+                background: Some(iced::Background::Color(accent())),
+                text_color: base(),
+                border: Border {
+                    radius: 4.0.into(),
+                    width: 0.0,
+                    color: Color::TRANSPARENT,
+                },
+                ..Default::default()
+            }
+        }
+        iced::widget::button::Status::Disabled => {
+            iced::widget::button::Style {
+                background: Some(iced::Background::Color(surface0())),
+                text_color: subtext(),
+                border: Border {
+                    radius: 4.0.into(),
+                    width: 0.0,
+                    color: Color::TRANSPARENT,
+                },
+                ..Default::default()
+            }
+        }
+        _ => {
+            iced::widget::button::Style {
+                background: Some(iced::Background::Color(surface0())),
+                text_color: accent(),
+                border: Border {
+                    radius: 4.0.into(),
+                    width: 1.0,
+                    color: accent(),
+                },
+                ..Default::default()
+            }
+        }
+    }
+}
+
