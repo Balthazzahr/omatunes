@@ -255,6 +255,9 @@ pub enum Message {
     MoveQueueTrackUp(usize),
     MoveQueueTrackDown(usize),
     ClearQueue,
+    QueueDragStart(usize),
+    QueueDragOver(usize),
+    QueueDragEnd,
 }
 
 #[derive(Debug, Clone)]
