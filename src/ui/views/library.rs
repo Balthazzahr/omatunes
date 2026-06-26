@@ -555,9 +555,16 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
         }
     };
 
+    let tab_divider = container(Space::new(Length::Fill, Length::Fixed(1.0)))
+        .style(|_| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::surface0())),
+            ..Default::default()
+        });
+
     container(
         column![
             tabs,
+            tab_divider,
             Space::with_height(6),
             sidebar_search_input,
             Space::with_height(8),
