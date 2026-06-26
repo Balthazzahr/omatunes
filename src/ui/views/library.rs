@@ -1438,15 +1438,40 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     .spacing(4)
     .width(Length::Fixed(200.0));
 
-    let settings_btn = button(
-        text("\u{f013}")
-            .font(crate::ui::icons::NERD_FONT_MONO)
-            .color(theme::subtext())
-            .size(14)
-    )
-    .on_press(Message::OpenSettings)
-    .style(iced::widget::button::text)
-    .padding(4);
+    let is_settings_active = state.show_settings.is_some();
+    let settings_icon = text("\u{f013}")
+        .size(16)
+        .font(crate::ui::icons::NERD_FONT_MONO);
+
+    let settings_btn = button(container(settings_icon).center_x(Length::Fill).center_y(Length::Fill))
+        .on_press(Message::OpenSettings)
+        .width(56.0)
+        .height(28.0)
+        .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+            iced::widget::button::Style {
+                background: Some(iced::Background::Color(if is_settings_active {
+                    theme::surface0()
+                } else if is_hovered {
+                    theme::surface0()
+                } else {
+                    iced::Color::TRANSPARENT
+                })),
+                text_color: if is_settings_active {
+                    theme::accent()
+                } else if is_hovered {
+                    theme::text()
+                } else {
+                    theme::subtext()
+                },
+                border: iced::Border {
+                    radius: 0.0.into(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            }
+        })
+        .padding(0);
 
     let clear_queue_btn: Element<'_, Message> = if state.view_mode == ViewMode::NowPlaying {
         button(text("Clear Queue").size(11))
@@ -1493,19 +1518,27 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     let right_controls = row![
         group_by_album_checkbox,
         song_search_input,
-        Space::with_width(12),
-        settings_btn,
         clear_queue_spacer
     ]
-    .align_y(Alignment::Center);
+    .align_y(Alignment::Center)
+    .padding(iced::Padding { top: 0.0, right: 12.0, bottom: 0.0, left: 0.0 });
+
+    let settings_separator = container(Space::new(Length::Fixed(1.0), Length::Fill))
+        .style(|_| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::surface0())),
+            ..Default::default()
+        })
+        .width(1.0)
+        .height(Length::Fixed(28.0));
 
     let right_bar = row![
         now_playing_tab,
         Space::with_width(Length::Fill),
-        right_controls
+        right_controls,
+        settings_separator,
+        settings_btn
     ]
     .align_y(Alignment::End)
-    .padding(iced::Padding { top: 0.0, right: 12.0, bottom: 0.0, left: 0.0 })
     .height(28.0)
     .width(Length::Fill);
 
