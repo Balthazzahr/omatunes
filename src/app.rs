@@ -469,6 +469,13 @@ impl AppState {
         let loaded_theme_name = crate::ui::theme::read_current_theme_name();
         let iced_theme = build_iced_theme();
 
+        let (db_sidebar_width, db_playlist_height, db_right_panel_width, db_right_panel_tab) = crate::db::get(|db| (
+            db.sidebar_width,
+            db.playlist_height,
+            db.right_panel_width,
+            db.right_panel_tab,
+        ));
+
         let music_dir = cfg.music_path();
         let scan_task = Task::perform(
             async move {
@@ -490,14 +497,14 @@ impl AppState {
             selected_folder: None,
             tracks: Vec::new(),
             folder_cache: HashMap::new(),
-            sidebar_width: load_sidebar_width(),
+            sidebar_width: db_sidebar_width.unwrap_or(200.0).clamp(MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH),
             dragging_sidebar: false,
-            right_panel_width: if let Some(w) = load_right_panel_width() {
+            right_panel_width: if let Some(w) = db_right_panel_width {
                 w.clamp(150.0, (960.0f32 - MIN_NON_DRAWER_WIDTH).max(150.0))
             } else {
                 (960.0f32 * 0.33).clamp(150.0, (960.0f32 - MIN_NON_DRAWER_WIDTH).max(150.0))
             },
-            right_panel_width_initialized: load_right_panel_width().is_some(),
+            right_panel_width_initialized: db_right_panel_width.is_some(),
             dragging_right_panel: false,
             is_hovering_right_panel_resizer: false,
             window_width: 960.0,
