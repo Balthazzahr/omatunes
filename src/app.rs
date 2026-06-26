@@ -851,8 +851,11 @@ impl AppState {
                             self.send_mpris(MprisUpdate::Status(PlaybackStatus::Playing));
                         }
                         PlaybackState::Stopped => {
+                            self.view_mode = ViewMode::Albums;
                             self.selected_album = Some(album_name);
                             self.selected_playlist = None;
+                            self.selected_folder = None;
+                            self.selected_artist = None;
                             self.search_query.clear();
                             self.update_filtered_tracks();
                             let tracks_to_play = self.tracks.clone();
@@ -863,8 +866,11 @@ impl AppState {
                         }
                     }
                 } else {
+                    self.view_mode = ViewMode::Albums;
                     self.selected_album = Some(album_name);
                     self.selected_playlist = None;
+                    self.selected_folder = None;
+                    self.selected_artist = None;
                     self.search_query.clear();
                     self.update_filtered_tracks();
                     let tracks_to_play = self.tracks.clone();
