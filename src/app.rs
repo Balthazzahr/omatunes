@@ -234,6 +234,7 @@ pub enum Message {
     CreatePlaylistWithTracks(String, Vec<Track>),
     ToggleColumnVisibility(crate::db::TableColumn),
     MoveColumnLeft(crate::db::TableColumn),
+    MoveColumnRight(crate::db::TableColumn),
     SelectPlaylistTab(PlaylistTab),
     ToggleRightPanelTab(RightPanelTab),
 
@@ -377,6 +378,7 @@ pub struct AppState {
     pub filter_genre: bool,
     pub selected_playlist: Option<String>,
     pub show_tag_editor: Option<TagEditorState>,
+    pub show_settings: Option<SettingsState>,
 
     // Omatunes enhancements
     pub view_mode: ViewMode,
