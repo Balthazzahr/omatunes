@@ -3159,6 +3159,8 @@ impl AppState {
             ));
         } else if let Some(ref playlist_dialog_state) = self.playlist_dialog {
             view_stack = view_stack.push(crate::ui::components::playlist_dialog::view(playlist_dialog_state));
+        } else if let Some(ref settings_state) = self.show_settings {
+            view_stack = view_stack.push(crate::ui::components::settings_dialog::view(settings_state));
         } else if self.show_shortcuts {
             view_stack = view_stack.push(self.shortcuts_modal_view());
         }
