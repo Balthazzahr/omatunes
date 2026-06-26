@@ -254,7 +254,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .width(1.0)
         .height(Length::Fixed(220.0));
 
-    let mut main_row = row![
+    row![
         player_with_scroll,
         separator,
         tab_strip,
@@ -262,13 +262,8 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     .spacing(0)
     .align_y(Alignment::Center)
     .width(Length::Fill)
-    .height(Length::Fixed(220.0));
-
-    if let Some(pane) = right_panel(state) {
-        main_row = main_row.push(pane);
-    }
-
-    main_row.into()
+    .height(Length::Fixed(220.0))
+    .into()
 }
 
 pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
