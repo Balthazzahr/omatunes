@@ -1498,16 +1498,18 @@ fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         Space::with_width(0.0).into()
     };
 
+    let clear_queue_spacer: Element<'_, Message> = if state.view_mode == ViewMode::NowPlaying {
+        row![Space::with_width(12), clear_queue_btn].into()
+    } else {
+        Space::with_width(0.0).into()
+    };
+
     let right_controls = row![
         group_by_album_checkbox,
         song_search_input,
         Space::with_width(12),
         settings_btn,
-        if state.view_mode == ViewMode::NowPlaying {
-            row![Space::with_width(12), clear_queue_btn].into()
-        } else {
-            Space::with_width(0.0).into()
-        }
+        clear_queue_spacer
     ]
     .align_y(Alignment::Center);
 
