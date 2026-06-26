@@ -544,7 +544,17 @@ impl AppState {
         let mut artists: Vec<String> = self.all_tracks.iter()
             .map(|t| if t.artist.trim().is_empty() { "Unknown Artist".to_string() } else { t.artist.clone() })
             .collect();
-        artists.sort();
+        artists.sort_by(|a, b| {
+            let normalize = |s: &str| {
+                let lower = s.to_lowercase();
+                if lower.starts_with("the ") {
+                    lower[4..].to_string()
+                } else {
+                    lower
+                }
+            };
+            normalize(a).cmp(&normalize(b))
+        });
         artists.dedup();
         if !query.is_empty() {
             artists.retain(|a| a.to_lowercase().contains(&query));
