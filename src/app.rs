@@ -393,6 +393,8 @@ pub struct AppState {
     pub show_settings: Option<SettingsState>,
 
     // Omatunes enhancements
+    pub dragging_queue_index: Option<usize>,
+    pub last_browsing_view: ViewMode,
     pub view_mode: ViewMode,
     pub selected_artist: Option<String>,
     pub selected_album: Option<String>,
@@ -528,6 +530,8 @@ impl AppState {
             selected_playlist: None,
             show_tag_editor: None,
             show_settings: None,
+            dragging_queue_index: None,
+            last_browsing_view: ViewMode::Artists,
             view_mode: ViewMode::Artists,
             selected_artist: None,
             selected_album: None,
