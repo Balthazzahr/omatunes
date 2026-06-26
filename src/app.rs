@@ -247,6 +247,14 @@ pub enum Message {
     SettingsVolumeStepChanged(f32),
     SettingsFontScaleChanged(f32),
     SettingsSave,
+
+    PlayNext(Vec<Track>),
+    AddToQueue(Vec<Track>),
+    PlayQueueTrack(usize),
+    RemoveQueueTrack(usize),
+    MoveQueueTrackUp(usize),
+    MoveQueueTrackDown(usize),
+    ClearQueue,
 }
 
 #[derive(Debug, Clone)]
@@ -3285,6 +3293,18 @@ impl AppState {
                         .padding([4, 8])
                         .width(Length::Fill);
 
+                    let play_next_btn = button(text("Play Next").size(12))
+                        .on_press(Message::PlayNext(vec![track.clone()]))
+                        .style(item_style)
+                        .padding([4, 8])
+                        .width(Length::Fill);
+
+                    let add_queue_btn = button(text("Add to Queue").size(12))
+                        .on_press(Message::AddToQueue(vec![track.clone()]))
+                        .style(item_style)
+                        .padding([4, 8])
+                        .width(Length::Fill);
+
                     let like_label = if track.liked { "Unlike this song" } else { "Like this song" };
                     let like_btn = button(text(like_label).size(12))
                         .on_press(Message::ToggleLikeTrack(track.clone()))
@@ -3305,6 +3325,10 @@ impl AppState {
                         .width(Length::Fill);
 
                     let track_actions = column![
+                        play_next_btn,
+                        Space::with_height(4),
+                        add_queue_btn,
+                        Space::with_height(4),
                         like_btn,
                         Space::with_height(4),
                         tag_btn,
