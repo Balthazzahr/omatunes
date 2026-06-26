@@ -367,11 +367,33 @@ pub fn view<'a>(
         );
     }
 
-    let mut content = column![
+    let header_row = row![
         text("Edit ID3 Tags")
             .size(18)
             .font(crate::ui::icons::UI_FONT_BOLD)
             .color(theme::accent()),
+        Space::with_width(Length::Fill),
+        button(text("X").size(14).font(crate::ui::icons::UI_FONT_BOLD).color(theme::subtext()))
+            .on_press(Message::CloseTagEditor)
+            .style(|_theme: &iced::Theme, status: iced::widget::button::Status| {
+                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                iced::widget::button::Style {
+                    background: Some(iced::Background::Color(if is_hovered { theme::surface0() } else { iced::Color::TRANSPARENT })),
+                    text_color: if is_hovered { theme::red() } else { theme::subtext() },
+                    border: iced::Border {
+                        radius: 4.0.into(),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                }
+            })
+            .padding([4, 8])
+    ]
+    .align_y(Alignment::Center)
+    .width(Length::Fill);
+
+    let mut content = column![
+        header_row,
         Space::with_height(8),
         tabs_header,
         Space::with_height(12),
@@ -389,11 +411,6 @@ pub fn view<'a>(
 
     content = content.push(
         row![
-            button(text("Cancel").color(theme::text()))
-                .on_press(Message::CloseTagEditor)
-                .padding([8, 16])
-                .style(theme::secondary_button),
-            Space::with_width(12),
             button(
                 text(crate::ui::icons::ICON_PREV)
                     .font(crate::ui::icons::NERD_FONT)
@@ -402,7 +419,25 @@ pub fn view<'a>(
             .on_press(Message::TagEditorPrevTrack)
             .padding([8, 12])
             .style(theme::secondary_button),
-            Space::with_width(6),
+            Space::with_width(Length::Fill),
+            row![
+                button(text("Cancel").color(theme::text()))
+                    .on_press(Message::CloseTagEditor)
+                    .padding([8, 16])
+                    .style(theme::secondary_button),
+                Space::with_width(12),
+                button(text("Close").color(theme::text()))
+                    .on_press(Message::CloseTagEditor)
+                    .padding([8, 16])
+                    .style(theme::secondary_button),
+                Space::with_width(12),
+                button(text("Save"))
+                    .on_press(Message::SaveTags)
+                    .padding([8, 16])
+                    .style(theme::save_button)
+            ]
+            .align_y(Alignment::Center),
+            Space::with_width(Length::Fill),
             button(
                 text(crate::ui::icons::ICON_NEXT)
                     .font(crate::ui::icons::NERD_FONT)
@@ -410,13 +445,9 @@ pub fn view<'a>(
             )
             .on_press(Message::TagEditorNextTrack)
             .padding([8, 12])
-            .style(theme::secondary_button),
-            Space::with_width(12),
-            button(text("Save").color(theme::base()))
-                .on_press(Message::SaveTags)
-                .padding([8, 16])
-                .style(theme::primary_button)
+            .style(theme::secondary_button)
         ]
+        .width(Length::Fill)
         .align_y(Alignment::Center)
     );
 

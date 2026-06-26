@@ -1677,6 +1677,15 @@ impl AppState {
                             *track = updated_track.clone();
                         }
                     }
+                    state.apply_title = false;
+                    state.apply_artist = false;
+                    state.apply_album = false;
+                    state.apply_year = false;
+                    state.apply_genre = false;
+                    state.apply_track_num = false;
+                    state.apply_disc_num = false;
+                    state.apply_cover = false;
+                    state.apply_lyrics = false;
                 }
                 self.update_filtered_tracks();
                 Task::none()
