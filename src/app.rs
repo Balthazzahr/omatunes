@@ -1959,6 +1959,7 @@ impl AppState {
 
             Message::PlaylistDragEnd => {
                 self.dragging_playlist_split = false;
+                crate::db::write(|db| db.playlist_height = Some(self.playlist_height));
                 Task::none()
             }
 
