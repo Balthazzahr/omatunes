@@ -339,6 +339,7 @@ pub struct AppState {
     pub dragging_sidebar: bool,
 
     pub right_panel_width: f32,
+    pub right_panel_width_initialized: bool,
     pub dragging_right_panel: bool,
     pub is_hovering_right_panel_resizer: bool,
     pub window_width: f32,
