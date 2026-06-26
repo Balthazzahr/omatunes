@@ -293,6 +293,24 @@ pub fn view<'a>(
                 ].align_y(Alignment::Center).spacing(8)
             );
     } else {
+        if let Some(track) = state.tracks.first() {
+            let duration_str = track.duration_str();
+            let title = if track.title.trim().is_empty() {
+                "Unknown Title".to_string()
+            } else {
+                track.title.clone()
+            };
+            body = body.push(
+                row![
+                    Space::with_width(24),
+                    text(format!("{} ({})", title, duration_str))
+                        .size(13)
+                        .font(crate::ui::icons::UI_FONT_BOLD)
+                        .color(theme::accent())
+                ]
+            ).push(Space::with_height(6));
+        }
+
         body = body.push(
             row![
                 checkbox("", state.apply_lyrics)

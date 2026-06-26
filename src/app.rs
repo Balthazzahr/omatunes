@@ -1484,69 +1484,78 @@ impl AppState {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.title = val;
                     state.apply_title = true;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
- 
+
             Message::UpdateTagFieldArtist(val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.artist = val;
                     state.apply_artist = true;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
- 
+
             Message::UpdateTagFieldAlbum(val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.album = val;
                     state.apply_album = true;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
- 
+
             Message::UpdateTagFieldGenre(val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.genre = val;
                     state.apply_genre = true;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
- 
+
             Message::UpdateTagFieldTrackNumber(val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.track_number = val;
                     state.apply_track_num = true;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
- 
+
             Message::UpdateTagFieldDiscNumber(val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.disc_number = val;
                     state.apply_disc_num = true;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
- 
+
             Message::UpdateTagFieldCoverPath(val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.cover_path = Some(val);
                     state.apply_cover = true;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
- 
+
             Message::UpdateTagFieldApplyToAlbum(val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.apply_to_album = val;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
- 
+
             Message::UpdateTagFieldYear(val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.year = val;
                     state.apply_year = true;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
@@ -1554,6 +1563,7 @@ impl AppState {
             Message::ToggleTagFieldApplyTitle(val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.apply_title = val;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
@@ -1561,6 +1571,7 @@ impl AppState {
             Message::ToggleTagFieldApplyArtist(val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.apply_artist = val;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
@@ -1568,6 +1579,7 @@ impl AppState {
             Message::ToggleTagFieldApplyAlbum(val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.apply_album = val;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
@@ -1575,6 +1587,7 @@ impl AppState {
             Message::ToggleTagFieldApplyYear(val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.apply_year = val;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
@@ -1582,6 +1595,7 @@ impl AppState {
             Message::ToggleTagFieldApplyGenre(val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.apply_genre = val;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
@@ -1589,6 +1603,7 @@ impl AppState {
             Message::ToggleTagFieldApplyTrackNum(val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.apply_track_num = val;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
@@ -1596,6 +1611,7 @@ impl AppState {
             Message::ToggleTagFieldApplyDiscNum(val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.apply_disc_num = val;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
@@ -1603,6 +1619,7 @@ impl AppState {
             Message::ToggleTagFieldApplyCover(val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.apply_cover = val;
+                    state.is_saved = false;
                 }
                 Task::none()
             }
