@@ -532,7 +532,7 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
         .padding(8),
     )
     .style(theme::sidebar)
-    .width(state.sidebar_width)
+    .width(state.sidebar_width.round())
     .height(Length::Fill)
     .into()
 }
