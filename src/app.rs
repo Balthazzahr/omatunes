@@ -2041,7 +2041,16 @@ impl AppState {
             }
 
             Message::SelectViewMode(mode) => {
-                self.view_mode = mode;
+                if mode == ViewMode::NowPlaying {
+                    if self.view_mode == ViewMode::NowPlaying {
+                        self.view_mode = self.last_browsing_view;
+                    } else {
+                        self.view_mode = ViewMode::NowPlaying;
+                    }
+                } else {
+                    self.last_browsing_view = mode;
+                    self.view_mode = mode;
+                }
                 self.selected_playlist = None;
                 self.selected_folder = None;
                 self.selected_artist = None;
