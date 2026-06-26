@@ -889,93 +889,6 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         Space::new(Length::Fixed(0.0), Length::Fixed(0.0)).into()
     };
 
-    let is_now_playing_active = state.view_mode == ViewMode::NowPlaying;
-    let now_playing_text = text("Now Playing")
-        .size(11)
-        .font(crate::ui::icons::UI_FONT_BOLD);
-    
-    let now_playing_tab = button(container(now_playing_text).center_x(Length::Shrink).center_y(Length::Fill).padding([0, 16]))
-        .on_press(Message::SelectViewMode(ViewMode::NowPlaying))
-        .height(28)
-        .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
-            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-            iced::widget::button::Style {
-                background: Some(iced::Background::Color(if is_now_playing_active {
-                    theme::accent()
-                } else if is_hovered {
-                    theme::surface0()
-                } else {
-                    iced::Color::TRANSPARENT
-                })),
-                border: iced::Border {
-                    color: if is_now_playing_active { theme::accent() } else { iced::Color::TRANSPARENT },
-                    width: if is_now_playing_active { 1.0 } else { 0.0 },
-                    radius: iced::border::Radius {
-                        top_left: 4.0,
-                        top_right: 4.0,
-                        bottom_left: 0.0,
-                        bottom_right: 0.0,
-                    },
-                },
-                text_color: if is_now_playing_active { theme::base() } else { theme::subtext() },
-                ..Default::default()
-            }
-        })
-        .padding(0);
-
-    let settings_btn = button(
-        text("\u{f013}")
-            .font(crate::ui::icons::NERD_FONT_MONO)
-            .color(theme::subtext())
-            .size(14)
-    )
-    .on_press(Message::OpenSettings)
-    .style(iced::widget::button::text)
-    .padding(4);
-
-    let toolbar = container(
-        column![
-            row![
-                now_playing_tab,
-                Space::with_width(Length::Fill),
-                row![
-                    if state.view_mode != ViewMode::NowPlaying {
-                        Element::from(
-                            row![
-                                checkbox("Group by Album", state.group_by_album)
-                                    .on_toggle(|_| Message::ToggleGroupByAlbum)
-                                    .size(14),
-                                Space::with_width(12),
-                            ]
-                            .align_y(Alignment::Center)
-                        )
-                    } else {
-                        Space::with_width(0).into()
-                    },
-                    song_search_input,
-                    Space::with_width(12),
-                    settings_btn
-                ]
-                .align_y(Alignment::Center),
-            ]
-            .align_y(Alignment::End)
-            .height(28.0),
-            filter_options,
-        ]
-        .spacing(0)
-    )
-    .style(|_| iced::widget::container::Style {
-        background: Some(iced::Background::Color(theme::mantle())),
-        ..Default::default()
-    })
-    .width(Length::Fill);
-
-    let toolbar_divider = container(Space::new(Length::Fill, Length::Fixed(1.0)))
-        .style(|_| iced::widget::container::Style {
-            background: Some(iced::Background::Color(theme::surface0())),
-            ..Default::default()
-        });
-
     let headers: Element<'_, Message> = if state.view_mode == ViewMode::NowPlaying {
         container(
             row![
@@ -985,27 +898,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 text("Artist").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::FillPortion(2)),
                 text("Album").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::FillPortion(2)),
                 text("Duration").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::Fixed(80.0)),
-                row![
-                    button(text("Clear Queue").size(11))
-                        .on_press(Message::ClearQueue)
-                        .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
-                            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-                            iced::widget::button::Style {
-                                text_color: theme::red(),
-                                background: Some(iced::Background::Color(if is_hovered { theme::surface0() } else { iced::Color::TRANSPARENT })),
-                                border: iced::Border {
-                                    color: theme::red(),
-                                    width: 1.0,
-                                    radius: 4.0.into(),
-                                },
-                                ..Default::default()
-                            }
-                        })
-                        .padding([2, 6]),
-                ]
-                .spacing(8)
-                .align_y(Alignment::Center)
-                .width(Length::Fixed(120.0))
+                Space::with_width(Length::Fixed(120.0)),
             ]
             .spacing(12)
             .align_y(Alignment::Center)
