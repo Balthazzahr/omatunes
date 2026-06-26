@@ -937,12 +937,12 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
     
     let now_playing_tab = button(container(now_playing_text).center_x(Length::Shrink).center_y(Length::Fill).padding([0, 16]))
         .on_press(Message::SelectViewMode(ViewMode::NowPlaying))
-        .height(28.0)
+        .height(28)
         .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
             let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
             iced::widget::button::Style {
                 background: Some(iced::Background::Color(if is_now_playing_active {
-                    theme::mantle()
+                    theme::accent()
                 } else if is_hovered {
                     theme::surface0()
                 } else {
@@ -958,7 +958,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                         bottom_right: 0.0,
                     },
                 },
-                text_color: if is_now_playing_active { theme::accent() } else { theme::subtext() },
+                text_color: if is_now_playing_active { theme::base() } else { theme::subtext() },
                 ..Default::default()
             }
         })
@@ -980,10 +980,19 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 now_playing_tab,
                 Space::with_width(Length::Fill),
                 row![
-                    checkbox("Group by Album", state.group_by_album)
-                        .on_toggle(|_| Message::ToggleGroupByAlbum)
-                        .size(14),
-                    Space::with_width(12),
+                    if state.view_mode != ViewMode::NowPlaying {
+                        Element::from(
+                            row![
+                                checkbox("Group by Album", state.group_by_album)
+                                    .on_toggle(|_| Message::ToggleGroupByAlbum)
+                                    .size(14),
+                                Space::with_width(12),
+                            ]
+                            .align_y(Alignment::Center)
+                        )
+                    } else {
+                        Space::with_width(0).into()
+                    },
                     song_search_input,
                     Space::with_width(12),
                     settings_btn
@@ -998,14 +1007,15 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
     )
     .style(|_| iced::widget::container::Style {
         background: Some(iced::Background::Color(theme::mantle())),
-        border: iced::Border {
-            color: theme::surface0(),
-            width: 1.0,
-            radius: 0.0.into(),
-        },
         ..Default::default()
     })
     .width(Length::Fill);
+
+    let toolbar_divider = container(Space::new(Length::Fill, Length::Fixed(1.0)))
+        .style(|_| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::surface0())),
+            ..Default::default()
+        });
 
     let headers: Element<'_, Message> = if state.view_mode == ViewMode::NowPlaying {
         container(
@@ -1015,7 +1025,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 text("Title").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::FillPortion(3)),
                 text("Artist").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::FillPortion(2)),
                 text("Album").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::FillPortion(2)),
-                text("Duration").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::Fixed(60.0)),
+                text("Duration").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::Fixed(80.0)),
                 row![
                     button(text("Clear Queue").size(11))
                         .on_press(Message::ClearQueue)
@@ -1155,7 +1165,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                             text(track.title.clone()).color(row_color).size(14).width(Length::FillPortion(3)),
                             text(track.artist.clone()).color(theme::subtext()).size(13).width(Length::FillPortion(2)),
                             text(track.album.clone()).color(theme::subtext()).size(13).width(Length::FillPortion(2)),
-                            text(track.duration_str()).color(theme::subtext()).size(13).width(Length::Fixed(60.0)),
+                            text(track.duration_str()).color(theme::subtext()).size(13).width(Length::Fixed(80.0)),
                             controls,
                         ]
                         .spacing(12)
@@ -1164,7 +1174,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                     )
                     .style(move |_| iced::widget::container::Style {
                         background: if is_current {
-                            Some(iced::Background::Color(theme::surface0()))
+                            Some(iced::Background::Color(theme::surface1()))
                         } else if idx % 2 == 1 {
                             Some(iced::Background::Color(theme::mantle()))
                         } else {
@@ -1190,6 +1200,10 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             container(scrollable(column(rows).spacing(0)))
                 .width(Length::Fill)
                 .height(Length::Fill)
+                .style(|_| iced::widget::container::Style {
+                    background: Some(iced::Background::Color(theme::surface0())),
+                    ..Default::default()
+                })
                 .into()
         }
     } else if state.tracks.is_empty() {
@@ -1216,6 +1230,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
 
     column![
         toolbar,
+        toolbar_divider,
         headers,
         content_area,
     ]
