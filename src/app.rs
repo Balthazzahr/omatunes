@@ -470,7 +470,7 @@ impl AppState {
             folder_cache: HashMap::new(),
             sidebar_width: load_sidebar_width(),
             dragging_sidebar: false,
-            right_panel_width: load_right_panel_width().min(480.0),
+            right_panel_width: load_right_panel_width().clamp(150.0, (960.0f32 - MIN_NON_DRAWER_WIDTH).max(150.0)),
             dragging_right_panel: false,
             is_hovering_right_panel_resizer: false,
             window_width: 960.0,
@@ -1056,7 +1056,7 @@ impl AppState {
             }
 
             Message::SidebarDragMove(x) => {
-                self.sidebar_width = x.clamp(120.0, 400.0);
+                self.sidebar_width = x.clamp(MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH);
                 Task::none()
             }
 
@@ -1073,12 +1073,8 @@ impl AppState {
 
             Message::RightPanelDragMove(x) => {
                 // x is cursor position from left of window.
-                // The right panel's left edge is at (window_width - right_panel_width - tab_strip_width - separator).
-                // We want: right_panel_width = window_width - x - some offset for the tab strip/separator on the right.
-                // Actually the panel is to the right of the drag handle, so:
-                // new_width = window_width - x
-                // But we need to account for the separator width. The drag handle sits between player and panel.
-                let new_width = (self.window_width - x).clamp(150.0, self.window_width * 0.5);
+                let max_drawer_width = (self.window_width - MIN_NON_DRAWER_WIDTH).max(150.0);
+                let new_width = (self.window_width - x).clamp(150.0, max_drawer_width);
                 self.right_panel_width = new_width;
                 Task::none()
             }
