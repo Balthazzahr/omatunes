@@ -457,7 +457,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
     let pane = container(pane_stack)
         .style(theme::player_panel)
         .width(Length::Fixed(state.right_panel_width))
-        .height(Length::Fixed(220.0));
+        .height(Length::Fixed(248.0));
 
     // Add a draggable resize handle between player and panel
     let panel_drag_handle = mouse_area(
@@ -492,7 +492,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
             panel_drag_handle,
             pane
         ]
-        .height(Length::Fixed(220.0))
+        .height(Length::Fixed(248.0))
         .into()
     )
 }
