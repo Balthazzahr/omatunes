@@ -3327,8 +3327,36 @@ impl AppState {
     }
 
     fn view(&self) -> Element<'_, Message> {
+        let player_controls = views::player::view(self);
+        let library_tabs = views::library::library_top_bar(self);
+
+        let left_top = stack![
+            container(player_controls)
+                .width(Length::Fill)
+                .height(iced::Length::Fixed(220.0)),
+            container(library_tabs)
+                .padding(iced::Padding { top: 219.0, right: 0.0, bottom: 0.0, left: 0.0 })
+                .width(Length::Fill)
+                .height(iced::Length::Fixed(248.0)),
+        ]
+        .width(Length::Fill)
+        .height(iced::Length::Fixed(248.0));
+
+        let mut top_row = row![left_top]
+            .width(Length::Fill)
+            .height(iced::Length::Fixed(248.0));
+
+        if let Some(pane) = views::player::right_panel(self) {
+            top_row = top_row.push(pane);
+        }
+
         let main = column![
-            views::player::view(self),
+            top_row,
+            container(Space::new(Length::Fill, Length::Fixed(1.0)))
+                .style(|_| iced::widget::container::Style {
+                    background: Some(iced::Background::Color(theme::surface0())),
+                    ..Default::default()
+                }),
             views::library::view(self),
         ]
         .spacing(0)
