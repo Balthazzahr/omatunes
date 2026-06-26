@@ -1097,7 +1097,7 @@ impl AppState {
 
             Message::SidebarDragEnd => {
                 self.dragging_sidebar = false;
-                save_sidebar_width(self.sidebar_width);
+                crate::db::write(|db| db.sidebar_width = Some(self.sidebar_width));
                 Task::none()
             }
 
@@ -1116,7 +1116,7 @@ impl AppState {
 
             Message::RightPanelDragEnd => {
                 self.dragging_right_panel = false;
-                save_right_panel_width(self.right_panel_width);
+                crate::db::write(|db| db.right_panel_width = Some(self.right_panel_width));
                 Task::none()
             }
 
@@ -2880,6 +2880,7 @@ impl AppState {
                 } else {
                     self.right_panel_tab = Some(tab);
                 }
+                crate::db::write(|db| db.right_panel_tab = self.right_panel_tab);
                 Task::none()
             }
 
