@@ -3,7 +3,7 @@ use std::sync::{OnceLock, Mutex};
 
 use serde::{Deserialize, Serialize};
 
-static CONFIG: OnceLock<Config> = OnceLock::new();
+static CONFIG: OnceLock<Mutex<Config>> = OnceLock::new();
 
 #[derive(Deserialize, Serialize, Clone)]
 #[serde(default)]
