@@ -3351,6 +3351,18 @@ impl AppState {
                         );
                     }
 
+                    let play_next_btn = button(text("Play Next").size(12))
+                        .on_press(Message::PlayNext(tracks.clone()))
+                        .style(item_style)
+                        .padding([4, 8])
+                        .width(Length::Fill);
+
+                    let add_queue_btn = button(text("Add to Queue").size(12))
+                        .on_press(Message::AddToQueue(tracks.clone()))
+                        .style(item_style)
+                        .padding([4, 8])
+                        .width(Length::Fill);
+
                     let tag_btn = button(text("Edit ID3 tags").size(12))
                         .on_press(Message::OpenTagEditor(tracks.clone()))
                         .style(item_style)
@@ -3364,6 +3376,10 @@ impl AppState {
                         .width(Length::Fill);
 
                     let selection_actions = column![
+                        play_next_btn,
+                        Space::with_height(4),
+                        add_queue_btn,
+                        Space::with_height(4),
                         tag_btn,
                     ];
 
