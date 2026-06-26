@@ -3818,6 +3818,7 @@ impl AppState {
                     _ => None,
                 }
             }));
+        }
         if self.dragging_queue_index.is_some() {
             subs.push(iced::event::listen_with(|event, _, _| {
                 use iced::mouse;
