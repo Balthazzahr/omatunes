@@ -1081,8 +1081,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
     };
 
     column![
-        toolbar,
-        toolbar_divider,
+        filter_options,
         headers,
         content_area,
     ]
