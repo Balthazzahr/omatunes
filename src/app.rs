@@ -126,6 +126,7 @@ pub enum Message {
     SelectPlaylist(String),
     OpenTagEditor(Vec<Track>),
     CloseTagEditor,
+    CancelTagEditor,
     SearchCoverOnline,
     UpdateTagFieldTitle(String),
     UpdateTagFieldArtist(String),
@@ -1404,7 +1405,46 @@ impl AppState {
             }
 
             Message::CloseTagEditor => {
-                self.show_tag_editor = None;
+                if let Some(state) = self.show_tag_editor.take() {
+                    for (path, original_track) in state.original_tracks {
+                        let res = crate::library::write_tags(
+                            &original_track.path,
+                            &original_track.title,
+                            &original_track.artist,
+                            &original_track.album,
+                            &original_track.genre,
+                            original_track.track_number,
+                            original_track.disc_number,
+                            None,
+                            original_track.year,
+                            Some(&original_track.lyrics),
+                        );
+                        if let Err(e) = res {
+                            eprintln!("Error restoring tags for {}: {e}", original_track.path.display());
+                        } else {
+                            if let Some(t) = self.all_tracks.iter_mut().find(|t| t.path == original_track.path) {
+                                *t = original_track.clone();
+                            }
+                            if let Some(t) = self.tracks.iter_mut().find(|t| t.path == original_track.path) {
+                                *t = original_track.clone();
+                            }
+                            if let Some(ref mut ct) = self.current_track {
+                                if ct.path == original_track.path {
+                                    *ct = original_track.clone();
+                                }
+                            }
+                            if let Some(ref mut st) = self.selected_track {
+                                if st.path == original_track.path {
+                                    *st = original_track.clone();
+                                }
+                            }
+                            if let Some(t) = self.selected_tracks.iter_mut().find(|t| t.path == original_track.path) {
+                                *t = original_track.clone();
+                            }
+                        }
+                    }
+                }
+                self.update_filtered_tracks();
                 Task::none()
             }
 
