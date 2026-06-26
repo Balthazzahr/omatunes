@@ -345,3 +345,16 @@ pub fn save_button(_: &iced::Theme, status: iced::widget::button::Status) -> ice
     }
 }
 
+pub fn save_button_saved(_: &iced::Theme, _status: iced::widget::button::Status) -> iced::widget::button::Style {
+    iced::widget::button::Style {
+        background: Some(iced::Background::Color(green())),
+        text_color: base(),
+        border: Border {
+            radius: 4.0.into(),
+            width: 0.0,
+            color: Color::TRANSPARENT,
+        },
+        ..Default::default()
+    }
+}
+
