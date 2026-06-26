@@ -212,7 +212,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .height(Length::Fill)
     )
     .width(56.0)
-    .height(Length::Fixed(248.0))
+    .height(Length::Fixed(220.0))
     .style(|_| iced::widget::container::Style {
         background: Some(iced::Background::Color(theme::mantle())),
         ..Default::default()
@@ -227,7 +227,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     let player_container = container(player_row)
         .style(theme::player_panel)
         .width(left_side_width)
-        .height(Length::Fixed(248.0));
+        .height(Length::Fixed(220.0));
 
     let vol_step = crate::config::get().volume_step;
 
@@ -246,205 +246,13 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             }
         });
 
-    let content_pane = if let Some(tab) = state.right_panel_tab {
-        let pane_content: Element<'_, Message> = match tab {
-            crate::app::RightPanelTab::Visualizer => {
-                container(
-                    crate::ui::views::spectrum::view(state.spectrum_bands)
-                )
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .center_x(Length::Fill)
-                .center_y(Length::Fill)
-                .into()
-            }
-            crate::app::RightPanelTab::Lyrics => {
-                let display_track = if !matches!(state.playback_state, crate::audio::PlaybackState::Stopped) {
-                    state.current_track.as_ref()
-                } else {
-                    state.selected_track.as_ref()
-                };
-
-                if let Some(track) = display_track {
-                    if track.lyrics.trim().is_empty() {
-                        container(
-                            text("No lyrics available.\nRight click song -> Edit ID3 tags to add lyrics.")
-                                .color(theme::overlay0())
-                                .size(14)
-                                .align_y(iced::alignment::Vertical::Center)
-                                .align_x(iced::alignment::Horizontal::Center)
-                        )
-                        .width(Length::Fill)
-                        .height(Length::Fill)
-                        .center_x(Length::Fill)
-                        .center_y(Length::Fill)
-                        .into()
-                    } else {
-                        let lrc_lines = parse_lrc(&track.lyrics);
-                        if !lrc_lines.is_empty() {
-                            // Apply half-second delay: use position minus offset
-                            let adjusted_pos = state.position.saturating_sub(LYRICS_OFFSET);
-
-                            let active_idx = lrc_lines.iter().position(|l| l.time > adjusted_pos)
-                                .map(|idx| if idx > 0 { idx - 1 } else { 0 })
-                                .unwrap_or_else(|| lrc_lines.len() - 1);
-
-                             // Show ALL lines in a scrollable container; highlight the active one
-                             let mut lines_col = column![].spacing(6).align_x(Alignment::Center).width(Length::Fill);
-                             lines_col = lines_col.push(iced::widget::Space::with_height(108.0));
-
-                             let available_width = (state.right_panel_width - 40.0).max(100.0);
-
-                             for i in 0..lrc_lines.len() {
-                                 let line = &lrc_lines[i];
-                                 let is_active = i == active_idx;
-                                 let is_interim = (active_idx > 0 && i == active_idx - 1) || (i == active_idx + 1);
-                                 let line_time = line.time;
-
-                                 let font_size = if is_active { 20 } else { 17 };
-                                 let char_width = 0.60 * font_size as f32;
-                                 let max_chars = ((available_width / char_width).floor() as usize).max(10);
-                                 let sub_lines = wrap_text(&line.text, max_chars);
-
-                                 let mut text_col = column![].spacing(2).align_x(Alignment::Center).width(Length::Fill);
-                                 for sub_line in sub_lines {
-                                     let txt = text(sub_line)
-                                         .size(font_size)
-                                         .font(if is_active { crate::ui::icons::UI_FONT_BOLD } else { crate::ui::icons::UI_FONT })
-                                         .width(Length::Fill)
-                                         .align_x(iced::alignment::Horizontal::Center);
-                                     text_col = text_col.push(txt);
-                                 }
-
-                                 let container_element = container(text_col)
-                                     .width(Length::Fill)
-                                     .align_x(iced::alignment::Horizontal::Center);
-
-                                 // Each line is clickable to seek to that timestamp
-                                 let line_btn = button(container_element)
-                                     .on_press(Message::SeekToLyric(line_time))
-                                     .width(Length::Fill)
-                                     .padding([4, 8])
-                                     .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
-                                         let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-                                         iced::widget::button::Style {
-                                             background: if is_hovered {
-                                                 Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.1)))
-                                             } else {
-                                                 None
-                                             },
-                                             text_color: if is_active {
-                                                 theme::accent()
-                                             } else if is_hovered {
-                                                 theme::text()
-                                             } else if is_interim {
-                                                 theme::lerp_color(theme::accent(), theme::overlay0(), 0.5)
-                                             } else {
-                                                 theme::overlay0()
-                                             },
-                                             border: iced::Border {
-                                                 radius: 4.0.into(),
-                                                 ..Default::default()
-                                             },
-                                             ..Default::default()
-                                         }
-                                     });
-
-                                 lines_col = lines_col.push(line_btn);
-                             }
-                             lines_col = lines_col.push(iced::widget::Space::with_height(108.0));
-
-                            scrollable(
-                                container(lines_col)
-                                    .width(Length::Fill)
-                                    .padding([16, 12])
-                                    .center_x(Length::Fill)
-                            )
-                            .id(state.lyrics_scroll_id.clone())
-                            .height(Length::Fill)
-                            .into()
-                        } else {
-                            // Unsynchronized lyrics: plain scrollable text
-                            scrollable(
-                                container(
-                                    text(track.lyrics.clone())
-                                        .color(theme::text())
-                                        .size(17)
-                                )
-                                .width(Length::Fill)
-                                .padding(12)
-                                .center_x(Length::Fill)
-                            )
-                            .height(Length::Fill)
-                            .into()
-                        }
-                    }
-                } else {
-                    container(
-                        text("No track selected")
-                            .color(theme::overlay0())
-                            .size(16)
-                    )
-                    .width(Length::Fill)
-                    .height(Length::Fill)
-                    .center_x(Length::Fill)
-                    .center_y(Length::Fill)
-                    .into()
-                }
-            }
-        };
-
-        let close_btn = button(
-            text("\u{f00d}")
-                .font(crate::ui::icons::NERD_FONT_MONO)
-                .size(14)
-        )
-        .on_press(Message::ToggleRightPanelTab(tab))
-        .padding(6)
-        .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
-            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-            iced::widget::button::Style {
-                background: if is_hovered { Some(iced::Background::Color(theme::surface0())) } else { None },
-                text_color: if is_hovered { theme::accent() } else { theme::subtext() },
-                border: iced::Border {
-                    radius: 4.0.into(),
-                    ..Default::default()
-                },
-                ..Default::default()
-            }
-        });
-
-        let close_container = container(close_btn)
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .align_x(iced::alignment::Horizontal::Right)
-            .align_y(iced::alignment::Vertical::Top)
-            .padding([8, 8]);
-
-        let pane_stack = stack![
-            pane_content,
-            close_container,
-        ]
-        .width(Length::Fill)
-        .height(Length::Fill);
-
-        Some(
-            container(pane_stack)
-                .style(theme::player_panel)
-                .width(Length::Fixed(state.right_panel_width))
-                .height(Length::Fixed(248.0))
-        )
-    } else {
-        None
-    };
-
     let separator = container(Space::new(Length::Fixed(1.0), Length::Fill))
         .style(|_| iced::widget::container::Style {
             background: Some(iced::Background::Color(theme::surface0())),
             ..Default::default()
         })
         .width(1.0)
-        .height(Length::Fixed(248.0));
+        .height(Length::Fixed(220.0));
 
     let mut main_row = row![
         player_with_scroll,
@@ -454,41 +262,239 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     .spacing(0)
     .align_y(Alignment::Center)
     .width(Length::Fill)
-    .height(Length::Fixed(248.0));
+    .height(Length::Fixed(220.0));
 
-    if let Some(pane) = content_pane {
-        // Add a draggable resize handle between player and panel
-        let panel_drag_handle = mouse_area(
-            container(
-                container(Space::new(Length::Fixed(2.0), Length::Fill))
-                    .style(move |_| iced::widget::container::Style {
-                        background: Some(iced::Background::Color(
-                            if state.dragging_right_panel || state.is_hovering_right_panel_resizer {
-                                theme::accent()
-                            } else {
-                                theme::surface0()
-                            }
-                        )),
-                        ..Default::default()
-                    })
-            )
-            .width(6.0)
-            .height(Length::Fill)
-            .center_x(Length::Fixed(6.0))
-            .style(|_| iced::widget::container::Style {
-                background: Some(iced::Background::Color(theme::base())),
-                ..Default::default()
-            })
-        )
-        .on_press(Message::RightPanelDragStart)
-        .on_enter(Message::HoverRightPanelResizer(true))
-        .on_exit(Message::HoverRightPanelResizer(false))
-        .interaction(iced::mouse::Interaction::ResizingHorizontally);
-
-        main_row = main_row.push(panel_drag_handle).push(pane);
+    if let Some(pane) = right_panel(state) {
+        main_row = main_row.push(pane);
     }
 
     main_row.into()
+}
+
+pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
+    let tab = state.right_panel_tab?;
+    let pane_content: Element<'_, Message> = match tab {
+        crate::app::RightPanelTab::Visualizer => {
+            container(
+                crate::ui::views::spectrum::view(state.spectrum_bands)
+            )
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .center_x(Length::Fill)
+            .center_y(Length::Fill)
+            .into()
+        }
+        crate::app::RightPanelTab::Lyrics => {
+            let display_track = if !matches!(state.playback_state, crate::audio::PlaybackState::Stopped) {
+                state.current_track.as_ref()
+            } else {
+                state.selected_track.as_ref()
+            };
+
+            if let Some(track) = display_track {
+                if track.lyrics.trim().is_empty() {
+                    container(
+                        text("No lyrics available.\nRight click song -> Edit ID3 tags to add lyrics.")
+                            .color(theme::overlay0())
+                            .size(14)
+                            .align_y(iced::alignment::Vertical::Center)
+                            .align_x(iced::alignment::Horizontal::Center)
+                    )
+                    .width(Length::Fill)
+                    .height(Length::Fill)
+                    .center_x(Length::Fill)
+                    .center_y(Length::Fill)
+                    .into()
+                } else {
+                    let lrc_lines = parse_lrc(&track.lyrics);
+                    if !lrc_lines.is_empty() {
+                        // Apply half-second delay: use position minus offset
+                        let adjusted_pos = state.position.saturating_sub(LYRICS_OFFSET);
+
+                        let active_idx = lrc_lines.iter().position(|l| l.time > adjusted_pos)
+                            .map(|idx| if idx > 0 { idx - 1 } else { 0 })
+                            .unwrap_or_else(|| lrc_lines.len() - 1);
+
+                         // Show ALL lines in a scrollable container; highlight the active one
+                         let mut lines_col = column![].spacing(6).align_x(Alignment::Center).width(Length::Fill);
+                         lines_col = lines_col.push(iced::widget::Space::with_height(108.0));
+
+                         let available_width = (state.right_panel_width - 40.0).max(100.0);
+
+                         for i in 0..lrc_lines.len() {
+                             let line = &lrc_lines[i];
+                             let is_active = i == active_idx;
+                             let is_interim = (active_idx > 0 && i == active_idx - 1) || (i == active_idx + 1);
+                             let line_time = line.time;
+
+                             let font_size = if is_active { 20 } else { 17 };
+                             let char_width = 0.60 * font_size as f32;
+                             let max_chars = ((available_width / char_width).floor() as usize).max(10);
+                             let sub_lines = wrap_text(&line.text, max_chars);
+
+                             let mut text_col = column![].spacing(2).align_x(Alignment::Center).width(Length::Fill);
+                             for sub_line in sub_lines {
+                                 let txt = text(sub_line)
+                                     .size(font_size)
+                                     .font(if is_active { crate::ui::icons::UI_FONT_BOLD } else { crate::ui::icons::UI_FONT })
+                                     .width(Length::Fill)
+                                     .align_x(iced::alignment::Horizontal::Center);
+                                 text_col = text_col.push(txt);
+                             }
+
+                             let container_element = container(text_col)
+                                 .width(Length::Fill)
+                                 .align_x(iced::alignment::Horizontal::Center);
+
+                             // Each line is clickable to seek to that timestamp
+                             let line_btn = button(container_element)
+                                 .on_press(Message::SeekToLyric(line_time))
+                                 .width(Length::Fill)
+                                 .padding([4, 8])
+                                 .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+                                     let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                                     iced::widget::button::Style {
+                                         background: if is_hovered {
+                                             Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.1)))
+                                         } else {
+                                             None
+                                         },
+                                         text_color: if is_active {
+                                             theme::accent()
+                                         } else if is_hovered {
+                                             theme::text()
+                                         } else if is_interim {
+                                             theme::lerp_color(theme::accent(), theme::overlay0(), 0.5)
+                                         } else {
+                                             theme::overlay0()
+                                         },
+                                         border: iced::Border {
+                                             radius: 4.0.into(),
+                                             ..Default::default()
+                                         },
+                                         ..Default::default()
+                                     }
+                                 });
+
+                             lines_col = lines_col.push(line_btn);
+                         }
+                         lines_col = lines_col.push(iced::widget::Space::with_height(108.0));
+
+                        scrollable(
+                            container(lines_col)
+                                .width(Length::Fill)
+                                .padding([16, 12])
+                                .center_x(Length::Fill)
+                        )
+                        .id(state.lyrics_scroll_id.clone())
+                        .height(Length::Fill)
+                        .into()
+                    } else {
+                        // Unsynchronized lyrics: plain scrollable text
+                        scrollable(
+                            container(
+                                text(track.lyrics.clone())
+                                    .color(theme::text())
+                                    .size(17)
+                            )
+                            .width(Length::Fill)
+                            .padding(12)
+                            .center_x(Length::Fill)
+                        )
+                        .height(Length::Fill)
+                        .into()
+                    }
+                }
+            } else {
+                container(
+                    text("No track selected")
+                        .color(theme::overlay0())
+                        .size(16)
+                )
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .center_x(Length::Fill)
+                .center_y(Length::Fill)
+                .into()
+            }
+        }
+    };
+
+    let close_btn = button(
+        text("\u{f00d}")
+            .font(crate::ui::icons::NERD_FONT_MONO)
+            .size(14)
+    )
+    .on_press(Message::ToggleRightPanelTab(tab))
+    .padding(6)
+    .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+        let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+        iced::widget::button::Style {
+            background: if is_hovered { Some(iced::Background::Color(theme::surface0())) } else { None },
+            text_color: if is_hovered { theme::accent() } else { theme::subtext() },
+            border: iced::Border {
+                radius: 4.0.into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        }
+    });
+
+    let close_container = container(close_btn)
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .align_x(iced::alignment::Horizontal::Right)
+        .align_y(iced::alignment::Vertical::Top)
+        .padding([8, 8]);
+
+    let pane_stack = stack![
+        pane_content,
+        close_container,
+    ]
+    .width(Length::Fill)
+    .height(Length::Fill);
+
+    let pane = container(pane_stack)
+        .style(theme::player_panel)
+        .width(Length::Fixed(state.right_panel_width))
+        .height(Length::Fixed(220.0));
+
+    // Add a draggable resize handle between player and panel
+    let panel_drag_handle = mouse_area(
+        container(
+            container(Space::new(Length::Fixed(2.0), Length::Fill))
+                .style(move |_| iced::widget::container::Style {
+                    background: Some(iced::Background::Color(
+                        if state.dragging_right_panel || state.is_hovering_right_panel_resizer {
+                            theme::accent()
+                        } else {
+                            theme::surface0()
+                        }
+                    )),
+                    ..Default::default()
+                })
+        )
+        .width(6.0)
+        .height(Length::Fill)
+        .center_x(Length::Fixed(6.0))
+        .style(|_| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::base())),
+            ..Default::default()
+        })
+    )
+    .on_press(Message::RightPanelDragStart)
+    .on_enter(Message::HoverRightPanelResizer(true))
+    .on_exit(Message::HoverRightPanelResizer(false))
+    .interaction(iced::mouse::Interaction::ResizingHorizontally);
+
+    Some(
+        row![
+            panel_drag_handle,
+            pane
+        ]
+        .height(Length::Fixed(220.0))
+        .into()
+    )
 }
 
 pub struct LrcLine {
