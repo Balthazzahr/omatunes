@@ -13,6 +13,22 @@ use crate::library::models::Track;
 use crate::library::{load_cover, scan_folder};
 use crate::ui::{theme, views};
 
+pub const MIN_SIDEBAR_WIDTH: f32 = 180.0;
+pub const MAX_SIDEBAR_WIDTH: f32 = 400.0;
+
+pub const MIN_PLAYLIST_HEIGHT: f32 = 80.0;
+
+pub const MIN_VOLUME_SLIDER_WIDTH: f32 = 80.0;
+pub const MAX_VOLUME_SLIDER_WIDTH: f32 = 150.0;
+
+// fixed elements in player: cover (216) + spacing (16) + playback controls (460) + volume icon & spacing & padding (64) = 756.0
+pub const PLAYER_FIXED_WIDTH: f32 = 756.0;
+
+// Minimum space allocated to left side player controls when right panel is open:
+// PLAYER_FIXED_WIDTH + MIN_VOLUME_SLIDER_WIDTH = 836.0.
+// Plus separator (1.0) + tab_strip (56.0) + drag_handle (6.0) = 63.0. Total: 899.0
+pub const MIN_NON_DRAWER_WIDTH: f32 = 899.0;
+
 #[derive(Debug, Clone)]
 pub enum ContextMenuTarget {
     Artist(String),
@@ -3616,6 +3632,7 @@ fn load_sidebar_width() -> f32 {
         .ok()
         .and_then(|s| s.trim().parse().ok())
         .unwrap_or(200.0)
+        .clamp(MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH)
 }
 
 fn save_sidebar_width(width: f32) {
