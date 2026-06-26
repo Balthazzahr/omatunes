@@ -2112,10 +2112,11 @@ impl AppState {
                 self.window_height = h;
                 self.window_width = w;
                 if !self.playlist_height_initialized {
-                    self.playlist_height = ((h - 212.0) * 0.30).max(50.0);
+                    self.playlist_height = ((h - 212.0) * 0.30).max(MIN_PLAYLIST_HEIGHT);
                     self.playlist_height_initialized = true;
                 }
-                self.right_panel_width = self.right_panel_width.min(w * 0.5);
+                let max_drawer_width = (w - MIN_NON_DRAWER_WIDTH).max(150.0);
+                self.right_panel_width = self.right_panel_width.clamp(150.0, max_drawer_width);
                 Task::none()
             }
 

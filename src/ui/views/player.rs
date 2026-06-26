@@ -1,7 +1,7 @@
 use iced::widget::{column, container, image, row, text, Space, button, slider, mouse_area, stack, scrollable};
 use iced::{Alignment, Element, Length};
 
-use crate::app::{AppState, Message};
+use crate::app::{AppState, Message, MIN_VOLUME_SLIDER_WIDTH, MAX_VOLUME_SLIDER_WIDTH, PLAYER_FIXED_WIDTH};
 use crate::audio::PlaybackState;
 use crate::ui::components::progress;
 use crate::ui::{icons, theme};
