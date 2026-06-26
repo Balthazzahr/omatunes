@@ -114,6 +114,19 @@ impl Default for OmatunesDb {
             hidden_artists_albums: Vec::default(),
             table_columns: default_table_columns(),
             group_by_album: false,
+            sidebar_width: None,
+            playlist_height: None,
+            right_panel_width: None,
+            right_panel_tab: None,
+            last_view_mode: None,
+            last_selected_playlist: None,
+            last_selected_folder: None,
+            last_selected_artist: None,
+            last_selected_album: None,
+            last_selected_genre: None,
+            last_track_path: None,
+            last_queue_paths: Vec::default(),
+            last_position_secs: 0,
         }
     }
 }
