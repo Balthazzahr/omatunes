@@ -50,43 +50,6 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
 }
 
 fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
-    let tab_btn = |mode: ViewMode, label: &'static str| {
-        let is_active = state.view_mode == mode && state.selected_playlist.is_none();
-        let btn_text = text(label)
-            .size(11)
-            .font(crate::ui::icons::UI_FONT_BOLD);
-        
-        button(container(btn_text).center_x(Length::Fill).center_y(Length::Fill))
-            .on_press(Message::SelectViewMode(mode))
-            .width(Length::Fill)
-            .height(28.0)
-            .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
-                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-                iced::widget::button::Style {
-                    background: Some(iced::Background::Color(if is_active {
-                        theme::mantle()
-                    } else if is_hovered {
-                        theme::surface0()
-                    } else {
-                        iced::Color::TRANSPARENT
-                    })),
-                    border: iced::Border {
-                        color: if is_active { theme::accent() } else { iced::Color::TRANSPARENT },
-                        width: if is_active { 1.0 } else { 0.0 },
-                        radius: iced::border::Radius {
-                            top_left: 4.0,
-                            top_right: 4.0,
-                            bottom_left: 0.0,
-                            bottom_right: 0.0,
-                        },
-                    },
-                    text_color: if is_active { theme::accent() } else { theme::subtext() },
-                    ..Default::default()
-                }
-            })
-            .padding(0)
-    };
-
     let sidebar_clear_btn: Element<'_, Message> = if !state.sidebar_search.is_empty() {
         button(
             text("\u{f00d}")
@@ -113,15 +76,6 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
     ]
     .align_y(Alignment::Center)
     .spacing(4);
-
-    let tabs = row![
-        tab_btn(ViewMode::Artists, "Artists"),
-        tab_btn(ViewMode::Albums, "Albums"),
-        tab_btn(ViewMode::Genres, "Genres"),
-    ]
-    .spacing(0)
-    .align_y(Alignment::Center)
-    .width(Length::Fill);
 
     let sidebar_items: Element<Message> = match state.view_mode {
         ViewMode::Artists | ViewMode::NowPlaying => {
