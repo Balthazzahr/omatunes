@@ -132,7 +132,19 @@ Right-clicking an individual track opens the `Song Menu`:
 
 ---
 
-## 6. Edit ID3 Tag Editor
+## 6. Now Playing / Up Next View
+The Now Playing view allows you to view and manage your active queue directly in the main song list area.
+* **Activating the View**: Click the **Now Playing** tab in the top tab bar (located directly to the right of the `Genres` tab).
+* **Toggle Behavior**: Clicking the **Now Playing** tab again will hide the queue and return you to the last active library view (e.g., Artists, Albums, or Genres).
+* **Active Track Highlight**: The currently playing song is highlighted in your theme's active accent color with a live playing indicator icon.
+* **Queue Controls**: When the Now Playing view is active:
+  * **Search Queue**: Filter the active queue by matching song titles or artists using the right-aligned search input box.
+  * **Clear Queue**: Click the **Clear Queue** button (next to the search box) to empty the queue.
+  * **Interactive Reordering**: Drag and drop tracks inside the Now Playing list to dynamically change their playback order.
+ 
+---
+
+## 7. Edit ID3 Tag Editor
 
 The metadata editor allows editing files individually or in bulk.
 
@@ -149,7 +161,7 @@ The metadata editor allows editing files individually or in bulk.
 
 ---
 
-## 7. Live Lyrics Tab in Tag Editor
+## 8. Live Lyrics Tab in Tag Editor
 
 The Tag Editor contains a dedicated **Lyrics** tab to view, edit, and adjust timings.
 
@@ -164,7 +176,7 @@ If lyrics are synchronized, you can adjust timings using the offset control pane
 
 ---
 
-## 8. Online Integration Buttons
+## 9. Online Integration Buttons
 
 Inside the Tag Editor, there are two helper buttons for fetching assets:
 - **Search Lyrics Online**: Clicking this button reads the active track metadata and opens your web browser to `https://lrclib.net/search/{query}` (pre-filled with the song details) via `xdg-open`. You can copy the synced lyrics from the browser and paste them into the editor.
@@ -172,7 +184,7 @@ Inside the Tag Editor, there are two helper buttons for fetching assets:
 
 ---
 
-## 9. User Playlists & Autoplaylists
+## 10. User Playlists & Autoplaylists
 
 OmaTUNES manages playlists locally inside `~/.config/omatunes/db.json`.
 
@@ -194,7 +206,7 @@ Autoplaylists require no manual curation and populate dynamically:
 
 ---
 
-## 10. Waybar Integration
+## 11. Waybar Integration
 
 OmaTUNES exposes player states over a UDP socket listener on port `18888` and writes statuses to `/tmp/omatunes_waybar_state.json`, facilitating rich Waybar configurations.
 
@@ -287,7 +299,7 @@ To style the grouped Waybar modules into a unified pill design that collapses cl
 
 ---
 
-## 11. Full Keybinding Reference
+## 12. Full Keybinding Reference
 
 The following table documents all keyboard controls available when the OmaTUNES window is focused:
 
