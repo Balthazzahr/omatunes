@@ -2503,6 +2503,7 @@ impl AppState {
 
             Message::OpenShortcuts => {
                 self.show_shortcuts = true;
+                self.show_settings = None;
                 Task::none()
             }
 
@@ -3231,6 +3232,34 @@ impl AppState {
                 crate::db::write(|db| {
                     db.last_queue_paths = queue_paths;
                 });
+                Task::none()
+            }
+
+            Message::QueueDragStart(index) => {
+                self.dragging_queue_index = Some(index);
+                Task::none()
+            }
+
+            Message::QueueDragOver(target_idx) => {
+                if let Some(source_idx) = self.dragging_queue_index {
+                    if source_idx != target_idx && source_idx < self.queue.len() && target_idx < self.queue.len() {
+                        let item = self.queue.remove(source_idx);
+                        self.queue.insert(target_idx, item);
+                        self.dragging_queue_index = Some(target_idx);
+                        if self.view_mode == ViewMode::NowPlaying {
+                            self.update_filtered_tracks();
+                        }
+                        let queue_paths: Vec<PathBuf> = self.queue.iter().map(|t| t.path.clone()).collect();
+                        crate::db::write(|db| {
+                            db.last_queue_paths = queue_paths;
+                        });
+                    }
+                }
+                Task::none()
+            }
+
+            Message::QueueDragEnd => {
+                self.dragging_queue_index = None;
                 Task::none()
             }
         }
