@@ -1363,3 +1363,211 @@ fn col_to_sort_col(col: crate::db::TableColumn) -> SortColumn {
         crate::db::TableColumn::DatePlayed => SortColumn::DatePlayed,
     }
 }
+
+fn library_top_bar(state: &AppState) -> Element<'_, Message> {
+    let tab_btn = |mode: ViewMode, label: &'static str| {
+        let is_active = state.view_mode == mode && state.selected_playlist.is_none();
+        let btn_text = text(label)
+            .size(11)
+            .font(crate::ui::icons::UI_FONT_BOLD);
+        
+        button(container(btn_text).center_x(Length::Fill).center_y(Length::Fill))
+            .on_press(Message::SelectViewMode(mode))
+            .width(Length::Fill)
+            .height(28.0)
+            .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                iced::widget::button::Style {
+                    background: Some(iced::Background::Color(if is_active {
+                        theme::mantle()
+                    } else if is_hovered {
+                        theme::surface0()
+                    } else {
+                        iced::Color::TRANSPARENT
+                    })),
+                    border: iced::Border {
+                        color: if is_active { theme::accent() } else { iced::Color::TRANSPARENT },
+                        width: if is_active { 1.0 } else { 0.0 },
+                        radius: iced::border::Radius {
+                            top_left: 4.0,
+                            top_right: 4.0,
+                            bottom_left: 0.0,
+                            bottom_right: 0.0,
+                        },
+                    },
+                    text_color: if is_active { theme::accent() } else { theme::subtext() },
+                    ..Default::default()
+                }
+            })
+            .padding(0)
+    };
+
+    let left_tabs = row![
+        tab_btn(ViewMode::Artists, "Artists"),
+        tab_btn(ViewMode::Albums, "Albums"),
+        tab_btn(ViewMode::Genres, "Genres"),
+    ]
+    .spacing(0)
+    .align_y(Alignment::Center)
+    .width(Length::Fill);
+
+    let left_tabs_container = container(left_tabs)
+        .width(state.sidebar_width)
+        .padding([0, 8])
+        .height(28.0);
+
+    let is_now_playing_active = state.view_mode == ViewMode::NowPlaying;
+    let now_playing_text = text("Now Playing")
+        .size(11)
+        .font(crate::ui::icons::UI_FONT_BOLD);
+    
+    let now_playing_tab = button(container(now_playing_text).center_x(Length::Shrink).center_y(Length::Fill).padding([0, 16]))
+        .on_press(Message::SelectViewMode(ViewMode::NowPlaying))
+        .height(28)
+        .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+            iced::widget::button::Style {
+                background: Some(iced::Background::Color(if is_now_playing_active {
+                    theme::accent()
+                } else if is_hovered {
+                    theme::surface0()
+                } else {
+                    iced::Color::TRANSPARENT
+                })),
+                border: iced::Border {
+                    color: if is_now_playing_active { theme::accent() } else { iced::Color::TRANSPARENT },
+                    width: if is_now_playing_active { 1.0 } else { 0.0 },
+                    radius: iced::border::Radius {
+                        top_left: 4.0,
+                        top_right: 4.0,
+                        bottom_left: 0.0,
+                        bottom_right: 0.0,
+                    },
+                },
+                text_color: if is_now_playing_active { theme::base() } else { theme::subtext() },
+                ..Default::default()
+            }
+        })
+        .padding(0);
+
+    let song_clear_btn: Element<'_, Message> = if !state.search_query.is_empty() {
+        button(
+            text("\u{f00d}")
+                .font(crate::ui::icons::NERD_FONT_MONO)
+                .color(theme::red())
+                .size(12)
+        )
+        .on_press(Message::SearchChanged(String::new()))
+        .style(iced::widget::button::text)
+        .padding(4)
+        .into()
+    } else {
+        Space::with_width(0.0).into()
+    };
+
+    let search_placeholder = if state.view_mode == ViewMode::NowPlaying {
+        "Search queue..."
+    } else {
+        "Search songs..."
+    };
+
+    let song_search_input = row![
+        text_input(search_placeholder, &state.search_query)
+            .id(iced::widget::text_input::Id::new("song_search_input"))
+            .on_input(Message::SearchChanged)
+            .padding(4)
+            .size(11)
+            .width(Length::Fill),
+        song_clear_btn
+    ]
+    .align_y(Alignment::Center)
+    .spacing(4)
+    .width(Length::Fixed(200.0));
+
+    let settings_btn = button(
+        text("\u{f013}")
+            .font(crate::ui::icons::NERD_FONT_MONO)
+            .color(theme::subtext())
+            .size(14)
+    )
+    .on_press(Message::OpenSettings)
+    .style(iced::widget::button::text)
+    .padding(4);
+
+    let clear_queue_btn = if state.view_mode == ViewMode::NowPlaying {
+        Element::from(
+            button(text("Clear Queue").size(11))
+                .on_press(Message::ClearQueue)
+                .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+                    let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                    iced::widget::button::Style {
+                        text_color: theme::red(),
+                        background: Some(iced::Background::Color(if is_hovered { theme::surface0() } else { iced::Color::TRANSPARENT })),
+                        border: iced::Border {
+                            color: theme::red(),
+                            width: 1.0,
+                            radius: 4.0.into(),
+                        },
+                        ..Default::default()
+                    }
+                })
+                .padding([4, 8])
+        )
+    } else {
+        Space::with_width(0.0).into()
+    };
+
+    let group_by_album_checkbox = if state.view_mode != ViewMode::NowPlaying {
+        Element::from(
+            row![
+                checkbox("Group by Album", state.group_by_album)
+                    .on_toggle(|_| Message::ToggleGroupByAlbum)
+                    .size(14),
+                Space::with_width(12),
+            ]
+            .align_y(Alignment::Center)
+        )
+    } else {
+        Space::with_width(0.0).into()
+    };
+
+    let right_controls = row![
+        group_by_album_checkbox,
+        song_search_input,
+        Space::with_width(12),
+        settings_btn,
+        if state.view_mode == ViewMode::NowPlaying {
+            row![Space::with_width(12), clear_queue_btn].into()
+        } else {
+            Space::with_width(0.0).into()
+        }
+    ]
+    .align_y(Alignment::Center);
+
+    let right_bar = row![
+        now_playing_tab,
+        Space::with_width(Length::Fill),
+        right_controls
+    ]
+    .align_y(Alignment::End)
+    .padding(iced::Padding { top: 0.0, right: 12.0, bottom: 0.0, left: 0.0 })
+    .height(28.0)
+    .width(Length::Fill);
+
+    container(
+        row![
+            left_tabs_container,
+            Space::with_width(6.0),
+            right_bar
+        ]
+        .width(Length::Fill)
+        .align_y(Alignment::End)
+    )
+    .style(|_| iced::widget::container::Style {
+        background: Some(iced::Background::Color(theme::mantle())),
+        ..Default::default()
+    })
+    .width(Length::Fill)
+    .height(28.0)
+    .into()
+}
