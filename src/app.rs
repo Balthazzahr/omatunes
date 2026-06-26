@@ -1930,6 +1930,9 @@ impl AppState {
 
                 if let (Some(vm), sel_playlist, sel_folder, sel_artist, sel_album, sel_genre, last_track, last_queue, last_pos) = saved {
                     self.view_mode = vm;
+                    if vm != ViewMode::NowPlaying {
+                        self.last_browsing_view = vm;
+                    }
                     self.selected_playlist = sel_playlist;
                     self.selected_folder = sel_folder;
                     self.selected_artist = sel_artist;
