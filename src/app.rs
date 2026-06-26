@@ -267,6 +267,7 @@ impl Clone for TagEditorState {
     fn clone(&self) -> Self {
         TagEditorState {
             tracks: self.tracks.clone(),
+            original_tracks: self.original_tracks.clone(),
             title: self.title.clone(),
             artist: self.artist.clone(),
             album: self.album.clone(),
