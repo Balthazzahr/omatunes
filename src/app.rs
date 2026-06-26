@@ -471,7 +471,12 @@ impl AppState {
             folder_cache: HashMap::new(),
             sidebar_width: load_sidebar_width(),
             dragging_sidebar: false,
-            right_panel_width: load_right_panel_width().clamp(150.0, (960.0f32 - MIN_NON_DRAWER_WIDTH).max(150.0)),
+            right_panel_width: if let Some(w) = load_right_panel_width() {
+                w.clamp(150.0, (960.0f32 - MIN_NON_DRAWER_WIDTH).max(150.0))
+            } else {
+                (960.0f32 * 0.33).clamp(150.0, (960.0f32 - MIN_NON_DRAWER_WIDTH).max(150.0))
+            },
+            right_panel_width_initialized: load_right_panel_width().is_some(),
             dragging_right_panel: false,
             is_hovering_right_panel_resizer: false,
             window_width: 960.0,
@@ -490,7 +495,7 @@ impl AppState {
             selected_artist: None,
             selected_album: None,
             selected_genre: None,
-            playlist_height: 127.0,
+            playlist_height: 114.0,
             playlist_height_initialized: false,
             dragging_playlist_split: false,
             active_focus: None,
