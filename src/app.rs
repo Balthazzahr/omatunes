@@ -1355,6 +1355,7 @@ impl AppState {
                 self.show_tag_editor = Some(TagEditorState {
                     tracks: tracks.clone(),
                     original_tracks,
+                    is_saved: false,
                     title: if all_same_title { first.title.clone() } else { String::new() },
                     artist: if all_same_artist { first.artist.clone() } else { String::new() },
                     album: if all_same_album { first.album.clone() } else { String::new() },
