@@ -838,39 +838,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
 
 
 
-    let song_clear_btn: Element<'_, Message> = if !state.search_query.is_empty() {
-        button(
-            text("\u{f00d}")
-                .font(crate::ui::icons::NERD_FONT_MONO)
-                .color(theme::red())
-                .size(12)
-        )
-        .on_press(Message::SearchChanged(String::new()))
-        .style(iced::widget::button::text)
-        .padding(4)
-        .into()
-    } else {
-        Space::with_width(0.0).into()
-    };
 
-    let search_placeholder = if state.view_mode == ViewMode::NowPlaying {
-        "Search queue..."
-    } else {
-        "Search songs..."
-    };
-
-    let song_search_input = row![
-        text_input(search_placeholder, &state.search_query)
-            .id(iced::widget::text_input::Id::new("song_search_input"))
-            .on_input(Message::SearchChanged)
-            .padding(4)
-            .size(11)
-            .width(Length::Fill),
-        song_clear_btn
-    ]
-    .align_y(Alignment::Center)
-    .spacing(4)
-    .width(Length::Fixed(200.0));
 
     let filter_options: Element<'_, Message> = if !state.search_query.is_empty() {
         container(
