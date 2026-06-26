@@ -755,9 +755,15 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                     album_name.clone()
                 };
 
+                let is_active_playing = is_current_album_playing && dep.is_playing;
+
                 let album_name_btn = button(
                     text(album_display_name)
-                        .color(theme::accent())
+                        .color(if is_active_playing {
+                            theme::accent()
+                        } else {
+                            theme::text()
+                        })
                         .size(13)
                         .font(crate::ui::icons::UI_FONT_BOLD)
                 )
@@ -766,21 +772,25 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 .padding(0);
 
                 let play_btn: Element<'static, Message> = if is_current_album_playing || is_hovered {
-                    let btn_color = if is_current_album_playing {
-                        let pulse = (std::time::SystemTime::now()
-                            .duration_since(std::time::UNIX_EPOCH)
-                            .unwrap_or_default()
-                            .as_millis() as f32 / 300.0).sin().abs();
-                        theme::lerp_color(theme::accent(), theme::subtext(), pulse * 0.5)
+                    let btn_color = if is_active_playing {
+                        theme::accent()
                     } else {
                         theme::subtext()
                     };
 
                     let (btn_icon, btn_label) = if is_current_album_playing {
                         if dep.is_playing {
-                            (crate::ui::icons::ICON_PAUSE, "  PLAYING ")
+                            if is_hovered {
+                                (crate::ui::icons::ICON_PAUSE, "  PAUSE ")
+                            } else {
+                                (crate::ui::icons::ICON_PAUSE, "  PLAYING ")
+                            }
                         } else {
-                            (crate::ui::icons::ICON_PAUSE, "  PAUSED ")
+                            if is_hovered {
+                                (crate::ui::icons::ICON_PLAY, "  PLAY ALBUM ")
+                            } else {
+                                (crate::ui::icons::ICON_PLAY, "  PAUSED ")
+                            }
                         }
                     } else {
                         (crate::ui::icons::ICON_PLAY, "  PLAY ALBUM ")
@@ -824,7 +834,11 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                         .align_y(Alignment::Center)
                         .padding([6, 12]),
                     )
-                    .style(theme::album_header)
+                    .style(if is_active_playing {
+                        theme::album_header_active
+                    } else {
+                        theme::album_header
+                    })
                     .width(Length::Fill)
                 )
                 .on_enter(Message::HoverAlbumHeader(Some(album_name.clone())))
