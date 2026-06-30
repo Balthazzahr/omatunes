@@ -902,6 +902,7 @@ impl AppState {
                         let b_dp = b.date_played.as_deref().unwrap_or("");
                         a_dp.cmp(b_dp)
                     }
+                    SortColumn::Liked => a.liked.cmp(&b.liked),
                 };
                 if self.sort_ascending { cmp } else { cmp.reverse() }
             });
