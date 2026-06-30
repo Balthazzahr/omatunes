@@ -523,7 +523,7 @@ impl AppState {
             folder_cache: HashMap::new(),
             sidebar_width: db_sidebar_width.unwrap_or(200.0).clamp(MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH),
             dragging_sidebar: false,
-            right_panel_width: db_right_panel_width.unwrap_or(960.0f32 * 0.33).max(300.0),
+            right_panel_width: db_right_panel_width.unwrap_or(960.0f32 * 0.33).max(600.0),
             right_panel_width_initialized: db_right_panel_width.is_some(),
             dragging_right_panel: false,
             is_hovering_right_panel_resizer: false,
@@ -1149,8 +1149,8 @@ impl AppState {
 
             Message::RightPanelDragMove(x) => {
                 // x is cursor position from left of window.
-                let max_drawer_width = (self.window_width - MIN_NON_DRAWER_WIDTH).max(300.0);
-                let new_width = (self.window_width - x).clamp(300.0, max_drawer_width);
+                let max_drawer_width = (self.window_width - MIN_NON_DRAWER_WIDTH).max(600.0);
+                let new_width = (self.window_width - x).clamp(600.0, max_drawer_width);
                 self.right_panel_width = new_width;
                 Task::none()
             }
@@ -2265,12 +2265,12 @@ impl AppState {
                     self.playlist_height = ((h - 212.0) * 0.27).max(MIN_PLAYLIST_HEIGHT);
                     self.playlist_height_initialized = true;
                 }
-                let max_drawer_width = (w - MIN_NON_DRAWER_WIDTH).max(300.0);
+                let max_drawer_width = (w - MIN_NON_DRAWER_WIDTH).max(600.0);
                 if !self.right_panel_width_initialized {
-                    self.right_panel_width = (w * 0.33).clamp(300.0, max_drawer_width);
+                    self.right_panel_width = (w * 0.33).clamp(600.0, max_drawer_width);
                     self.right_panel_width_initialized = true;
                 } else {
-                    self.right_panel_width = self.right_panel_width.clamp(300.0, max_drawer_width);
+                    self.right_panel_width = self.right_panel_width.clamp(600.0, max_drawer_width);
                 }
                 Task::none()
             }
