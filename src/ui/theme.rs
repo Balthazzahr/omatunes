@@ -294,8 +294,53 @@ fn parse_hex_str(s: &str) -> Option<Color> {
     Some(hex(r, g, b))
 }
 
-fn luminance(c: Color) -> f32 {
+pub fn luminance(c: Color) -> f32 {
     0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b
+}
+
+pub fn contrast_ratio(c1: Color, c2: Color) -> f32 {
+    let l1 = luminance(c1);
+    let l2 = luminance(c2);
+    if l1 > l2 {
+        (l1 + 0.05) / (l2 + 0.05)
+    } else {
+        (l2 + 0.05) / (l1 + 0.05)
+    }
+}
+
+pub fn check_custom_contrast_warnings(custom: &crate::config::CustomThemeConfig) -> Vec<(String, f32, f32)> {
+    let mut warnings = Vec::new();
+    let base = hex_to_color(&custom.base);
+    let surface0 = hex_to_color(&custom.surface0);
+    let text = hex_to_color(&custom.text);
+    let subtext = hex_to_color(&custom.subtext);
+    let accent = hex_to_color(&custom.accent);
+
+    if let (Some(b), Some(t)) = (base, text) {
+        let cr = contrast_ratio(b, t);
+        if cr < 4.5 {
+            warnings.push(("Text vs Base".to_string(), cr, 4.5));
+        }
+    }
+    if let (Some(b), Some(s)) = (base, subtext) {
+        let cr = contrast_ratio(b, s);
+        if cr < 3.0 {
+            warnings.push(("Subtext vs Base".to_string(), cr, 3.0));
+        }
+    }
+    if let (Some(b), Some(a)) = (base, accent) {
+        let cr = contrast_ratio(b, a);
+        if cr < 3.0 {
+            warnings.push(("Accent vs Base".to_string(), cr, 3.0));
+        }
+    }
+    if let (Some(s0), Some(t)) = (surface0, text) {
+        let cr = contrast_ratio(s0, t);
+        if cr < 3.0 {
+            warnings.push(("Text vs Surface0".to_string(), cr, 3.0));
+        }
+    }
+    warnings
 }
 
 fn home_dir() -> Option<PathBuf> {
