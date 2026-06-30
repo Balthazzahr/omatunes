@@ -1468,21 +1468,11 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
 
     let tab_btn = |mode: ViewMode, icon: &'static str, label: &'static str, width: f32| {
         let is_active = state.view_mode == mode && state.selected_playlist.is_none();
-        let btn_text = text(label)
-            .size(11)
-            .font(crate::ui::icons::UI_FONT_BOLD);
         let btn_icon = text(icon)
-            .size(14)
+            .size(16)
             .font(crate::ui::icons::NERD_FONT_MONO);
         
-        let content = row![
-            btn_icon,
-            Space::with_width(6),
-            btn_text
-        ]
-        .align_y(Alignment::Center);
-
-        let btn = button(container(content).center_x(Length::Fill).center_y(Length::Fill))
+        let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
             .on_press(Message::SelectViewMode(mode))
             .width(width)
             .height(28.0)
@@ -1507,7 +1497,24 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
             })
             .padding(0);
 
-        tooltip(btn, label, tooltip::Position::Top)
+        let tooltip_content = container(
+            text(label)
+                .size(11)
+                .font(crate::ui::icons::UI_FONT)
+                .color(theme::text())
+        )
+        .padding([4, 8])
+        .style(|_| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::surface0())),
+            border: iced::Border {
+                color: theme::overlay0(),
+                width: 1.0,
+                radius: 4.0.into(),
+            },
+            ..Default::default()
+        });
+
+        tooltip(btn, tooltip_content, tooltip::Position::Top)
     };
 
     let left_tabs = row![
