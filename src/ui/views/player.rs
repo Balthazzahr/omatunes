@@ -208,7 +208,6 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     let tab_strip = container(
         column![
             tab_btn(crate::app::RightPanelTab::Visualizer, crate::ui::icons::ICON_VISUALIZER),
-            horizontal_sep,
             tab_btn(crate::app::RightPanelTab::Lyrics, crate::ui::icons::ICON_LYRICS),
         ]
         .width(Length::Fill)
