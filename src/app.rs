@@ -247,6 +247,9 @@ pub enum Message {
     SettingsVolumeStepChanged(f32),
     SettingsFontScaleChanged(f32),
     SettingsSave,
+    SettingsThemeSourceChanged(String),
+    SettingsThemePresetChanged(String),
+    SettingsCustomColorChanged(String, String),
 
     PlayNext(Vec<Track>),
     AddToQueue(Vec<Track>),
@@ -1328,11 +1331,13 @@ impl AppState {
             }
 
             Message::CheckTheme => {
-                let current = crate::ui::theme::read_current_theme_name();
-                if !current.is_empty() && current != self.loaded_theme_name {
-                    crate::ui::theme::reload_system_theme();
-                    self.iced_theme = build_iced_theme();
-                    self.loaded_theme_name = current;
+                if crate::config::get().theme_source == "System" {
+                    let current = crate::ui::theme::read_current_theme_name();
+                    if !current.is_empty() && current != self.loaded_theme_name {
+                        crate::ui::theme::reload_system_theme();
+                        self.iced_theme = build_iced_theme();
+                        self.loaded_theme_name = current;
+                    }
                 }
                 Task::none()
             }
