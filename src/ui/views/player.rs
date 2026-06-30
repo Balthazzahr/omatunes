@@ -102,7 +102,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .style(iced::widget::button::text)
         .padding(0);
 
-    let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 200.0);
+    let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 300.0);
     let player_width = if state.right_panel_tab.is_some() && is_allowed {
         state.window_width - 62.0 - state.right_panel_width
     } else if is_allowed {
