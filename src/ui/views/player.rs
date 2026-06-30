@@ -248,7 +248,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             }
         });
 
-    let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 200.0);
+    let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 300.0);
 
     if is_allowed {
         row![
@@ -273,7 +273,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
 }
 
 pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
-    let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 200.0);
+    let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 300.0);
     if !is_allowed {
         return None;
     }
