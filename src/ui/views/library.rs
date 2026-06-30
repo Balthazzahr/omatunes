@@ -1485,11 +1485,21 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
 
     let tab_btn = |mode: ViewMode, icon: &'static str, label: &'static str, width: f32| {
         let is_active = state.view_mode == mode && state.selected_playlist.is_none();
+        let btn_text = text(label)
+            .size(11)
+            .font(crate::ui::icons::UI_FONT_BOLD);
         let btn_icon = text(icon)
             .size(16)
             .font(crate::ui::icons::NERD_FONT_MONO);
         
-        let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
+        let content = row![
+            btn_icon,
+            Space::with_width(6),
+            btn_text
+        ]
+        .align_y(Alignment::Center);
+
+        let btn = button(container(content).center_x(Length::Fill).center_y(Length::Fill))
             .on_press(Message::SelectViewMode(mode))
             .width(width)
             .height(28.0)
