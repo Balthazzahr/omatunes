@@ -1447,7 +1447,12 @@ fn col_to_sort_col(col: crate::db::TableColumn) -> SortColumn {
 }
 
 pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
-    let tab_btn = |mode: ViewMode, label: &'static str| {
+    let total_width = state.sidebar_width.round() - 16.0;
+    let tab_width_1 = (total_width / 3.0).floor();
+    let tab_width_2 = (total_width / 3.0).floor();
+    let tab_width_3 = total_width - tab_width_1 - tab_width_2;
+
+    let tab_btn = |mode: ViewMode, label: &'static str, width: f32| {
         let is_active = state.view_mode == mode && state.selected_playlist.is_none();
         let btn_text = text(label)
             .size(11)
@@ -1455,7 +1460,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         
         button(container(btn_text).center_x(Length::Fill).center_y(Length::Fill))
             .on_press(Message::SelectViewMode(mode))
-            .width(Length::Fill)
+            .width(width)
             .height(28.0)
             .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
                 let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
@@ -1470,12 +1475,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
                     border: iced::Border {
                         color: if is_active { theme::accent() } else { theme::surface0() },
                         width: 1.0,
-                        radius: iced::border::Radius {
-                            top_left: 4.0,
-                            top_right: 4.0,
-                            bottom_left: 0.0,
-                            bottom_right: 0.0,
-                        },
+                        radius: 4.0.into(),
                     },
                     text_color: if is_active { theme::accent() } else { theme::subtext() },
                     ..Default::default()
@@ -1485,13 +1485,12 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     };
 
     let left_tabs = row![
-        tab_btn(ViewMode::Artists, "Artists"),
-        tab_btn(ViewMode::Albums, "Albums"),
-        tab_btn(ViewMode::Genres, "Genres"),
+        tab_btn(ViewMode::Artists, "Artists", tab_width_1),
+        tab_btn(ViewMode::Albums, "Albums", tab_width_2),
+        tab_btn(ViewMode::Genres, "Genres", tab_width_3),
     ]
     .spacing(0)
-    .align_y(Alignment::Center)
-    .width(Length::Fill);
+    .align_y(Alignment::Center);
 
     let left_tabs_container = container(left_tabs)
         .width(state.sidebar_width.round())
