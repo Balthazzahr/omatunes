@@ -274,7 +274,7 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
     let playlist_tab_btn = |tab: crate::app::PlaylistTab, icon: &'static str, width: f32, tooltip_text: &'static str| {
         let is_active = state.playlist_tab == tab && (state.selected_playlist.is_some() || tab == crate::app::PlaylistTab::Smart);
         let btn_icon = text(icon)
-            .size(13)
+            .size(16)
             .font(crate::ui::icons::NERD_FONT_MONO);
         
         let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
@@ -292,8 +292,8 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                         iced::Color::TRANSPARENT
                     })),
                     border: iced::Border {
-                        color: if is_active { theme::accent() } else { iced::Color::TRANSPARENT },
-                        width: if is_active { 1.0 } else { 0.0 },
+                        color: if is_active { theme::accent() } else { theme::surface0() },
+                        width: 1.0,
                         radius: 4.0.into(),
                     },
                     text_color: if is_active { theme::accent() } else { theme::subtext() },
@@ -306,8 +306,8 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
     };
 
     let playlist_tabs = row![
-        playlist_tab_btn(crate::app::PlaylistTab::Playlists, crate::ui::icons::ICON_USER, playlist_tab_width_1, "User Playlists"),
-        playlist_tab_btn(crate::app::PlaylistTab::Autoplaylists, crate::ui::icons::ICON_REFRESH, playlist_tab_width_2, "Auto Playlists"),
+        playlist_tab_btn(crate::app::PlaylistTab::Playlists, crate::ui::icons::ICON_LIST, playlist_tab_width_1, "User Playlists"),
+        playlist_tab_btn(crate::app::PlaylistTab::Autoplaylists, crate::ui::icons::ICON_BOLT, playlist_tab_width_2, "Auto Playlists"),
         playlist_tab_btn(crate::app::PlaylistTab::Smart, crate::ui::icons::ICON_WAND, playlist_tab_width_3, "Smart Playlists"),
     ]
     .spacing(0)
