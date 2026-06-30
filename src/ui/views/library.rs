@@ -1052,20 +1052,73 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 .width(Length::Fixed(120.0));
 
                 let track_no = (original_idx + 1).to_string();
+                let table_columns = get_responsive_columns(state);
+                let mut row_widgets: Vec<Element<'_, Message>> = Vec::new();
+                row_widgets.push(drag_handle_widget);
+                
+                for col in table_columns {
+                    let width = col_width(col);
+                    let el: Element<'_, Message> = match col {
+                        crate::db::TableColumn::TrackNumber => {
+                            text(track_no.clone()).color(theme::overlay0()).size(13).width(width).into()
+                        }
+                        crate::db::TableColumn::Title => {
+                            text(track.title.clone()).color(row_color).size(14).width(width).into()
+                        }
+                        crate::db::TableColumn::Artist => {
+                            text(track.artist.clone()).color(theme::subtext()).size(13).width(width).into()
+                        }
+                        crate::db::TableColumn::Album => {
+                            text(track.album.clone()).color(theme::subtext()).size(13).width(width).into()
+                        }
+                        crate::db::TableColumn::Genre => {
+                            text(track.genre.clone()).color(theme::subtext()).size(13).width(width).into()
+                        }
+                        crate::db::TableColumn::Year => {
+                            let yr_str = track.year.map(|y| y.to_string()).unwrap_or_else(|| "·".to_string());
+                            text(yr_str).color(theme::subtext()).size(13).width(width).into()
+                        }
+                        crate::db::TableColumn::DiscNumber => {
+                            let dc_str = track.disc_number.map(|d| d.to_string()).unwrap_or_else(|| "·".to_string());
+                            text(dc_str).color(theme::subtext()).size(13).width(width).into()
+                        }
+                        crate::db::TableColumn::Duration => {
+                            text(track.duration_str()).color(theme::subtext()).size(13).width(width).into()
+                        }
+                        crate::db::TableColumn::Plays => {
+                            text(track.play_count.to_string()).color(theme::subtext()).size(13).width(width).into()
+                        }
+                        crate::db::TableColumn::DatePlayed => {
+                            let dp_str = track.date_played.clone().unwrap_or_else(|| "·".to_string());
+                            text(dp_str).color(theme::subtext()).size(13).width(width).into()
+                        }
+                        crate::db::TableColumn::Liked => {
+                            let like_color = if track.liked { theme::red() } else { theme::overlay0() };
+                            container(
+                                button(
+                                    text(crate::ui::icons::ICON_HEART)
+                                        .font(crate::ui::icons::NERD_FONT_MONO)
+                                        .color(like_color)
+                                        .size(13)
+                                )
+                                .on_press(Message::ToggleLikeTrack(track.clone()))
+                                .style(iced::widget::button::text)
+                            )
+                            .width(width)
+                            .center_x(width)
+                            .into()
+                        }
+                    };
+                    row_widgets.push(el);
+                }
+                row_widgets.push(controls);
+
                 let row_content = mouse_area(
                     container(
-                        row![
-                            drag_handle_widget,
-                            text(track_no).color(theme::overlay0()).size(13).width(Length::Fixed(30.0)),
-                            text(track.title.clone()).color(row_color).size(14).width(Length::FillPortion(3)),
-                            text(track.artist.clone()).color(theme::subtext()).size(13).width(Length::FillPortion(2)),
-                            text(track.album.clone()).color(theme::subtext()).size(13).width(Length::FillPortion(2)),
-                            text(track.duration_str()).color(theme::subtext()).size(13).width(Length::Fixed(80.0)),
-                            controls,
-                        ]
-                        .spacing(12)
-                        .align_y(Alignment::Center)
-                        .padding([6, 12])
+                        row(row_widgets)
+                            .spacing(12)
+                            .align_y(Alignment::Center)
+                            .padding([6, 12])
                     )
                     .style(move |_| iced::widget::container::Style {
                         background: if is_selected_track {
