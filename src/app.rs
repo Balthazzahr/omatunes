@@ -74,6 +74,7 @@ pub enum SortColumn {
     Duration,
     Plays,
     DatePlayed,
+    Liked,
 }
 
 #[derive(Debug, Clone)]
