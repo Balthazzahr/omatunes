@@ -1242,10 +1242,10 @@ fn render_track_row(
     .on_press(Message::OpenPlaylistDialog(PlaylistDialogMode::AddTrack(track_no_cover.clone())))
     .style(iced::widget::button::text);
 
-    let table_columns = crate::db::get(|db| db.table_columns.clone());
+    let table_columns = &dep.responsive_columns;
     let mut track_row_widgets: Vec<Element<'static, Message>> = Vec::new();
 
-    for col in table_columns {
+    for &col in table_columns {
         let width = col_width(col);
         let el: Element<'static, Message> = match col {
             crate::db::TableColumn::TrackNumber => {
@@ -1282,15 +1282,25 @@ fn render_track_row(
                 let dp_str = track.date_played.clone().unwrap_or_else(|| "·".to_string());
                 text(dp_str).color(theme::subtext()).size(13).width(width).into()
             }
+            crate::db::TableColumn::Liked => {
+                let like_color = if track.liked { theme::red() } else { theme::overlay0() };
+                container(
+                    button(
+                        text(crate::ui::icons::ICON_HEART)
+                            .font(crate::ui::icons::NERD_FONT_MONO)
+                            .color(like_color)
+                            .size(13)
+                    )
+                    .on_press(Message::ToggleLikeTrack(track.clone()))
+                    .style(iced::widget::button::text)
+                )
+                .width(width)
+                .center_x(width)
+                .into()
+            }
         };
         track_row_widgets.push(el);
     }
-
-    track_row_widgets.extend(vec![
-        like_btn.into(),
-        edit_btn.into(),
-        add_playlist_btn.into(),
-    ]);
 
     let track_row = row(track_row_widgets)
         .spacing(12)
