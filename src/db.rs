@@ -18,6 +18,7 @@ pub enum TableColumn {
     Duration,
     Plays,
     DatePlayed,
+    Liked,
 }
 
 impl TableColumn {
@@ -33,6 +34,7 @@ impl TableColumn {
             TableColumn::Duration,
             TableColumn::Plays,
             TableColumn::DatePlayed,
+            TableColumn::Liked,
         ]
     }
 
@@ -48,6 +50,7 @@ impl TableColumn {
             TableColumn::Duration => "Duration",
             TableColumn::Plays => "Plays",
             TableColumn::DatePlayed => "Date Played",
+            TableColumn::Liked => "Liked",
         }
     }
 }
@@ -60,6 +63,7 @@ fn default_table_columns() -> Vec<TableColumn> {
         TableColumn::Album,
         TableColumn::Duration,
         TableColumn::Plays,
+        TableColumn::Liked,
     ]
 }
 
