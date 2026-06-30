@@ -272,7 +272,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
             theming_col,
         ]
         .spacing(0)
-        .padding([0, 16, 0, 0]) // 16px right padding to clear the scrollbar track
+        .padding(iced::Padding { top: 0.0, right: 16.0, bottom: 0.0, left: 0.0 }) // 16px right padding to clear the scrollbar track
     )
     .height(Length::Fixed(400.0));
 
