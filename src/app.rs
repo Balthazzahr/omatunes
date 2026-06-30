@@ -3264,11 +3264,7 @@ impl AppState {
                 if let Some(ref mut state) = self.show_settings {
                     match token.as_str() {
                         "base" => state.custom_theme.base = val.clone(),
-                        "mantle" => state.custom_theme.mantle = val.clone(),
-                        "surface0" => state.custom_theme.surface0 = val.clone(),
-                        "overlay0" => state.custom_theme.overlay0 = val.clone(),
                         "text" => state.custom_theme.text = val.clone(),
-                        "subtext" => state.custom_theme.subtext = val.clone(),
                         "accent" => state.custom_theme.accent = val.clone(),
                         "green" => state.custom_theme.green = val.clone(),
                         "red" => state.custom_theme.red = val.clone(),
@@ -3285,7 +3281,25 @@ impl AppState {
                         state.custom_validation_errors.insert(token.clone(), "Invalid hex (format: #RRGGBB)".to_string());
                     }
                     
-                    if is_valid {
+                    if is_valid && (token == "base" || token == "text") {
+                        if let (Some(base_col), Some(text_col)) = (
+                            crate::ui::theme::hex_to_color(&state.custom_theme.base),
+                            crate::ui::theme::hex_to_color(&state.custom_theme.text),
+                        ) {
+                            let is_dark = crate::ui::theme::luminance(base_col) < 0.5;
+                            let mantle_col = crate::ui::theme::derive_mantle(base_col, is_dark);
+                            let surface0_col = crate::ui::theme::derive_surface0(base_col, is_dark);
+                            let overlay0_col = crate::ui::theme::derive_overlay0(base_col, is_dark);
+                            let subtext_col = crate::ui::theme::derive_subtext(text_col, is_dark);
+
+                            state.custom_theme.mantle = format!("#{:02x}{:02x}{:02x}", (mantle_col.r * 255.0) as u8, (mantle_col.g * 255.0) as u8, (mantle_col.b * 255.0) as u8);
+                            state.custom_theme.surface0 = format!("#{:02x}{:02x}{:02x}", (surface0_col.r * 255.0) as u8, (surface0_col.g * 255.0) as u8, (surface0_col.b * 255.0) as u8);
+                            state.custom_theme.overlay0 = format!("#{:02x}{:02x}{:02x}", (overlay0_col.r * 255.0) as u8, (overlay0_col.g * 255.0) as u8, (overlay0_col.b * 255.0) as u8);
+                            state.custom_theme.subtext = format!("#{:02x}{:02x}{:02x}", (subtext_col.r * 255.0) as u8, (subtext_col.g * 255.0) as u8, (subtext_col.b * 255.0) as u8);
+                        }
+                    }
+                    
+                    if state.custom_validation_errors.is_empty() {
                         let current_palette = crate::ui::theme::load_palette_from_config();
                         let preview_palette = crate::ui::theme::Palette {
                             base: crate::ui::theme::hex_to_color(&state.custom_theme.base).unwrap_or(current_palette.base),
