@@ -1114,7 +1114,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                     };
                     row_widgets.push(el);
                 }
-                row_widgets.push(controls);
+                row_widgets.push(controls.into());
 
                 let row_content = mouse_area(
                     container(
