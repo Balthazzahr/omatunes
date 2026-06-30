@@ -266,15 +266,20 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             .into()
     };
 
-    let playlist_tab_btn = |tab: crate::app::PlaylistTab, label: &'static str| {
-        let is_active = state.playlist_tab == tab && state.selected_playlist.is_some();
-        let btn_text = text(label)
-            .size(11)
-            .font(crate::ui::icons::UI_FONT_BOLD);
+    let playlist_total_width = state.sidebar_width.round() - 16.0;
+    let playlist_tab_width_1 = (playlist_total_width / 3.0).floor();
+    let playlist_tab_width_2 = (playlist_total_width / 3.0).floor();
+    let playlist_tab_width_3 = playlist_total_width - playlist_tab_width_1 - playlist_tab_width_2;
+
+    let playlist_tab_btn = |tab: crate::app::PlaylistTab, icon: &'static str, width: f32, tooltip_text: &'static str| {
+        let is_active = state.playlist_tab == tab && (state.selected_playlist.is_some() || tab == crate::app::PlaylistTab::Smart);
+        let btn_icon = text(icon)
+            .size(13)
+            .font(crate::ui::icons::NERD_FONT_MONO);
         
-        button(container(btn_text).center_x(Length::Fill).center_y(Length::Fill))
+        let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
             .on_press(Message::SelectPlaylistTab(tab))
-            .width(Length::Fill)
+            .width(width)
             .height(28.0)
             .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
                 let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
@@ -289,27 +294,24 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                     border: iced::Border {
                         color: if is_active { theme::accent() } else { iced::Color::TRANSPARENT },
                         width: if is_active { 1.0 } else { 0.0 },
-                        radius: iced::border::Radius {
-                            top_left: 4.0,
-                            top_right: 4.0,
-                            bottom_left: 0.0,
-                            bottom_right: 0.0,
-                        },
+                        radius: 4.0.into(),
                     },
                     text_color: if is_active { theme::accent() } else { theme::subtext() },
                     ..Default::default()
                 }
             })
-            .padding(0)
+            .padding(0);
+
+        tooltip(btn, tooltip_text, tooltip::Position::Top)
     };
 
     let playlist_tabs = row![
-        playlist_tab_btn(crate::app::PlaylistTab::Playlists, "User Playlists"),
-        playlist_tab_btn(crate::app::PlaylistTab::Autoplaylists, "Auto Playlists"),
+        playlist_tab_btn(crate::app::PlaylistTab::Playlists, crate::ui::icons::ICON_USER, playlist_tab_width_1, "User Playlists"),
+        playlist_tab_btn(crate::app::PlaylistTab::Autoplaylists, crate::ui::icons::ICON_REFRESH, playlist_tab_width_2, "Auto Playlists"),
+        playlist_tab_btn(crate::app::PlaylistTab::Smart, crate::ui::icons::ICON_WAND, playlist_tab_width_3, "Smart Playlists"),
     ]
     .spacing(0)
-    .align_y(Alignment::Center)
-    .width(Length::Fill);
+    .align_y(Alignment::Center);
 
     let mut playlists_area_col = column![].spacing(6).height(Length::Fill);
     
@@ -341,7 +343,7 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
         .width(Length::Fill);
 
         playlists_area_col = playlists_area_col.push(add_playlist_btn);
-    } else {
+    } else if state.playlist_tab == crate::app::PlaylistTab::Autoplaylists {
         let mut auto_playlists_col = column![].spacing(2);
         auto_playlists_col = auto_playlists_col.push(render_playlist_item("Liked Songs".to_string(), true));
         auto_playlists_col = auto_playlists_col.push(render_playlist_item("Recently Played".to_string(), true));
@@ -352,6 +354,18 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             container(scrollable(auto_playlists_col))
                 .height(Length::Fill)
         );
+    } else {
+        let empty_text = container(
+            text("Smart playlists are coming soon")
+                .size(12)
+                .color(theme::subtext())
+        )
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .center_x(Length::Fill)
+        .center_y(Length::Fill);
+
+        playlists_area_col = playlists_area_col.push(empty_text);
     }
 
     let playlist_drag_handle = mouse_area(
