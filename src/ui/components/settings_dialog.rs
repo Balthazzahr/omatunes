@@ -116,7 +116,7 @@ pub fn view(state: &SettingsState) -> Element<'_, Message> {
             Space::with_height(4),
         ].spacing(6);
 
-        let mut render_field = |label: &str, token: &str, hex_val: &str| {
+        let mut render_field = |label: &str, token: &str, hex_val: &str| -> Element<'_, Message> {
             let parsed_color = crate::ui::theme::hex_to_color(hex_val).unwrap_or(iced::Color::TRANSPARENT);
             let has_error = state.custom_validation_errors.contains_key(token);
             
@@ -144,7 +144,7 @@ pub fn view(state: &SettingsState) -> Element<'_, Message> {
                 .width(100)
                 .color(if has_error { theme::red() } else { theme::text() });
 
-            column![
+            let field_col: Element<'_, Message> = column![
                 row![
                     label_col,
                     input,
@@ -153,15 +153,20 @@ pub fn view(state: &SettingsState) -> Element<'_, Message> {
                 ]
                 .align_y(Alignment::Center),
                 if has_error {
-                    row![
+                    let err_row: Element<'_, Message> = row![
                         Space::with_width(108),
                         text("Invalid hex (#RRGGBB)").size(10).color(theme::red())
-                    ].into()
+                    ].into();
+                    err_row
                 } else {
-                    Space::with_height(0.0).into()
+                    let empty_space: Element<'_, Message> = Space::with_height(0.0).into();
+                    empty_space
                 }
             ]
             .spacing(1)
+            .into();
+            
+            field_col
         };
 
         custom_fields = custom_fields
