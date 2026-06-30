@@ -274,7 +274,7 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
     let playlist_tab_btn = |tab: crate::app::PlaylistTab, icon: &'static str, width: f32, tooltip_text: &'static str| {
         let is_active = state.playlist_tab == tab && (state.selected_playlist.is_some() || tab == crate::app::PlaylistTab::Smart);
         let btn_icon = text(icon)
-            .size(16)
+            .size(18)
             .font(crate::ui::icons::NERD_FONT_MONO);
         
         let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
