@@ -272,6 +272,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
             theming_col,
         ]
         .spacing(0)
+        .padding([0, 16, 0, 0]) // 16px right padding to clear the scrollbar track
     )
     .height(Length::Fixed(400.0));
 
@@ -317,7 +318,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
     ]
     .align_y(Alignment::Center);
 
-    let mut dialog_content = column![
+    let dialog_content = column![
         text("App Settings")
             .size(20)
             .font(crate::ui::icons::UI_FONT_BOLD)
@@ -330,7 +331,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
 
     container(
         container(dialog_content)
-            .width(500) // Widen from 420 to 500 pixels to accommodate hex fields and swatches
+            .width(550) // Widen from 500 to 550 pixels to resolve scrollbar overlap
             .padding(24)
             .style(theme::card)
     )
