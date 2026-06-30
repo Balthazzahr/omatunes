@@ -535,11 +535,6 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             Space::with_height(8),
             container(
                 column![
-                    text("Playlists")
-                        .size(11)
-                        .font(crate::ui::icons::UI_FONT_BOLD)
-                        .color(theme::subtext()),
-                    Space::with_height(6),
                     playlist_tabs,
                     Space::with_height(6),
                     playlists_area_col,
