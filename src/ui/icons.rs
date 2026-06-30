@@ -46,3 +46,7 @@ pub const ICON_COPY:     &str = "\u{f0c5}";  //
 pub const ICON_PODIUM:   &str = "\u{f0d25}"; //
 pub const ICON_VISUALIZER: &str = "\u{f147d}"; // waveform
 pub const ICON_LYRICS:     &str = "\u{f0cb9}"; // lyrics custom
+pub const ICON_USER:       &str = "\u{f007}";  // user
+pub const ICON_REFRESH:    &str = "\u{f021}";  // sync/refresh
+pub const ICON_WAND:       &str = "\u{f0d0}";  // magic wand
+

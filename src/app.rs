@@ -283,6 +283,7 @@ pub struct SettingsState {
 pub enum PlaylistTab {
     Playlists,
     Autoplaylists,
+    Smart,
 }
 
 // ── Estado global ─────────────────────────────────────────────────────────────
