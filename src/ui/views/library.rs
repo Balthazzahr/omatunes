@@ -612,12 +612,12 @@ pub fn get_responsive_columns(state: &AppState) -> Vec<crate::db::TableColumn> {
     let available_width = get_available_track_list_width(state) - 24.0;
     
     let hide_priority = &[
+        crate::db::TableColumn::DiscNumber,
         crate::db::TableColumn::Plays,
         crate::db::TableColumn::DatePlayed,
         crate::db::TableColumn::Genre,
         crate::db::TableColumn::Liked,
         crate::db::TableColumn::Year,
-        crate::db::TableColumn::DiscNumber,
         crate::db::TableColumn::Album,
         crate::db::TableColumn::Artist,
         crate::db::TableColumn::TrackNumber,
