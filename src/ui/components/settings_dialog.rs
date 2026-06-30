@@ -4,7 +4,7 @@ use iced::{Alignment, Element, Length};
 use crate::app::{Message, SettingsState};
 use crate::ui::theme;
 
-pub fn view(state: &SettingsState) -> Element<'_, Message> {
+pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
     let languages = vec![
         "auto".to_string(),
         "en".to_string(),
@@ -116,7 +116,7 @@ pub fn view(state: &SettingsState) -> Element<'_, Message> {
             Space::with_height(4),
         ].spacing(6);
 
-        let mut render_field = |label: &str, token: &str, hex_val: &str| -> Element<'_, Message> {
+        let render_field = |label: &'static str, token: &'static str, hex_val: &'a str| -> Element<'a, Message> {
             let parsed_color = crate::ui::theme::hex_to_color(hex_val).unwrap_or(iced::Color::TRANSPARENT);
             let has_error = state.custom_validation_errors.contains_key(token);
             
