@@ -668,10 +668,10 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
     let is_recently_played = state.selected_playlist.as_deref() == Some("Recently Played");
     let group_by_album = state.group_by_album && !is_recently_played;
 
-    let table_columns = crate::db::get(|db| db.table_columns.clone());
+    let table_columns = get_responsive_columns(state);
     let mut header_widgets: Vec<Element<'_, Message>> = Vec::new();
     
-    for &col in &table_columns {
+    for col in table_columns {
         let label = col.label();
         let width = col_width(col);
         let sort_col = col_to_sort_col(col);
@@ -698,8 +698,6 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
 
         header_widgets.push(header_area.into());
     }
-
-    header_widgets.push(Space::with_width(120).into());
 
     let table_headers = container(
         row(header_widgets)
