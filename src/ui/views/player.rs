@@ -463,7 +463,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                         if state.dragging_right_panel || state.is_hovering_right_panel_resizer {
                             theme::accent()
                         } else {
-                            theme::surface0()
+                            iced::Color::TRANSPARENT
                         }
                     )),
                     ..Default::default()
@@ -473,7 +473,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
         .height(Length::Fill)
         .center_x(Length::Fixed(6.0))
         .style(|_| iced::widget::container::Style {
-            background: Some(iced::Background::Color(theme::base())),
+            background: Some(iced::Background::Color(theme::mantle())),
             ..Default::default()
         })
     )
