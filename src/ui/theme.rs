@@ -308,6 +308,58 @@ pub fn contrast_ratio(c1: Color, c2: Color) -> f32 {
     }
 }
 
+pub fn derive_color_at_contrast_ratio(source: Color, target_ratio: f32, make_lighter: bool) -> Color {
+    let l_s = luminance(source);
+    let l_d = if make_lighter {
+        target_ratio * (l_s + 0.05) - 0.05
+    } else {
+        (l_s + 0.05) / target_ratio - 0.05
+    };
+    let l_d = l_d.clamp(0.0, 1.0);
+    
+    if make_lighter {
+        let denom = 1.0 - l_s;
+        let t = if denom.abs() < 1e-5 { 0.0 } else { ((l_d - l_s) / denom).clamp(0.0, 1.0) };
+        Color {
+            r: source.r + t * (1.0 - source.r),
+            g: source.g + t * (1.0 - source.g),
+            b: source.b + t * (1.0 - source.b),
+            a: source.a,
+        }
+    } else {
+        let t = if l_s.abs() < 1e-5 { 0.0 } else { (1.0 - l_d / l_s).clamp(0.0, 1.0) };
+        Color {
+            r: source.r * (1.0 - t),
+            g: source.g * (1.0 - t),
+            b: source.b * (1.0 - t),
+            a: source.a,
+        }
+    }
+}
+
+pub fn derive_mantle(base: Color, is_dark: bool) -> Color {
+    // Mantle target contrast is 1.20
+    // applied in direction that makes Mantle slightly closer to black in dark / closer to white in light
+    derive_color_at_contrast_ratio(base, 1.20, !is_dark)
+}
+
+pub fn derive_surface0(base: Color, is_dark: bool) -> Color {
+    // Surface0 target contrast is 1.40
+    // applied as structural highlight: lighter than Base in dark / darker than Base in light
+    derive_color_at_contrast_ratio(base, 1.40, is_dark)
+}
+
+pub fn derive_overlay0(base: Color, is_dark: bool) -> Color {
+    // Overlay0 target contrast is 2.80
+    // applied as content-adjacent: lighter than Base in dark / darker than Base in light
+    derive_color_at_contrast_ratio(base, 2.80, is_dark)
+}
+
+pub fn derive_subtext(text: Color, is_dark: bool) -> Color {
+    // Subtext target contrast is 1.25 against Text
+    derive_color_at_contrast_ratio(text, 1.25, !is_dark)
+}
+
 pub fn check_custom_contrast_warnings(custom: &crate::config::CustomThemeConfig) -> Vec<(String, f32, f32)> {
     let mut warnings = Vec::new();
     let base = hex_to_color(&custom.base);
