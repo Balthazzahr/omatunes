@@ -1211,36 +1211,8 @@ fn render_track_row(
     let row_color = if is_current { theme::accent() } else { theme::text() };
 
 
-    let like_color = if track.liked { theme::red() } else { theme::overlay0() };
-    let like_btn = button(
-        text(crate::ui::icons::ICON_HEART)
-            .font(crate::ui::icons::NERD_FONT_MONO)
-            .color(like_color)
-            .size(13)
-    )
-    .on_press(Message::ToggleLikeTrack(track.clone()))
-    .style(iced::widget::button::text);
-
-    let edit_btn = button(
-        text("\u{f044}")
-            .font(crate::ui::icons::NERD_FONT_MONO)
-            .color(theme::overlay0())
-            .size(13)
-    )
-    .on_press(Message::OpenTagEditor(vec![track.clone()]))
-    .style(iced::widget::button::text);
-
     let mut track_no_cover = track.clone();
     track_no_cover.cover_data = None;
-
-    let add_playlist_btn = button(
-        text(crate::ui::icons::ICON_PLUS)
-            .font(crate::ui::icons::NERD_FONT_MONO)
-            .color(theme::overlay0())
-            .size(13)
-    )
-    .on_press(Message::OpenPlaylistDialog(PlaylistDialogMode::AddTrack(track_no_cover.clone())))
-    .style(iced::widget::button::text);
 
     let table_columns = &dep.responsive_columns;
     let mut track_row_widgets: Vec<Element<'static, Message>> = Vec::new();
