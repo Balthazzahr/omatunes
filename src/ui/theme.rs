@@ -159,13 +159,22 @@ pub fn load_palette_from_config() -> Palette {
         }
         "Custom" => {
             if let Some(ref custom) = cfg.custom_theme {
+                let base = hex_to_color(&custom.base).unwrap_or_else(|| hex(0x11, 0x11, 0x1b));
+                let text = hex_to_color(&custom.text).unwrap_or_else(|| hex(0xcd, 0xd6, 0xf4));
+                let is_dark = luminance(base) < 0.5;
+                
+                let mantle = derive_mantle(base, is_dark);
+                let surface0 = derive_surface0(base, is_dark);
+                let overlay0 = derive_overlay0(base, is_dark);
+                let subtext = derive_subtext(text, is_dark);
+
                 Palette {
-                    base:     hex_to_color(&custom.base).unwrap_or_else(|| hex(0x11, 0x11, 0x1b)),
-                    mantle:   hex_to_color(&custom.mantle).unwrap_or_else(|| hex(0x18, 0x18, 0x25)),
-                    surface0: hex_to_color(&custom.surface0).unwrap_or_else(|| hex(0x31, 0x32, 0x44)),
-                    overlay0: hex_to_color(&custom.overlay0).unwrap_or_else(|| hex(0x6c, 0x70, 0x86)),
-                    text:     hex_to_color(&custom.text).unwrap_or_else(|| hex(0xcd, 0xd6, 0xf4)),
-                    subtext:  hex_to_color(&custom.subtext).unwrap_or_else(|| hex(0xa6, 0xad, 0xc8)),
+                    base,
+                    mantle,
+                    surface0,
+                    overlay0,
+                    text,
+                    subtext,
                     accent:   hex_to_color(&custom.accent).unwrap_or_else(|| hex(0xcb, 0xa6, 0xf7)),
                     green:    hex_to_color(&custom.green).unwrap_or_else(|| hex(0xa6, 0xe3, 0xa1)),
                     red:      hex_to_color(&custom.red).unwrap_or_else(|| hex(0xf3, 0x8b, 0xa8)),
