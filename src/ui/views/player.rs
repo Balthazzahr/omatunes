@@ -197,13 +197,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             .padding(0)
     };
 
-    let horizontal_sep = container(Space::new(Length::Fill, Length::Fixed(1.0)))
-        .style(|_| iced::widget::container::Style {
-            background: Some(iced::Background::Color(theme::surface0())),
-            ..Default::default()
-        })
-        .width(Length::Fill)
-        .height(1.0);
+
 
     let tab_strip = container(
         column![
