@@ -608,43 +608,7 @@ pub fn save_button_saved(_: &iced::Theme, _status: iced::widget::button::Status)
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
 
-    #[test]
-    fn test_verification_contrasts() {
-        let setups = vec![
-            ("Dark Theme Setup", "#1e1e2e", "#cdd6f4"),
-            ("Light Theme Setup", "#eff1f5", "#4c4f69"),
-        ];
-
-        for (name, base_hex, text_hex) in setups {
-            let base_col = hex_to_color(base_hex).unwrap();
-            let text_col = hex_to_color(text_hex).unwrap();
-            let is_dark = luminance(base_col) < 0.5;
-
-            let mantle_col = derive_mantle(base_col, is_dark);
-            let surface0_col = derive_surface0(base_col, is_dark);
-            let overlay0_col = derive_overlay0(base_col, is_dark);
-            let subtext_col = derive_subtext(text_col, is_dark);
-
-            println!("=== {} ===", name);
-            println!("  Base: {}", base_hex);
-            println!("  Text: {}", text_hex);
-            println!("  Mantle vs Base: {:.4}", contrast_ratio(base_col, mantle_col));
-            println!("  Surface0 vs Base: {:.4}", contrast_ratio(base_col, surface0_col));
-            println!("  Overlay0 vs Base: {:.4}", contrast_ratio(base_col, overlay0_col));
-            println!("  Subtext vs Text: {:.4}", contrast_ratio(text_col, subtext_col));
-            
-            println!("  Mantle Hex: #{:02x}{:02x}{:02x}", (mantle_col.r * 255.0) as u8, (mantle_col.g * 255.0) as u8, (mantle_col.b * 255.0) as u8);
-            println!("  Surface0 Hex: #{:02x}{:02x}{:02x}", (surface0_col.r * 255.0) as u8, (surface0_col.g * 255.0) as u8, (surface0_col.b * 255.0) as u8);
-            println!("  Overlay0 Hex: #{:02x}{:02x}{:02x}", (overlay0_col.r * 255.0) as u8, (overlay0_col.g * 255.0) as u8, (overlay0_col.b * 255.0) as u8);
-            println!("  Subtext Hex: #{:02x}{:02x}{:02x}", (subtext_col.r * 255.0) as u8, (subtext_col.g * 255.0) as u8, (subtext_col.b * 255.0) as u8);
-        }
-        panic!("Show output");
-    }
-}
 
 
 
