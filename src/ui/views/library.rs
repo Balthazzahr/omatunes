@@ -1555,6 +1555,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         settings_separator,
         settings_btn
     ]
+    .spacing(0)
     .align_y(Alignment::End)
     .height(28.0)
     .width(Length::Fill);
@@ -1565,6 +1566,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
             Space::with_width(6.0),
             right_bar
         ]
+        .spacing(0)
         .width(Length::Fill)
         .align_y(Alignment::End)
     )
