@@ -1432,6 +1432,9 @@ impl AppState {
                     PlaylistTab::Autoplaylists => {
                         self.selected_playlist = Some("Liked Songs".to_string());
                     }
+                    PlaylistTab::Smart => {
+                        self.selected_playlist = None;
+                    }
                 }
                 self.update_filtered_tracks();
                 Task::none()

@@ -474,8 +474,8 @@ pub fn sidebar(_: &iced::Theme) -> container::Style {
 
 pub fn selected_row(_: &iced::Theme) -> container::Style {
     container::Style {
-        background: Some(iced::Background::Color(with_alpha(accent(), 0.15))),
-        border: Border { color: with_alpha(accent(), 0.4), width: 1.0, radius: 0.0.into() },
+        background: Some(iced::Background::Color(with_alpha(accent(), 0.18))),
+        border: Border { color: iced::Color::TRANSPARENT, width: 0.0, radius: 4.0.into() },
         ..Default::default()
     }
 }
