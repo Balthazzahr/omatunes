@@ -595,6 +595,75 @@ impl std::hash::Hash for TrackListDependency {
     }
 }
 
+pub fn get_available_track_list_width(state: &AppState) -> f32 {
+    let sidebar_visible = state.selected_playlist.is_none() && (state.view_mode != ViewMode::NowPlaying);
+    let sidebar_w = if sidebar_visible { state.sidebar_width.round() + 6.0 } else { 0.0 };
+    
+    let is_right_open = state.right_panel_tab.is_some() && state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 600.0);
+    let right_w = if is_right_open { 6.0 + state.right_panel_width } else { 0.0 };
+    
+    state.window_width - sidebar_w - right_w
+}
+
+pub fn get_responsive_columns(state: &AppState) -> Vec<crate::db::TableColumn> {
+    let saved_cols = crate::db::get(|db| db.table_columns.clone());
+    let available_width = get_available_track_list_width(state) - 24.0;
+    
+    let hide_priority = &[
+        crate::db::TableColumn::Plays,
+        crate::db::TableColumn::DatePlayed,
+        crate::db::TableColumn::Genre,
+        crate::db::TableColumn::Liked,
+        crate::db::TableColumn::Year,
+        crate::db::TableColumn::DiscNumber,
+        crate::db::TableColumn::Album,
+        crate::db::TableColumn::Artist,
+        crate::db::TableColumn::TrackNumber,
+    ];
+    
+    let mut visible_cols = saved_cols.clone();
+    
+    let calc_width = |cols: &[crate::db::TableColumn]| -> f32 {
+        let mut total_fixed = 0.0;
+        let mut fill_count = 0;
+        for &col in cols {
+            match col {
+                crate::db::TableColumn::TrackNumber => total_fixed += 30.0,
+                crate::db::TableColumn::Liked => total_fixed += 40.0,
+                crate::db::TableColumn::Plays => total_fixed += 40.0,
+                crate::db::TableColumn::Year => total_fixed += 50.0,
+                crate::db::TableColumn::DiscNumber => total_fixed += 50.0,
+                crate::db::TableColumn::Duration => total_fixed += 80.0,
+                _ => fill_count += 1,
+            }
+        }
+        let spacing = if cols.is_empty() { 0.0 } else { (cols.len() - 1) as f32 * 12.0 };
+        total_fixed + (fill_count as f32 * 80.0) + spacing
+    };
+    
+    for &col_to_hide in hide_priority {
+        if calc_width(&visible_cols) <= available_width {
+            break;
+        }
+        if visible_cols.contains(&col_to_hide) {
+            visible_cols.retain(|&c| c != col_to_hide);
+        }
+    }
+    
+    if calc_width(&visible_cols) > available_width {
+        let mut core_set = Vec::new();
+        if saved_cols.contains(&crate::db::TableColumn::Title) {
+            core_set.push(crate::db::TableColumn::Title);
+        }
+        if saved_cols.contains(&crate::db::TableColumn::Duration) {
+            core_set.push(crate::db::TableColumn::Duration);
+        }
+        visible_cols = core_set;
+    }
+    
+    visible_cols
+}
+
 fn track_list_view(state: &AppState) -> Element<'_, Message> {
     let is_recently_played = state.selected_playlist.as_deref() == Some("Recently Played");
     let group_by_album = state.group_by_album && !is_recently_played;
