@@ -302,7 +302,24 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             })
             .padding(0);
 
-        tooltip(btn, tooltip_text, tooltip::Position::Top)
+        let tooltip_content = container(
+            text(tooltip_text)
+                .size(11)
+                .font(crate::ui::icons::UI_FONT)
+                .color(theme::text())
+        )
+        .padding([4, 8])
+        .style(|_| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::surface0())),
+            border: iced::Border {
+                color: theme::overlay0(),
+                width: 1.0,
+                radius: 4.0.into(),
+            },
+            ..Default::default()
+        });
+
+        tooltip(btn, tooltip_content, tooltip::Position::Top)
     };
 
     let playlist_tabs = row![
