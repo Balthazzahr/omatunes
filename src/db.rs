@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 static DB: std::sync::OnceLock<Mutex<OmatunesDb>> = std::sync::OnceLock::new();
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TableColumn {
     TrackNumber,
     Title,
