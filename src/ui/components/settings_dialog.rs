@@ -141,7 +141,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
 
             let label_col = text(label)
                 .size(12)
-                .width(100)
+                .width(150)
                 .color(if has_error { theme::red() } else { theme::text() });
 
             let field_col: Element<'_, Message> = column![
@@ -154,7 +154,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                 .align_y(Alignment::Center),
                 if has_error {
                     let err_row: Element<'_, Message> = row![
-                        Space::with_width(108),
+                        Space::with_width(158),
                         text("Invalid hex (#RRGGBB)").size(10).color(theme::red())
                     ].into();
                     err_row
@@ -169,13 +169,49 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
             field_col
         };
 
+        let render_derived_swatch = |label: &'static str, hex_val: &'a str| -> Element<'a, Message> {
+            let parsed_color = crate::ui::theme::hex_to_color(hex_val).unwrap_or(iced::Color::TRANSPARENT);
+            
+            let swatch = container(Space::new(Length::Fixed(18.0), Length::Fixed(18.0)))
+                .style(move |_| iced::widget::container::Style {
+                    background: Some(iced::Background::Color(parsed_color)),
+                    border: iced::Border {
+                        color: theme::surface0(),
+                        width: 1.0,
+                        radius: 4.0.into(),
+                    },
+                    ..Default::default()
+                })
+                .width(18.0)
+                .height(18.0);
+
+            let value_display = text(format!("{} (derived)", hex_val))
+                .size(11)
+                .font(crate::ui::icons::UI_FONT_BOLD)
+                .color(theme::overlay0());
+
+            let label_col = text(label)
+                .size(12)
+                .width(150)
+                .color(theme::subtext());
+
+            row![
+                label_col,
+                value_display,
+                Space::with_width(Length::Fill),
+                swatch,
+            ]
+            .align_y(Alignment::Center)
+            .into()
+        };
+
         custom_fields = custom_fields
-            .push(render_field("Base (Bg)", "base", &state.custom_theme.base))
-            .push(render_field("Mantle", "mantle", &state.custom_theme.mantle))
-            .push(render_field("Surface0", "surface0", &state.custom_theme.surface0))
-            .push(render_field("Overlay0", "overlay0", &state.custom_theme.overlay0))
-            .push(render_field("Text (Fg)", "text", &state.custom_theme.text))
-            .push(render_field("Subtext", "subtext", &state.custom_theme.subtext))
+            .push(render_field("Background", "base", &state.custom_theme.base))
+            .push(render_derived_swatch("Background (Deep)", &state.custom_theme.mantle))
+            .push(render_derived_swatch("Panel Background", &state.custom_theme.surface0))
+            .push(render_field("Primary Text", "text", &state.custom_theme.text))
+            .push(render_derived_swatch("Secondary Text", &state.custom_theme.subtext))
+            .push(render_derived_swatch("Muted Text / Icons", &state.custom_theme.overlay0))
             .push(render_field("Accent", "accent", &state.custom_theme.accent))
             .push(render_field("Green", "green", &state.custom_theme.green))
             .push(render_field("Red", "red", &state.custom_theme.red))
