@@ -911,19 +911,40 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
     };
 
     let headers: Element<'_, Message> = if state.view_mode == ViewMode::NowPlaying {
+        let table_columns = get_responsive_columns(state);
+        let mut header_widgets: Vec<Element<'_, Message>> = Vec::new();
+        header_widgets.push(Space::with_width(Length::Fixed(28.0)).into());
+        
+        for col in table_columns {
+            let label = col.label();
+            let width = col_width(col);
+            let sort_col = col_to_sort_col(col);
+            let is_sorted = state.sort_column == Some(sort_col);
+            let arrow = if is_sorted {
+                if state.sort_ascending { " ▲" } else { " ▼" }
+            } else {
+                ""
+            };
+            let txt = text(format!("{label}{arrow}"))
+                .size(11)
+                .font(crate::ui::icons::UI_FONT_BOLD)
+                .color(if is_sorted { theme::accent() } else { theme::subtext() });
+            let btn = button(txt)
+                .on_press(Message::SortBy(sort_col))
+                .style(iced::widget::button::text)
+                .padding(0)
+                .width(width);
+            let header_area = mouse_area(btn)
+                .on_right_press(Message::ToggleContextMenu(Some(crate::app::ContextMenuTarget::Header(col))));
+            header_widgets.push(header_area.into());
+        }
+        header_widgets.push(Space::with_width(Length::Fixed(120.0)).into());
+
         container(
-            row![
-                Space::with_width(Length::Fixed(28.0)),
-                text("#").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::Fixed(30.0)),
-                text("Title").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::FillPortion(3)),
-                text("Artist").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::FillPortion(2)),
-                text("Album").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::FillPortion(2)),
-                text("Duration").font(crate::ui::icons::UI_FONT_BOLD).size(13).width(Length::Fixed(80.0)),
-                Space::with_width(Length::Fixed(120.0)),
-            ]
-            .spacing(12)
-            .align_y(Alignment::Center)
-            .padding([8, 12])
+            row(header_widgets)
+                .spacing(12)
+                .align_y(Alignment::Center)
+                .padding([8, 12])
         )
         .style(theme::header)
         .width(Length::Fill)
