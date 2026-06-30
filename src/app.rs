@@ -268,6 +268,11 @@ pub struct SettingsState {
     pub seek_step: String,
     pub volume_step: f32,
     pub font_scale: f32,
+    pub theme_source: String,
+    pub theme_preset: String,
+    pub custom_theme: crate::config::CustomThemeConfig,
+    pub custom_validation_errors: std::collections::HashMap<String, String>,
+    pub confirm_save_anyway: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -3080,17 +3085,25 @@ impl AppState {
             Message::OpenSettings => {
                 let cfg = crate::config::get();
                 self.show_settings = Some(SettingsState {
-                    music_dir: cfg.music_dir,
-                    language: cfg.language,
+                    music_dir: cfg.music_dir.clone(),
+                    language: cfg.language.clone(),
                     seek_step: cfg.seek_step.to_string(),
                     volume_step: cfg.volume_step,
                     font_scale: self.font_scale,
+                    theme_source: cfg.theme_source,
+                    theme_preset: cfg.theme_preset,
+                    custom_theme: cfg.custom_theme.unwrap_or_default(),
+                    custom_validation_errors: std::collections::HashMap::new(),
+                    confirm_save_anyway: false,
                 });
                 Task::none()
             }
 
             Message::CloseSettings => {
                 self.show_settings = None;
+                let original_palette = crate::ui::theme::load_palette_from_config();
+                crate::ui::theme::apply_palette(original_palette);
+                self.iced_theme = build_iced_theme();
                 Task::none()
             }
 
