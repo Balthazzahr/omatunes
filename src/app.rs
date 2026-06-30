@@ -2263,12 +2263,12 @@ impl AppState {
                     self.playlist_height = ((h - 212.0) * 0.27).max(MIN_PLAYLIST_HEIGHT);
                     self.playlist_height_initialized = true;
                 }
-                let max_drawer_width = (w - MIN_NON_DRAWER_WIDTH).max(150.0);
+                let max_drawer_width = (w - MIN_NON_DRAWER_WIDTH).max(200.0);
                 if !self.right_panel_width_initialized {
-                    self.right_panel_width = (w * 0.33).clamp(150.0, max_drawer_width);
+                    self.right_panel_width = (w * 0.33).clamp(200.0, max_drawer_width);
                     self.right_panel_width_initialized = true;
                 } else {
-                    self.right_panel_width = self.right_panel_width.clamp(150.0, max_drawer_width);
+                    self.right_panel_width = self.right_panel_width.clamp(200.0, max_drawer_width);
                 }
                 Task::none()
             }
