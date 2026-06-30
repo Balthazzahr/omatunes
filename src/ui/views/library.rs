@@ -742,6 +742,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         hovered_album_header: state.hovered_album_header.clone(),
         visible_start: state.track_list_start,
         visible_end: state.track_list_end,
+        responsive_columns: get_responsive_columns(state),
     };
 
     let tracklist_scroll = iced::widget::lazy(track_list_dep, move |dep| -> Element<'static, Message> {
