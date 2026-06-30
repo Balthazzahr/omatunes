@@ -22,16 +22,22 @@ A native Wayland music player written in Rust, built for [Omarchy](https://omarc
 - **JSON Database**: Stores favorites, play counts, recently played tracks, hidden artists/albums, column settings, and user playlists in a single portable JSON file (`~/.config/omatunes/db.json`).
 - **Synchronized LRC Lyrics & Interactivity**: Parses LRC metadata to highlight and auto-scroll the active lyric line, supporting interactive seek-on-click to any lyric's timestamp.
 - **Logarithmic Audio Spectrum Visualizer**: Computes real-time 2048-point Hann-windowed FFT to render 64 logarithmic bands colored with an amplitude gradient.
-- **Resizable Panel UI**: Toggle vertical tabs on the right side to open lyrics or spectrum views, adjustable with a click-and-drag handle and width state persistence. Restricted to the top section height (`298px`) to keep the main song list area fully clear.
+- **Lyrics/Visualizer Drawer**: Slide out a Lyrics or Spectrum visualizer panel from the right, with state persistence. The panel has a minimum width of `600px` to fit full lines of lyrics without wrapping, and automatically collapses if the window gets too small (under `1499px`).
 - **Unified Header Panel**: Stacks player controls (`270px` height) and tab row/search bar controls seamlessly with a `1px` stack overlap to hide borders and visually merge the sections.
 - **Enlarged Album Artwork**: Displays cover art at `238x238` pixels with expanded player height to ensure high resolution on large screens without cropping.
 - **Aligned Settings Button**: Sits at the far-right of the library tab row, custom styled to `56px` width (matching the tab strip above) with top and side dividers, aligned perfectly on integer pixels to avoid subpixel blur.
-- **Live Omarchy Theme Switching**: Automatically maps your active system theme (`Catppuccin`, `Nord`, `Gruvbox`, etc.) to the UI palette live in under 3 seconds. No app restarts required.
+- **Flexible Theming System**:
+  - **System Theme**: Automatically maps your active system theme (e.g. Omarchy colors) live to the UI palette.
+  - **Built-in Presets**: Quickly switch between standard presets: *Nord*, *Catppuccin Mocha/Latte*, *Dracula*, *Gruvbox (Dark)*, *Everforest (Dark)*, and *Monokai*.
+  - **Custom Theme Builder**: Build a personal palette by defining 7 base colors (Background, Primary Text, Accent, Green, Red, Yellow, Blue). The system dynamically derives the remaining 4 tokens (Background (Deep), Panel Background, Secondary Text, Muted Text/Icons) using target WCAG contrast ratios to ensure readability.
+- **Now Playing / Up Next Queue**: A dedicated queue manager view with drag-and-drop handles for quick song re-ordering, active search filtering, and clear queue actions.
+- **Liked Column**: Heart icon column integrated directly into the track list table. Clicking the heart toggles the track's liked status. Redundant per-row metadata and addition buttons have been removed and consolidated into the right-click track context menu.
+- **Responsive Columns**: Automatically collapses columns as the window width narrows to prevent text wrapping. Prioritizes hiding `Disc #` first, followed by `Plays`, `DatePlayed`, `Genre`, `Liked`, `Year`, `Album`, and `Artist`, maintaining `#`, `Title`, and `Duration` as core elements.
 - **Native Wayland/X11 & Lightweight**: Built in native Rust using the Iced GUI toolkit. Runs on any Wayland compositor (Hyprland, GNOME, KDE) or traditional X11 window managers. Features extremely fast startup and low resource consumption.
 - **Rich Waybar Integration**: Pre-packaged with local Waybar status scripts (`scripts/omatunes_text.py`) and a control group mapping play, next, and like controls. Provides styled progress bars, listening history milestones, and interactive tooltip stats.
 - **Folder-Based Music Library**: No forced file re-organization. Respects and reads your existing music library subdirectories exactly as they are.
 - **Advanced Bulk Metadata (ID3) Editing**: Select multiple tracks, edit fields selectively using checkboxes, utilize predictive library-based autocomplete suggestions, and apply tag updates across entire albums.
-- **Customizable Columns**: Toggle visibilities or re-order columns (Track #, Title, Artist, Album, Genre, Year, Plays, Duration) via a right-click header menu, saving preferences to your local database.
+- **Customizable Columns**: Toggle visibilities or re-order columns via a right-click header menu, saving preferences to your local database.
 - **Playlists & Smart Autoplaylists**: Build custom playlists on the fly, or use automatic smart lists (`Liked Songs`, `Recently Played`, `Most Played`) that update live as you listen.
 - **MPRIS2 Server Support**: Integrates natively with `playerctl` and other system D-Bus audio widgets.
 
@@ -125,6 +131,27 @@ language = "auto"
 # Seek / Volume steps
 seek_step = 5
 volume_step = 0.05
+
+# Scale factor for UI text sizes (float)
+font_scale = 1.0
+
+# Theming source: "System", "Preset", or "Custom"
+theme_source = "Preset"
+
+# Selected built-in preset theme name
+theme_preset = "Nord"
+
+# Custom theme colors (used when theme_source = "Custom")
+[custom_theme]
+base = "#1e1e2e"       # Background
+text = "#cdd6f4"       # Primary Text
+accent = "#cba6f7"     # Accent
+green = "#a6e3a1"      # Green highlight
+red = "#f38ba8"        # Red highlight
+yellow = "#f9e2af"     # Yellow highlight
+blue = "#89b4fa"       # Blue highlight
+# Note: mantle, surface0, overlay0, and subtext colors are automatically
+# derived using WCAG contrast ratios and synced to this file upon saving.
 ```
 
 ---

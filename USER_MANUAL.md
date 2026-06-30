@@ -110,12 +110,27 @@ The main library view displays your tracks in a highly customizable table layout
 
 ### Grouping and Customization
 - **Group by Album**: Toggle album grouping to display tracks clustered by their respective albums with visual album header dividers. (Saved in `db.json` under `group_by_album`).
-- **Column Customization**: Right-click the track table header (e.g. Title, Artist, Album, Plays, Duration) to trigger the `Table Columns` context menu:
-  - **Show/Hide**: Check/uncheck columns to toggle their visibility.
+- **Column Customization**: Right-click the track table header to trigger the `Table Columns` context menu:
+  - **Show/Hide**: Check/uncheck columns (including Track #, Title, Artist, Album, Genre, Year, Plays, Duration, Date Played, and the new **Liked** column) to toggle their visibility.
   - **Reorder**: Select `Move Left` or `Move Right` to rearrange the columns. Preferences are saved automatically to `db.json`.
 
-### Liking a Song
-- Hovering over a track shows a heart icon. Clicking it toggles the track's favorited state (saves to `favorites` in `db.json`).
+### Liking a Song (The Liked Column)
+- The heart toggle is integrated directly as a standard, first-class table column (**Liked**). Clicking the heart icon on any track row immediately toggles its liked state.
+- Redundant per-row action buttons (e.g. metadata editor and playlist addition buttons) have been removed from the end of the rows to keep the interface clean. All metadata and playlist actions are fully accessible via keyboard shortcuts or the right-click menu.
+
+### Responsive Column Collapsing
+- To prevent columns from wrapping and bunching up on smaller monitors, the track table dynamically collapses columns as the window width narrows.
+- Hiding priority is designed to discard lower-priority columns first:
+  1. `Disc #` (Hides first)
+  2. `Plays`
+  3. `Date Played`
+  4. `Genre`
+  5. `Liked` (heart column)
+  6. `Year`
+  7. `Album`
+  8. `Artist`
+- Core columns `#` (Track Number), `Title`, and `Duration` remain visible. If space becomes extremely tight, only `Title` and `Duration` are shown.
+- Hiding columns in this responsive mode is temporary and **does not** overwrite your saved column visibility preferences in `db.json`. Expanding the window restores them in reverse order.
 
 ### Track Right-Click Context Menu
 Right-clicking an individual track opens the `Song Menu`:
@@ -327,3 +342,48 @@ The following table documents all keyboard controls available when the OmaTUNES 
 | `Escape` | Dialog / Editor | Close active dialog, tag editor, or context menu |
 | `]` | Main Player | Increase UI Font Scaling (scales font size up) |
 | `[` | Main Player | Decrease UI Font Scaling (scales font size down) |
+
+---
+
+## 12. Theming System & Custom Theme Editor
+
+OmaTUNES includes an extensive custom theming pipeline that handles colors dynamically. Open the settings dialog (Gear icon at the far right of the library tab strip) to configure it.
+
+### Theme Sources
+- **System Theme**: Detects and applies your active Omarchy system theme live in real-time.
+- **Preset Themes**: Swap in any of the built-in preset palettes:
+  - *Nord*
+  - *Catppuccin Mocha*
+  - *Catppuccin Latte*
+  - *Dracula*
+  - *Gruvbox (Dark)*
+  - *Everforest (Dark)*
+  - *Monokai*
+- **Custom Theme**: Allows full customization. To prevent poor layout color combinations, only **7 base colors** are directly editable:
+  - **Background** (`base`): The main application backdrop.
+  - **Primary Text** (`text`): Used for primary headers and text lines.
+  - **Accent**: Used for active tracks, button overlays, and highlighting.
+  - **Green / Red / Yellow / Blue**: Swatches for indicators, warnings, and states.
+
+### Contrast Protection & Derived Colors
+The remaining **4 structural tokens** are automatically calculated from your Base and Text choices using target WCAG relative luminance contrast ratios:
+* **Background (Deep)** (`mantle`): Derived from Background at a `1.20` contrast target to serve as a darker/deeper backdrop (darker in dark mode, lighter in light mode).
+* **Panel Background** (`surface0`): Derived from Background at a `1.40` contrast ratio to act as a structural highlight (lighter in dark mode, darker in light mode).
+* **Muted Text / Icons** (`overlay0`): Derived from Background at a `2.80` contrast target to ensure inactive icons, unliked hearts, and **non-highlighted lyric lines** remain readable.
+* **Secondary Text** (`subtext`): Derived from Primary Text at a `1.25` contrast target to ensure secondary labels remain legible but de-emphasized.
+These derived swatches display live in the Custom builder as read-only preview swatches. Saving the settings writes the generated hex values directly to `config.toml`.
+
+---
+
+## 13. Now Playing & Up Next Queue
+
+The **Now Playing** tab (located in the main library view tab row) switches to the active Up Next queue manager.
+
+### Queue Actions & Controls
+- **Up Next Header Row**: Displays dynamic headers matching your active column visibility setup.
+- **Drag-to-Reorder Handles**: Hover over a track in the queue to reveal the drag handle icon (`\u{f0c9}`). Click and drag the handle up or down to re-order the playing queue in real-time.
+- **Move Up / Down Arrows**: Quick action buttons next to each queue track to shift its position by one slot.
+- **Remove Button**: Click the red cross icon (`\u{f00d}`) on any row to remove that specific track from the queue.
+- **Queue Search**: Use the right-hand search filter inside the Now Playing tab to narrow down queue items by keyword without losing playback state.
+- **Clear Queue**: Click the garbage icon in the queue controls to purge all upcoming tracks.
+
