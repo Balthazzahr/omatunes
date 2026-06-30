@@ -1471,13 +1471,23 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     let tab_width_2 = (total_width / 3.0).floor();
     let tab_width_3 = total_width - tab_width_1 - tab_width_2;
 
-    let tab_btn = |mode: ViewMode, label: &'static str, width: f32| {
+    let tab_btn = |mode: ViewMode, icon: &'static str, label: &'static str, width: f32| {
         let is_active = state.view_mode == mode && state.selected_playlist.is_none();
         let btn_text = text(label)
             .size(11)
             .font(crate::ui::icons::UI_FONT_BOLD);
+        let btn_icon = text(icon)
+            .size(14)
+            .font(crate::ui::icons::NERD_FONT_MONO);
         
-        button(container(btn_text).center_x(Length::Fill).center_y(Length::Fill))
+        let content = row![
+            btn_icon,
+            Space::with_width(6),
+            btn_text
+        ]
+        .align_y(Alignment::Center);
+
+        let btn = button(container(content).center_x(Length::Fill).center_y(Length::Fill))
             .on_press(Message::SelectViewMode(mode))
             .width(width)
             .height(28.0)
@@ -1500,13 +1510,15 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
                     ..Default::default()
                 }
             })
-            .padding(0)
+            .padding(0);
+
+        tooltip(btn, label, tooltip::Position::Top)
     };
 
     let left_tabs = row![
-        tab_btn(ViewMode::Artists, "Artists", tab_width_1),
-        tab_btn(ViewMode::Albums, "Albums", tab_width_2),
-        tab_btn(ViewMode::Genres, "Genres", tab_width_3),
+        tab_btn(ViewMode::Artists, crate::ui::icons::ICON_MICROPHONE, "Artists", tab_width_1),
+        tab_btn(ViewMode::Albums, crate::ui::icons::ICON_CD, "Albums", tab_width_2),
+        tab_btn(ViewMode::Genres, crate::ui::icons::ICON_TAG, "Genres", tab_width_3),
     ]
     .spacing(0)
     .align_y(Alignment::Center);
