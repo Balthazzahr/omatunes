@@ -9,22 +9,23 @@ use iced::{Border, Color};
 
 static PALETTE: OnceLock<Mutex<Palette>> = OnceLock::new();
 
-struct Palette {
-    base:     Color,
-    mantle:   Color,
-    surface0: Color,
-    overlay0: Color,
-    text:     Color,
-    subtext:  Color,
-    accent:   Color,
-    green:    Color,
-    red:      Color,
-    yellow:   Color,
-    blue:     Color,
+#[derive(Clone, Copy, Debug)]
+pub struct Palette {
+    pub base:     Color,
+    pub mantle:   Color,
+    pub surface0: Color,
+    pub overlay0: Color,
+    pub text:     Color,
+    pub subtext:  Color,
+    pub accent:   Color,
+    pub green:    Color,
+    pub red:      Color,
+    pub yellow:   Color,
+    pub blue:     Color,
 }
 
 impl Palette {
-    fn default_lavender() -> Self {
+    pub fn default_lavender() -> Self {
         Palette {
             base:     hex(0x11, 0x11, 0x1b),
             mantle:   hex(0x18, 0x18, 0x25),
@@ -41,14 +42,147 @@ impl Palette {
     }
 }
 
+pub fn get_preset_palette(name: &str) -> Option<Palette> {
+    match name {
+        "Nord" => Some(Palette {
+            base:     hex_to_color("#2e3440").unwrap(),
+            mantle:   hex_to_color("#242933").unwrap(),
+            surface0: hex_to_color("#3b4252").unwrap(),
+            overlay0: hex_to_color("#4c566a").unwrap(),
+            text:     hex_to_color("#eceff4").unwrap(),
+            subtext:  hex_to_color("#d8dee9").unwrap(),
+            accent:   hex_to_color("#88c0d0").unwrap(),
+            green:    hex_to_color("#a3be8c").unwrap(),
+            red:      hex_to_color("#bf616a").unwrap(),
+            yellow:   hex_to_color("#ebcb8b").unwrap(),
+            blue:     hex_to_color("#81a1c1").unwrap(),
+        }),
+        "Catppuccin Mocha" => Some(Palette::default_lavender()),
+        "Catppuccin Latte" => Some(Palette {
+            base:     hex_to_color("#eff1f5").unwrap(),
+            mantle:   hex_to_color("#e6e9ef").unwrap(),
+            surface0: hex_to_color("#ccd0da").unwrap(),
+            overlay0: hex_to_color("#9ca0b0").unwrap(),
+            text:     hex_to_color("#4c4f69").unwrap(),
+            subtext:  hex_to_color("#5c5f77").unwrap(),
+            accent:   hex_to_color("#8839ef").unwrap(),
+            green:    hex_to_color("#40a02b").unwrap(),
+            red:      hex_to_color("#d20f39").unwrap(),
+            yellow:   hex_to_color("#df8e1d").unwrap(),
+            blue:     hex_to_color("#1e66f5").unwrap(),
+        }),
+        "Dracula" => Some(Palette {
+            base:     hex_to_color("#282a36").unwrap(),
+            mantle:   hex_to_color("#1e1f29").unwrap(),
+            surface0: hex_to_color("#44475a").unwrap(),
+            overlay0: hex_to_color("#6272a4").unwrap(),
+            text:     hex_to_color("#f8f8f2").unwrap(),
+            subtext:  hex_to_color("#a4b9ef").unwrap(),
+            accent:   hex_to_color("#bd93f9").unwrap(),
+            green:    hex_to_color("#50fa7b").unwrap(),
+            red:      hex_to_color("#ff5555").unwrap(),
+            yellow:   hex_to_color("#f1fa8c").unwrap(),
+            blue:     hex_to_color("#8be9fd").unwrap(),
+        }),
+        "Gruvbox (Dark)" => Some(Palette {
+            base:     hex_to_color("#282828").unwrap(),
+            mantle:   hex_to_color("#1d2021").unwrap(),
+            surface0: hex_to_color("#3c3836").unwrap(),
+            overlay0: hex_to_color("#7c6f64").unwrap(),
+            text:     hex_to_color("#ebdbb2").unwrap(),
+            subtext:  hex_to_color("#a89984").unwrap(),
+            accent:   hex_to_color("#fe8019").unwrap(),
+            green:    hex_to_color("#b8bb26").unwrap(),
+            red:      hex_to_color("#fb4934").unwrap(),
+            yellow:   hex_to_color("#fabd2f").unwrap(),
+            blue:     hex_to_color("#83a598").unwrap(),
+        }),
+        "Everforest (Dark)" => Some(Palette {
+            base:     hex_to_color("#2d353b").unwrap(),
+            mantle:   hex_to_color("#232a2e").unwrap(),
+            surface0: hex_to_color("#3d484d").unwrap(),
+            overlay0: hex_to_color("#859289").unwrap(),
+            text:     hex_to_color("#d3c6aa").unwrap(),
+            subtext:  hex_to_color("#9da9a0").unwrap(),
+            accent:   hex_to_color("#a7c080").unwrap(),
+            green:    hex_to_color("#8db573").unwrap(),
+            red:      hex_to_color("#e67e80").unwrap(),
+            yellow:   hex_to_color("#dbbc7f").unwrap(),
+            blue:     hex_to_color("#7fbbb3").unwrap(),
+        }),
+        "Monokai" => Some(Palette {
+            base:     hex_to_color("#272822").unwrap(),
+            mantle:   hex_to_color("#1e1f1c").unwrap(),
+            surface0: hex_to_color("#3e3d32").unwrap(),
+            overlay0: hex_to_color("#75715e").unwrap(),
+            text:     hex_to_color("#f8f8f2").unwrap(),
+            subtext:  hex_to_color("#a59f85").unwrap(),
+            accent:   hex_to_color("#f92672").unwrap(),
+            green:    hex_to_color("#a6e22e").unwrap(),
+            red:      hex_to_color("#f92672").unwrap(),
+            yellow:   hex_to_color("#e6db74").unwrap(),
+            blue:     hex_to_color("#66d9ef").unwrap(),
+        }),
+        _ => None,
+    }
+}
+
+pub fn hex_to_color(s: &str) -> Option<Color> {
+    let clean = s.trim().trim_start_matches('#');
+    if clean.len() != 6 { return None; }
+    let r = u8::from_str_radix(&clean[0..2], 16).ok()?;
+    let g = u8::from_str_radix(&clean[2..4], 16).ok()?;
+    let b = u8::from_str_radix(&clean[4..6], 16).ok()?;
+    Some(hex(r, g, b))
+}
+
+pub fn color_to_hex(c: Color) -> String {
+    let r = (c.r * 255.0).round() as u8;
+    let g = (c.g * 255.0).round() as u8;
+    let b = (c.b * 255.0).round() as u8;
+    format!("#{:02x}{:02x}{:02x}", r, g, b)
+}
+
 fn palette_mutex() -> &'static Mutex<Palette> {
     PALETTE.get_or_init(|| {
-        let p = try_load_omarchy_theme().unwrap_or_else(|| {
-            eprintln!("omatunes: tema Omarchy não encontrado, usando lavender padrão");
-            Palette::default_lavender()
-        });
-        Mutex::new(p)
+        Mutex::new(load_palette_from_config())
     })
+}
+
+pub fn load_palette_from_config() -> Palette {
+    let cfg = crate::config::get();
+    match cfg.theme_source.as_str() {
+        "Preset" => {
+            get_preset_palette(&cfg.theme_preset).unwrap_or_else(|| {
+                get_preset_palette("Nord").unwrap()
+            })
+        }
+        "Custom" => {
+            if let Some(ref custom) = cfg.custom_theme {
+                Palette {
+                    base:     hex_to_color(&custom.base).unwrap_or_else(|| hex(0x11, 0x11, 0x1b)),
+                    mantle:   hex_to_color(&custom.mantle).unwrap_or_else(|| hex(0x18, 0x18, 0x25)),
+                    surface0: hex_to_color(&custom.surface0).unwrap_or_else(|| hex(0x31, 0x32, 0x44)),
+                    overlay0: hex_to_color(&custom.overlay0).unwrap_or_else(|| hex(0x6c, 0x70, 0x86)),
+                    text:     hex_to_color(&custom.text).unwrap_or_else(|| hex(0xcd, 0xd6, 0xf4)),
+                    subtext:  hex_to_color(&custom.subtext).unwrap_or_else(|| hex(0xa6, 0xad, 0xc8)),
+                    accent:   hex_to_color(&custom.accent).unwrap_or_else(|| hex(0xcb, 0xa6, 0xf7)),
+                    green:    hex_to_color(&custom.green).unwrap_or_else(|| hex(0xa6, 0xe3, 0xa1)),
+                    red:      hex_to_color(&custom.red).unwrap_or_else(|| hex(0xf3, 0x8b, 0xa8)),
+                    yellow:   hex_to_color(&custom.yellow).unwrap_or_else(|| hex(0xf9, 0xe2, 0xaf)),
+                    blue:     hex_to_color(&custom.blue).unwrap_or_else(|| hex(0x89, 0xb4, 0xfa)),
+                }
+            } else {
+                Palette::default_lavender()
+            }
+        }
+        _ => { // "System"
+            try_load_omarchy_theme().unwrap_or_else(|| {
+                eprintln!("omatunes: tema Omarchy não encontrado, usando lavender padrão");
+                Palette::default_lavender()
+            })
+        }
+    }
 }
 
 /// Inicializa a paleta na primeira execução.
@@ -56,11 +190,13 @@ pub fn load_system_theme() {
     let _ = palette_mutex();
 }
 
+pub fn apply_palette(new_palette: Palette) {
+    *palette_mutex().lock().unwrap() = new_palette;
+}
+
 /// Relê o tema do Omarchy em disco e atualiza a paleta sem reiniciar.
 pub fn reload_system_theme() {
-    if let Some(new) = try_load_omarchy_theme() {
-        *palette_mutex().lock().unwrap() = new;
-    }
+    *palette_mutex().lock().unwrap() = load_palette_from_config();
 }
 
 /// Retorna o nome do tema atualmente configurado no Omarchy (para detecção de mudanças).
