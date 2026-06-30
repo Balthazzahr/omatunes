@@ -547,48 +547,5 @@ pub fn save_button_saved(_: &iced::Theme, _status: iced::widget::button::Status)
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
 
-    #[test]
-    fn test_print_contrasts() {
-        let presets = vec![
-            "Nord",
-            "Catppuccin Mocha",
-            "Catppuccin Latte",
-            "Dracula",
-            "Gruvbox (Dark)",
-            "Everforest (Dark)",
-            "Monokai",
-        ];
-        for name in presets {
-            let p = get_preset_palette(name).unwrap();
-            let base_overlay0 = contrast_ratio(p.base, p.overlay0);
-            let base_subtext = contrast_ratio(p.base, p.subtext);
-            let base_text = contrast_ratio(p.base, p.text);
-            
-            // Relational checks
-            let base_mantle = contrast_ratio(p.base, p.mantle);
-            let base_surface0 = contrast_ratio(p.base, p.surface0);
-            let text_subtext = contrast_ratio(p.text, p.subtext);
-            
-            println!("=== {} ===", name);
-            println!("  Overlay0 vs Base: {:.2}", base_overlay0);
-            println!("  Subtext vs Base: {:.2}", base_subtext);
-            println!("  Text vs Base: {:.2}", base_text);
-            println!("  Base vs Mantle: {:.2}", base_mantle);
-            println!("  Base vs Surface0: {:.2}", base_surface0);
-            println!("  Text vs Subtext: {:.2}", text_subtext);
-            
-            println!("  base: #{:02x}{:02x}{:02x}", (p.base.r * 255.0) as u8, (p.base.g * 255.0) as u8, (p.base.b * 255.0) as u8);
-            println!("  mantle: #{:02x}{:02x}{:02x}", (p.mantle.r * 255.0) as u8, (p.mantle.g * 255.0) as u8, (p.mantle.b * 255.0) as u8);
-            println!("  surface0: #{:02x}{:02x}{:02x}", (p.surface0.r * 255.0) as u8, (p.surface0.g * 255.0) as u8, (p.surface0.b * 255.0) as u8);
-            println!("  overlay0: #{:02x}{:02x}{:02x}", (p.overlay0.r * 255.0) as u8, (p.overlay0.g * 255.0) as u8, (p.overlay0.b * 255.0) as u8);
-            println!("  text: #{:02x}{:02x}{:02x}", (p.text.r * 255.0) as u8, (p.text.g * 255.0) as u8, (p.text.b * 255.0) as u8);
-            println!("  subtext: #{:02x}{:02x}{:02x}", (p.subtext.r * 255.0) as u8, (p.subtext.g * 255.0) as u8, (p.subtext.b * 255.0) as u8);
-        }
-        panic!("Show output");
-    }
-}
 
