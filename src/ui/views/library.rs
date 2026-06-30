@@ -1,4 +1,4 @@
-use iced::widget::{button, column, container, mouse_area, row, scrollable, text, Space, checkbox, text_input, stack};
+use iced::widget::{button, column, container, mouse_area, row, scrollable, text, Space, checkbox, text_input, stack, tooltip};
 use iced::{Alignment, Element, Length};
 
 use crate::app::{AppState, Message, ViewMode, SortColumn, PlaylistDialogMode};
