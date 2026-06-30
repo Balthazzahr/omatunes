@@ -5,6 +5,39 @@ use serde::{Deserialize, Serialize};
 
 static CONFIG: OnceLock<Mutex<Config>> = OnceLock::new();
 
+#[derive(Deserialize, Serialize, Clone, Debug)]
+pub struct CustomThemeConfig {
+    pub base: String,
+    pub mantle: String,
+    pub surface0: String,
+    pub overlay0: String,
+    pub text: String,
+    pub subtext: String,
+    pub accent: String,
+    pub green: String,
+    pub red: String,
+    pub yellow: String,
+    pub blue: String,
+}
+
+impl Default for CustomThemeConfig {
+    fn default() -> Self {
+        CustomThemeConfig {
+            base:     "#11111b".into(),
+            mantle:   "#181825".into(),
+            surface0: "#313244".into(),
+            overlay0: "#6c7086".into(),
+            text:     "#cdd6f4".into(),
+            subtext:  "#a6adc8".into(),
+            accent:   "#cba6f7".into(),
+            green:    "#a6e3a1".into(),
+            red:      "#f38ba8".into(),
+            yellow:   "#f9e2af".into(),
+            blue:     "#89b4fa".into(),
+        }
+    }
+}
+
 #[derive(Deserialize, Serialize, Clone)]
 #[serde(default)]
 pub struct Config {
@@ -16,6 +49,9 @@ pub struct Config {
     pub seek_step:   u64,
     pub volume_step: f32,
     pub font_scale:  Option<f32>,
+    pub theme_source: String,
+    pub theme_preset: String,
+    pub custom_theme: Option<CustomThemeConfig>,
 }
 
 impl Default for Config {
@@ -29,6 +65,9 @@ impl Default for Config {
             seek_step:   5,
             volume_step: 0.05,
             font_scale:  Some(1.0),
+            theme_source: "System".into(),
+            theme_preset: "Nord".into(),
+            custom_theme: None,
         }
     }
 }
