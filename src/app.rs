@@ -3149,7 +3149,21 @@ impl AppState {
             }
 
             Message::SettingsSave => {
-                if let Some(ref state) = self.show_settings {
+                if let Some(ref mut state) = self.show_settings {
+                    // Don't save if there are validation errors in hex codes
+                    if state.theme_source == "Custom" && !state.custom_validation_errors.is_empty() {
+                        return Task::none();
+                    }
+
+                    // Contrast warnings
+                    if state.theme_source == "Custom" {
+                        let warnings = crate::ui::theme::check_custom_contrast_warnings(&state.custom_theme);
+                        if !warnings.is_empty() && !state.confirm_save_anyway {
+                            state.confirm_save_anyway = true;
+                            return Task::none();
+                        }
+                    }
+
                     let mut cfg = crate::config::get();
                     let old_music_path = cfg.music_path();
                     
@@ -3161,8 +3175,22 @@ impl AppState {
                     cfg.volume_step = state.volume_step;
                     cfg.font_scale = Some(state.font_scale);
                     
+                    cfg.theme_source = state.theme_source.clone();
+                    cfg.theme_preset = state.theme_preset.clone();
+                    cfg.custom_theme = Some(state.custom_theme.clone());
+                    
                     crate::config::save(cfg.clone());
                     
+                    // Reload active theme
+                    let active_palette = crate::ui::theme::load_palette_from_config();
+                    crate::ui::theme::apply_palette(active_palette);
+                    self.iced_theme = build_iced_theme();
+                    self.loaded_theme_name = if cfg.theme_source == "System" {
+                        crate::ui::theme::read_current_theme_name()
+                    } else {
+                        String::new()
+                    };
+
                     // Reload strings/locale
                     self.strings = crate::locale::get();
                     
@@ -3176,6 +3204,102 @@ impl AppState {
                             },
                             Message::LibraryScanned,
                         );
+                    }
+                }
+                Task::none()
+            }
+
+            Message::SettingsThemeSourceChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.theme_source = val.clone();
+                    state.confirm_save_anyway = false;
+                    
+                    let preview_palette = match val.as_str() {
+                        "Preset" => {
+                            crate::ui::theme::get_preset_palette(&state.theme_preset)
+                                .unwrap_or_else(|| crate::ui::theme::Palette::default_lavender())
+                        }
+                        "Custom" => {
+                            let current_palette = crate::ui::theme::load_palette_from_config();
+                            crate::ui::theme::Palette {
+                                base: crate::ui::theme::hex_to_color(&state.custom_theme.base).unwrap_or(current_palette.base),
+                                mantle: crate::ui::theme::hex_to_color(&state.custom_theme.mantle).unwrap_or(current_palette.mantle),
+                                surface0: crate::ui::theme::hex_to_color(&state.custom_theme.surface0).unwrap_or(current_palette.surface0),
+                                overlay0: crate::ui::theme::hex_to_color(&state.custom_theme.overlay0).unwrap_or(current_palette.overlay0),
+                                text: crate::ui::theme::hex_to_color(&state.custom_theme.text).unwrap_or(current_palette.text),
+                                subtext: crate::ui::theme::hex_to_color(&state.custom_theme.subtext).unwrap_or(current_palette.subtext),
+                                accent: crate::ui::theme::hex_to_color(&state.custom_theme.accent).unwrap_or(current_palette.accent),
+                                green: crate::ui::theme::hex_to_color(&state.custom_theme.green).unwrap_or(current_palette.green),
+                                red: crate::ui::theme::hex_to_color(&state.custom_theme.red).unwrap_or(current_palette.red),
+                                yellow: crate::ui::theme::hex_to_color(&state.custom_theme.yellow).unwrap_or(current_palette.yellow),
+                                blue: crate::ui::theme::hex_to_color(&state.custom_theme.blue).unwrap_or(current_palette.blue),
+                            }
+                        }
+                        _ => {
+                            crate::ui::theme::load_palette_from_config()
+                        }
+                    };
+                    crate::ui::theme::apply_palette(preview_palette);
+                    self.iced_theme = build_iced_theme();
+                }
+                Task::none()
+            }
+
+            Message::SettingsThemePresetChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.theme_preset = val.clone();
+                    state.confirm_save_anyway = false;
+                    
+                    if let Some(preset) = crate::ui::theme::get_preset_palette(&val) {
+                        crate::ui::theme::apply_palette(preset);
+                        self.iced_theme = build_iced_theme();
+                    }
+                }
+                Task::none()
+            }
+
+            Message::SettingsCustomColorChanged(token, val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    match token.as_str() {
+                        "base" => state.custom_theme.base = val.clone(),
+                        "mantle" => state.custom_theme.mantle = val.clone(),
+                        "surface0" => state.custom_theme.surface0 = val.clone(),
+                        "overlay0" => state.custom_theme.overlay0 = val.clone(),
+                        "text" => state.custom_theme.text = val.clone(),
+                        "subtext" => state.custom_theme.subtext = val.clone(),
+                        "accent" => state.custom_theme.accent = val.clone(),
+                        "green" => state.custom_theme.green = val.clone(),
+                        "red" => state.custom_theme.red = val.clone(),
+                        "yellow" => state.custom_theme.yellow = val.clone(),
+                        "blue" => state.custom_theme.blue = val.clone(),
+                        _ => {}
+                    }
+                    state.confirm_save_anyway = false;
+                    
+                    let is_valid = crate::ui::theme::hex_to_color(&val).is_some();
+                    if is_valid {
+                        state.custom_validation_errors.remove(&token);
+                    } else {
+                        state.custom_validation_errors.insert(token.clone(), "Invalid hex (format: #RRGGBB)".to_string());
+                    }
+                    
+                    if is_valid {
+                        let current_palette = crate::ui::theme::load_palette_from_config();
+                        let preview_palette = crate::ui::theme::Palette {
+                            base: crate::ui::theme::hex_to_color(&state.custom_theme.base).unwrap_or(current_palette.base),
+                            mantle: crate::ui::theme::hex_to_color(&state.custom_theme.mantle).unwrap_or(current_palette.mantle),
+                            surface0: crate::ui::theme::hex_to_color(&state.custom_theme.surface0).unwrap_or(current_palette.surface0),
+                            overlay0: crate::ui::theme::hex_to_color(&state.custom_theme.overlay0).unwrap_or(current_palette.overlay0),
+                            text: crate::ui::theme::hex_to_color(&state.custom_theme.text).unwrap_or(current_palette.text),
+                            subtext: crate::ui::theme::hex_to_color(&state.custom_theme.subtext).unwrap_or(current_palette.subtext),
+                            accent: crate::ui::theme::hex_to_color(&state.custom_theme.accent).unwrap_or(current_palette.accent),
+                            green: crate::ui::theme::hex_to_color(&state.custom_theme.green).unwrap_or(current_palette.green),
+                            red: crate::ui::theme::hex_to_color(&state.custom_theme.red).unwrap_or(current_palette.red),
+                            yellow: crate::ui::theme::hex_to_color(&state.custom_theme.yellow).unwrap_or(current_palette.yellow),
+                            blue: crate::ui::theme::hex_to_color(&state.custom_theme.blue).unwrap_or(current_palette.blue),
+                        };
+                        crate::ui::theme::apply_palette(preview_palette);
+                        self.iced_theme = build_iced_theme();
                     }
                 }
                 Task::none()
