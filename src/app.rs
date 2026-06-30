@@ -1147,8 +1147,8 @@ impl AppState {
 
             Message::RightPanelDragMove(x) => {
                 // x is cursor position from left of window.
-                let max_drawer_width = (self.window_width - MIN_NON_DRAWER_WIDTH).max(200.0);
-                let new_width = (self.window_width - x).clamp(200.0, max_drawer_width);
+                let max_drawer_width = (self.window_width - MIN_NON_DRAWER_WIDTH).max(300.0);
+                let new_width = (self.window_width - x).clamp(300.0, max_drawer_width);
                 self.right_panel_width = new_width;
                 Task::none()
             }
