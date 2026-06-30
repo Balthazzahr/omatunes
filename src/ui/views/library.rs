@@ -552,6 +552,7 @@ struct TrackListDependency {
     hovered_album_header: Option<String>,
     visible_start: usize,
     visible_end: usize,
+    responsive_columns: Vec<crate::db::TableColumn>,
 }
 
 impl std::hash::Hash for TrackListDependency {
@@ -569,6 +570,7 @@ impl std::hash::Hash for TrackListDependency {
         self.hovered_album_header.hash(state);
         self.visible_start.hash(state);
         self.visible_end.hash(state);
+        self.responsive_columns.hash(state);
         for t in &self.selected_tracks {
             t.id.hash(state);
             t.title.hash(state);
