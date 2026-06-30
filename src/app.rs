@@ -522,7 +522,7 @@ impl AppState {
             folder_cache: HashMap::new(),
             sidebar_width: db_sidebar_width.unwrap_or(200.0).clamp(MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH),
             dragging_sidebar: false,
-            right_panel_width: db_right_panel_width.unwrap_or(960.0f32 * 0.33),
+            right_panel_width: db_right_panel_width.unwrap_or(960.0f32 * 0.33).max(200.0),
             right_panel_width_initialized: db_right_panel_width.is_some(),
             dragging_right_panel: false,
             is_hovering_right_panel_resizer: false,
