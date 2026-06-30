@@ -1441,6 +1441,7 @@ fn col_width(col: crate::db::TableColumn) -> Length {
         crate::db::TableColumn::Duration => Length::Fixed(80.0),
         crate::db::TableColumn::Plays => Length::Fixed(40.0),
         crate::db::TableColumn::DatePlayed => Length::FillPortion(2),
+        crate::db::TableColumn::Liked => Length::Fixed(40.0),
     }
 }
 
@@ -1456,6 +1457,7 @@ fn col_to_sort_col(col: crate::db::TableColumn) -> SortColumn {
         crate::db::TableColumn::Duration => SortColumn::Duration,
         crate::db::TableColumn::Plays => SortColumn::Plays,
         crate::db::TableColumn::DatePlayed => SortColumn::DatePlayed,
+        crate::db::TableColumn::Liked => SortColumn::Liked,
     }
 }
 
