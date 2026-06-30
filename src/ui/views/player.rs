@@ -249,27 +249,35 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             }
         });
 
-    let separator = container(Space::new(Length::Fixed(1.0), Length::Fill))
-        .style(|_| iced::widget::container::Style {
-            background: Some(iced::Background::Color(theme::surface0())),
-            ..Default::default()
-        })
-        .width(1.0)
-        .height(Length::Fixed(270.0));
+    let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 200.0);
 
-    row![
-        player_with_scroll,
-        separator,
-        tab_strip,
-    ]
-    .spacing(0)
-    .align_y(Alignment::Center)
-    .width(Length::Fill)
-    .height(Length::Fixed(270.0))
-    .into()
+    if is_allowed {
+        row![
+            player_with_scroll,
+            tab_strip,
+        ]
+        .spacing(0)
+        .align_y(Alignment::Center)
+        .width(Length::Fill)
+        .height(Length::Fixed(270.0))
+        .into()
+    } else {
+        row![
+            player_with_scroll,
+        ]
+        .spacing(0)
+        .align_y(Alignment::Center)
+        .width(Length::Fill)
+        .height(Length::Fixed(270.0))
+        .into()
+    }
 }
 
 pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
+    let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 200.0);
+    if !is_allowed {
+        return None;
+    }
     let tab = state.right_panel_tab?;
     let pane_content: Element<'_, Message> = match tab {
         crate::app::RightPanelTab::Visualizer => {
