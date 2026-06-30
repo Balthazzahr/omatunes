@@ -38,15 +38,18 @@ pub const ICON_REPEAT_ONE: &str = "\u{f1b8}";  //
 pub const ICON_VOL_UP:   &str = "\u{f028}";  //
 pub const ICON_VOL_MUTE: &str = "\u{f026}";  //
 pub const ICON_MUSIC:    &str = "\u{f001}";  //
-pub const ICON_LIST:     &str = "\u{f0ca}";  //
-pub const ICON_HEART:    &str = "\u{f004}";  //
-pub const ICON_PLUS:     &str = "\u{f067}";  //
-pub const ICON_TRASH:    &str = "\u{f1f8}";  //
-pub const ICON_COPY:     &str = "\u{f0c5}";  //
-pub const ICON_PODIUM:   &str = "\u{f0d25}"; //
+pub const ICON_LIST:       &str = "\u{f03a}";  // list-ul
+pub const ICON_HEART:      &str = "\u{f004}";  //
+pub const ICON_PLUS:       &str = "\u{f067}";  //
+pub const ICON_TRASH:      &str = "\u{f1f8}";  //
+pub const ICON_COPY:       &str = "\u{f0c5}";  //
+pub const ICON_PODIUM:     &str = "\u{f0d25}"; //
 pub const ICON_VISUALIZER: &str = "\u{f147d}"; // waveform
 pub const ICON_LYRICS:     &str = "\u{f0cb9}"; // lyrics custom
-pub const ICON_USER:       &str = "\u{f007}";  // user
-pub const ICON_REFRESH:    &str = "\u{f021}";  // sync/refresh
 pub const ICON_WAND:       &str = "\u{f0d0}";  // magic wand
+pub const ICON_BOLT:       &str = "\u{f0e7}";  // bolt/flash
+pub const ICON_MICROPHONE: &str = "\u{f130}";  // microphone
+pub const ICON_CD:         &str = "\u{f51f}";  // compact disc
+pub const ICON_TAG:        &str = "\u{f02b}";  // tag
+
 
