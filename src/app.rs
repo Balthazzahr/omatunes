@@ -1384,6 +1384,9 @@ impl AppState {
             }
 
             Message::PollSpectrum => {
+                if matches!(self.playback_state, PlaybackState::Playing) {
+                    self.animation_tick = self.animation_tick.wrapping_add(1);
+                }
                 if self.right_panel_tab == Some(RightPanelTab::Visualizer) {
                     if matches!(self.playback_state, PlaybackState::Playing) {
                         self.spectrum_bands = self.spectrum_analyzer.compute();
