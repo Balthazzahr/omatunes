@@ -4489,7 +4489,6 @@ impl AppState {
     }
 
     pub fn update_live_smart_playlists(&mut self) {
-        let rp = crate::db::get(|db| db.recently_played.clone());
         let smart_playlists = crate::db::get(|db| db.smart_playlists.clone());
         for (name, mut sp) in smart_playlists {
             if sp.live_updating {
