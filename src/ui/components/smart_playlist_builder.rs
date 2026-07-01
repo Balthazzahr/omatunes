@@ -443,7 +443,7 @@ pub fn view<'a>(
             .font(crate::ui::icons::UI_FONT_BOLD)
     )
     .on_press(Message::SmartPlaylistBuilderMsg(SmartPlaylistBuilderEvent::Save))
-    .style(theme::accent_button)
+    .style(theme::primary_button)
     .padding([8, 16]);
 
     let cancel_btn = button(
