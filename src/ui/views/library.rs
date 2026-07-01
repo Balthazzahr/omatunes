@@ -6,7 +6,28 @@ use crate::ui::theme;
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
     let sidebar = folder_sidebar(state);
-    let track_list = track_list_view(state);
+    let main_content: Element<'_, Message> = if let Some(ref builder_state) = state.smart_playlist_builder {
+        let mut unique_artists: Vec<String> = state.all_tracks.iter().map(|t| t.artist.clone()).collect();
+        unique_artists.sort();
+        unique_artists.dedup();
+
+        let mut unique_albums: Vec<String> = state.all_tracks.iter().map(|t| t.album.clone()).collect();
+        unique_albums.sort();
+        unique_albums.dedup();
+
+        let mut unique_genres: Vec<String> = state.all_tracks.iter().map(|t| t.genre.clone()).collect();
+        unique_genres.sort();
+        unique_genres.dedup();
+
+        crate::ui::components::smart_playlist_builder::view(
+            builder_state,
+            &unique_artists,
+            &unique_albums,
+            &unique_genres,
+        )
+    } else {
+        track_list_view(state)
+    };
 
     let drag_handle = mouse_area(
         container(
@@ -29,7 +50,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     .on_exit(Message::HoverSidebarResizer(false))
     .interaction(iced::mouse::Interaction::ResizingHorizontally);
 
-    row![sidebar, drag_handle, track_list]
+    row![sidebar, drag_handle, main_content]
         .width(Length::Fill)
         .height(Length::Fill)
         .into()
