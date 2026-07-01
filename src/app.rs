@@ -983,12 +983,14 @@ impl AppState {
 
             Message::PlayTrack(track) => {
                 self.queue = self.tracks.clone();
+                self.set_playing_context_from_current_view();
                 self.play_track_internal(track)
             }
 
             Message::PlayTracks(tracks) => {
                 if let Some(first) = tracks.first().cloned() {
                     self.queue = tracks;
+                    self.set_playing_context_from_current_view();
                     self.play_track_internal(first)
                 } else {
                     Task::none()
@@ -996,10 +998,11 @@ impl AppState {
             }
 
             Message::PlayAlbum(album_name) => {
-                self.selected_album = Some(album_name);
+                self.selected_album = Some(album_name.clone());
                 self.selected_playlist = None;
                 self.search_query.clear();
                 self.update_filtered_tracks();
+                self.playing_context = Some(PlayingContext::Album(album_name));
                 let tracks_to_play = self.tracks.clone();
                 if let Some(first) = tracks_to_play.first().cloned() {
                     self.queue = tracks_to_play;
@@ -4513,6 +4516,26 @@ impl AppState {
                 sp.tracks = evaluated.iter().map(|t| t.path.clone()).collect();
                 crate::db::save_smart_playlist(name, sp);
             }
+        }
+    }
+
+    pub fn set_playing_context_from_current_view(&mut self) {
+        if let Some(ref name) = self.selected_playlist {
+            if name == "Liked Songs" || name == "Recently Played" || name == "Most Played" || name == "New Music" {
+                self.playing_context = Some(PlayingContext::Autoplaylist(name.clone()));
+            } else if crate::db::get(|db| db.smart_playlists.contains_key(name)) {
+                self.playing_context = Some(PlayingContext::SmartPlaylist(name.clone()));
+            } else {
+                self.playing_context = Some(PlayingContext::Playlist(name.clone()));
+            }
+        } else if let Some(ref album) = self.selected_album {
+            self.playing_context = Some(PlayingContext::Album(album.clone()));
+        } else if let Some(ref artist) = self.selected_artist {
+            self.playing_context = Some(PlayingContext::Artist(artist.clone()));
+        } else if let Some(ref genre) = self.selected_genre {
+            self.playing_context = Some(PlayingContext::Genre(genre.clone()));
+        } else {
+            self.playing_context = None;
         }
     }
 
