@@ -2679,6 +2679,7 @@ impl AppState {
             }
 
             Message::DeletePlaylist(name) => {
+                self.show_context_menu = None;
                 crate::db::delete_playlist(name.clone());
                 if self.selected_playlist.as_ref() == Some(&name) {
                     self.selected_playlist = None;
