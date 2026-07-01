@@ -1117,10 +1117,10 @@ impl AppState {
                         Task::none()
                     }
                     PlaybackState::Stopped => {
-                        if let Some(ref sel) = self.selected_track {
+                        if let Some(sel) = self.selected_track.clone() {
                             self.queue = self.tracks.clone();
                             self.set_playing_context_from_current_view();
-                            self.play_track_internal(sel.clone())
+                            self.play_track_internal(sel)
                         } else if let Some(first) = self.tracks.first().cloned() {
                             self.queue = self.tracks.clone();
                             self.set_playing_context_from_current_view();
