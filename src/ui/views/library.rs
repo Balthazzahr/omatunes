@@ -196,18 +196,22 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
 
         let is_custom = !is_auto;
 
+        let label_text = text(name.clone())
+            .color(if is_selected { theme::accent() } else if is_auto { theme::subtext() } else { theme::text() })
+            .font(if is_auto { crate::ui::icons::UI_FONT_BOLD } else { crate::ui::icons::UI_FONT })
+            .size(14);
+
+        let label_container = container(label_text)
+            .width(Length::Fill)
+            .clip(true);
+
         let label_row = row![
             text(icon_str)
                 .font(crate::ui::icons::NERD_FONT_MONO)
                 .color(if is_selected { theme::accent() } else { theme::overlay0() })
                 .size(14),
             Space::with_width(8),
-            text(name.clone())
-                .color(if is_selected { theme::accent() } else if is_auto { theme::subtext() } else { theme::text() })
-                .font(if is_auto { crate::ui::icons::UI_FONT_BOLD } else { crate::ui::icons::UI_FONT })
-                .size(14)
-                .width(Length::Fill)
-                .overflow(iced::widget::text::Overflow::Ellipsis),
+            label_container,
         ]
         .align_y(Alignment::Center)
         .width(Length::Fill);
