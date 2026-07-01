@@ -248,7 +248,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             tab_strip,
         ]
         .spacing(0)
-        .align_y(Alignment::Top)
+        .align_y(Alignment::Start)
         .width(Length::Fill)
         .height(Length::Fixed(298.0))
         .into()
