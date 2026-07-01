@@ -3119,13 +3119,14 @@ impl AppState {
 
             Message::DoubleClickGenre(genre_name) => {
                 self.view_mode = ViewMode::Genres;
-                self.selected_genre = Some(genre_name);
+                self.selected_genre = Some(genre_name.clone());
                 self.selected_playlist = None;
                 self.selected_folder = None;
                 self.selected_artist = None;
                 self.selected_album = None;
                 self.search_query.clear();
                 self.update_filtered_tracks();
+                self.playing_context = Some(PlayingContext::Genre(genre_name));
                 self.queue = self.tracks.clone();
                 if let Some(first) = self.tracks.first().cloned() {
                     self.play_track_internal(first)
