@@ -505,6 +505,8 @@ pub struct AppState {
     pub track_list_end: usize,
     pub smart_playlist_builder: Option<crate::ui::components::smart_playlist_builder::SmartPlaylistBuilderState>,
     pub previous_view_state: Option<SavedViewState>,
+    pub playing_context: Option<PlayingContext>,
+    pub animation_tick: u32,
 }
 
 impl AppState {
@@ -640,6 +642,8 @@ impl AppState {
             track_list_end: 500,
             smart_playlist_builder: None,
             previous_view_state: None,
+            playing_context: None,
+            animation_tick: 0,
         };
 
         (state, scan_task)
