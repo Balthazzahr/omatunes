@@ -1682,7 +1682,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     };
 
     let text_color_main = if is_now_playing_active { active_text_color } else { theme::text() };
-    let text_color_sub = if is_now_playing_active { theme::with_alpha(active_text_color, 0.7) } else { theme::subtext() };
+    let text_color_sub = if is_now_playing_active { active_text_color } else { theme::subtext() };
 
     let mut now_playing_row = row![].spacing(6).align_y(Alignment::Center);
 
@@ -1718,10 +1718,17 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         now_playing_row = now_playing_row.push(eq);
     }
 
+    let is_playing_or_paused = state.current_track.is_some() && !matches!(state.playback_state, crate::audio::PlaybackState::Stopped);
+    let now_playing_font = if is_playing_or_paused {
+        crate::ui::icons::UI_FONT_BOLD
+    } else {
+        crate::ui::icons::UI_FONT
+    };
+
     now_playing_row = now_playing_row.push(
         text("Now Playing")
-            .size(11)
-            .font(crate::ui::icons::UI_FONT_BOLD)
+            .size(13)
+            .font(now_playing_font)
             .color(text_color_main)
     );
 
@@ -1747,13 +1754,13 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
             now_playing_row = now_playing_row
                 .push(
                     text(" · ")
-                        .size(11)
+                        .size(13)
                         .color(text_color_sub)
                 )
                 .push(
                     container(
                         text(context_name)
-                            .size(11)
+                            .size(13)
                             .color(text_color_sub)
                     )
                     .max_width(max_context_width)
