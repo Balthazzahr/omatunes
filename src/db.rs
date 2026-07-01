@@ -106,6 +106,8 @@ pub struct OmatunesDb {
     pub last_queue_paths: Vec<PathBuf>,
     #[serde(default)]
     pub last_position_secs: u64,
+    #[serde(default)]
+    pub smart_playlists: HashMap<String, crate::library::smart_playlist::SmartPlaylist>,
 }
 
 impl Default for OmatunesDb {
