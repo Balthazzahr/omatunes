@@ -151,6 +151,12 @@ Right-clicking an individual track opens the `Song Menu`:
 The Now Playing view allows you to view and manage your active queue directly in the main song list area.
 * **Activating the View**: Click the **Now Playing** tab in the top tab bar (located directly to the right of the `Genres` tab).
 * **Toggle Behavior**: Clicking the **Now Playing** tab again will hide the queue and return you to the last active library view (e.g., Artists, Albums, or Genres).
+* **Dynamic Suffix Context Label**: When active, the tab expands to display the current playback context next to the title (e.g. `Now Playing · Best of the 90s` or `Now Playing · Tester`) in secondary text styling. This context updates automatically when playback is started from different views (Playlists, Smart Playlists, Artists, Albums, Genres, Autoplaylists) and displays a clean ellipsis (`...`) for truncation on narrow screens.
+* **Live Equalizer Animation**: A mini three-bar equalizer representation is rendered on the left side of the "Now Playing" text:
+  - **Playing**: The bars animate dynamically using a sine-wave algorithm to reflect active audio output.
+  - **Paused**: The animation freezes, holding the bars flat (static at 2px) to visually indicate a paused state.
+  - **Stopped / Idle**: The equalizer element is completely hidden when nothing is playing.
+* **Contrast Compliance**: When the Now Playing tab is active (which styles its background using the theme's active accent color), text colors dynamically adjust. It computes WCAG contrast ratios against the background to automatically switch text to either dark (`theme::base()`) or light (`theme::text()`) tokens, guaranteeing perfect readability regardless of what color scheme is loaded.
 * **Active Track Highlight**: The currently playing song is highlighted in your theme's active accent color with a live playing indicator icon.
 * **Queue Controls**: When the Now Playing view is active:
   * **Search Queue**: Filter the active queue by matching song titles or artists using the right-aligned search input box.
@@ -199,25 +205,39 @@ Inside the Tag Editor, there are two helper buttons for fetching assets:
 
 ---
 
-## 10. User Playlists & Autoplaylists
+## 10. Playlists & Smart Playlists
 
-OmaTUNES manages playlists locally inside `~/.config/omatunes/db.json`.
-
-<p align="center">
-  <img src="assets/User Playlists.png" alt="User Playlists" width="300">
-  <img src="assets/Auto Playlists.png" alt="Auto Playlists" width="300">
-</p>
+OmaTUNES manages playlists locally inside `~/.config/omatunes/db.json`. The playlist section at the bottom of the sidebar is organized into three compact icon-based tabs, each showing tooltips on hover:
+1. **User Playlists** (List icon `\u{f03a}`): Standard manually-curated user playlists.
+2. **Auto Playlists** (Magic Wand/Sparkles icon `\u{ebcf}` or auto-list equivalent): Automatic lists based on history/activity.
+3. **Smart Playlists** (Wand icon `\u{f0d0}`): Rule-based playlists that compile automatically.
 
 ### User Playlists
 - **Creation**: Click the `New Playlist` button at the bottom of the sidebar list, or right-click any track/selection/artist/album and select the create option.
 - **Management**: Hovering over a playlist in the sidebar reveals a Pencil icon (Rename) and a Trash icon (Delete).
 - **Adding Tracks**: Right-click any track or selection, go to `Add to Playlist`, and click the `+ {Playlist Name}` entry.
+- **Single-line Truncation**: Playlist names in the sidebar are automatically truncated with an ellipsis (`...`) if they exceed the available column width, preventing visual overflows.
 
 ### Autoplaylists
 Autoplaylists require no manual curation and populate dynamically:
 - **Liked Songs**: Every track that has been favorited (liked) in the main interface.
 - **Recently Played**: A list of your most recently played tracks sorted chronologically.
 - **Most Played**: Your tracks sorted in descending order of play count.
+
+### Smart Playlists (New in v0.7.0)
+Smart Playlists work similarly to iTunes smart playlists, compiling tracks dynamically from your music library according to a set of user-defined rules.
+- **Creation**: Navigate to the Smart Playlists tab in the sidebar and click **New Smart Playlist**. This opens the interactive Rule Builder panel in the main content area.
+- **Rule Matrix**: Each rule row consists of:
+  - **Field selector**: Choose criteria like Title, Artist, Album, Genre, Year, Play Count, Duration, Disc Number, Liked, Has Lyrics (checks if tracks have lyrics stored in their ID3 tags), or Last Played.
+  - **Operator selector**: Choose matching operations like Contains, Is, Greater Than, Less Than, Within Last, or Between.
+  - **Value inputs**: Enter matching text, numbers, checkbox states, or time duration strings. Text fields like Artist, Album, and Genre feature autocomplete chips for quick selection.
+- **AND Logic**: Multiple rule rows are combined using strict logical `AND` matching — a track must satisfy all defined rules to be included.
+- **Sorting & Truncation**: Customize how matching tracks are sorted and limited:
+  - **Order By**: Sort tracks by Title, Album, Artist, Play Count, Year, or Random.
+  - **Limit**: Check the limit box and define a maximum number of tracks (e.g. limit to 25 songs).
+- **Live Updating**: Check the live updating box to automatically re-evaluate rules in the background. Re-evaluation is debounced and runs on app launch/scan and on every track change (when the playing track transitions).
+- **Edit / Delete**: Right-click any Smart Playlist in the sidebar to open the context menu. Select **Edit Smart Playlist** to reload its configuration inside the Rule Builder, or **Delete Smart Playlist** to remove it.
+- **View Restoration**: Clicking Cancel or Save in the Rule Builder automatically restores the exact view context (Artist, Album, Genre, or Playlist) that was open before you launched the builder.
 
 ---
 
