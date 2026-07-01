@@ -2083,20 +2083,24 @@ impl AppState {
                             }
                         }
                         SmartPlaylistBuilderEvent::Save => {
-                            if !builder.name.trim().is_empty() {
-                                let limit = if builder.limit_enabled {
-                                    builder.limit_str.trim().parse::<usize>().ok()
-                                } else {
-                                    None
-                                };
-                                let rules: Vec<crate::library::smart_playlist::SmartPlaylistRule> = builder.rules.iter().map(|r| r.to_rule()).collect();
-                                
+                            let name = builder.name.clone();
+                            let rules: Vec<crate::library::smart_playlist::SmartPlaylistRule> = builder.rules.iter().map(|r| r.to_rule()).collect();
+                            let limit = if builder.limit_enabled {
+                                builder.limit_str.trim().parse::<usize>().ok()
+                            } else {
+                                None
+                            };
+                            let order_by = builder.order_by;
+                            let live_updating = builder.live_updating;
+                            let editing_name = builder.editing_name.clone();
+
+                            if !name.trim().is_empty() {
                                 let mut sp = crate::library::smart_playlist::SmartPlaylist {
-                                    name: builder.name.clone(),
+                                    name: name.clone(),
                                     rules,
                                     limit,
-                                    order_by: builder.order_by,
-                                    live_updating: builder.live_updating,
+                                    order_by,
+                                    live_updating,
                                     tracks: Vec::new(),
                                 };
                                 
@@ -2105,7 +2109,7 @@ impl AppState {
                                 sp.tracks = evaluated_tracks.iter().map(|t| t.path.clone()).collect();
                                 
                                 // Delete old name if renamed
-                                if let Some(ref old_name) = builder.editing_name {
+                                if let Some(ref old_name) = editing_name {
                                     if old_name != &sp.name {
                                         crate::db::delete_smart_playlist(old_name.clone());
                                     }
@@ -2113,12 +2117,11 @@ impl AppState {
                                 
                                 crate::db::save_smart_playlist(sp.name.clone(), sp);
                                 
-                                let saved_name = builder.name.clone();
                                 self.smart_playlist_builder = None;
                                 self.previous_view_state = None;
                                 
                                 // Select it
-                                self.selected_playlist = Some(saved_name);
+                                self.selected_playlist = Some(name);
                                 self.playlist_tab = PlaylistTab::Smart;
                                 self.update_filtered_tracks();
                             }
