@@ -1671,11 +1671,74 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         .height(28.0);
 
     let is_now_playing_active = state.view_mode == ViewMode::NowPlaying;
-    let now_playing_text = text("Now Playing")
-        .size(11)
-        .font(crate::ui::icons::UI_FONT_BOLD);
+    let mut now_playing_row = row![
+        text("Now Playing")
+            .size(11)
+            .font(crate::ui::icons::UI_FONT_BOLD)
+            .color(if is_now_playing_active { theme::base() } else { theme::text() })
+    ].spacing(4).align_y(Alignment::Center);
+
+    if is_now_playing_active {
+        if let Some(ref ctx) = state.playing_context {
+            let context_name = match ctx {
+                crate::app::PlayingContext::Playlist(name) => name.clone(),
+                crate::app::PlayingContext::SmartPlaylist(name) => name.clone(),
+                crate::app::PlayingContext::Artist(name) => name.clone(),
+                crate::app::PlayingContext::Album(name) => name.clone(),
+                crate::app::PlayingContext::Autoplaylist(name) => name.clone(),
+                crate::app::PlayingContext::Genre(name) => name.clone(),
+            };
+            
+            now_playing_row = now_playing_row
+                .push(
+                    text(" · ")
+                        .size(11)
+                        .color(theme::subtext())
+                )
+                .push(
+                    container(
+                        text(context_name)
+                            .size(11)
+                            .color(theme::subtext())
+                    )
+                    .width(Length::Fill)
+                    .clip(true)
+                );
+        }
+    }
+
+    let show_eq = matches!(state.playback_state, crate::app::PlaybackState::Playing) || matches!(state.playback_state, crate::app::PlaybackState::Paused);
+    let is_playing = matches!(state.playback_state, crate::app::PlaybackState::Playing);
     
-    let now_playing_tab = button(container(now_playing_text).center_x(Length::Shrink).center_y(Length::Fill).padding([0, 16]))
+    if show_eq {
+        let (h1, h2, h3) = if is_playing {
+            let tick = state.animation_tick;
+            (
+                ((tick as f32 * 0.15).sin() * 0.5 + 0.5) * 8.0 + 2.0,
+                ((tick as f32 * 0.25).sin() * 0.5 + 0.5) * 8.0 + 2.0,
+                ((tick as f32 * 0.1).sin() * 0.5 + 0.5) * 8.0 + 2.0,
+            )
+        } else {
+            (2.0, 2.0, 2.0)
+        };
+
+        let bar = |h: f32| {
+            container(Space::new(Length::Fixed(2.0), Length::Fixed(h)))
+                .style(move |_| iced::widget::container::Style {
+                    background: Some(iced::Background::Color(if is_now_playing_active { theme::base() } else { theme::accent() })),
+                    ..Default::default()
+                })
+        };
+
+        let eq = row![bar(h1), bar(h2), bar(h3)]
+            .spacing(2)
+            .align_y(Alignment::End)
+            .height(10.0);
+
+        now_playing_row = now_playing_row.push(Space::with_width(6)).push(eq);
+    }
+
+    let now_playing_tab = button(container(now_playing_row).center_y(Length::Fill).padding([0, 16]))
         .on_press(Message::SelectViewMode(ViewMode::NowPlaying))
         .height(28)
         .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
