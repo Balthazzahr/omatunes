@@ -166,11 +166,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             .size(28)
             .font(crate::ui::icons::NERD_FONT_MONO);
         
-        button(
-            container(btn_icon)
-                .center_x(Length::Fill)
-                .align_y(iced::alignment::Vertical::Top)
-        )
+        button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
         .on_press(Message::ToggleRightPanelTab(tab))
         .width(Length::Fill)
         .height(Length::Fill)
