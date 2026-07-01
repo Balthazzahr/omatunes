@@ -2404,6 +2404,7 @@ impl AppState {
             }
 
             Message::OpenPlaylistDialog(mode) => {
+                self.show_context_menu = None;
                 let initial_name = match &mode {
                     PlaylistDialogMode::Create => "My Playlist".to_string(),
                     PlaylistDialogMode::AddTrack(_) => String::new(),
