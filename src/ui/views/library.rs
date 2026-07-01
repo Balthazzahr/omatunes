@@ -1745,9 +1745,17 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         let max_context_width = if state.window_width < crate::app::MIN_NON_DRAWER_WIDTH {
             0.0
         } else if state.window_width < crate::app::MIN_NON_DRAWER_WIDTH + 150.0 {
-            50.0
-        } else {
             120.0
+        } else {
+            200.0
+        };
+
+        let max_len = (max_context_width / 8.0) as usize;
+        let display_name = if context_name.chars().count() > max_len && max_len > 3 {
+            let truncated: String = context_name.chars().take(max_len - 3).collect();
+            format!("{}...", truncated)
+        } else {
+            context_name.clone()
         };
 
         if max_context_width > 0.0 {
@@ -1758,11 +1766,9 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
                         .color(text_color_sub)
                 )
                 .push(
-                    text(context_name)
+                    text(display_name)
                         .size(13)
                         .color(text_color_sub)
-                        .width(max_context_width)
-                        .overflow(iced::widget::text::Overflow::Ellipsis)
                 );
         }
     }
