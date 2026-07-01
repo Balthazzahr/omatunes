@@ -337,10 +337,10 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
     .spacing(0)
     .align_y(Alignment::Center);
 
-    let mut playlists_area_col = column![].spacing(6).height(Length::Fill);
+    let mut playlists_area_col = column![].spacing(6).height(Length::Fill).width(Length::Fill);
     
     if state.playlist_tab == crate::app::PlaylistTab::Playlists {
-        let mut user_playlists_col = column![].spacing(2);
+        let mut user_playlists_col = column![].spacing(2).width(Length::Fill);
         let custom_playlists = crate::db::get(|db| db.playlists.keys().cloned().collect::<Vec<String>>());
         
         for name in custom_playlists {
@@ -348,7 +348,8 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
         }
         
         playlists_area_col = playlists_area_col.push(
-            container(scrollable(user_playlists_col))
+            container(scrollable(user_playlists_col).width(Length::Fill))
+                .width(Length::Fill)
                 .height(Length::Fill)
         );
 
@@ -368,14 +369,15 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
 
         playlists_area_col = playlists_area_col.push(add_playlist_btn);
     } else if state.playlist_tab == crate::app::PlaylistTab::Autoplaylists {
-        let mut auto_playlists_col = column![].spacing(2);
+        let mut auto_playlists_col = column![].spacing(2).width(Length::Fill);
         auto_playlists_col = auto_playlists_col.push(render_playlist_item("Liked Songs".to_string(), true));
         auto_playlists_col = auto_playlists_col.push(render_playlist_item("Recently Played".to_string(), true));
         auto_playlists_col = auto_playlists_col.push(render_playlist_item("Most Played".to_string(), true));
         auto_playlists_col = auto_playlists_col.push(render_playlist_item("New Music".to_string(), true));
 
         playlists_area_col = playlists_area_col.push(
-            container(scrollable(auto_playlists_col))
+            container(scrollable(auto_playlists_col).width(Length::Fill))
+                .width(Length::Fill)
                 .height(Length::Fill)
         );
     } else {
