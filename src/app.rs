@@ -493,6 +493,8 @@ pub struct AppState {
     pub hovered_album_header: Option<String>,
     pub track_list_start: usize,
     pub track_list_end: usize,
+    pub smart_playlist_builder: Option<crate::ui::components::smart_playlist_builder::SmartPlaylistBuilderState>,
+    pub previous_view_state: Option<SavedViewState>,
 }
 
 impl AppState {
