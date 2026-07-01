@@ -4001,6 +4001,50 @@ impl AppState {
 
                     (title, Some(selection_actions.into()), create)
                 }
+                ContextMenuTarget::Playlist(name) => {
+                    let title = format!("Playlist: {name}");
+                    let rename_btn = button(text("Rename Playlist").size(12))
+                        .on_press(Message::OpenPlaylistDialog(PlaylistDialogMode::Rename(name.clone())))
+                        .style(item_style)
+                        .padding([4, 8])
+                        .width(Length::Fill);
+                    let delete_btn = button(text("Delete Playlist").size(12))
+                        .on_press(Message::DeletePlaylist(name.clone()))
+                        .style(item_style)
+                        .padding([4, 8])
+                        .width(Length::Fill);
+                    let playlist_actions = column![
+                        rename_btn,
+                        Space::with_height(4),
+                        delete_btn,
+                    ];
+                    let dummy_create = button(text(""))
+                        .style(iced::widget::button::text)
+                        .padding(0);
+                    (title, Some(playlist_actions.into()), dummy_create)
+                }
+                ContextMenuTarget::SmartPlaylist(name) => {
+                    let title = format!("Smart Playlist: {name}");
+                    let edit_btn = button(text("Edit Smart Playlist").size(12))
+                        .on_press(Message::EditSmartPlaylist(name.clone()))
+                        .style(item_style)
+                        .padding([4, 8])
+                        .width(Length::Fill);
+                    let delete_btn = button(text("Delete Smart Playlist").size(12))
+                        .on_press(Message::DeleteSmartPlaylist(name.clone()))
+                        .style(item_style)
+                        .padding([4, 8])
+                        .width(Length::Fill);
+                    let playlist_actions = column![
+                        edit_btn,
+                        Space::with_height(4),
+                        delete_btn,
+                    ];
+                    let dummy_create = button(text(""))
+                        .style(iced::widget::button::text)
+                        .padding(0);
+                    (title, Some(playlist_actions.into()), dummy_create)
+                }
                 ContextMenuTarget::Header(clicked_col) => {
                     let title = "Table Columns".to_string();
                     let active_cols = crate::db::get(|db| db.table_columns.clone());
