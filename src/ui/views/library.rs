@@ -1758,13 +1758,11 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
                         .color(text_color_sub)
                 )
                 .push(
-                    container(
-                        text(context_name)
-                            .size(13)
-                            .color(text_color_sub)
-                    )
-                    .max_width(max_context_width)
-                    .clip(true)
+                    text(context_name)
+                        .size(13)
+                        .color(text_color_sub)
+                        .width(max_context_width)
+                        .overflow(iced::widget::text::Overflow::Ellipsis)
                 );
         }
     }
