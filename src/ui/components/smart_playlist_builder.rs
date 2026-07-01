@@ -269,15 +269,6 @@ pub fn view<'a>(
 
         match row_state.field {
             RuleField::Liked => {
-                let liked_pick = pick_list(
-                    vec![true, false],
-                    Some(row_state.boolean_value),
-                    move |b| Message::SmartPlaylistBuilderMsg(SmartPlaylistBuilderEvent::UpdateRuleBoolean(idx, b))
-                )
-                .style(|_, _| iced::widget::pick_list::Style {
-                    ..Default::default()
-                });
-                // Map boolean to labels
                 let label_fn = |b: bool| if b { "Liked" } else { "Not Liked" };
                 
                 let view_liked_pick: Element<'a, Message> = pick_list(
