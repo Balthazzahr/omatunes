@@ -38,6 +38,8 @@ pub enum ContextMenuTarget {
     Track(Track),
     MultipleTracks(Vec<Track>),
     Header(crate::db::TableColumn),
+    Playlist(String),
+    SmartPlaylist(String),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
