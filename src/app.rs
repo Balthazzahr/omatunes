@@ -1504,6 +1504,8 @@ impl AppState {
             Message::SelectPlaylist(name) => {
                 if name == "Liked Songs" || name == "Recently Played" || name == "Most Played" || name == "New Music" {
                     self.playlist_tab = PlaylistTab::Autoplaylists;
+                } else if crate::db::get(|db| db.smart_playlists.contains_key(&name)) {
+                    self.playlist_tab = PlaylistTab::Smart;
                 } else {
                     self.playlist_tab = PlaylistTab::Playlists;
                 }
