@@ -286,6 +286,16 @@ pub struct SettingsState {
     pub confirm_save_anyway: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PlayingContext {
+    Playlist(String),
+    SmartPlaylist(String),
+    Artist(String),
+    Album(String),
+    Autoplaylist(String),
+    Genre(String),
+}
+
 #[derive(Debug, Clone)]
 pub struct SavedViewState {
     pub view_mode: ViewMode,
