@@ -265,6 +265,11 @@ pub enum Message {
     QueueDragStart(usize),
     QueueDragOver(usize),
     QueueDragEnd,
+
+    NewSmartPlaylist,
+    EditSmartPlaylist(String),
+    DeleteSmartPlaylist(String),
+    SmartPlaylistBuilderMsg(SmartPlaylistBuilderEvent),
 }
 
 #[derive(Debug, Clone)]
