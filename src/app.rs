@@ -3508,6 +3508,10 @@ impl AppState {
             .width(Length::Fill)
             .height(iced::Length::Fixed(298.0));
 
+        if let Some(tabs) = views::player::right_panel_tabs(self) {
+            top_row = top_row.push(tabs);
+        }
+
         if let Some(pane) = views::player::right_panel(self) {
             top_row = top_row.push(pane);
         }
