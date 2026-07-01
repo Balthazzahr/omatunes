@@ -4248,6 +4248,7 @@ impl AppState {
         self.audio.send(AudioCommand::SetVolume(self.volume));
         self.current_track = Some(track.clone());
         self.selected_track = Some(track.clone());
+        self.update_live_smart_playlists();
         self.playback_state = PlaybackState::Playing;
         self.position = Duration::ZERO;
         self.duration = Duration::ZERO;
