@@ -1535,7 +1535,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     };
 
     let left_tabs = row![
-        tab_btn(ViewMode::Artists, crate::ui::icons::ICON_MICROPHONE, "Artists", tab_width_1),
+        tab_btn(ViewMode::Artists, crate::ui::icons::ICON_PERSON, "Artists", tab_width_1),
         tab_btn(ViewMode::Albums, crate::ui::icons::ICON_CD, "Albums", tab_width_2),
         tab_btn(ViewMode::Genres, crate::ui::icons::ICON_TAG, "Genres", tab_width_3),
     ]
