@@ -46,9 +46,9 @@ pub const ICON_COPY:       &str = "\u{f0c5}";  //
 pub const ICON_PODIUM:     &str = "\u{f0d25}"; //
 pub const ICON_VISUALIZER: &str = "\u{f147d}"; // waveform
 pub const ICON_LYRICS:     &str = "\u{f0cb9}"; // lyrics custom
-pub const ICON_WAND:       &str = "\u{f0d0}";  // magic wand
+pub const ICON_WAND:       &str = "\u{ebcf}";  // magic wand (nf-cod-wand)
 pub const ICON_BOLT:       &str = "\u{f0e7}";  // bolt/flash
-pub const ICON_MICROPHONE: &str = "\u{f130}";  // microphone
+pub const ICON_PERSON:     &str = "\u{f4ff}";  // artist/person icon (nf-oct-person)
 pub const ICON_CD:         &str = "\u{e271}";  // compact disc (nf-md-disc)
 pub const ICON_TAG:        &str = "\u{f02b}";  // tag
 
