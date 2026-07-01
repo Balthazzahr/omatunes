@@ -160,65 +160,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     .align_y(Alignment::Center)
     .padding(16);
 
-    let tab_btn = |tab: crate::app::RightPanelTab, icon_str: &'static str| {
-        let is_active = state.right_panel_tab == Some(tab);
-        let btn_icon = text(icon_str)
-            .size(28)
-            .font(crate::ui::icons::NERD_FONT_MONO);
-        
-        button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
-            .on_press(Message::ToggleRightPanelTab(tab))
-            .width(Length::Fill)
-            .height(56.0)
-            .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
-                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-                iced::widget::button::Style {
-                    background: Some(iced::Background::Color(if is_active {
-                        theme::surface0()
-                    } else if is_hovered {
-                        theme::surface0()
-                    } else {
-                        iced::Color::TRANSPARENT
-                    })),
-                    text_color: if is_active {
-                        theme::accent()
-                    } else if is_hovered {
-                        theme::text()
-                    } else {
-                        theme::subtext()
-                    },
-                    border: iced::Border {
-                        radius: 0.0.into(),
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                }
-            })
-            .padding(0)
-    };
-
-
-
-    let tab_strip = container(
-        column![
-            tab_btn(crate::app::RightPanelTab::Visualizer, crate::ui::icons::ICON_VISUALIZER),
-            tab_btn(crate::app::RightPanelTab::Lyrics, crate::ui::icons::ICON_LYRICS),
-        ]
-        .width(Length::Fill)
-        .spacing(0)
-    )
-    .width(56.0)
-    .height(Length::Fill)
-    .style(|_| iced::widget::container::Style {
-        background: Some(iced::Background::Color(theme::mantle())),
-        ..Default::default()
-    });
-
-    let left_side_width = if state.right_panel_tab.is_some() {
-        Length::Fill
-    } else {
-        Length::Fill
-    };
+    let left_side_width = Length::Fill;
 
     let player_container = container(player_row)
         .style(theme::player_panel)
@@ -242,26 +184,74 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             }
         });
 
-    if is_allowed {
-        row![
-            player_with_scroll,
-            tab_strip,
-        ]
-        .spacing(0)
-        .align_y(Alignment::Start)
-        .width(Length::Fill)
-        .height(Length::Fixed(298.0))
-        .into()
-    } else {
-        row![
-            player_with_scroll,
-        ]
-        .spacing(0)
-        .align_y(Alignment::Center)
-        .width(Length::Fill)
-        .height(Length::Fixed(270.0))
-        .into()
+    player_with_scroll.into()
+}
+
+pub fn right_panel_tabs(state: &AppState) -> Option<Element<'_, Message>> {
+    let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 600.0);
+    if !is_allowed {
+        return None;
     }
+
+    let tab_btn = |tab: crate::app::RightPanelTab, icon_str: &'static str| {
+        let is_active = state.right_panel_tab == Some(tab);
+        let btn_icon = text(icon_str)
+            .size(28)
+            .font(crate::ui::icons::NERD_FONT_MONO);
+        
+        button(
+            container(btn_icon)
+                .center_x(Length::Fill)
+                .align_y(iced::alignment::Vertical::Top)
+        )
+        .on_press(Message::ToggleRightPanelTab(tab))
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+            iced::widget::button::Style {
+                background: Some(iced::Background::Color(if is_active {
+                    theme::surface0()
+                } else if is_hovered {
+                    theme::surface0()
+                } else {
+                    iced::Color::TRANSPARENT
+                })),
+                text_color: if is_active {
+                    theme::accent()
+                } else if is_hovered {
+                    theme::text()
+                } else {
+                    theme::subtext()
+                },
+                border: iced::Border {
+                    radius: 0.0.into(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            }
+        })
+        .padding(0)
+    };
+
+    Some(
+        container(
+            column![
+                tab_btn(crate::app::RightPanelTab::Visualizer, crate::ui::icons::ICON_VISUALIZER),
+                tab_btn(crate::app::RightPanelTab::Lyrics, crate::ui::icons::ICON_LYRICS),
+            ]
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .spacing(0)
+        )
+        .width(56.0)
+        .height(Length::Fill)
+        .style(|_| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::mantle())),
+            ..Default::default()
+        })
+        .into()
+    )
 }
 
 pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
