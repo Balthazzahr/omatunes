@@ -160,39 +160,6 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     .align_y(Alignment::Center)
     .padding(16);
 
-    let left_side_width = Length::Fill;
-
-    let player_container = container(player_row)
-        .style(theme::player_panel)
-        .width(left_side_width)
-        .height(Length::Fixed(270.0));
-
-    let vol_step = crate::config::get().volume_step;
-
-    let player_with_scroll = mouse_area(player_container)
-        .on_scroll(move |delta| {
-            match delta {
-                iced::mouse::ScrollDelta::Lines { y, .. } | iced::mouse::ScrollDelta::Pixels { y, .. } => {
-                    if y > 0.0 {
-                        Message::VolumeStep(vol_step)
-                    } else if y < 0.0 {
-                        Message::VolumeStep(-vol_step)
-                    } else {
-                        Message::VolumeStep(0.0)
-                    }
-                }
-            }
-        });
-
-    player_with_scroll.into()
-}
-
-pub fn right_panel_tabs(state: &AppState) -> Option<Element<'_, Message>> {
-    let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 600.0);
-    if !is_allowed {
-        return None;
-    }
-
     let tab_btn = |tab: crate::app::RightPanelTab, icon_str: &'static str| {
         let is_active = state.right_panel_tab == Some(tab);
         let btn_icon = text(icon_str)
@@ -234,24 +201,70 @@ pub fn right_panel_tabs(state: &AppState) -> Option<Element<'_, Message>> {
         .padding(0)
     };
 
-    Some(
-        container(
-            column![
-                tab_btn(crate::app::RightPanelTab::Visualizer, crate::ui::icons::ICON_VISUALIZER),
-                tab_btn(crate::app::RightPanelTab::Lyrics, crate::ui::icons::ICON_LYRICS),
-            ]
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .spacing(0)
-        )
-        .width(56.0)
+    let tab_strip = container(
+        column![
+            tab_btn(crate::app::RightPanelTab::Visualizer, crate::ui::icons::ICON_VISUALIZER),
+            tab_btn(crate::app::RightPanelTab::Lyrics, crate::ui::icons::ICON_LYRICS),
+        ]
+        .width(Length::Fill)
         .height(Length::Fill)
-        .style(|_| iced::widget::container::Style {
-            background: Some(iced::Background::Color(theme::mantle())),
-            ..Default::default()
-        })
-        .into()
+        .spacing(0)
     )
+    .width(56.0)
+    .height(Length::Fill)
+    .style(|_| iced::widget::container::Style {
+        background: Some(iced::Background::Color(theme::mantle())),
+        ..Default::default()
+    });
+
+    let left_side_width = if state.right_panel_tab.is_some() {
+        Length::Fill
+    } else {
+        Length::Fill
+    };
+
+    let player_container = container(player_row)
+        .style(theme::player_panel)
+        .width(left_side_width)
+        .height(Length::Fixed(270.0));
+
+    let vol_step = crate::config::get().volume_step;
+
+    let player_with_scroll = mouse_area(player_container)
+        .on_scroll(move |delta| {
+            match delta {
+                iced::mouse::ScrollDelta::Lines { y, .. } | iced::mouse::ScrollDelta::Pixels { y, .. } => {
+                    if y > 0.0 {
+                        Message::VolumeStep(vol_step)
+                    } else if y < 0.0 {
+                        Message::VolumeStep(-vol_step)
+                    } else {
+                        Message::VolumeStep(0.0)
+                    }
+                }
+            }
+        });
+
+    if is_allowed {
+        row![
+            player_with_scroll,
+            tab_strip,
+        ]
+        .spacing(0)
+        .align_y(Alignment::Center)
+        .width(Length::Fill)
+        .height(Length::Fixed(270.0))
+        .into()
+    } else {
+        row![
+            player_with_scroll,
+        ]
+        .spacing(0)
+        .align_y(Alignment::Center)
+        .width(Length::Fill)
+        .height(Length::Fixed(270.0))
+        .into()
+    }
 }
 
 pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
