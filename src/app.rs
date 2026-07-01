@@ -281,6 +281,35 @@ pub struct SettingsState {
     pub confirm_save_anyway: bool,
 }
 
+#[derive(Debug, Clone)]
+pub struct SavedViewState {
+    pub view_mode: ViewMode,
+    pub selected_playlist: Option<String>,
+    pub selected_artist: Option<String>,
+    pub selected_album: Option<String>,
+    pub selected_genre: Option<String>,
+    pub playlist_tab: PlaylistTab,
+}
+
+#[derive(Debug, Clone)]
+pub enum SmartPlaylistBuilderEvent {
+    NameChanged(String),
+    AddRule,
+    RemoveRule(usize),
+    UpdateRuleField(usize, crate::library::smart_playlist::RuleField),
+    UpdateRuleOperator(usize, crate::library::smart_playlist::RuleOperator),
+    UpdateRuleValue(usize, String),
+    UpdateRuleValue2(usize, String),
+    UpdateRuleDateUnit(usize, crate::library::smart_playlist::DateUnit),
+    UpdateRuleBoolean(usize, bool),
+    ToggleLimit(bool),
+    LimitStrChanged(String),
+    UpdateOrderBy(crate::library::smart_playlist::SmartPlaylistOrder),
+    ToggleLive(bool),
+    Save,
+    Cancel,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PlaylistTab {
     Playlists,
