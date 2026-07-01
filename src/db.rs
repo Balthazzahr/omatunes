@@ -249,3 +249,15 @@ pub fn add_to_recently_played(path: PathBuf) {
     });
 }
 
+pub fn save_smart_playlist(name: String, playlist: crate::library::smart_playlist::SmartPlaylist) {
+    write(|db| {
+        db.smart_playlists.insert(name, playlist);
+    });
+}
+
+pub fn delete_smart_playlist(name: String) {
+    write(|db| {
+        db.smart_playlists.remove(&name);
+    });
+}
+
