@@ -474,17 +474,36 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                 .height(Length::Fill)
         );
     } else {
-        let empty_text = container(
-            text("Smart playlists are coming soon")
-                .size(12)
-                .color(theme::subtext())
-        )
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .center_x(Length::Fill)
-        .center_y(Length::Fill);
+        let mut smart_playlists_col = column![].spacing(2).width(Length::Fill);
+        let smart_playlists = crate::db::get(|db| db.smart_playlists.keys().cloned().collect::<Vec<String>>());
+        let mut smart_playlists = smart_playlists;
+        smart_playlists.sort();
 
-        playlists_area_col = playlists_area_col.push(empty_text);
+        for name in smart_playlists {
+            smart_playlists_col = smart_playlists_col.push(render_smart_playlist_item(name));
+        }
+
+        playlists_area_col = playlists_area_col.push(
+            container(scrollable(smart_playlists_col).width(Length::Fill))
+                .width(Length::Fill)
+                .height(Length::Fill)
+        );
+
+        let add_smart_playlist_btn = button(
+            container(
+                row![
+                    text("\u{ebcf}").font(crate::ui::icons::NERD_FONT_MONO).size(11),
+                    Space::with_width(6),
+                    text("New Smart Playlist").size(11).font(crate::ui::icons::UI_FONT_BOLD)
+                ].align_y(Alignment::Center)
+            ).center_x(Length::Fill)
+        )
+        .on_press(Message::NewSmartPlaylist)
+        .style(theme::secondary_button)
+        .padding([4, 12])
+        .width(Length::Fill);
+
+        playlists_area_col = playlists_area_col.push(add_smart_playlist_btn);
     }
 
     let playlist_drag_handle = mouse_area(
