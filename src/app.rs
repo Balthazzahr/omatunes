@@ -1945,6 +1945,187 @@ impl AppState {
                 Task::none()
             }
 
+            Message::NewSmartPlaylist => {
+                let saved_view = SavedViewState {
+                    view_mode: self.view_mode,
+                    selected_playlist: self.selected_playlist.clone(),
+                    selected_artist: self.selected_artist.clone(),
+                    selected_album: self.selected_album.clone(),
+                    selected_genre: self.selected_genre.clone(),
+                    playlist_tab: self.playlist_tab,
+                };
+                self.previous_view_state = Some(saved_view);
+                self.smart_playlist_builder = Some(crate::ui::components::smart_playlist_builder::SmartPlaylistBuilderState {
+                    name: String::new(),
+                    rules: vec![crate::ui::components::smart_playlist_builder::RuleRowState::new(crate::library::smart_playlist::RuleField::Title)],
+                    limit_enabled: false,
+                    limit_str: "25".to_string(),
+                    order_by: crate::library::smart_playlist::SmartPlaylistOrder::Random,
+                    live_updating: true,
+                    editing_name: None,
+                });
+                self.selected_playlist = None;
+                self.selected_artist = None;
+                self.selected_album = None;
+                self.selected_genre = None;
+                self.active_focus = None;
+                Task::none()
+            }
+
+            Message::EditSmartPlaylist(name) => {
+                if let Some(sp) = crate::db::get(|db| db.smart_playlists.get(&name).cloned()) {
+                    let saved_view = SavedViewState {
+                        view_mode: self.view_mode,
+                        selected_playlist: self.selected_playlist.clone(),
+                        selected_artist: self.selected_artist.clone(),
+                        selected_album: self.selected_album.clone(),
+                        selected_genre: self.selected_genre.clone(),
+                        playlist_tab: self.playlist_tab,
+                    };
+                    self.previous_view_state = Some(saved_view);
+                    
+                    let rules = sp.rules.iter().map(|r| crate::ui::components::smart_playlist_builder::RuleRowState::from_rule(r)).collect();
+                    self.smart_playlist_builder = Some(crate::ui::components::smart_playlist_builder::SmartPlaylistBuilderState {
+                        name: sp.name.clone(),
+                        rules,
+                        limit_enabled: sp.limit.is_some(),
+                        limit_str: sp.limit.map(|l| l.to_string()).unwrap_or_else(|| "25".to_string()),
+                        order_by: sp.order_by,
+                        live_updating: sp.live_updating,
+                        editing_name: Some(sp.name.clone()),
+                    });
+                    self.selected_playlist = None;
+                    self.selected_artist = None;
+                    self.selected_album = None;
+                    self.selected_genre = None;
+                    self.active_focus = None;
+                }
+                Task::none()
+            }
+
+            Message::DeleteSmartPlaylist(name) => {
+                crate::db::delete_smart_playlist(name.clone());
+                if self.selected_playlist.as_ref() == Some(&name) {
+                    self.selected_playlist = None;
+                    self.update_filtered_tracks();
+                }
+                Task::none()
+            }
+
+            Message::SmartPlaylistBuilderMsg(event) => {
+                if let Some(ref mut builder) = self.smart_playlist_builder {
+                    match event {
+                        SmartPlaylistBuilderEvent::NameChanged(s) => {
+                            builder.name = s;
+                        }
+                        SmartPlaylistBuilderEvent::AddRule => {
+                            builder.rules.push(crate::ui::components::smart_playlist_builder::RuleRowState::new(crate::library::smart_playlist::RuleField::Title));
+                        }
+                        SmartPlaylistBuilderEvent::RemoveRule(idx) => {
+                            if idx < builder.rules.len() {
+                                builder.rules.remove(idx);
+                            }
+                        }
+                        SmartPlaylistBuilderEvent::UpdateRuleField(idx, f) => {
+                            if idx < builder.rules.len() {
+                                builder.rules[idx] = crate::ui::components::smart_playlist_builder::RuleRowState::new(f);
+                            }
+                        }
+                        SmartPlaylistBuilderEvent::UpdateRuleOperator(idx, o) => {
+                            if idx < builder.rules.len() {
+                                builder.rules[idx].operator = o;
+                            }
+                        }
+                        SmartPlaylistBuilderEvent::UpdateRuleValue(idx, v) => {
+                            if idx < builder.rules.len() {
+                                builder.rules[idx].value = v;
+                            }
+                        }
+                        SmartPlaylistBuilderEvent::UpdateRuleValue2(idx, v) => {
+                            if idx < builder.rules.len() {
+                                builder.rules[idx].value2 = v;
+                            }
+                        }
+                        SmartPlaylistBuilderEvent::UpdateRuleDateUnit(idx, u) => {
+                            if idx < builder.rules.len() {
+                                builder.rules[idx].date_unit = u;
+                            }
+                        }
+                        SmartPlaylistBuilderEvent::UpdateRuleBoolean(idx, b) => {
+                            if idx < builder.rules.len() {
+                                builder.rules[idx].boolean_value = b;
+                            }
+                        }
+                        SmartPlaylistBuilderEvent::ToggleLimit(b) => {
+                            builder.limit_enabled = b;
+                        }
+                        SmartPlaylistBuilderEvent::LimitStrChanged(s) => {
+                            builder.limit_str = s;
+                        }
+                        SmartPlaylistBuilderEvent::UpdateOrderBy(o) => {
+                            builder.order_by = o;
+                        }
+                        SmartPlaylistBuilderEvent::ToggleLive(b) => {
+                            builder.live_updating = b;
+                        }
+                        SmartPlaylistBuilderEvent::Cancel => {
+                            self.smart_playlist_builder = None;
+                            if let Some(prev) = self.previous_view_state.take() {
+                                self.view_mode = prev.view_mode;
+                                self.selected_playlist = prev.selected_playlist;
+                                self.selected_artist = prev.selected_artist;
+                                self.selected_album = prev.selected_album;
+                                self.selected_genre = prev.selected_genre;
+                                self.playlist_tab = prev.playlist_tab;
+                                self.update_filtered_tracks();
+                            }
+                        }
+                        SmartPlaylistBuilderEvent::Save => {
+                            if !builder.name.trim().is_empty() {
+                                let limit = if builder.limit_enabled {
+                                    builder.limit_str.trim().parse::<usize>().ok()
+                                } else {
+                                    None
+                                };
+                                let rules: Vec<crate::library::smart_playlist::SmartPlaylistRule> = builder.rules.iter().map(|r| r.to_rule()).collect();
+                                
+                                let mut sp = crate::library::smart_playlist::SmartPlaylist {
+                                    name: builder.name.clone(),
+                                    rules,
+                                    limit,
+                                    order_by: builder.order_by,
+                                    live_updating: builder.live_updating,
+                                    tracks: Vec::new(),
+                                };
+                                
+                                // Evaluate immediately
+                                let evaluated_tracks = self.evaluate_smart_playlist(&sp);
+                                sp.tracks = evaluated_tracks.iter().map(|t| t.path.clone()).collect();
+                                
+                                // Delete old name if renamed
+                                if let Some(ref old_name) = builder.editing_name {
+                                    if old_name != &sp.name {
+                                        crate::db::delete_smart_playlist(old_name.clone());
+                                    }
+                                }
+                                
+                                crate::db::save_smart_playlist(sp.name.clone(), sp);
+                                
+                                let saved_name = builder.name.clone();
+                                self.smart_playlist_builder = None;
+                                self.previous_view_state = None;
+                                
+                                // Select it
+                                self.selected_playlist = Some(saved_name);
+                                self.playlist_tab = PlaylistTab::Smart;
+                                self.update_filtered_tracks();
+                            }
+                        }
+                    }
+                }
+                Task::none()
+            }
+
             Message::TagEditorPrevTrack => {
                 if let Some(ref state) = self.show_tag_editor {
                     if let Some(first_track) = state.tracks.first() {
