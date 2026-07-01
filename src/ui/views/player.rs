@@ -104,7 +104,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
 
     let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 600.0);
     let player_width = if state.right_panel_tab.is_some() && is_allowed {
-        state.window_width - 62.0 - state.right_panel_width
+        state.window_width - 60.0 - state.right_panel_width
     } else if is_allowed {
         state.window_width - 56.0
     } else {
@@ -169,7 +169,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
             .on_press(Message::ToggleRightPanelTab(tab))
             .width(Length::Fill)
-            .height(Length::Fill)
+            .height(56.0)
             .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
                 let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
                 iced::widget::button::Style {
@@ -205,10 +205,10 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             tab_btn(crate::app::RightPanelTab::Lyrics, crate::ui::icons::ICON_LYRICS),
         ]
         .width(Length::Fill)
-        .height(Length::Fill)
+        .spacing(0)
     )
     .width(56.0)
-    .height(Length::Fixed(270.0))
+    .height(Length::Fill)
     .style(|_| iced::widget::container::Style {
         background: Some(iced::Background::Color(theme::mantle())),
         ..Default::default()
