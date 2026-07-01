@@ -1671,44 +1671,24 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         .height(28.0);
 
     let is_now_playing_active = state.view_mode == ViewMode::NowPlaying;
-    let mut now_playing_row = row![
-        text("Now Playing")
-            .size(11)
-            .font(crate::ui::icons::UI_FONT_BOLD)
-            .color(if is_now_playing_active { theme::base() } else { theme::text() })
-    ].spacing(4).align_y(Alignment::Center);
 
-    if is_now_playing_active {
-        if let Some(ref ctx) = state.playing_context {
-            let context_name = match ctx {
-                crate::app::PlayingContext::Playlist(name) => name.clone(),
-                crate::app::PlayingContext::SmartPlaylist(name) => name.clone(),
-                crate::app::PlayingContext::Artist(name) => name.clone(),
-                crate::app::PlayingContext::Album(name) => name.clone(),
-                crate::app::PlayingContext::Autoplaylist(name) => name.clone(),
-                crate::app::PlayingContext::Genre(name) => name.clone(),
-            };
-            
-            now_playing_row = now_playing_row
-                .push(
-                    text(" · ")
-                        .size(11)
-                        .color(theme::subtext())
-                )
-                .push(
-                    container(
-                        text(context_name)
-                            .size(11)
-                            .color(theme::subtext())
-                    )
-                    .width(Length::Fill)
-                    .clip(true)
-                );
-        }
-    }
+    // Calculate contrast-compliant text colors
+    let light_text = theme::text();
+    let dark_text = theme::base();
+    let active_text_color = if theme::contrast_ratio(theme::accent(), light_text) > theme::contrast_ratio(theme::accent(), dark_text) {
+        light_text
+    } else {
+        dark_text
+    };
 
-    let show_eq = matches!(state.playback_state, crate::app::PlaybackState::Playing) || matches!(state.playback_state, crate::app::PlaybackState::Paused);
-    let is_playing = matches!(state.playback_state, crate::app::PlaybackState::Playing);
+    let text_color_main = if is_now_playing_active { active_text_color } else { theme::text() };
+    let text_color_sub = if is_now_playing_active { theme::with_alpha(active_text_color, 0.7) } else { theme::subtext() };
+
+    let mut now_playing_row = row![].spacing(6).align_y(Alignment::Center);
+
+    // Hide equalizer when stopped/idle (or no track loaded)
+    let show_eq = state.current_track.is_some() && (matches!(state.playback_state, crate::audio::PlaybackState::Playing) || matches!(state.playback_state, crate::audio::PlaybackState::Paused));
+    let is_playing = matches!(state.playback_state, crate::audio::PlaybackState::Playing);
     
     if show_eq {
         let (h1, h2, h3) = if is_playing {
@@ -1725,7 +1705,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         let bar = |h: f32| {
             container(Space::new(Length::Fixed(2.0), Length::Fixed(h)))
                 .style(move |_| iced::widget::container::Style {
-                    background: Some(iced::Background::Color(if is_now_playing_active { theme::base() } else { theme::accent() })),
+                    background: Some(iced::Background::Color(text_color_main)),
                     ..Default::default()
                 })
         };
@@ -1735,10 +1715,54 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
             .align_y(Alignment::End)
             .height(10.0);
 
-        now_playing_row = now_playing_row.push(Space::with_width(6)).push(eq);
+        now_playing_row = now_playing_row.push(eq);
     }
 
-    let now_playing_tab = button(container(now_playing_row).center_y(Length::Fill).padding([0, 16]))
+    now_playing_row = now_playing_row.push(
+        text("Now Playing")
+            .size(11)
+            .font(crate::ui::icons::UI_FONT_BOLD)
+            .color(text_color_main)
+    );
+
+    if let Some(ref ctx) = state.playing_context {
+        let context_name = match ctx {
+            crate::app::PlayingContext::Playlist(name) => name.clone(),
+            crate::app::PlayingContext::SmartPlaylist(name) => name.clone(),
+            crate::app::PlayingContext::Artist(name) => name.clone(),
+            crate::app::PlayingContext::Album(name) => name.clone(),
+            crate::app::PlayingContext::Autoplaylist(name) => name.clone(),
+            crate::app::PlayingContext::Genre(name) => name.clone(),
+        };
+
+        let max_context_width = if state.window_width < crate::app::MIN_NON_DRAWER_WIDTH {
+            0.0
+        } else if state.window_width < crate::app::MIN_NON_DRAWER_WIDTH + 150.0 {
+            50.0
+        } else {
+            120.0
+        };
+
+        if max_context_width > 0.0 {
+            now_playing_row = now_playing_row
+                .push(
+                    text(" · ")
+                        .size(11)
+                        .color(text_color_sub)
+                )
+                .push(
+                    container(
+                        text(context_name)
+                            .size(11)
+                            .color(text_color_sub)
+                    )
+                    .max_width(max_context_width)
+                    .clip(true)
+                );
+        }
+    }
+
+    let now_playing_tab = button(container(now_playing_row).center_y(Length::Fill).padding([0, 12]))
         .on_press(Message::SelectViewMode(ViewMode::NowPlaying))
         .height(28)
         .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
