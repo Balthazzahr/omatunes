@@ -104,7 +104,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
 
     let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 600.0);
     let player_width = if state.right_panel_tab.is_some() && is_allowed {
-        state.window_width - 60.0 - state.right_panel_width
+        state.window_width - 62.0 - state.right_panel_width
     } else if is_allowed {
         state.window_width - 56.0
     } else {
