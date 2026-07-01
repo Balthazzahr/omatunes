@@ -1119,9 +1119,11 @@ impl AppState {
                     PlaybackState::Stopped => {
                         if let Some(ref sel) = self.selected_track {
                             self.queue = self.tracks.clone();
+                            self.set_playing_context_from_current_view();
                             self.play_track_internal(sel.clone())
                         } else if let Some(first) = self.tracks.first().cloned() {
                             self.queue = self.tracks.clone();
+                            self.set_playing_context_from_current_view();
                             self.play_track_internal(first)
                         } else {
                             Task::none()
@@ -2951,6 +2953,7 @@ impl AppState {
             Message::DoubleClickTrack(track) => {
                 self.selected_track = Some(track.clone());
                 self.queue = self.tracks.clone();
+                self.set_playing_context_from_current_view();
                 self.play_track_internal(track)
             }
 
@@ -2962,6 +2965,7 @@ impl AppState {
                 self.selected_album = None;
                 self.search_query.clear();
                 self.update_filtered_tracks();
+                self.playing_context = Some(PlayingContext::Artist(artist_name.clone()));
                 self.shuffle = true;
                 // Shuffle tracks of this artist
                 let mut artist_tracks = self.tracks.clone();
@@ -2984,6 +2988,7 @@ impl AppState {
                 self.selected_artist = None;
                 self.search_query.clear();
                 self.update_filtered_tracks();
+                self.playing_context = Some(PlayingContext::Album(album_name.clone()));
                 
                 // Sort by track number ascending
                 self.tracks.sort_by_key(|t| t.track_number.unwrap_or(u32::MAX));
@@ -3002,6 +3007,13 @@ impl AppState {
                 self.selected_album = None;
                 self.search_query.clear();
                 self.update_filtered_tracks();
+                if playlist_name == "Liked Songs" || playlist_name == "Recently Played" || playlist_name == "Most Played" || playlist_name == "New Music" {
+                    self.playing_context = Some(PlayingContext::Autoplaylist(playlist_name.clone()));
+                } else if crate::db::get(|db| db.smart_playlists.contains_key(&playlist_name)) {
+                    self.playing_context = Some(PlayingContext::SmartPlaylist(playlist_name.clone()));
+                } else {
+                    self.playing_context = Some(PlayingContext::Playlist(playlist_name.clone()));
+                }
                 self.queue = self.tracks.clone();
                 if let Some(first) = self.tracks.first().cloned() {
                     self.play_track_internal(first)
