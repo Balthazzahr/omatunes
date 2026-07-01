@@ -566,7 +566,9 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                     playlists_area_col,
                 ]
                 .height(Length::Fill)
+                .width(Length::Fill)
             )
+            .width(Length::Fill)
             .height(Length::Fixed(state.playlist_height)),
         ]
         .padding(8),
