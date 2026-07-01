@@ -628,6 +628,8 @@ impl AppState {
             hovered_album_header: None,
             track_list_start: 0,
             track_list_end: 500,
+            smart_playlist_builder: None,
+            previous_view_state: None,
         };
 
         (state, scan_task)
