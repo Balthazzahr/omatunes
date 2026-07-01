@@ -291,6 +291,78 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
         mouse_area(row_container)
             .on_enter(Message::HoverPlaylist(Some(name.clone())))
             .on_exit(Message::HoverPlaylist(None))
+            .on_right_press(Message::ToggleContextMenu(Some(crate::app::ContextMenuTarget::Playlist(name.clone()))))
+            .into()
+    };
+
+    let render_smart_playlist_item = |name: String| -> Element<'_, Message> {
+        let is_selected = state.selected_playlist.as_ref() == Some(&name);
+        let icon_str = "\u{ebcf}";
+
+        let label_text = text(name.clone())
+            .color(if is_selected { theme::accent() } else { theme::text() })
+            .font(crate::ui::icons::UI_FONT)
+            .size(14);
+
+        let label_container = container(label_text)
+            .width(Length::Fill)
+            .clip(true);
+
+        let label_row = row![
+            text(icon_str)
+                .font(crate::ui::icons::NERD_FONT_MONO)
+                .color(if is_selected { theme::accent() } else { theme::overlay0() })
+                .size(14),
+            Space::with_width(8),
+            label_container,
+        ]
+        .align_y(Alignment::Center)
+        .width(Length::Fill);
+
+        let is_hovered = state.hovered_playlist.as_ref() == Some(&name);
+
+        let edit_btn = button(
+            text("\u{f044}")
+                .font(crate::ui::icons::NERD_FONT_MONO)
+                .color(theme::overlay0())
+                .size(12)
+        )
+        .on_press(Message::EditSmartPlaylist(name.clone()))
+        .style(iced::widget::button::text);
+
+        let delete_btn = button(
+            text("\u{f1f8}")
+                .font(crate::ui::icons::NERD_FONT_MONO)
+                .color(theme::red())
+                .size(12)
+        )
+        .on_press(Message::DeleteSmartPlaylist(name.clone()))
+        .style(iced::widget::button::text);
+
+        let mut action_row = row![
+            button(label_row)
+                .on_press(Message::SelectPlaylist(name.clone()))
+                .style(iced::widget::button::text)
+                .width(Length::Fill)
+                .padding([6, 12])
+        ];
+
+        if is_hovered {
+            action_row = action_row.push(edit_btn).push(Space::with_width(4)).push(delete_btn).push(Space::with_width(6));
+        }
+
+        let btn = action_row.align_y(Alignment::Center).width(Length::Fill);
+
+        let row_container = if is_selected {
+            container(btn).style(theme::selected_row).width(Length::Fill)
+        } else {
+            container(btn).width(Length::Fill)
+        };
+
+        mouse_area(row_container)
+            .on_enter(Message::HoverPlaylist(Some(name.clone())))
+            .on_exit(Message::HoverPlaylist(None))
+            .on_right_press(Message::ToggleContextMenu(Some(crate::app::ContextMenuTarget::SmartPlaylist(name.clone()))))
             .into()
     };
 
