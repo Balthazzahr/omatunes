@@ -242,17 +242,15 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             }
         });
 
-    let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 600.0);
-
     if is_allowed {
         row![
             player_with_scroll,
             tab_strip,
         ]
         .spacing(0)
-        .align_y(Alignment::Center)
+        .align_y(Alignment::Top)
         .width(Length::Fill)
-        .height(Length::Fixed(270.0))
+        .height(Length::Fixed(298.0))
         .into()
     } else {
         row![

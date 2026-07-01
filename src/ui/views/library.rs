@@ -205,9 +205,12 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             text(name.clone())
                 .color(if is_selected { theme::accent() } else if is_auto { theme::subtext() } else { theme::text() })
                 .font(if is_auto { crate::ui::icons::UI_FONT_BOLD } else { crate::ui::icons::UI_FONT })
-                .size(14),
+                .size(14)
+                .width(Length::Fill)
+                .overflow(iced::widget::text::Overflow::Ellipsis),
         ]
-        .align_y(Alignment::Center);
+        .align_y(Alignment::Center)
+        .width(Length::Fill);
 
         let is_hovered = state.hovered_playlist.as_ref() == Some(&name);
 
