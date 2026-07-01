@@ -133,6 +133,7 @@ impl Default for OmatunesDb {
             last_track_path: None,
             last_queue_paths: Vec::default(),
             last_position_secs: 0,
+            smart_playlists: HashMap::default(),
         }
     }
 }
