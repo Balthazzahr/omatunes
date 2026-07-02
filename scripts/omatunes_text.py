@@ -575,7 +575,7 @@ if all_time_time:
         extra_lines.append(f"<span font_family='monospace'> {rank_str:>3}  {name_part}{name_padding} <span foreground='{COLORS['blue']}'>{format_time(mins):>7}</span> <span foreground='#aaaaaa' size='x-small'>({t_count} tracks)</span></span>")
 
 # Footer definitions
-footer_text = "󰍽 L: Play  󰍽 M: Prev  󰍽 R: Next  󰍽 Scrl: Vol"
+footer_text = "󰍽 L: Focus  󰍽 Scrl: Vol"
 f_size = "9000"
 f_size_val = float(f_size)
 
@@ -654,14 +654,9 @@ display_text = (
     f"<span foreground='{song_color}'><i>{truncate_text(title, 24)}</i></span>"
 )
 
-t_tooltip_end = time.perf_counter()
-tooltip_ms = (t_tooltip_end - t_tooltip_start) * 1000.0
-
 print(json.dumps({
     "text": display_text,
     "tooltip": "\n".join(tooltip),
     "markup": "pango",
     "class": status,
 }))
-
-log_timing(p_ms=playerctl_ms, l_ms=session_load_ms, th_ms=theme_ms, tc_ms=tooltip_ms, s_ms=session_save_ms, exit_reason="normal")
