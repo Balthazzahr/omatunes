@@ -336,7 +336,27 @@ if len(sys.argv) > 1:
 # -------------------
 # Main OmaTunes Logic
 # -------------------
-status = get("playerctl --player=omatunes status").lower()
+cmd = [
+    "playerctl",
+    "-f",
+    "{{status}}||{{volume}}||{{position}}||{{shuffle}}||{{loop}}||{{title}}||{{artist}}||{{album}}||{{mpris:length}}||{{xesam:url}}",
+    "--player=omatunes",
+    "metadata"
+]
+
+raw_output = get(cmd)
+parts = raw_output.split("||")
+
+if len(parts) != 10:
+    try:
+        if os.path.exists("/tmp/omatunes_waybar_state.json"):
+            os.unlink("/tmp/omatunes_waybar_state.json")
+    except:
+        pass
+    print(json.dumps({}))
+    sys.exit(0)
+
+status = parts[0].lower().strip()
 
 if not status or status == "stopped":
     try:
@@ -345,23 +365,30 @@ if not status or status == "stopped":
     except:
         pass
     print(json.dumps({}))
-    exit()
+    sys.exit(0)
 
-title_raw = get("playerctl --player=omatunes metadata title")
-artist_raw = get("playerctl --player=omatunes metadata artist")
-
+title_raw = parts[5].strip()
 if not title_raw:
     print(json.dumps({}))
-    exit()
+    sys.exit(0)
 
 title = escape(title_raw)
+artist_raw = parts[6].strip()
 artist = escape(artist_raw)
-album = escape(get("playerctl --player=omatunes metadata album"))
-volume = float(get("playerctl --player=omatunes volume") or 0)
-position = int(float(get("playerctl --player=omatunes position") or 0))
-length = int(get("playerctl --player=omatunes metadata mpris:length") or 0) // 1_000_000
-shuffle = get("playerctl --player=omatunes shuffle").lower()
-loop = get("playerctl --player=omatunes loop")
+album = escape(parts[7].strip())
+
+volume_raw = parts[1].strip()
+volume = float(volume_raw) if volume_raw else 0.0
+
+position_raw = parts[2].strip()
+position = int(float(position_raw) // 1_000_000) if position_raw else 0
+
+length_raw = parts[8].strip()
+length = int(length_raw) // 1_000_000 if length_raw else 0
+
+shuffle = parts[3].lower().strip()
+loop = parts[4].strip()
+track_url = parts[9].strip()
 
 # -------------------
 # Session & Notifications
@@ -602,7 +629,7 @@ state_cache = {
     "length": length,
     "shuffle": shuffle,
     "loop": loop,
-    "liked": is_track_liked(get("playerctl --player=omatunes metadata xesam:url")),
+    "liked": is_track_liked(track_url),
     "timestamp": time.time()
 }
 try:
