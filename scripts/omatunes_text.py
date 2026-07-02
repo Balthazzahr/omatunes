@@ -182,8 +182,6 @@ def get_css_color(var):
     except:
         return None
 
-t_start = time.perf_counter()
-
 # Note: get_theme_colors is defined here
 THEME_CACHE_FILE = pathlib.Path.home() / ".cache" / "waybar_omatunes_theme_cache.json"
 
@@ -250,10 +248,7 @@ def get_theme_colors():
 
     return colors_dict, theme_colors_dict
 
-t_theme_start = time.perf_counter()
 COLORS, theme_colors = get_theme_colors()
-t_theme_end = time.perf_counter()
-theme_ms = (t_theme_end - t_theme_start) * 1000.0
 
 def is_track_liked(track_url):
     if not track_url:
