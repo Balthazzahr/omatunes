@@ -685,9 +685,14 @@ display_text = (
     f"<span foreground='{song_color}'><i>{truncate_text(title, 24)}</i></span>"
 )
 
+t_tooltip_end = time.perf_counter()
+tooltip_ms = (t_tooltip_end - t_tooltip_start) * 1000.0
+
 print(json.dumps({
     "text": display_text,
     "tooltip": "\n".join(tooltip),
     "markup": "pango",
     "class": status,
 }))
+
+log_timing(p_ms=playerctl_ms, l_ms=session_load_ms, th_ms=theme_ms, tc_ms=tooltip_ms, s_ms=session_save_ms, exit_reason="normal")
