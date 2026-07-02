@@ -334,18 +334,6 @@ if len(sys.argv) > 1:
         }))
         sys.exit(0)
 
-# Timing log helper
-def log_timing(p_ms=0.0, l_ms=0.0, th_ms=0.0, tc_ms=0.0, s_ms=0.0, exit_reason="normal"):
-    t_end = time.perf_counter()
-    tot_ms = (t_end - t_start) * 1000.0
-    log_file = pathlib.Path.home() / ".cache" / "omatunes_waybar_timing.log"
-    ts = datetime.now().isoformat()
-    try:
-        with open(log_file, "a") as f:
-            f.write(f"{ts}\t{tot_ms:.2f}\t{p_ms:.2f}\t{l_ms:.2f}\t{th_ms:.2f}\t{tc_ms:.2f}\t{s_ms:.2f}\t{exit_reason}\n")
-    except:
-        pass
-
 # -------------------
 # Main OmaTunes Logic
 # -------------------
@@ -357,11 +345,7 @@ cmd = [
     "metadata"
 ]
 
-t_p_start = time.perf_counter()
 raw_output = get(cmd)
-t_p_end = time.perf_counter()
-playerctl_ms = (t_p_end - t_p_start) * 1000.0
-
 parts = raw_output.split("||")
 
 if len(parts) != 10:
@@ -371,7 +355,6 @@ if len(parts) != 10:
     except:
         pass
     print(json.dumps({}))
-    log_timing(p_ms=playerctl_ms, th_ms=theme_ms, exit_reason="malformed_split")
     sys.exit(0)
 
 status = parts[0].lower().strip()
@@ -383,13 +366,11 @@ if not status or status == "stopped":
     except:
         pass
     print(json.dumps({}))
-    log_timing(p_ms=playerctl_ms, th_ms=theme_ms, exit_reason="stopped_or_empty")
     sys.exit(0)
 
 title_raw = parts[5].strip()
 if not title_raw:
     print(json.dumps({}))
-    log_timing(p_ms=playerctl_ms, th_ms=theme_ms, exit_reason="empty_title")
     sys.exit(0)
 
 title = escape(title_raw)
@@ -413,10 +394,7 @@ track_url = parts[9].strip()
 # -------------------
 # Session & Notifications
 # -------------------
-t_load_start = time.perf_counter()
 session = load_session()
-t_load_end = time.perf_counter()
-session_load_ms = (t_load_end - t_load_start) * 1000.0
 now = datetime.now()
 today_str = now.strftime("%Y-%m-%d")
 month_str = now.strftime("%Y-%m")
