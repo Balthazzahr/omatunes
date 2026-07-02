@@ -505,8 +505,7 @@ def track_bar(pos, total, width=32, color=None):
 
 def format_time(minutes):
     h, m = divmod(int(minutes), 60)
-    return f"{h}h {m:02d}m" if h else f"{m}m"
-
+    return f"{h}h {m:02d}t_tooltip_start = time.perf_counter()
 tooltip_pre = [
     f"<span font='Montserrat Bold' foreground='{theme_colors['omatunes_brand']}' size='27500'>  OmaTunes</span>",
     f"<span font='Montserrat' size='10000'> </span>",  # vertical gap
@@ -537,7 +536,7 @@ stats_lines.append(format_stat_line("󰃮", "This Week:", week_data['minutes'], 
 
 month_data = session["monthly_history"].get(month_str, {"tracks": 0, "minutes": 0})
 if month_data["tracks"] < day_data["tracks"]: month_data = day_data
-stats_lines.append(format_stat_line("󰸗", "This Month:", month_data['minutes'], month_data['tracks'], theme_colors['artist'], theme_colors['song']))
+stats_lines.append(format_stat_line("󰃗", "This Month:", month_data['minutes'], month_data['tracks'], theme_colors['artist'], theme_colors['song']))
 
 # Last Month Logic
 last_month_dt = (now.replace(day=1) - timedelta(days=1))
@@ -684,8 +683,17 @@ display_text = (
     f"<span foreground='{song_color}'><i>{truncate_text(title, 24)}</i></span>"
 )
 
+t_tooltip_end = time.perf_counter()
+tooltip_ms = (t_tooltip_end - t_tooltip_start) * 1000.0
+
 print(json.dumps({
     "text": display_text,
+    "tooltip": "\n".join(tooltip),
+    "markup": "pango",
+    "class": status,
+}))
+
+log_timing(p_ms=playerctl_ms, l_ms=session_load_ms, th_ms=theme_ms, tc_ms=tooltip_ms, s_ms=session_save_ms, exit_reason="normal"),
     "tooltip": "\n".join(tooltip),
     "markup": "pango",
     "class": status,
