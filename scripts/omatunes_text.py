@@ -21,7 +21,7 @@ except ImportError:
 
 def get(cmd):
     try:
-        return subprocess.check_output(cmd, shell=True, stderr=subprocess.DEVNULL, text=True).strip()
+        return subprocess.check_output(cmd, stderr=subprocess.DEVNULL, text=True).strip()
     except:
         return ""
 
@@ -151,7 +151,7 @@ def save_session(session):
         pass
 
 # -------------------
-# Load Theme & Colors
+# Load Theme & Colors (Cached)
 # -------------------
 def load_omarchy_colors():
     theme_path = pathlib.Path.home() / ".config/omarchy/current/theme/alacritty.toml"
@@ -173,8 +173,6 @@ def load_omarchy_colors():
     except:
         return {"green": "#00ff00", "yellow": "#ffff00", "cyan": "#00ffff", "white": "#ffffff", "red": "#ff0000", "blue": "#0000ff"}
 
-COLORS = load_omarchy_colors()
-
 def get_css_color(var):
     css_path = pathlib.Path.home() / ".config/waybar/style.css"
     try:
@@ -184,17 +182,72 @@ def get_css_color(var):
     except:
         return None
 
-theme_colors = {
-    "artist": COLORS.get("green"),
-    "song": COLORS.get("white"),
-    "album": COLORS.get("cyan"),
-    "time": COLORS.get("white"),
-    "volume": get_css_color("volume") or COLORS.get("cyan"),
-    "status_playing": COLORS.get("green"),
-    "status_stopped": COLORS.get("red"),
-    "omatunes_brand": COLORS.get("cyan"),
-    "progress": COLORS.get("blue"),
-}
+THEME_CACHE_FILE = pathlib.Path.home() / ".cache" / "waybar_omatunes_theme_cache.json"
+
+def get_theme_colors():
+    alacritty_path = pathlib.Path.home() / ".config/omarchy/current/theme/alacritty.toml"
+    waybar_path = pathlib.Path.home() / ".config/waybar/style.css"
+    
+    alacritty_mtime = 0.0
+    waybar_mtime = 0.0
+    try:
+        if alacritty_path.exists():
+            alacritty_mtime = os.path.getmtime(alacritty_path)
+    except:
+        pass
+    try:
+        if waybar_path.exists():
+            waybar_mtime = os.path.getmtime(waybar_path)
+    except:
+        pass
+
+    cache_valid = False
+    cache_data = {}
+    if THEME_CACHE_FILE.exists():
+        try:
+            with open(THEME_CACHE_FILE, "r") as f:
+                cache_data = json.load(f)
+            if (cache_data.get("alacritty_mtime") == alacritty_mtime and 
+                cache_data.get("waybar_mtime") == waybar_mtime):
+                cache_valid = True
+        except:
+            pass
+
+    if cache_valid:
+        return cache_data["COLORS"], cache_data["theme_colors"]
+
+    # Compute and save
+    global tomllib
+    # Ensure COLORS is defined
+    colors_dict = load_omarchy_colors()
+    vol_color = get_css_color("volume") or colors_dict.get("cyan")
+    
+    theme_colors_dict = {
+        "artist": colors_dict.get("green"),
+        "song": colors_dict.get("white"),
+        "album": colors_dict.get("cyan"),
+        "time": colors_dict.get("white"),
+        "volume": vol_color,
+        "status_playing": colors_dict.get("green"),
+        "status_stopped": colors_dict.get("red"),
+        "omatunes_brand": colors_dict.get("cyan"),
+        "progress": colors_dict.get("blue"),
+    }
+    
+    try:
+        with open(THEME_CACHE_FILE, "w") as f:
+            json.dump({
+                "alacritty_mtime": alacritty_mtime,
+                "waybar_mtime": waybar_mtime,
+                "COLORS": colors_dict,
+                "theme_colors": theme_colors_dict
+            }, f)
+    except:
+        pass
+
+    return colors_dict, theme_colors_dict
+
+COLORS, theme_colors = get_theme_colors()
 
 def is_track_liked(track_url):
     if not track_url:
