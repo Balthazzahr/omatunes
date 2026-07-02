@@ -459,10 +459,7 @@ if current_hours > session["last_hour_milestone"]:
     session["last_hour_milestone"] = current_hours
 
 session["last_update"] = now
-t_save_start = time.perf_counter()
 save_session(session)
-t_save_end = time.perf_counter()
-session_save_ms = (t_save_end - t_save_start) * 1000.0
 
 # -------------------
 # Visuals & Tooltip
@@ -480,7 +477,6 @@ def format_time(minutes):
     h, m = divmod(int(minutes), 60)
     return f"{h}h {m:02d}m" if h else f"{m}m"
 
-t_tooltip_start = time.perf_counter()
 tooltip_pre = [
     f"<span font='Montserrat Bold' foreground='{theme_colors['omatunes_brand']}' size='27500'>  OmaTunes</span>",
     f"<span font='Montserrat' size='10000'> </span>",  # vertical gap
