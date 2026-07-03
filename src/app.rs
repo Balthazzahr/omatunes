@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::Duration;
 
-use iced::widget::{button, container, column, row, text, Space, stack, scrollable};
+use iced::widget::{button, container, column, row, text, Space, stack, scrollable, mouse_area};
 use iced::{Alignment, Element, Length, Subscription, Task, Theme};
 use mpris_server::{LoopStatus, PlaybackStatus};
 
@@ -580,6 +580,8 @@ impl AppState {
             repeat: cfg.repeat,
             folders,
             selected_folder: None,
+            tracks: Vec::new(),
+            folder_cache: HashMap::new(),
 
             sidebar_width: db_sidebar_width.unwrap_or(200.0).clamp(MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH),
             dragging_sidebar: false,
