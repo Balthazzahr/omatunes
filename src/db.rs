@@ -114,6 +114,10 @@ pub struct OmatunesDb {
     pub playlist_order: Vec<String>,
     #[serde(default)]
     pub smart_playlist_order: Vec<String>,
+    #[serde(default)]
+    pub smart_playlist_song_order: HashMap<String, Vec<PathBuf>>,
+    #[serde(default)]
+    pub auto_playlist_song_order: HashMap<String, Vec<PathBuf>>,
 }
 
 impl Default for OmatunesDb {
@@ -143,6 +147,8 @@ impl Default for OmatunesDb {
             smart_playlists: HashMap::default(),
             playlist_order: Vec::default(),
             smart_playlist_order: Vec::default(),
+            smart_playlist_song_order: HashMap::default(),
+            auto_playlist_song_order: HashMap::default(),
         }
     }
 }
