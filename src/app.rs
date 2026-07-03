@@ -928,7 +928,9 @@ impl AppState {
                 self.tracks = self.evaluate_smart_playlist(&sp);
             } else {
                 let paths = crate::db::get(|db| db.playlists.get(playlist_name).cloned().unwrap_or_default());
-                self.tracks = self.all_tracks.iter().filter(|t| paths.contains(&t.path)).cloned().collect();
+                let track_map: std::collections::HashMap<std::path::PathBuf, Track> =
+                    self.all_tracks.iter().map(|t| (t.path.clone(), t.clone())).collect();
+                self.tracks = paths.iter().filter_map(|p| track_map.get(p).cloned()).collect();
             }
             
             if playlist_name == "Liked Songs" || playlist_name == "New Music" {
