@@ -110,6 +110,10 @@ pub struct OmatunesDb {
     pub last_position_secs: u64,
     #[serde(default)]
     pub smart_playlists: HashMap<String, crate::library::smart_playlist::SmartPlaylist>,
+    #[serde(default)]
+    pub playlist_order: Vec<String>,
+    #[serde(default)]
+    pub smart_playlist_order: Vec<String>,
 }
 
 impl Default for OmatunesDb {
@@ -118,6 +122,30 @@ impl Default for OmatunesDb {
             favorites: HashSet::default(),
             play_counts: HashMap::default(),
             playlists: HashMap::default(),
+            recently_played: Vec::default(),
+            hidden_artists_albums: Vec::default(),
+            table_columns: default_table_columns(),
+            group_by_album: false,
+            sidebar_width: None,
+            playlist_height: None,
+            right_panel_width: None,
+            right_panel_tab: None,
+            player_height: None,
+            last_view_mode: None,
+            last_selected_playlist: None,
+            last_selected_folder: None,
+            last_selected_artist: None,
+            last_selected_album: None,
+            last_selected_genre: None,
+            last_track_path: None,
+            last_queue_paths: Vec::default(),
+            last_position_secs: 0,
+            smart_playlists: HashMap::default(),
+            playlist_order: Vec::default(),
+            smart_playlist_order: Vec::default(),
+        }
+    }
+}
             recently_played: Vec::default(),
             hidden_artists_albums: Vec::default(),
             table_columns: default_table_columns(),
