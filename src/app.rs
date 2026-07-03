@@ -270,6 +270,14 @@ pub enum Message {
     EditSmartPlaylist(String),
     DeleteSmartPlaylist(String),
     SmartPlaylistBuilderMsg(SmartPlaylistBuilderEvent),
+
+    PlayerDragStart,
+    PlayerDragMove(f32),
+    PlayerDragEnd,
+    HoverPlayerResizer(bool),
+
+    RightPanelDragStart,
+    RightPanelDragMove(f32),
 }
 
 #[derive(Debug, Clone)]
@@ -548,11 +556,12 @@ impl AppState {
         let loaded_theme_name = crate::ui::theme::read_current_theme_name();
         let iced_theme = build_iced_theme();
 
-        let (db_sidebar_width, db_playlist_height, db_right_panel_width, db_right_panel_tab) = crate::db::get(|db| (
+        let (db_sidebar_width, db_playlist_height, db_right_panel_width, db_right_panel_tab, db_player_height) = crate::db::get(|db| (
             db.sidebar_width,
             db.playlist_height,
             db.right_panel_width,
             db.right_panel_tab,
+            db.player_height,
         ));
 
         let music_dir = cfg.music_path();
@@ -575,6 +584,13 @@ impl AppState {
             folders,
             selected_folder: None,
 
+            sidebar_width: db_sidebar_width.unwrap_or(200.0).clamp(MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH),
+            dragging_sidebar: false,
+            player_height: db_player_height.unwrap_or(298.0).clamp(298.0, 458.0),
+            dragging_player_split: false,
+            is_hovering_player_resizer: false,
+            right_panel_width: db_right_panel_width.unwrap_or(960.0f32 * 0.33).clamp(450.0, 960.0),
+            right_panel_width_initialized: db_right_panel_width.is_some(),
             dragging_right_panel: false,
             is_hovering_right_panel_resizer: false,
             window_width: 960.0,
