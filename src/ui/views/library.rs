@@ -1160,31 +1160,58 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         for col in table_columns {
             let label = col.label();
             let width = col_width(col);
-            let sort_col = col_to_sort_col(col);
+            let sort_col = table_col_to_sort_col(col);
             let is_sorted = state.sort_column == Some(sort_col);
             let arrow = if is_sorted {
                 if state.sort_ascending { " ▲" } else { " ▼" }
             } else {
                 ""
             };
+            let is_being_dragged = state.dragging_column_header == Some(col);
             let txt = text(format!("{label}{arrow}"))
                 .size(11)
                 .font(crate::ui::icons::UI_FONT_BOLD)
                 .color(if is_sorted { theme::accent() } else { theme::subtext() });
-            let btn = button(txt)
-                .on_press(Message::SortBy(sort_col))
-                .style(iced::widget::button::text)
+            
+            let btn = container(txt)
+                .width(width)
                 .padding(0)
-                .width(width);
-            let header_area = mouse_area(btn)
+                .style(move |_| iced::widget::container::Style {
+                    background: if is_being_dragged {
+                        Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.15)))
+                    } else {
+                        None
+                    },
+                    ..Default::default()
+                });
+
+            let mut header_area = mouse_area(btn)
+                .on_press(Message::ColumnHeaderDragStart(col))
+                .on_release(Message::ColumnHeaderDragEnd)
                 .on_right_press(Message::ToggleContextMenu(Some(crate::app::ContextMenuTarget::Header(col))));
-            header_widgets.push(header_area.into());
+
+            if state.dragging_column_header.is_some() {
+                header_area = header_area.on_enter(Message::ColumnHeaderDragOver(col));
+            }
+
+            let resize_strip = mouse_area(
+                container(Space::new(Length::Fixed(6.0), Length::Fill))
+                    .height(Length::Fill)
+            )
+            .on_press(Message::ColumnWidthResizeStart(col, state.cursor_x))
+            .on_release(Message::ColumnWidthResizeEnd)
+            .interaction(iced::mouse::Interaction::ResizingHorizontally);
+
+            let header_cell = row![header_area.into(), resize_strip.into()]
+                .align_y(Alignment::Center);
+
+            header_widgets.push(header_cell.into());
         }
         header_widgets.push(Space::with_width(Length::Fixed(120.0)).into());
 
         container(
             row(header_widgets)
-                .spacing(12)
+                .spacing(6)
                 .align_y(Alignment::Center)
                 .padding([8, 12])
         )
