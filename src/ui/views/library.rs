@@ -1146,24 +1146,15 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             } else {
                 ""
             };
-            let is_being_dragged = state.dragging_column_header == Some(col);
             let txt = text(format!("{label}{arrow}"))
                 .size(11)
                 .font(crate::ui::icons::UI_FONT_BOLD)
                 .color(if is_sorted { theme::accent() } else { theme::subtext() });
             
-            let btn: Element<'_, Message> = container(txt)
-                .width(width)
+            let btn = button(txt)
+                .style(iced::widget::button::text)
                 .padding(0)
-                .style(move |_: &iced::Theme| iced::widget::container::Style {
-                    background: if is_being_dragged {
-                        Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.15)))
-                    } else {
-                        None
-                    },
-                    ..Default::default()
-                })
-                .into();
+                .width(width);
 
             let mut header_area: Element<'_, Message> = mouse_area(btn)
                 .on_press(Message::ColumnHeaderDragStart(col))
@@ -1177,25 +1168,13 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                     .into();
             }
 
-            let resize_strip: Element<'_, Message> = mouse_area(
-                container(Space::new(Length::Fixed(6.0), Length::Fill))
-                    .height(Length::Fill)
-            )
-            .on_press(Message::ColumnWidthResizeStart(col, state.cursor_x))
-            .on_release(Message::ColumnWidthResizeEnd)
-            .interaction(iced::mouse::Interaction::ResizingHorizontally)
-            .into();
-
-            let header_cell = row![header_area, resize_strip]
-                .align_y(Alignment::Center);
-
-            header_widgets.push(header_cell.into());
+            header_widgets.push(header_area);
         }
         header_widgets.push(Space::with_width(Length::Fixed(120.0)).into());
 
         container(
             row(header_widgets)
-                .spacing(6)
+                .spacing(12)
                 .align_y(Alignment::Center)
                 .padding([8, 12])
         )
