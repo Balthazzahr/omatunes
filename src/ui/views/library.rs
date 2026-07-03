@@ -1655,6 +1655,9 @@ fn render_track_row(
 }
 
 fn col_width(col: crate::db::TableColumn) -> Length {
+    if let Some(w) = crate::db::get(|db| db.column_widths.get(&col).cloned()) {
+        return Length::Fixed(w);
+    }
     match col {
         crate::db::TableColumn::TrackNumber => Length::Fixed(30.0),
         crate::db::TableColumn::Title => Length::FillPortion(3),
@@ -1670,7 +1673,7 @@ fn col_width(col: crate::db::TableColumn) -> Length {
     }
 }
 
-fn col_to_sort_col(col: crate::db::TableColumn) -> SortColumn {
+pub fn table_col_to_sort_col(col: crate::db::TableColumn) -> SortColumn {
     match col {
         crate::db::TableColumn::TrackNumber => SortColumn::TrackNumber,
         crate::db::TableColumn::Title => SortColumn::Title,
