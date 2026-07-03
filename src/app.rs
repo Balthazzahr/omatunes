@@ -3953,6 +3953,97 @@ impl AppState {
                 self.show_context_menu = None;
                 Task::none()
             }
+
+            Message::CursorMoved(x) => {
+                self.cursor_x = x;
+                Task::none()
+            }
+
+            Message::ColumnHeaderDragStart(col) => {
+                self.dragging_column_header = Some(col);
+                self.column_drag_moved = false;
+                Task::none()
+            }
+
+            Message::ColumnHeaderDragOver(target_col) => {
+                if let Some(source_col) = self.dragging_column_header {
+                    if source_col != target_col {
+                        crate::db::write(|db| {
+                            let cols = &mut db.table_columns;
+                            if let (Some(src_pos), Some(tgt_pos)) = (
+                                cols.iter().position(|&c| c == source_col),
+                                cols.iter().position(|&c| c == target_col),
+                            ) {
+                                let item = cols.remove(src_pos);
+                                cols.insert(tgt_pos, item);
+                            }
+                        });
+                        self.dragging_column_header = Some(target_col);
+                        self.column_drag_moved = true;
+                    }
+                }
+                Task::none()
+            }
+
+            Message::ColumnHeaderDragEnd => {
+                if let Some(col) = self.dragging_column_header {
+                    if !self.column_drag_moved {
+                        let sort_col = crate::ui::views::library::table_col_to_sort_col(col);
+                        if self.sort_column == Some(sort_col) {
+                            self.sort_ascending = !self.sort_ascending;
+                        } else {
+                            self.sort_column = Some(sort_col);
+                            self.sort_ascending = true;
+                        }
+                        self.update_filtered_tracks();
+                    }
+                }
+                self.dragging_column_header = None;
+                self.column_drag_moved = false;
+                Task::none()
+            }
+
+            Message::ColumnWidthResizeStart(col, x) => {
+                self.resizing_column = Some(col);
+                self.resize_column_start_x = x;
+                Task::none()
+            }
+
+            Message::ColumnWidthResizeDrag(x) => {
+                if let Some(col) = self.resizing_column {
+                    let delta = x - self.resize_column_start_x;
+                    self.resize_column_start_x = x;
+                    crate::db::write(|db| {
+                        let current_px = db.column_widths.get(&col).copied().unwrap_or_else(|| {
+                            match col {
+                                crate::db::TableColumn::TrackNumber => 30.0,
+                                crate::db::TableColumn::Year => 50.0,
+                                crate::db::TableColumn::DiscNumber => 50.0,
+                                crate::db::TableColumn::Duration => 80.0,
+                                crate::db::TableColumn::Plays => 40.0,
+                                crate::db::TableColumn::Liked => 40.0,
+                                _ => 160.0,
+                            }
+                        });
+                        let new_px = (current_px + delta).max(24.0);
+                        db.column_widths.insert(col, new_px);
+                    });
+                }
+                Task::none()
+            }
+
+            Message::ColumnWidthResizeEnd => {
+                self.resizing_column = None;
+                Task::none()
+            }
+
+            Message::ResetColumnWidths => {
+                crate::db::write(|db| {
+                    db.column_widths.clear();
+                });
+                self.show_context_menu = None;
+                Task::none()
+            }
         }
 
     }
