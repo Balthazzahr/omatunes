@@ -1711,9 +1711,6 @@ fn render_track_row(
 }
 
 fn col_width(col: crate::db::TableColumn) -> Length {
-    if let Some(w) = crate::db::get(|db| db.column_widths.get(&col).cloned()) {
-        return Length::Fixed(w);
-    }
     match col {
         crate::db::TableColumn::TrackNumber => Length::Fixed(30.0),
         crate::db::TableColumn::Title => Length::FillPortion(3),
