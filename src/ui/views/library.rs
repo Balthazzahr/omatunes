@@ -904,7 +904,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         let btn = container(txt)
             .width(width)
             .padding(0)
-            .style(move |_| iced::widget::container::Style {
+            .style(move |_: &iced::Theme| iced::widget::container::Style {
                 background: if is_being_dragged {
                     Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.15)))
                 } else {
