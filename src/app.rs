@@ -4399,14 +4399,6 @@ impl AppState {
                         cols_col = cols_col.push(btn);
                     }
 
-                    let reset_widths_btn = button(text("Reset column widths to default").size(12))
-                        .on_press(Message::ResetColumnWidths)
-                        .style(item_style)
-                        .padding([4, 8])
-                        .width(Length::Fill);
-
-                    cols_col = cols_col.push(Space::with_height(8)).push(reset_widths_btn);
-
                     playlist_select = cols_col;
                     
                     let dummy_create = button(text(""))
