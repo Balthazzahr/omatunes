@@ -146,28 +146,6 @@ impl Default for OmatunesDb {
         }
     }
 }
-            recently_played: Vec::default(),
-            hidden_artists_albums: Vec::default(),
-            table_columns: default_table_columns(),
-            group_by_album: false,
-            sidebar_width: None,
-            playlist_height: None,
-            right_panel_width: None,
-            right_panel_tab: None,
-            player_height: None,
-            last_view_mode: None,
-            last_selected_playlist: None,
-            last_selected_folder: None,
-            last_selected_artist: None,
-            last_selected_album: None,
-            last_selected_genre: None,
-            last_track_path: None,
-            last_queue_paths: Vec::default(),
-            last_position_secs: 0,
-            smart_playlists: HashMap::default(),
-        }
-    }
-}
 
 fn db_path() -> PathBuf {
     let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".into());
@@ -251,20 +229,27 @@ pub fn add_to_playlist(name: String, path: PathBuf) {
 
 pub fn create_playlist(name: String) {
     write(|db| {
-        db.playlists.entry(name).or_default();
+        db.playlists.entry(name.clone()).or_default();
+        if !db.playlist_order.contains(&name) {
+            db.playlist_order.push(name);
+        }
     });
 }
 
 pub fn delete_playlist(name: String) {
     write(|db| {
         db.playlists.remove(&name);
+        db.playlist_order.retain(|n| n != &name);
     });
 }
 
 pub fn rename_playlist(old_name: String, new_name: String) {
     write(|db| {
         if let Some(list) = db.playlists.remove(&old_name) {
-            db.playlists.insert(new_name, list);
+            db.playlists.insert(new_name.clone(), list);
+            if let Some(pos) = db.playlist_order.iter().position(|n| n == &old_name) {
+                db.playlist_order[pos] = new_name;
+            }
         }
     });
 }
@@ -282,13 +267,17 @@ pub fn add_to_recently_played(path: PathBuf) {
 
 pub fn save_smart_playlist(name: String, playlist: crate::library::smart_playlist::SmartPlaylist) {
     write(|db| {
-        db.smart_playlists.insert(name, playlist);
+        db.smart_playlists.insert(name.clone(), playlist);
+        if !db.smart_playlist_order.contains(&name) {
+            db.smart_playlist_order.push(name);
+        }
     });
 }
 
 pub fn delete_smart_playlist(name: String) {
     write(|db| {
         db.smart_playlists.remove(&name);
+        db.smart_playlist_order.retain(|n| n != &name);
     });
 }
 
