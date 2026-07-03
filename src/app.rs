@@ -4190,7 +4190,7 @@ impl AppState {
                         .padding([4, 8])
                         .width(Length::Fill);
 
-                    let track_actions = column![
+                    let mut track_actions = column![
                         play_next_btn,
                         Space::with_height(4),
                         add_queue_btn,
@@ -4201,6 +4201,25 @@ impl AppState {
                         Space::with_height(4),
                         folder_btn,
                     ];
+
+                    let mut show_reset_order = false;
+                    if let Some(name) = &self.selected_playlist {
+                        if name != "Recently Played" && name != "Most Played" {
+                            let has_smart = crate::db::get(|db| db.smart_playlist_song_order.contains_key(name));
+                            let has_auto = crate::db::get(|db| db.auto_playlist_song_order.contains_key(name));
+                            show_reset_order = has_smart || has_auto;
+                        }
+                    }
+
+                    if show_reset_order {
+                        let reset_order_btn = button(text("Reset to natural order").size(12))
+                            .on_press(Message::ResetPlaylistSongOrder)
+                            .style(item_style)
+                            .padding([4, 8])
+                            .width(Length::Fill);
+
+                        track_actions = track_actions.push(Space::with_height(4)).push(reset_order_btn);
+                    }
 
                     (title, Some(track_actions.into()), create)
                 }
