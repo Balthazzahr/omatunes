@@ -1191,24 +1191,28 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 })
                 .into();
 
-            let mut header_area = mouse_area(btn)
+            let mut header_area: Element<'_, Message> = mouse_area(btn)
                 .on_press(Message::ColumnHeaderDragStart(col))
                 .on_release(Message::ColumnHeaderDragEnd)
-                .on_right_press(Message::ToggleContextMenu(Some(crate::app::ContextMenuTarget::Header(col))));
+                .on_right_press(Message::ToggleContextMenu(Some(crate::app::ContextMenuTarget::Header(col))))
+                .into();
 
             if state.dragging_column_header.is_some() {
-                header_area = header_area.on_enter(Message::ColumnHeaderDragOver(col));
+                header_area = mouse_area(header_area)
+                    .on_enter(Message::ColumnHeaderDragOver(col))
+                    .into();
             }
 
-            let resize_strip = mouse_area(
+            let resize_strip: Element<'_, Message> = mouse_area(
                 container(Space::new(Length::Fixed(6.0), Length::Fill))
                     .height(Length::Fill)
             )
             .on_press(Message::ColumnWidthResizeStart(col, state.cursor_x))
             .on_release(Message::ColumnWidthResizeEnd)
-            .interaction(iced::mouse::Interaction::ResizingHorizontally);
+            .interaction(iced::mouse::Interaction::ResizingHorizontally)
+            .into();
 
-            let header_cell = row![header_area.into(), resize_strip.into()]
+            let header_cell = row![header_area, resize_strip]
                 .align_y(Alignment::Center);
 
             header_widgets.push(header_cell.into());
