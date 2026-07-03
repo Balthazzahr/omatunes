@@ -4457,29 +4457,13 @@ impl AppState {
                         cols_col = cols_col.push(btn);
                     }
 
-                    let move_left_btn = button(text("<- Move Column Left").size(12))
-                        .on_press(Message::MoveColumnLeft(*clicked_col))
-                        .style(item_style)
-                        .padding([4, 8])
-                        .width(Length::Fill);
-                        
-                    let move_right_btn = button(text("-> Move Column Right").size(12))
-                        .on_press(Message::MoveColumnRight(*clicked_col))
+                    let reset_widths_btn = button(text("Reset column widths to default").size(12))
+                        .on_press(Message::ResetColumnWidths)
                         .style(item_style)
                         .padding([4, 8])
                         .width(Length::Fill);
 
-                    let header_actions = column![
-                        text(format!("Modify Column: {}", clicked_col.label()))
-                            .size(11)
-                            .color(theme::subtext())
-                            .font(crate::ui::icons::UI_FONT_BOLD),
-                        Space::with_height(4),
-                        move_left_btn,
-                        Space::with_height(4),
-                        move_right_btn,
-                        Space::with_height(8),
-                    ];
+                    cols_col = cols_col.push(Space::with_height(8)).push(reset_widths_btn);
 
                     playlist_select = cols_col;
                     
@@ -4487,7 +4471,7 @@ impl AppState {
                         .style(iced::widget::button::text)
                         .padding(0);
 
-                    (title, Some(header_actions.into()), dummy_create)
+                    (title, None, dummy_create)
                 }
             };
 
