@@ -755,6 +755,8 @@ struct TrackListDependency {
     visible_start: usize,
     visible_end: usize,
     responsive_columns: Vec<crate::db::TableColumn>,
+    dragging_track_index: Option<usize>,
+    is_draggable: bool,
 }
 
 impl std::hash::Hash for TrackListDependency {
@@ -773,6 +775,8 @@ impl std::hash::Hash for TrackListDependency {
         self.visible_start.hash(state);
         self.visible_end.hash(state);
         self.responsive_columns.hash(state);
+        self.dragging_track_index.hash(state);
+        self.is_draggable.hash(state);
         for t in &self.selected_tracks {
             t.id.hash(state);
             t.title.hash(state);
