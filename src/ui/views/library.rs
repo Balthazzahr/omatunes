@@ -438,7 +438,7 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
         let is_sidebar_dragging = matches!(state.dragging_playlist_sidebar, Some((crate::app::PlaylistTab::Playlists, _)));
         
         for (idx, name) in playlist_order.iter().enumerate() {
-            let handle = mouse_area(
+            let handle: Element<'_, Message> = mouse_area(
                 container(
                     text("\u{f0c9}")
                         .font(crate::ui::icons::NERD_FONT_MONO)
@@ -448,9 +448,10 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             )
             .on_press(Message::PlaylistSidebarDragStart(crate::app::PlaylistTab::Playlists, idx))
             .on_release(Message::PlaylistSidebarDragEnd)
-            .interaction(iced::mouse::Interaction::Grab);
+            .interaction(iced::mouse::Interaction::Grab)
+            .into();
 
-            let row_content = row![handle.into(), render_playlist_item(name.clone(), false)]
+            let row_content = row![handle, render_playlist_item(name.clone(), false)]
                 .align_y(Alignment::Center);
 
             let row_el: Element<'_, Message> = if is_sidebar_dragging {
