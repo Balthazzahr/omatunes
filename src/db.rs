@@ -118,8 +118,6 @@ pub struct OmatunesDb {
     pub smart_playlist_song_order: HashMap<String, Vec<PathBuf>>,
     #[serde(default)]
     pub auto_playlist_song_order: HashMap<String, Vec<PathBuf>>,
-    #[serde(default)]
-    pub column_widths: HashMap<TableColumn, f32>,
 }
 
 impl Default for OmatunesDb {
@@ -151,7 +149,6 @@ impl Default for OmatunesDb {
             smart_playlist_order: Vec::default(),
             smart_playlist_song_order: HashMap::default(),
             auto_playlist_song_order: HashMap::default(),
-            column_widths: HashMap::default(),
         }
     }
 }
