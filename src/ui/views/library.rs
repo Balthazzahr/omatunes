@@ -497,7 +497,7 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                 .width(Length::Fill)
                 .height(Length::Fill)
         );
-    } else {
+        let mut smart_playlists_col = column![].spacing(2).width(Length::Fill);
         let smart_playlist_order = crate::db::get(|db| db.smart_playlist_order.clone());
         let is_sidebar_dragging = matches!(state.dragging_playlist_sidebar, Some((crate::app::PlaylistTab::Smart, _)));
 
