@@ -268,6 +268,10 @@ pub enum Message {
     PlaylistSidebarDragStart(PlaylistTab, usize),
     PlaylistSidebarDragOver(PlaylistTab, usize),
     PlaylistSidebarDragEnd,
+    TrackListDragStart(usize),
+    TrackListDragOver(usize),
+    TrackListDragEnd,
+    ResetPlaylistSongOrder,
 
     NewSmartPlaylist,
     EditSmartPlaylist(String),
@@ -524,6 +528,21 @@ pub struct AppState {
 }
 
 impl AppState {
+    pub fn is_draggable_playlist_view(&self) -> bool {
+        match &self.selected_playlist {
+            Some(name) => {
+                name != "Recently Played" && name != "Most Played"
+                    && (
+                        crate::db::get(|db| db.playlists.contains_key(name.as_str()))
+                        || crate::db::get(|db| db.smart_playlists.contains_key(name.as_str()))
+                        || name == "Liked Songs"
+                        || name == "New Music"
+                    )
+            }
+            None => false,
+        }
+    }
+
     pub fn get_display_cover(&self) -> Option<iced::widget::image::Handle> {
         let is_playing_or_paused = !matches!(self.playback_state, PlaybackState::Stopped);
         let display_track = if is_playing_or_paused {
