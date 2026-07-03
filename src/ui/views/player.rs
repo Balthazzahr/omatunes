@@ -264,7 +264,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
 }
 
 pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
-    let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 600.0);
+    let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 450.0);
     if !is_allowed {
         return None;
     }
@@ -453,7 +453,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
     let pane = container(pane_stack)
         .style(theme::player_panel)
         .width(Length::Fixed(state.right_panel_width))
-        .height(Length::Fixed(298.0));
+        .height(Length::Fixed(state.player_height));
 
     // Add a draggable resize handle between player and panel
     let panel_drag_handle = mouse_area(
@@ -488,7 +488,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
             panel_drag_handle,
             pane
         ]
-        .height(Length::Fixed(298.0))
+        .height(Length::Fixed(state.player_height))
         .into()
     )
 }
