@@ -834,20 +834,15 @@ pub fn get_responsive_columns(state: &AppState) -> Vec<crate::db::TableColumn> {
     let calc_width = |cols: &[crate::db::TableColumn]| -> f32 {
         let mut total_fixed = 0.0;
         let mut fill_count = 0;
-        let manual_widths = crate::db::get(|db| db.column_widths.clone());
         for &col in cols {
-            if let Some(&saved_w) = manual_widths.get(&col) {
-                total_fixed += saved_w;
-            } else {
-                match col {
-                    crate::db::TableColumn::TrackNumber => total_fixed += 30.0,
-                    crate::db::TableColumn::Liked => total_fixed += 40.0,
-                    crate::db::TableColumn::Plays => total_fixed += 40.0,
-                    crate::db::TableColumn::Year => total_fixed += 50.0,
-                    crate::db::TableColumn::DiscNumber => total_fixed += 50.0,
-                    crate::db::TableColumn::Duration => total_fixed += 80.0,
-                    _ => fill_count += 1,
-                }
+            match col {
+                crate::db::TableColumn::TrackNumber => total_fixed += 30.0,
+                crate::db::TableColumn::Liked => total_fixed += 40.0,
+                crate::db::TableColumn::Plays => total_fixed += 40.0,
+                crate::db::TableColumn::Year => total_fixed += 50.0,
+                crate::db::TableColumn::DiscNumber => total_fixed += 50.0,
+                crate::db::TableColumn::Duration => total_fixed += 80.0,
+                _ => fill_count += 1,
             }
         }
         let spacing = if cols.is_empty() { 0.0 } else { (cols.len() - 1) as f32 * 12.0 };
