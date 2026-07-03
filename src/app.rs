@@ -1204,18 +1204,7 @@ impl AppState {
                 Task::none()
             }
 
-            Message::RightPanelDragStart => {
-                self.dragging_right_panel = true;
-                Task::none()
-            }
 
-            Message::RightPanelDragMove(x) => {
-                // x is cursor position from left of window.
-                let max_drawer_width = (self.window_width - MIN_NON_DRAWER_WIDTH).max(600.0);
-                let new_width = (self.window_width - x).clamp(600.0, max_drawer_width);
-                self.right_panel_width = new_width;
-                Task::none()
-            }
 
             Message::RightPanelDragEnd => {
                 self.dragging_right_panel = false;
