@@ -869,6 +869,10 @@ pub fn get_responsive_columns(state: &AppState) -> Vec<crate::db::TableColumn> {
         visible_cols = core_set;
     }
     
+    if state.is_draggable_playlist_view() {
+        visible_cols.retain(|&c| c != crate::db::TableColumn::TrackNumber);
+    }
+    
     visible_cols
 }
 
