@@ -89,6 +89,8 @@ pub struct OmatunesDb {
     #[serde(default)]
     pub right_panel_tab: Option<crate::app::RightPanelTab>,
     #[serde(default)]
+    pub player_height: Option<f32>,
+    #[serde(default)]
     pub last_view_mode: Option<crate::app::ViewMode>,
     #[serde(default)]
     pub last_selected_playlist: Option<String>,
@@ -124,6 +126,7 @@ impl Default for OmatunesDb {
             playlist_height: None,
             right_panel_width: None,
             right_panel_tab: None,
+            player_height: None,
             last_view_mode: None,
             last_selected_playlist: None,
             last_selected_folder: None,
