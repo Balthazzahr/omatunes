@@ -275,9 +275,6 @@ pub enum Message {
     PlayerDragMove(f32),
     PlayerDragEnd,
     HoverPlayerResizer(bool),
-
-    RightPanelDragStart,
-    RightPanelDragMove(f32),
 }
 
 #[derive(Debug, Clone)]
