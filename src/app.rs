@@ -4558,12 +4558,30 @@ impl AppState {
                     iced::Event::Window(iced::window::Event::Resized(size)) => {
                         Some(Message::WindowResized(size.width as f32, size.height as f32))
                     }
+                    iced::Event::Mouse(iced::mouse::Event::CursorMoved { position }) => {
+                        Some(Message::CursorMoved(position.x))
+                    }
                     _ => None,
                 }
             }),
         ]);
 
         let mut subs = vec![base];
+
+        if self.resizing_column.is_some() {
+            subs.push(iced::event::listen_with(|event, _, _| {
+                use iced::mouse;
+                match event {
+                    iced::Event::Mouse(mouse::Event::CursorMoved { position }) => {
+                        Some(Message::ColumnWidthResizeDrag(position.x))
+                    }
+                    iced::Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) => {
+                        Some(Message::ColumnWidthResizeEnd)
+                    }
+                    _ => None,
+                }
+            }));
+        }
 
         if self.dragging_sidebar {
             subs.push(iced::event::listen_with(|event, _, _| {
