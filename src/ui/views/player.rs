@@ -102,7 +102,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .style(iced::widget::button::text)
         .padding(0);
 
-    let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 600.0);
+    let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 450.0);
     let player_width = if state.right_panel_tab.is_some() && is_allowed {
         state.window_width - 62.0 - state.right_panel_width
     } else if is_allowed {
@@ -222,7 +222,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     let player_container = container(player_row)
         .style(theme::player_panel)
         .width(left_side_width)
-        .height(Length::Fixed(270.0));
+        .height(Length::Fixed(state.player_height - 28.0));
 
     let vol_step = crate::config::get().volume_step;
 
@@ -249,7 +249,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .spacing(0)
         .align_y(Alignment::Center)
         .width(Length::Fill)
-        .height(Length::Fixed(270.0))
+        .height(Length::Fixed(state.player_height - 28.0))
         .into()
     } else {
         row![
@@ -258,7 +258,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .spacing(0)
         .align_y(Alignment::Center)
         .width(Length::Fill)
-        .height(Length::Fixed(270.0))
+        .height(Length::Fixed(state.player_height - 28.0))
         .into()
     }
 }
