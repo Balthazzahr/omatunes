@@ -275,11 +275,6 @@ pub enum Message {
     ColumnHeaderDragStart(crate::db::TableColumn),
     ColumnHeaderDragOver(crate::db::TableColumn),
     ColumnHeaderDragEnd,
-    ColumnWidthResizeStart(crate::db::TableColumn, f32),
-    ColumnWidthResizeDrag(f32),
-    ColumnWidthResizeEnd,
-    ResetColumnWidths,
-    CursorMoved(f32),
 
     NewSmartPlaylist,
     EditSmartPlaylist(String),
