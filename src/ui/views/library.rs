@@ -1077,7 +1077,8 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 rows.push(header.into());
 
                 for track in tracks.into_iter() {
-                    rows.push(render_track_row(dep, track, true, current_id));
+                    let idx = dep.tracks.iter().position(|t| t.id == track.id).unwrap_or(0);
+                    rows.push(render_track_row(dep, track, idx, true, current_id));
                 }
                 rows.push(Space::with_height(8).into());
             }
@@ -1085,8 +1086,9 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             let start = dep.visible_start;
             let end = dep.visible_end.min(dep.tracks.len());
             let tracks_to_render = &dep.tracks[start..end];
-            for track in tracks_to_render {
-                rows.push(render_track_row(dep, track, false, current_id));
+            for (offset, track) in tracks_to_render.iter().enumerate() {
+                let idx = start + offset;
+                rows.push(render_track_row(dep, track, idx, false, current_id));
             }
         }
 
