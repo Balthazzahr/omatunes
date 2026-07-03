@@ -923,6 +923,36 @@ impl AppState {
                 let paths = crate::db::get(|db| db.playlists.get(playlist_name).cloned().unwrap_or_default());
                 self.tracks = self.all_tracks.iter().filter(|t| paths.contains(&t.path)).cloned().collect();
             }
+            
+            if playlist_name == "Liked Songs" || playlist_name == "New Music" {
+                let manual = crate::db::get(|db| db.auto_playlist_song_order.get(playlist_name).cloned());
+                if let Some(manual_order) = manual {
+                    let live_paths: Vec<PathBuf> = self.tracks.iter().map(|t| t.path.clone()).collect();
+                    let merged_paths = merge_song_order(&manual_order, &live_paths);
+                    let track_map: std::collections::HashMap<PathBuf, Track> =
+                        self.tracks.iter().map(|t| (t.path.clone(), t.clone())).collect();
+                    self.tracks = merged_paths.iter()
+                        .filter_map(|p| track_map.get(p).cloned())
+                        .collect();
+                    crate::db::write(|db| {
+                        db.auto_playlist_song_order.insert(playlist_name.clone(), merged_paths);
+                    });
+                }
+            } else if crate::db::get(|db| db.smart_playlists.contains_key(playlist_name)) {
+                let manual = crate::db::get(|db| db.smart_playlist_song_order.get(playlist_name).cloned());
+                if let Some(manual_order) = manual {
+                    let live_paths: Vec<PathBuf> = self.tracks.iter().map(|t| t.path.clone()).collect();
+                    let merged_paths = merge_song_order(&manual_order, &live_paths);
+                    let track_map: std::collections::HashMap<PathBuf, Track> =
+                        self.tracks.iter().map(|t| (t.path.clone(), t.clone())).collect();
+                    self.tracks = merged_paths.iter()
+                        .filter_map(|p| track_map.get(p).cloned())
+                        .collect();
+                    crate::db::write(|db| {
+                        db.smart_playlist_song_order.insert(playlist_name.clone(), merged_paths);
+                    });
+                }
+            }
         } else {
             match self.view_mode {
 
@@ -4814,6 +4844,20 @@ fn build_iced_theme() -> Theme {
             danger:     theme::red(),
         },
     )
+}
+
+fn merge_song_order(manual_order: &[PathBuf], live_set: &[PathBuf]) -> Vec<PathBuf> {
+    let live_set_hs: std::collections::HashSet<&PathBuf> = live_set.iter().collect();
+    let mut result: Vec<PathBuf> = manual_order.iter()
+        .filter(|p| live_set_hs.contains(p))
+        .cloned()
+        .collect();
+    for path in live_set {
+        if !result.contains(path) {
+            result.push(path.clone());
+        }
+    }
+    result
 }
 
 // ── Ponto de entrada iced ─────────────────────────────────────────────────────
