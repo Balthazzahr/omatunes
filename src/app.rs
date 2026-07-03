@@ -1221,9 +1221,42 @@ impl AppState {
 
 
 
+            Message::RightPanelDragStart => {
+                self.dragging_right_panel = true;
+                Task::none()
+            }
+
+            Message::RightPanelDragMove(x) => {
+                let max_drawer_width = (self.window_width - MIN_NON_DRAWER_WIDTH).max(450.0);
+                let new_width = (self.window_width - x).clamp(450.0, max_drawer_width);
+                self.right_panel_width = new_width;
+                Task::none()
+            }
+
             Message::RightPanelDragEnd => {
                 self.dragging_right_panel = false;
                 crate::db::write(|db| db.right_panel_width = Some(self.right_panel_width));
+                Task::none()
+            }
+
+            Message::PlayerDragStart => {
+                self.dragging_player_split = true;
+                Task::none()
+            }
+
+            Message::PlayerDragMove(y) => {
+                self.player_height = y.clamp(298.0, 458.0);
+                Task::none()
+            }
+
+            Message::PlayerDragEnd => {
+                self.dragging_player_split = false;
+                crate::db::write(|db| db.player_height = Some(self.player_height));
+                Task::none()
+            }
+
+            Message::HoverPlayerResizer(val) => {
+                self.is_hovering_player_resizer = val;
                 Task::none()
             }
 
