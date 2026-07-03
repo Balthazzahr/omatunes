@@ -1413,6 +1413,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
 fn render_track_row(
     dep: &TrackListDependency,
     track: &crate::library::models::Track,
+    idx: usize,
     grouped: bool,
     current_id: Option<i64>,
 ) -> Element<'static, Message> {
@@ -1426,6 +1427,23 @@ fn render_track_row(
 
     let table_columns = &dep.responsive_columns;
     let mut track_row_widgets: Vec<Element<'static, Message>> = Vec::new();
+
+    if dep.is_draggable {
+        let drag_handle = container(
+            text("\u{f0c9}")
+                .font(crate::ui::icons::NERD_FONT_MONO)
+                .color(if dep.dragging_track_index == Some(idx) { theme::accent() } else { theme::overlay0() })
+                .size(12)
+        ).padding([4, 8]);
+
+        let drag_handle_widget: Element<'static, Message> = mouse_area(drag_handle)
+            .on_press(Message::TrackListDragStart(idx))
+            .on_release(Message::TrackListDragEnd)
+            .interaction(iced::mouse::Interaction::Grab)
+            .into();
+
+        track_row_widgets.push(drag_handle_widget);
+    }
 
     for &col in table_columns {
         let width = col_width(col);
