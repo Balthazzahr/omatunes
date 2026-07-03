@@ -427,6 +427,10 @@ pub struct AppState {
     pub sidebar_width: f32,
     pub dragging_sidebar: bool,
 
+    pub player_height: f32,
+    pub dragging_player_split: bool,
+    pub is_hovering_player_resizer: bool,
+
     pub right_panel_width: f32,
     pub right_panel_width_initialized: bool,
     pub dragging_right_panel: bool,
