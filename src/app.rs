@@ -265,6 +265,9 @@ pub enum Message {
     QueueDragStart(usize),
     QueueDragOver(usize),
     QueueDragEnd,
+    PlaylistSidebarDragStart(PlaylistTab, usize),
+    PlaylistSidebarDragOver(PlaylistTab, usize),
+    PlaylistSidebarDragEnd,
 
     NewSmartPlaylist,
     EditSmartPlaylist(String),
@@ -561,6 +564,19 @@ impl AppState {
             db.right_panel_tab,
             db.player_height,
         ));
+        
+        crate::db::write(|db| {
+            if db.playlist_order.is_empty() && !db.playlists.is_empty() {
+                let mut names: Vec<String> = db.playlists.keys().cloned().collect();
+                names.sort();
+                db.playlist_order = names;
+            }
+            if db.smart_playlist_order.is_empty() && !db.smart_playlists.is_empty() {
+                let mut names: Vec<String> = db.smart_playlists.keys().cloned().collect();
+                names.sort();
+                db.smart_playlist_order = names;
+            }
+        });
 
         let music_dir = cfg.music_path();
         let scan_task = Task::perform(
@@ -3784,6 +3800,37 @@ impl AppState {
 
             Message::QueueDragEnd => {
                 self.dragging_queue_index = None;
+                Task::none()
+            }
+
+            Message::PlaylistSidebarDragStart(tab, idx) => {
+                self.dragging_playlist_sidebar = Some((tab, idx));
+                Task::none()
+            }
+
+            Message::PlaylistSidebarDragOver(tab, target_idx) => {
+                if let Some((source_tab, source_idx)) = self.dragging_playlist_sidebar {
+                    if source_tab == tab && source_idx != target_idx {
+                        crate::db::write(|db| {
+                            let order = match tab {
+                                PlaylistTab::Playlists => &mut db.playlist_order,
+                                PlaylistTab::Smart => &mut db.smart_playlist_order,
+                                _ => return,
+                            };
+                            if source_idx < order.len() && target_idx < order.len() {
+                                let item = order.remove(source_idx);
+                                order.insert(target_idx, item);
+                            }
+                        });
+                        self.dragging_playlist_sidebar = Some((tab, target_idx));
+                    }
+                }
+                Task::none()
+            }
+
+            Message::PlaylistSidebarDragEnd => {
+                self.dragging_playlist_sidebar = None;
+                crate::db::save();
                 Task::none()
             }
         }
