@@ -3830,7 +3830,6 @@ impl AppState {
 
             Message::PlaylistSidebarDragEnd => {
                 self.dragging_playlist_sidebar = None;
-                crate::db::save();
                 Task::none()
             }
         }

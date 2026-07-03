@@ -498,13 +498,34 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                 .height(Length::Fill)
         );
     } else {
-        let mut smart_playlists_col = column![].spacing(2).width(Length::Fill);
-        let smart_playlists = crate::db::get(|db| db.smart_playlists.keys().cloned().collect::<Vec<String>>());
-        let mut smart_playlists = smart_playlists;
-        smart_playlists.sort();
+        let smart_playlist_order = crate::db::get(|db| db.smart_playlist_order.clone());
+        let is_sidebar_dragging = matches!(state.dragging_playlist_sidebar, Some((crate::app::PlaylistTab::Smart, _)));
 
-        for name in smart_playlists {
-            smart_playlists_col = smart_playlists_col.push(render_smart_playlist_item(name));
+        for (idx, name) in smart_playlist_order.iter().enumerate() {
+            let handle = mouse_area(
+                container(
+                    text("\u{f0c9}")
+                        .font(crate::ui::icons::NERD_FONT_MONO)
+                        .color(if state.dragging_playlist_sidebar == Some((crate::app::PlaylistTab::Smart, idx)) { theme::accent() } else { theme::overlay0() })
+                        .size(12)
+                ).padding([4, 8])
+            )
+            .on_press(Message::PlaylistSidebarDragStart(crate::app::PlaylistTab::Smart, idx))
+            .on_release(Message::PlaylistSidebarDragEnd)
+            .interaction(iced::mouse::Interaction::Grab);
+
+            let row_content = row![handle.into(), render_smart_playlist_item(name.clone())]
+                .align_y(Alignment::Center);
+
+            let row_el: Element<'_, Message> = if is_sidebar_dragging {
+                mouse_area(row_content)
+                    .on_enter(Message::PlaylistSidebarDragOver(crate::app::PlaylistTab::Smart, idx))
+                    .into()
+            } else {
+                row_content.into()
+            };
+
+            smart_playlists_col = smart_playlists_col.push(row_el);
         }
 
         playlists_area_col = playlists_area_col.push(
