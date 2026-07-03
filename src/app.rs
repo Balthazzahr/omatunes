@@ -3842,11 +3842,7 @@ impl AppState {
 
         let main = column![
             top_row,
-            container(Space::new(Length::Fill, Length::Fixed(1.0)))
-                .style(|_| iced::widget::container::Style {
-                    background: Some(iced::Background::Color(theme::surface0())),
-                    ..Default::default()
-                }),
+            player_drag_handle,
             views::library::view(self),
         ]
         .spacing(0)
