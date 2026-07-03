@@ -1637,9 +1637,16 @@ fn render_track_row(
         crate::app::ContextMenuTarget::Track(track_no_cover)
     };
 
-    mouse_area(select_btn)
-        .on_right_press(Message::ToggleContextMenu(Some(row_target)))
-        .into()
+    let row_content = mouse_area(select_btn)
+        .on_right_press(Message::ToggleContextMenu(Some(row_target)));
+
+    if dep.dragging_track_index.is_some() && dep.is_draggable {
+        mouse_area(row_content)
+            .on_enter(Message::TrackListDragOver(idx))
+            .into()
+    } else {
+        row_content.into()
+    }
 }
 
 fn col_width(col: crate::db::TableColumn) -> Length {
