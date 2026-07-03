@@ -570,10 +570,7 @@ impl AppState {
             repeat: cfg.repeat,
             folders,
             selected_folder: None,
-            tracks: Vec::new(),
-            folder_cache: HashMap::new(),
 
-            right_panel_width_initialized: db_right_panel_width.is_some(),
             dragging_right_panel: false,
             is_hovering_right_panel_resizer: false,
             window_width: 960.0,
