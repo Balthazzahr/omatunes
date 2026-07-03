@@ -3796,22 +3796,49 @@ impl AppState {
         let left_top = stack![
             container(player_controls)
                 .width(Length::Fill)
-                .height(iced::Length::Fixed(270.0)),
+                .height(iced::Length::Fixed(self.player_height - 28.0)),
             container(library_tabs)
-                .padding(iced::Padding { top: 269.0, right: 0.0, bottom: 0.0, left: 0.0 })
+                .padding(iced::Padding { top: self.player_height - 29.0, right: 0.0, bottom: 0.0, left: 0.0 })
                 .width(Length::Fill)
-                .height(iced::Length::Fixed(298.0)),
+                .height(iced::Length::Fixed(self.player_height)),
         ]
         .width(Length::Fill)
-        .height(iced::Length::Fixed(298.0));
+        .height(iced::Length::Fixed(self.player_height));
 
         let mut top_row = row![left_top]
             .width(Length::Fill)
-            .height(iced::Length::Fixed(298.0));
+            .height(iced::Length::Fixed(self.player_height));
 
         if let Some(pane) = views::player::right_panel(self) {
             top_row = top_row.push(pane);
         }
+
+        let player_drag_handle = mouse_area(
+            container(
+                container(Space::new(Length::Fill, Length::Fixed(1.0)))
+                    .style(move |_| iced::widget::container::Style {
+                        background: Some(iced::Background::Color(
+                            if self.dragging_player_split || self.is_hovering_player_resizer {
+                                theme::accent()
+                            } else {
+                                theme::surface0()
+                            }
+                        )),
+                        ..Default::default()
+                    })
+            )
+            .width(Length::Fill)
+            .height(6.0)
+            .center_y(Length::Fixed(6.0))
+            .style(|_| iced::widget::container::Style {
+                background: Some(iced::Background::Color(theme::base())),
+                ..Default::default()
+            })
+        )
+        .on_press(Message::PlayerDragStart)
+        .on_enter(Message::HoverPlayerResizer(true))
+        .on_exit(Message::HoverPlayerResizer(false))
+        .interaction(iced::mouse::Interaction::ResizingVertically);
 
         let main = column![
             top_row,
