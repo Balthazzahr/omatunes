@@ -901,7 +901,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             .font(crate::ui::icons::UI_FONT_BOLD)
             .color(if is_sorted { theme::accent() } else { theme::subtext() });
             
-        let btn = container(txt)
+        let btn: Element<'_, Message> = container(txt)
             .width(width)
             .padding(0)
             .style(move |_: &iced::Theme| iced::widget::container::Style {
@@ -911,7 +911,8 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                     None
                 },
                 ..Default::default()
-            });
+            })
+            .into();
 
         let mut header_area = mouse_area(btn)
             .on_press(Message::ColumnHeaderDragStart(col))
