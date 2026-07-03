@@ -3883,6 +3883,58 @@ impl AppState {
                 self.dragging_playlist_sidebar = None;
                 Task::none()
             }
+
+            Message::TrackListDragStart(idx) => {
+                self.dragging_track_index = Some(idx);
+                Task::none()
+            }
+
+            Message::TrackListDragOver(target_idx) => {
+                if let Some(source_idx) = self.dragging_track_index {
+                    if source_idx != target_idx && source_idx < self.tracks.len() && target_idx < self.tracks.len() {
+                        let track = self.tracks.remove(source_idx);
+                        self.tracks.insert(target_idx, track);
+                        self.dragging_track_index = Some(target_idx);
+
+                        let new_paths: Vec<PathBuf> = self.tracks.iter().map(|t| t.path.clone()).collect();
+                        if let Some(name) = &self.selected_playlist.clone() {
+                            let name = name.clone();
+                            if crate::db::get(|db| db.playlists.contains_key(&name)) {
+                                crate::db::write(|db| {
+                                    db.playlists.insert(name, new_paths);
+                                });
+                            } else if crate::db::get(|db| db.smart_playlists.contains_key(&name)) {
+                                crate::db::write(|db| {
+                                    db.smart_playlist_song_order.insert(name, new_paths);
+                                });
+                            } else if name == "Liked Songs" || name == "New Music" {
+                                crate::db::write(|db| {
+                                    db.auto_playlist_song_order.insert(name, new_paths);
+                                });
+                            }
+                        }
+                    }
+                }
+                Task::none()
+            }
+
+            Message::TrackListDragEnd => {
+                self.dragging_track_index = None;
+                Task::none()
+            }
+
+            Message::ResetPlaylistSongOrder => {
+                if let Some(name) = &self.selected_playlist.clone() {
+                    let name = name.clone();
+                    crate::db::write(|db| {
+                        db.smart_playlist_song_order.remove(&name);
+                        db.auto_playlist_song_order.remove(&name);
+                    });
+                    self.update_filtered_tracks();
+                }
+                self.show_context_menu = None;
+                Task::none()
+            }
         }
 
     }
