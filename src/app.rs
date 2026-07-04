@@ -3265,6 +3265,12 @@ impl AppState {
 
             Message::ToggleContextMenu(val) => {
                 self.show_context_menu = val;
+                self.playlist_menu_expanded = false;
+                Task::none()
+            }
+
+            Message::TogglePlaylistMenuExpanded => {
+                self.playlist_menu_expanded = !self.playlist_menu_expanded;
                 Task::none()
             }
 
