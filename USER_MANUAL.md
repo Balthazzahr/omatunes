@@ -1,252 +1,221 @@
 # OmaTUNES User Manual
 
-Welcome to the comprehensive user manual for **OmaTUNES**, a native Wayland music player written in Rust. This document serves as a detailed reference for all player features, custom configurations, keyboard shortcuts, database mappings, and system integrations.
+This is the full reference for OmaTUNES — where everything lives, how to do the things you'll want to do day-to-day, and the technical details for when you want to dig deeper (database layout, theming internals, Waybar styling).
+
+If you just want to get playing, the short version is: point `music_dir` in your config at your music folder, launch the app, and everything else in here is here when you need it.
+
+**Contents**
+1. [Player Controls & Album Art](#player-controls--album-art)
+2. [Resizing the Player Section](#resizing-the-player-section)
+3. [Visualizer](#visualizer)
+4. [Live Lyrics](#live-lyrics)
+5. [Sidebar & Search](#sidebar--search)
+6. [Library View & Track Table](#library-view--track-table)
+7. [The Song Menu](#the-song-menu)
+8. [Now Playing / Up Next Queue](#now-playing--up-next-queue)
+9. [ID3 Tag Editor](#id3-tag-editor)
+10. [Lyrics Tab in the Tag Editor](#lyrics-tab-in-the-tag-editor)
+11. [Online Lookup Helpers](#online-lookup-helpers)
+12. [Playlists & Smart Playlists](#playlists--smart-playlists)
+13. [Theming](#theming)
+14. [Waybar Integration](#waybar-integration)
+15. [Keybinding Reference](#keybinding-reference)
 
 ---
 
-## 1. Player & Controls / Album Art
-
-The player interface is located in the upper panel of the application. It handles playback state, track metadata tracking, and active audio controls.
+## Player Controls & Album Art
 
 <p align="center">
   <img src="assets/Main Player Controls.png" alt="Main Player Controls" width="600">
 </p>
 
-### Playback Controls
-- **Play/Pause**: Toggles audio playback. (Shortcut: `Space`)
-- **Previous / Next**: Skips to the previous or next track in the current queue. (Shortcuts: `p` / `n`)
-- **Seeking**: Move forward or backward in the active track by clicking anywhere along the progress bar timeline. (Shortcuts: `&leftarrow;` to seek back, `&rightarrow;` to seek forward; seek step is configurable via `seek_step`, defaults to 5 seconds).
-- **Volume**: Adjust volume using the slider on the right side of the control row, or scroll anywhere in the player panel. (Shortcuts: `+` or `=` to increase volume, `-` to decrease volume by the configured `volume_step`, defaults to 5%).
-- **Shuffle**: Shuffles the current queue. Enabled state is indicated by the shuffle icon turning into your theme's active accent color. (Shortcut: `s`)
-- **Repeat**: Toggles repeat modes (Off, Repeat All, Repeat One). Enabled state is indicated by the repeat icon turning into your theme's active accent color. (Shortcut: `r`)
+The player sits across the top of the window and handles everything about what's currently playing.
 
-### Album Art Behavior
-- OmaTUNES dynamically extracts album art from the playing track (embedded ID3 tags) or reads a fallback image (e.g., `cover.jpg`, `Cover.jpg`, `folder.png`) inside the track's local folder.
-- If no art is found, it renders a custom default note artwork.
-- The album art is displayed in the upper-left of the player row, enlarged to `238x238` pixels for high visibility on high-resolution screens.
-- The player controls container is set to `270px` height (with the total top section height being `298px`) to ensure the artwork renders cleanly without top/bottom cropping.
-- **Interactivity**: Clicking the album art focuses the player back on the active track view (returns to the currently playing album/track).
+**Playback**
+- **Play/Pause** — `Space`
+- **Previous / Next track** — `p` / `n`
+- **Seek** — click anywhere on the progress bar to jump there, or use `←`/`→` to nudge by the configured seek step (5 seconds by default)
+- **Volume** — drag the slider, scroll anywhere over the player panel, or use `+`/`=` and `-` (5% steps by default)
+- **Shuffle** (`s`) and **Repeat** (`r`) — both light up in your theme's accent color when active
 
-### Disabled States
-- When no track is loaded, the playhead timeline remains empty, volume controls remain active, and clicking play/pause or double-clicking in the tracklist will automatically load and play the first track in the current view.
-- The Like (heart) button is hidden from the player row when no track is currently playing.
+**Add to Playlist button** — next to the Like heart, this button opens the [Song Menu](#the-song-menu) for whatever's currently playing, so you can add it to a playlist, create a new playlist from it, or remove it from the playlist you're viewing — all without leaving the player.
 
-### Unified Top Layout & Settings Button
-- **Combined Header Row**: The player controls (height `270px`) and library tabs/search bar (height `28px`) are stacked vertically as a single visual panel (total height `298px`). The horizontal separator between them is removed using a `1px` stack overlap.
-- **Top Drawer Alignment**: The lyrics/visualizer right-hand drawer occupies exactly `298px` next to this left column, creating a aligned top section that does not cover the main song list area.
-- **Tab Row Integration**: The `Now Playing` tab resides in the same row as `Artists`, `Albums`, and `Genres`, shifted slightly to the right to visually demarcate it. Search options, grouping controls, and queue controls reside on the right-aligned side of this tab row.
-- **Settings Button Placement**: The settings button (`\u{f013}`) is positioned at the far right of the library tab row. It is styled to be exactly `56px` wide (matching the width of the tab strip above it), separated by a vertical divider, and contains a top horizontal divider line. Its borders align perfectly on integer pixels due to rounded sidebar width layouts.
+**Album art** — pulled from the track's embedded artwork first, falling back to a `cover.jpg`/`folder.png` sitting next to the file if there's no embedded art, and finally to a simple placeholder if neither exists. Click the artwork to jump back to the currently playing track's view.
+
+When nothing's loaded yet, the timeline just sits empty and the Like button disappears — hit play or double-click any track to get going.
 
 ---
 
-## 2. Visualizer / Spectrogram
+## Resizing the Player Section
 
-OmaTUNES includes a high-performance audio spectrum visualizer that computes real-time frequency analysis.
+The player section can be dragged taller if you want a bigger album art view. Grab the line just below the player controls (above the tab row) and drag it down — the album art scales up to fill the extra space, and everything else (track title, artist, controls) shifts right to make room, keeping its size and layout the same. Drag back up to shrink it again; it won't go any smaller than the default layout. Your chosen height is remembered the next time you open the app.
+
+---
+
+## Visualizer
 
 <p align="center">
   <img src="assets/Visualiser.png" alt="OmaTUNES Visualizer" width="400">
 </p>
 
-- **How it Works**: The backend computes a real-time 2048-point Hann-windowed FFT on the decoded PCM audio buffer via Symphonia, mapping frequencies logarithmicly to 64 distinct bands.
-- **Visuals**: The visualizer is colored with an amplitude gradient that dynamically shifts colors (e.g., green &rightarrow; lavender &rightarrow; pink) as amplitude spikes.
-- **Trigger**: Click the visualizer tab (waveform icon `\u{f147d}`) on the vertical sidebar strip on the right side of the window to slide out the visualizer. Click the tab again, or press `Escape`, to close it. You can also drag the resize handle between the panels to adjust its width.
+A real-time audio spectrum analyzer lives in the slide-out drawer on the right — 64 frequency bands computed live from the decoded audio, colored with a gradient that shifts as the amplitude moves.
+
+Click the waveform tab on the right edge of the window to open it, click it again (or hit `Escape`) to close it. Drag the divider between the drawer and the library to resize it — it won't go narrower than about 450px, since much below that the visualizer and lyrics text stop having room to breathe. If your window gets too narrow overall (below roughly 1499px), the drawer hides itself automatically rather than cramping the rest of the UI.
 
 ---
 
-## 3. Live Lyrics
-
-OmaTUNES features an interactive live lyrics panel supporting both synchronized and unsynchronized lyrics.
+## Live Lyrics
 
 <p align="center">
   <img src="assets/Live Lyrics.png" alt="Live Lyrics View" width="400">
 </p>
 
-### Synced (LRC) vs. Unsynchronized Lyrics
-- **Synced Lyrics**: If a track has `.lrc` metadata (containing timestamps like `[02:14.20]`), the view displays them line-by-line.
-- **Unsynchronized Lyrics**: If the track has plain-text lyrics, they are displayed as a plain scrollable text block.
+The same drawer also shows lyrics, synced or plain:
 
-### Visual Styling & Color Tiers
-For synchronized lyrics, active lines are styled dynamically in three color tiers:
-1. **Active Line**: Highlighted in the theme's primary accent color, enlarged (size 20), and styled in bold.
-2. **Adjacent Lines (Preceding/Following)**: Highlighted in an interim blend color (blended 50% between accent and overlay colors) at size 17 to guide the eye.
-3. **Other Lines**: Dimmed in the inactive theme overlay color (size 17).
-
-### Scrolling and Seeking Interaction
-- **Auto-Scrolling**: The lyrics view automatically scrolls to align the active line precisely at the vertical center of the viewport (computed using a midpoint alignment formula with 108px spacers at the top and bottom).
-- **Manual Scroll**: The user can scroll freely to read ahead or look back. The scroll panel remains unfrozen until the player progresses to the next timestamp, at which point it snaps back to center the active line.
-- **Seek-on-Click**: Every line in the synchronized lyrics view is interactive. Clicking a lyric line instantly seeks the audio playback to that line's precise timestamp.
+- **Synced (LRC) lyrics** scroll and highlight automatically as the track plays — the current line is bold and in your accent color, the lines just before and after are a soft blend color, and everything else dims into the background.
+- **Plain lyrics** (no timestamps) just show up as scrollable text.
+- **Click any synced line** to jump playback straight to that moment.
+- Scroll around freely to read ahead — the view snaps back to center on the active line the next time the song reaches a new timestamp.
 
 ---
 
-## 4. Left Library Sidebar & Search
+## Sidebar & Search
 
-The left sidebar provides full-width tabs and filters to navigate your music collection.
+The left sidebar is your way into the library: **Artists**, **Albums**, **Genres**, and **Folders** tabs, each filtering the main view accordingly. The search box at the top filters whichever list is showing, and keeps focus while you type so you're not fighting the UI mid-search.
 
-### Tab Filtering
-- **Artists**: Filters the library view to show all tracks by the selected artist.
-- **Albums**: Filters the library view to show all tracks in the selected album.
-- **Genres**: Filters the library view to show all tracks matching the selected genre.
-- **Folders**: Allows browsing tracks by their folder structure in your file system.
-
-### Interactive Search & Focus
-- The search bar at the top of the sidebar allows you to filter the lists by matching keywords instantly.
-- **Focus Retention**: Keyboard inputs and filters are structured so that typing inside the search box does not lose focus, preventing interruptions while typing queries.
-
-### Sidebar Right-Click Context Menus
-Right-clicking any row under the Artists or Albums tabs opens a context menu with the following choices:
-- **Hide from UI**: Hides the artist or album from the browsing views (stored in `db.json`).
-- **Add to Playlist**: Lists your custom playlists and appends all tracks belonging to this artist/album.
-- **+ Create playlist with this artist/album**: Instantly creates a new custom playlist populated with all tracks from that artist or album.
+Right-click any artist or album row for a quick menu: hide it from your browsing views entirely, add all its tracks to an existing playlist, or spin up a brand-new playlist from it on the spot.
 
 ---
 
-## 5. Main Library View (Track Table)
-
-The main library view displays your tracks in a highly customizable table layout.
+## Library View & Track Table
 
 <p align="center">
   <img src="assets/Group By Album.png" alt="Group By Album" width="600">
 </p>
 
-### Grouping and Customization
-- **Group by Album**: Toggle album grouping to display tracks clustered by their respective albums with visual album header dividers. (Saved in `db.json` under `group_by_album`).
-- **Column Customization**: Right-click the track table header to trigger the `Table Columns` context menu:
-  - **Show/Hide**: Check/uncheck columns (including Track #, Title, Artist, Album, Genre, Year, Plays, Duration, Date Played, and the new **Liked** column) to toggle their visibility.
-  - **Reorder**: Select `Move Left` or `Move Right` to rearrange the columns. Preferences are saved automatically to `db.json`.
+This is where you actually see your tracks. A few things worth knowing:
 
-### Liking a Song (The Liked Column)
-- The heart toggle is integrated directly as a standard, first-class table column (**Liked**). Clicking the heart icon on any track row immediately toggles its liked state.
-- Redundant per-row action buttons (e.g. metadata editor and playlist addition buttons) have been removed from the end of the rows to keep the interface clean. All metadata and playlist actions are fully accessible via keyboard shortcuts or the right-click menu.
+**Group by Album** — toggle it on to cluster tracks under album headers instead of one flat list. Remembered between sessions.
 
-### Responsive Column Collapsing
-- To prevent columns from wrapping and bunching up on smaller monitors, the track table dynamically collapses columns as the window width narrows.
-- Hiding priority is designed to discard lower-priority columns first:
-  1. `Disc #` (Hides first)
-  2. `Plays`
-  3. `Date Played`
-  4. `Genre`
-  5. `Liked` (heart column)
-  6. `Year`
-  7. `Album`
-  8. `Artist`
-- Core columns `#` (Track Number), `Title`, and `Duration` remain visible. If space becomes extremely tight, only `Title` and `Duration` are shown.
-- Hiding columns in this responsive mode is temporary and **does not** overwrite your saved column visibility preferences in `db.json`. Expanding the window restores them in reverse order.
+**Columns** — click and drag a column header to reorder it, right where you want it. Right-click a header for the column menu, which now handles show/hide toggles only (reordering moved to drag-and-drop, since dragging is faster than hunting through a menu). Your column order and visibility choices are saved automatically.
 
-### Track Right-Click Context Menu
-Right-clicking an individual track opens the `Song Menu`:
-- **Like / Unlike this song**: Toggles favorite status.
-- **Edit ID3 tag**: Opens the metadata editor for this track.
-- **Open local file folder**: Spawns your file manager (via `xdg-open`) targeting the folder containing the audio file.
-- **Add to Playlist**: Appends the track to an existing custom playlist.
-- **+ Create playlist with this song**: Creates a new playlist containing only this track.
+**Liked column** — click the heart on any row to like/unlike a track on the spot. This replaced a cluster of separate per-row buttons that used to live at the end of each row — everything else (playlist actions, metadata editing) now lives in the [Song Menu](#the-song-menu) or your keyboard shortcuts, keeping the row itself clean.
 
-### Multi-Select Actions
-- **Range Selection**: Select a track, then hold `Shift` and click another track to select all tracks in between.
-- **Bulk Tag Editing**: Press `E` (or right-click selection and choose `Edit ID3 tags`) to open the tag editor for all selected tracks at once.
-- **Bulk Playlist Creation**: Create a new playlist containing all selected tracks.
+**Responsive columns** — as you shrink the window, columns drop away in this order so nothing wraps awkwardly: Disc #, Plays, Date Played, Genre, Liked, Year, Album, Artist. Title, Duration, and the track number always stay put — if things get really tight, it'll strip down to just Title and Duration. This is purely visual and temporary; your actual saved column preferences aren't touched, and everything comes back once you widen the window again.
+
+**Multi-select** — click a track, then Shift-click another to select the range between them. With multiple tracks selected, `E` opens bulk tag editing, or you can create a new playlist from the whole selection at once.
 
 ---
 
-## 6. Now Playing / Up Next Floating Queue Popover
-The Now Playing view has been redesigned into a compact, highly interactive **floating popover panel** that overlays the library without swapping screens.
-* **Activating the View**: Click the **Now Playing** tab in the library top tab bar. The tab background highlights in your theme's active accent color.
-* **Toggle & Dismissal**: Clicking the active tab again toggles it off. Alternatively, clicking anywhere outside the popover container dismisses it immediately, bringing focus back to the library view in the background.
-* **Anchor & Placement**: The popover anchors directly underneath the Now Playing tab button on the left of the tab bar (offset by the sidebar width plus margin spacers) for a clean visual alignment.
-* **Dimensions**: The panel is designed to be 30% wider (`468px`) and 40% taller (max height `588px`) to fit long track details comfortably and show more songs.
-* **Visual Contrast**: The popover background color automatically shifts saturation based on your theme's base color: it gets slightly less saturated on dark themes and more saturated/distinct on light themes. Adjacent row backgrounds alternate between base and mantle colors to provide clear delineation between successive tracks.
-* **Active Track Highlight**: The currently playing song is highlighted using your theme's accent color (and with a lower-opacity accent tint in the row background).
-* **Automatic Scroll-to-Center**: Opening the popover automatically triggers a smooth scrolling action to center the currently playing track within the scrollable queue list.
-* **Queue Interaction**:
-  * **Play on Click**: Clicking any row title/artist instantly plays that track (shifting playback context to the queue) without closing the popover.
-  * **Remove Song**: Hovering/viewing rows reveals a larger, red remove icon (✕). Clicking it instantly deletes the track from the queue.
-  * **Drag Reordering**: Drag and drop track handles (`\u{f0c9}`) to dynamically rearrange the playback sequence.
-  * **Clear Queue**: Click the **Clear** button in the popover header to empty the active queue.
-* **Deterministic Shuffle Integration**: When shuffle is toggled on, the tracks in the queue are physically shuffled in-place (keeping the current track at index 0). The popover displays the exact, shuffled playing order deterministically, letting you see exactly what will play next. Toggling shuffle off retains the current layout.
- 
----
+## The Song Menu
 
-## 7. Edit ID3 Tag Editor
+Right-click any track — in the Library, in a playlist, wherever — to bring up the Song Menu. The same menu also opens from the **Add to Playlist** button in the player controls, targeting whatever's currently playing.
 
-The metadata editor allows editing files individually or in bulk.
-
-### Targeted Gating Checkboxes
-- Next to each metadata field (Title, Artist, Album, Genre, Track #, Disc #, Year, Cover Path, and Lyrics) is a **checkbox**.
-- When you begin typing in a text field, that field's checkbox is **automatically checked**. Only checked fields will be overwritten and saved when you submit. This prevents accidentally overwriting distinct fields (like titles) when bulk editing tracks.
-
-### Autocomplete Pills
-- Typing in the Artist, Album, or Genre fields triggers autocomplete suggestion pills based on existing values in your music database. Clicking a pill fills the field and automatically checks its active box.
-
-### Visual Options
-- **Apply to Entire Album**: Gathers all tracks matching the current album and applies the checked fields to them.
-- **Cover Path**: Edit the cover art path for the file.
+- **Play Next** — queues it up immediately after the current track
+- **Add to Queue** — adds it to the end of Up Next
+- **Like / Unlike this song**
+- **Edit ID3 tag** — opens the [tag editor](#id3-tag-editor) for this track
+- **Open local file folder** — opens your file manager at the track's location
+- **Add to Playlist** — click to expand a dropdown listing your playlists (with a `+` next to each), plus a "Create playlist with this song" option at the bottom — collapsed by default so this doesn't turn into a wall of playlist names as your collection grows
+- **Remove from current playlist** — only shows up when you're viewing a User Playlist and the track is actually in it, so you'll never see this option somewhere it wouldn't make sense (Smart Playlists and Auto Playlists don't have a manual membership to remove from — see [Playlists & Smart Playlists](#playlists--smart-playlists) for why)
 
 ---
 
-## 8. Live Lyrics Tab in Tag Editor
+## Now Playing / Up Next Queue
 
-The Tag Editor contains a dedicated **Lyrics** tab to view, edit, and adjust timings.
+Click the **Now Playing** tab (in the same row as Artists/Albums/Genres) to see what's queued up next. Click it again, or click anywhere outside it, to dismiss.
 
-### Lyrics Text Editor
-- Provides a full-featured text editor area to edit raw lyrics text, including LRC format timestamp lines.
-
-### Timeline Offset Adjustment Controls
-If lyrics are synchronized, you can adjust timings using the offset control panel:
-- **Shift Buttons**: Click `+0.5s`, `+1.0s`, `-0.5s`, or `-1.0s` to add a positive or negative pending offset.
-- **Apply**: Shifts every timestamp (e.g. `[01:10.50]`) in the lyrics text by the pending offset in seconds, updates the text area, checks the lyrics checkbox, and resets the pending offset to `0.0`.
-- **Reset**: Resets the pending offset to `0.0` without altering the lyrics text.
+- **Drag to reorder** — grab the handle on the left of any row and drag it to a new position. This is the only way to reorder the queue now; the separate up/down nudge buttons and the per-row remove ✕ that used to sit at the end of each row have been retired, since dragging covers both jobs more directly. To remove a track from the queue, use the Song Menu.
+- **Search the queue** — filter Up Next by keyword without disturbing playback.
+- **Clear Queue** — empties everything queued up ahead of the current track.
+- **Shuffle-aware** — turning shuffle on physically reorders the queue (keeping the current track in place) so what you see is exactly what's coming next, not a hidden internal order.
 
 ---
 
-## 9. Online Integration Buttons
+## ID3 Tag Editor
 
-Inside the Tag Editor, there are two helper buttons for fetching assets:
-- **Search Lyrics Online**: Clicking this button reads the active track metadata and opens your web browser to `https://lrclib.net/search/{query}` (pre-filled with the song details) via `xdg-open`. You can copy the synced lyrics from the browser and paste them into the editor.
-- **Search Cover Online**: Clicking this button opens your browser to Google Images pre-filled with the query `{artist} {album} album art` so you can retrieve and save the cover file.
+Edit metadata one track at a time, or in bulk across a whole selection.
+
+Every field (Title, Artist, Album, Genre, Track #, Disc #, Year, Cover Path, Lyrics) has its own checkbox — start typing in a field and its box checks itself automatically. Only checked fields get written when you save, so bulk-editing a stack of tracks won't accidentally overwrite something like the Title field across all of them.
+
+Typing in Artist, Album, or Genre brings up autocomplete suggestions pulled from your existing library — click one to fill the field and check its box in one motion. There's also an "Apply to Entire Album" option that grabs every track in the current album and applies your checked changes across all of them.
 
 ---
 
-## 10. Playlists & Smart Playlists
+## Lyrics Tab in the Tag Editor
 
-OmaTUNES manages playlists locally inside `~/.config/omatunes/db.json`. The playlist section at the bottom of the sidebar is organized into three compact icon-based tabs, each showing tooltips on hover:
-1. **User Playlists** (List icon `\u{f03a}`): Standard manually-curated user playlists.
-2. **Auto Playlists** (Magic Wand/Sparkles icon `\u{ebcf}` or auto-list equivalent): Automatic lists based on history/activity.
-3. **Smart Playlists** (Wand icon `\u{f0d0}`): Rule-based playlists that compile automatically.
+The tag editor has its own Lyrics tab for viewing and adjusting timing, separate from the read-only display in the main lyrics drawer.
+
+- Paste or type raw lyrics text directly, LRC timestamps and all.
+- If the sync feels off, use the offset controls (`+0.5s`, `+1.0s`, `-0.5s`, `-1.0s`) to build up a shift, then hit **Apply** to shift every timestamp in the text at once. **Reset** clears the pending shift without touching your lyrics.
+
+---
+
+## Online Lookup Helpers
+
+Two shortcuts in the tag editor save you a trip to the browser's address bar:
+
+- **Search Lyrics Online** — opens [lrclib.net](https://lrclib.net) pre-filled with the current track's details, so you can grab synced lyrics and paste them straight back in.
+- **Search Cover Online** — opens a Google Images search pre-filled with `{artist} {album} album art`, for grabbing cover art to drop next to your files.
+
+---
+
+## Playlists & Smart Playlists
+
+Everything lives in `~/.config/omatunes/db.json`. The sidebar organizes playlists into three tabs, each with its own icon and tooltip:
+
+1. **User Playlists** — playlists you build by hand
+2. **Auto Playlists** — Liked Songs, Recently Played, Most Played
+3. **Smart Playlists** — rule-based, self-updating
+
+**Reordering** — drag playlists within the User Playlists or Smart Playlists tab to put your favorites up top. Each tab keeps its own order independently (Auto Playlists always stay in their fixed positions, since they're not user-created).
 
 ### User Playlists
-- **Creation**: Click the `New Playlist` button at the bottom of the sidebar list, or right-click any track/selection/artist/album and select the create option.
-- **Management**: Hovering over a playlist in the sidebar reveals a Pencil icon (Rename) and a Trash icon (Delete).
-- **Adding Tracks**: Right-click any track or selection, go to `Add to Playlist`, and click the `+ {Playlist Name}` entry.
-- **Single-line Truncation**: Playlist names in the sidebar are automatically truncated with an ellipsis (`...`) if they exceed the available column width, preventing visual overflows.
 
-### Autoplaylists
-Autoplaylists require no manual curation and populate dynamically:
-- **Liked Songs**: Every track that has been favorited (liked) in the main interface.
-- **Recently Played**: A list of your most recently played tracks sorted chronologically.
-- **Most Played**: Your tracks sorted in descending order of play count.
+- **Create one** by clicking "New Playlist" at the bottom of the sidebar, or right-click a track/artist/album and create one from there directly.
+- **Rename or delete** by hovering over a playlist to reveal the pencil and trash icons.
+- **Add a track** via the Song Menu's Add to Playlist dropdown.
+- **Reorder the songs inside it** by dragging the handle on the left of any row — the same drag pattern used in the Up Next queue.
+- **Remove a song** from it via "Remove from current playlist" in the Song Menu, which only appears when you're actually viewing that playlist and the track is genuinely in it.
 
-### Smart Playlists (New in v0.7.0)
-Smart Playlists work similarly to iTunes smart playlists, compiling tracks dynamically from your music library according to a set of user-defined rules.
-- **Creation**: Navigate to the Smart Playlists tab in the sidebar and click **New Smart Playlist**. This opens the interactive Rule Builder panel in the main content area.
-- **Rule Matrix**: Each rule row consists of:
-  - **Field selector**: Choose criteria like Title, Artist, Album, Genre, Year, Play Count, Duration, Disc Number, Liked, Has Lyrics (checks if tracks have lyrics stored in their ID3 tags), or Last Played.
-  - **Operator selector**: Choose matching operations like Contains, Is, Greater Than, Less Than, Within Last, or Between.
-  - **Value inputs**: Enter matching text, numbers, checkbox states, or time duration strings. Text fields like Artist, Album, and Genre feature autocomplete chips for quick selection.
-- **AND Logic**: Multiple rule rows are combined using strict logical `AND` matching — a track must satisfy all defined rules to be included.
-- **Sorting & Truncation**: Customize how matching tracks are sorted and limited:
-  - **Order By**: Sort tracks by Title, Album, Artist, Play Count, Year, or Random.
-  - **Limit**: Check the limit box and define a maximum number of tracks (e.g. limit to 25 songs).
-- **Live Updating**: Check the live updating box to automatically re-evaluate rules in the background. Re-evaluation is debounced and runs on app launch/scan and on every track change (when the playing track transitions).
-- **Edit / Delete**: Right-click any Smart Playlist in the sidebar to open the context menu. Select **Edit Smart Playlist** to reload its configuration inside the Rule Builder, or **Delete Smart Playlist** to remove it.
-- **View Restoration**: Clicking Cancel or Save in the Rule Builder automatically restores the exact view context (Artist, Album, Genre, or Playlist) that was open before you launched the builder.
+### Auto Playlists
+
+These populate themselves — no manual curation needed:
+- **Liked Songs** — everything you've hearted. Songs can be dragged into a custom order here, same as a User Playlist.
+- **Recently Played** — your listening history, most recent first. Since the whole point of this list is showing recency, it isn't manually reorderable — dragging it around would fight its own purpose the moment you played something new.
+- **Most Played** — sorted by play count, for the same reason as above: also not manually reorderable.
+
+### Smart Playlists
+
+These work like iTunes smart playlists: define rules, and OmaTUNES keeps the list current automatically.
+
+- **Create one** from the Smart Playlists tab — this opens the Rule Builder.
+- **Build rules** by picking a field (Title, Artist, Album, Genre, Year, Play Count, Duration, Disc Number, Liked, Has Lyrics, Last Played), an operator (Contains, Is, Greater Than, Less Than, Within Last, Between), and a value. Artist/Album/Genre fields get autocomplete chips.
+- **Rules combine with AND logic** — a track needs to satisfy every rule to make the cut.
+- **Sort and limit** matches by Title, Album, Artist, Play Count, Year, or Random, and optionally cap the list at a maximum size.
+- **Live Updating**, when enabled, re-checks the rules automatically as your library and listening habits change.
+- **Songs can be dragged into a manual order** here too — when a new track starts matching the rules, it's added to the end of your manual order rather than wherever the sort criteria would normally place it, so your arrangement doesn't get shuffled around every time the underlying set changes.
+- Right-click a Smart Playlist in the sidebar to edit its rules or delete it.
 
 ---
 
-## 11. Waybar Integration
+## Theming
 
-OmaTUNES exposes player states over a UDP socket listener on port `18888` and writes statuses to `/tmp/omatunes_waybar_state.json`, facilitating rich Waybar configurations.
+Open Settings (the gear icon at the far right of the library tab row) to get to the theme editor.
 
-### Waybar CSS Styling
-To style the grouped Waybar modules into a unified pill design that collapses cleanly when OmaTunes is closed, use the following rules in your `~/.config/waybar/style.css`:
+- **System** — follows your active Omarchy theme live.
+- **Presets** — Nord, Catppuccin Mocha, Catppuccin Latte, Dracula, Gruvbox (Dark), Everforest (Dark), Monokai.
+- **Custom** — you edit 7 base colors (Background, Primary Text, Accent, Green, Red, Yellow, Blue), and OmaTUNES derives the remaining 4 supporting shades for you — a deeper background variant, a panel background, muted/secondary text — automatically calculated to hit proper WCAG contrast ratios against your base colors. That means a custom theme you build here won't quietly end up with text you can't read; the math handles it for you.
+
+---
+
+## Waybar Integration
+
+OmaTUNES writes its player state to `/tmp/omatunes_waybar_state.json` and listens on UDP port `18888` for commands, which is what the bundled Waybar scripts talk to.
+
+### CSS
+
+To style the grouped modules into a single unified pill (and have it collapse cleanly when OmaTUNES isn't running), drop this into `~/.config/waybar/style.css`:
 
 ```css
 #omatunes-group {
@@ -319,91 +288,42 @@ To style the grouped Waybar modules into a unified pill design that collapses cl
 }
 ```
 
-### Click & Scroll Bindings
-- **Play/Pause**: Handled by `--click play` (sends UDP `play-pause` command to port 18888).
-- **Next**: Handled by `--click next` (sends UDP `next` command).
-- **Like**: Handled by `--click like` (sends UDP `like` command).
-- **Focus Player**: Clicking the track text module runs `hyprctl dispatch focuswindow class:^omatunes$ || hyprctl dispatch focuswindow title:^omatunes$`.
-- **Volume**: Scrolling up or down over the text module runs `omatunes_volume.sh up` or `omatunes_volume.sh down`.
+### What each click/scroll does
 
-### Milestone Notifications & Stats
-- **Track Milestones**: Triggers a desktop notification via `notify-send` when you listen to your 10th, 50th, and every 100th track of the day.
-- **Hourly Milestones**: Sends a notification warning you that "Time Flies!" for every active hour of listening completed today.
-- **Leaderboards**: The hover tooltip displays your daily/weekly/monthly stats alongside a **Monthly Top 5 Artists** leaderboard and an **All-Time Top 10 Legends** board.
-- **Live Theme Sync**: The script reads the active Alacritty or Omarchy theme to apply matching colors inside the pango markup tooltips.
+- **Play/Pause** — `--click play`, sends a play-pause command over UDP
+- **Next** — `--click next`
+- **Like** — `--click like`
+- **Clicking the track info text** — focuses the OmaTUNES window via `hyprctl`
+- **Scrolling over the track info text** — adjusts volume up/down
+
+### Notifications and stats
+
+The Waybar module also handles a few nice-to-haves on its own: a desktop notification at your 10th, 50th, and every 100th track of the day, an hourly "time flies" nudge for each active listening hour, and a hover tooltip showing your daily/weekly/monthly stats plus a monthly top-5 and all-time top-10 artist leaderboard. It reads your active Alacritty/Omarchy theme colors to keep the tooltip visually in sync with the rest of your setup.
 
 ---
 
-## 12. Full Keybinding Reference
-
-The following table documents all keyboard controls available when the OmaTUNES window is focused:
+## Keybinding Reference
 
 | Key | Context | Action |
 |---|---|---|
-| `Space` | Main Player | Play / Pause |
-| `&rightarrow;` | Main Player | Seek forward (configurable step, default 5s) |
-| `&leftarrow;` | Main Player | Seek backward (configurable step, default 5s) |
-| `ArrowUp` | Track List | Move selected track focus up |
-| `ArrowDown` | Track List | Move selected track focus down |
-| `n` / `N` | Main Player | Next Track |
-| `p` / `P` | Main Player | Previous Track |
-| `s` / `S` | Main Player | Toggle Shuffle |
-| `r` / `R` | Main Player | Toggle Repeat |
-| `+` or `=` | Main Player | Increase volume by step (default 5%) |
-| `-` | Main Player | Decrease volume by step (default 5%) |
-| `l` / `L` / `f` / `F` | Track List | Toggle Liked state for selected track |
-| `e` / `E` | Track List | Open ID3 metadata tag editor for selection |
-| `c` / `C` | Sidebar | Open New Playlist dialog |
-| `a` / `A` | Track List | Open playlist addition dialog for selected track |
-| `/` | Main Player | Focus track list search input and clear query |
-| `F5` | Main Player | Trigger full scan of the music library folder |
-| `Tab` | Main Player | Cycle focus: Sidebar Search &rarr; Sidebar List &rarr; Tracklist &rarr; Song Search &rarr; Sidebar Search |
-| `Enter` | Dialog / Editor | Submit / Save tags (or double-click selected track) |
-| `Escape` | Dialog / Editor | Close active dialog, tag editor, or context menu |
-| `]` | Main Player | Increase UI Font Scaling (scales font size up) |
-| `[` | Main Player | Decrease UI Font Scaling (scales font size down) |
-
----
-
-## 12. Theming System & Custom Theme Editor
-
-OmaTUNES includes an extensive custom theming pipeline that handles colors dynamically. Open the settings dialog (Gear icon at the far right of the library tab strip) to configure it.
-
-### Theme Sources
-- **System Theme**: Detects and applies your active Omarchy system theme live in real-time.
-- **Preset Themes**: Swap in any of the built-in preset palettes:
-  - *Nord*
-  - *Catppuccin Mocha*
-  - *Catppuccin Latte*
-  - *Dracula*
-  - *Gruvbox (Dark)*
-  - *Everforest (Dark)*
-  - *Monokai*
-- **Custom Theme**: Allows full customization. To prevent poor layout color combinations, only **7 base colors** are directly editable:
-  - **Background** (`base`): The main application backdrop.
-  - **Primary Text** (`text`): Used for primary headers and text lines.
-  - **Accent**: Used for active tracks, button overlays, and highlighting.
-  - **Green / Red / Yellow / Blue**: Swatches for indicators, warnings, and states.
-
-### Contrast Protection & Derived Colors
-The remaining **4 structural tokens** are automatically calculated from your Base and Text choices using target WCAG relative luminance contrast ratios:
-* **Background (Deep)** (`mantle`): Derived from Background at a `1.20` contrast target to serve as a darker/deeper backdrop (darker in dark mode, lighter in light mode).
-* **Panel Background** (`surface0`): Derived from Background at a `1.40` contrast ratio to act as a structural highlight (lighter in dark mode, darker in light mode).
-* **Muted Text / Icons** (`overlay0`): Derived from Background at a `2.80` contrast target to ensure inactive icons, unliked hearts, and **non-highlighted lyric lines** remain readable.
-* **Secondary Text** (`subtext`): Derived from Primary Text at a `1.25` contrast target to ensure secondary labels remain legible but de-emphasized.
-These derived swatches display live in the Custom builder as read-only preview swatches. Saving the settings writes the generated hex values directly to `config.toml`.
-
----
-
-## 13. Now Playing & Up Next Queue
-
-The **Now Playing** tab (located in the main library view tab row) switches to the active Up Next queue manager.
-
-### Queue Actions & Controls
-- **Up Next Header Row**: Displays dynamic headers matching your active column visibility setup.
-- **Drag-to-Reorder Handles**: Hover over a track in the queue to reveal the drag handle icon (`\u{f0c9}`). Click and drag the handle up or down to re-order the playing queue in real-time.
-- **Move Up / Down Arrows**: Quick action buttons next to each queue track to shift its position by one slot.
-- **Remove Button**: Click the red cross icon (`\u{f00d}`) on any row to remove that specific track from the queue.
-- **Queue Search**: Use the right-hand search filter inside the Now Playing tab to narrow down queue items by keyword without losing playback state.
-- **Clear Queue**: Click the garbage icon in the queue controls to purge all upcoming tracks.
-
+| `Space` | Player | Play / Pause |
+| `→` | Player | Seek forward (default 5s) |
+| `←` | Player | Seek backward (default 5s) |
+| `↑` / `↓` | Track List | Move track focus up/down |
+| `n` / `N` | Player | Next track |
+| `p` / `P` | Player | Previous track |
+| `s` / `S` | Player | Toggle Shuffle |
+| `r` / `R` | Player | Toggle Repeat |
+| `+` or `=` | Player | Volume up (default 5%) |
+| `-` | Player | Volume down (default 5%) |
+| `l` / `L` / `f` / `F` | Track List | Toggle Liked for selected track |
+| `e` / `E` | Track List | Open tag editor for selection |
+| `c` / `C` | Sidebar | New Playlist dialog |
+| `a` / `A` | Track List | Open Add to Playlist for selected track |
+| `/` | Player | Focus and clear the track search box |
+| `F5` | Player | Rescan your music library folder |
+| `Tab` | Player | Cycle focus: sidebar search → sidebar list → track list → song search → back to sidebar search |
+| `Enter` | Dialog / Editor | Submit / save (or double-click to play a track) |
+| `Escape` | Dialog / Editor | Close whatever's open |
+| `]` | Player | Increase UI font scale |
+| `[` | Player | Decrease UI font scale |
