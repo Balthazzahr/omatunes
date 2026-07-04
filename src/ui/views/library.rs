@@ -1242,55 +1242,6 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                     .interaction(iced::mouse::Interaction::Grab)
                     .into();
 
-                let up_btn: Element<'_, Message> = if original_idx > 0 {
-                    button(
-                        text("\u{f062}")
-                            .font(crate::ui::icons::NERD_FONT_MONO)
-                            .color(theme::overlay0())
-                            .size(12)
-                    )
-                    .on_press(Message::MoveQueueTrackUp(original_idx))
-                    .style(iced::widget::button::text)
-                    .padding(2)
-                    .into()
-                } else {
-                    Space::with_width(16.0).into()
-                };
-
-                let down_btn: Element<'_, Message> = if original_idx < state.queue.len() - 1 {
-                    button(
-                        text("\u{f063}")
-                            .font(crate::ui::icons::NERD_FONT_MONO)
-                            .color(theme::overlay0())
-                            .size(12)
-                    )
-                    .on_press(Message::MoveQueueTrackDown(original_idx))
-                    .style(iced::widget::button::text)
-                    .padding(2)
-                    .into()
-                } else {
-                    Space::with_width(16.0).into()
-                };
-
-                let remove_btn = button(
-                    text("\u{f00d}")
-                        .font(crate::ui::icons::NERD_FONT_MONO)
-                        .color(theme::red())
-                        .size(12)
-                )
-                .on_press(Message::RemoveQueueTrack(original_idx))
-                .style(iced::widget::button::text)
-                .padding(2);
-
-                let controls = row![
-                    up_btn,
-                    down_btn,
-                    remove_btn,
-                ]
-                .spacing(8)
-                .align_y(Alignment::Center)
-                .width(Length::Fixed(120.0));
-
                 let track_no = (original_idx + 1).to_string();
                 let table_columns = get_responsive_columns(state);
                 let mut row_widgets: Vec<Element<'_, Message>> = Vec::new();
