@@ -533,6 +533,7 @@ pub struct AppState {
     pub previous_view_state: Option<SavedViewState>,
     pub playing_context: Option<PlayingContext>,
     pub animation_tick: u32,
+    pub show_queue_popover: bool,
 }
 
 impl AppState {
@@ -708,6 +709,7 @@ impl AppState {
             previous_view_state: None,
             playing_context: None,
             animation_tick: 0,
+            show_queue_popover: false,
         };
 
         (state, scan_task)
