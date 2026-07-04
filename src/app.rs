@@ -3375,6 +3375,13 @@ impl AppState {
                 Task::none()
             }
 
+            Message::RemoveTrackFromPlaylist(playlist_name, track) => {
+                crate::db::remove_from_playlist(playlist_name, track.path);
+                self.show_context_menu = None;
+                self.update_filtered_tracks();
+                Task::none()
+            }
+
             Message::CreatePlaylistWithTracks(playlist_name, tracks) => {
                 crate::db::create_playlist(playlist_name.clone());
                 for t in tracks {
