@@ -1176,9 +1176,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                     .into();
             }
 
-            header_widgets.push(header_area);
         }
-        header_widgets.push(Space::with_width(Length::Fixed(120.0)).into());
 
         container(
             row(header_widgets)
@@ -1302,7 +1300,6 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                     };
                     row_widgets.push(el);
                 }
-                row_widgets.push(controls.into());
 
                 let row_content = mouse_area(
                     container(
