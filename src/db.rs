@@ -233,6 +233,14 @@ pub fn add_to_playlist(name: String, path: PathBuf) {
     });
 }
 
+pub fn remove_from_playlist(name: String, path: PathBuf) {
+    write(|db| {
+        if let Some(list) = db.playlists.get_mut(&name) {
+            list.retain(|p| p != &path);
+        }
+    });
+}
+
 pub fn create_playlist(name: String) {
     write(|db| {
         db.playlists.entry(name.clone()).or_default();
