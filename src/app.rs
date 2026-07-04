@@ -4135,41 +4135,66 @@ impl AppState {
                 }
             };
 
-            let mut playlist_select = column![
-                text("Add to Playlist:")
-                    .size(11)
-                    .color(theme::subtext())
-                    .font(crate::ui::icons::UI_FONT_BOLD)
-            ]
-            .spacing(4);
+            let is_playlist_target = matches!(
+                target,
+                ContextMenuTarget::Artist(_)
+                    | ContextMenuTarget::Album(_)
+                    | ContextMenuTarget::Track(_)
+                    | ContextMenuTarget::MultipleTracks(_)
+            );
+
+            let mut playlist_select = column![].spacing(4);
+
+            if is_playlist_target {
+                let arrow_icon = if self.playlist_menu_expanded { "▼ " } else { "▶ " };
+                let header_btn = button(
+                    row![
+                        text(arrow_icon).font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::subtext()),
+                        text("Add to Playlist")
+                            .size(13)
+                            .color(theme::subtext())
+                            .font(crate::ui::icons::UI_FONT_BOLD)
+                    ].spacing(4)
+                )
+                .on_press(Message::TogglePlaylistMenuExpanded)
+                .style(iced::widget::button::text)
+                .padding([2, 4])
+                .width(Length::Fill);
+
+                playlist_select = playlist_select.push(header_btn);
+            }
 
             let (title, hide_btn, create_btn): (String, Option<Element<'_, Message>>, _) = match target {
                 ContextMenuTarget::Artist(artist_name) => {
                     let title = format!("Artist Menu: {artist_name}");
-                    let hide = button(text("Hide from UI").size(13))
+                    let hide = button(text("Hide from UI").size(14))
                         .on_press(Message::HideAlbumOrArtist(artist_name.clone(), true))
                         .style(item_style)
                         .padding([4, 8])
                         .width(Length::Fill);
                     
-                    for pl in &custom_playlists {
-                        let artist_tracks: Vec<Track> = self.all_tracks.iter()
-                            .filter(|t| {
-                                let a = if t.artist.trim().is_empty() { "Unknown Artist" } else { &t.artist };
-                                a == artist_name
-                            })
-                            .cloned()
-                            .collect();
-                        playlist_select = playlist_select.push(
-                            button(text(format!("  + {}", pl)).size(12))
-                                .on_press(Message::AddTracksToPlaylist(pl.clone(), artist_tracks))
-                                .style(item_style)
-                                .padding([4, 8])
-                                .width(Length::Fill)
-                        );
+                    if self.playlist_menu_expanded {
+                        let mut pl_col = column![].spacing(4);
+                        for pl in &custom_playlists {
+                            let artist_tracks: Vec<Track> = self.all_tracks.iter()
+                                .filter(|t| {
+                                    let a = if t.artist.trim().is_empty() { "Unknown Artist" } else { &t.artist };
+                                    a == artist_name
+                                })
+                                .cloned()
+                                .collect();
+                            pl_col = pl_col.push(
+                                button(text(format!("  + {}", pl)).size(14))
+                                    .on_press(Message::AddTracksToPlaylist(pl.clone(), artist_tracks))
+                                    .style(item_style)
+                                    .padding([4, 8])
+                                    .width(Length::Fill)
+                            );
+                        }
+                        playlist_select = playlist_select.push(pl_col);
                     }
 
-                    let create = button(text("+ Create playlist with this artist").size(12))
+                    let create = button(text("+ Create playlist with this artist").size(14))
                         .on_press(Message::CreatePlaylistFromContext(artist_name.clone(), true))
                         .style(accent_item_style)
                         .padding([4, 8])
@@ -4179,30 +4204,34 @@ impl AppState {
                 }
                 ContextMenuTarget::Album(album_name) => {
                     let title = format!("Album Menu: {album_name}");
-                    let hide = button(text("Hide from UI").size(13))
+                    let hide = button(text("Hide from UI").size(14))
                         .on_press(Message::HideAlbumOrArtist(album_name.clone(), false))
                         .style(item_style)
                         .padding([4, 8])
                         .width(Length::Fill);
 
-                    for pl in &custom_playlists {
-                        let album_tracks: Vec<Track> = self.all_tracks.iter()
-                            .filter(|t| {
-                                let al = if t.album.trim().is_empty() { "Unknown Album" } else { &t.album };
-                                al == album_name
-                            })
-                            .cloned()
-                            .collect();
-                        playlist_select = playlist_select.push(
-                            button(text(format!("  + {}", pl)).size(12))
-                                .on_press(Message::AddTracksToPlaylist(pl.clone(), album_tracks))
-                                .style(item_style)
-                                .padding([4, 8])
-                                .width(Length::Fill)
-                        );
+                    if self.playlist_menu_expanded {
+                        let mut pl_col = column![].spacing(4);
+                        for pl in &custom_playlists {
+                            let album_tracks: Vec<Track> = self.all_tracks.iter()
+                                .filter(|t| {
+                                    let al = if t.album.trim().is_empty() { "Unknown Album" } else { &t.album };
+                                    al == album_name
+                                })
+                                .cloned()
+                                .collect();
+                            pl_col = pl_col.push(
+                                button(text(format!("  + {}", pl)).size(14))
+                                    .on_press(Message::AddTracksToPlaylist(pl.clone(), album_tracks))
+                                    .style(item_style)
+                                    .padding([4, 8])
+                                    .width(Length::Fill)
+                            );
+                        }
+                        playlist_select = playlist_select.push(pl_col);
                     }
 
-                    let create = button(text("+ Create playlist with this album").size(12))
+                    let create = button(text("+ Create playlist with this album").size(14))
                         .on_press(Message::CreatePlaylistFromContext(album_name.clone(), false))
                         .style(accent_item_style)
                         .padding([4, 8])
@@ -4213,48 +4242,52 @@ impl AppState {
                 ContextMenuTarget::Track(track) => {
                     let title = format!("Song Menu: {}", track.title);
                     
-                    for pl in &custom_playlists {
-                        playlist_select = playlist_select.push(
-                            button(text(format!("  + {}", pl)).size(12))
-                                .on_press(Message::AddTracksToPlaylist(pl.clone(), vec![track.clone()]))
-                                .style(item_style)
-                                .padding([4, 8])
-                                .width(Length::Fill)
-                        );
+                    if self.playlist_menu_expanded {
+                        let mut pl_col = column![].spacing(4);
+                        for pl in &custom_playlists {
+                            pl_col = pl_col.push(
+                                button(text(format!("  + {}", pl)).size(14))
+                                    .on_press(Message::AddTracksToPlaylist(pl.clone(), vec![track.clone()]))
+                                    .style(item_style)
+                                    .padding([4, 8])
+                                    .width(Length::Fill)
+                            );
+                        }
+                        playlist_select = playlist_select.push(pl_col);
                     }
 
-                    let create = button(text("+ Create playlist with this song").size(12))
+                    let create = button(text("+ Create playlist with this song").size(14))
                         .on_press(Message::CreatePlaylistWithTracks(track.title.clone(), vec![track.clone()]))
                         .style(accent_item_style)
                         .padding([4, 8])
                         .width(Length::Fill);
 
-                    let play_next_btn = button(text("Play Next").size(12))
+                    let play_next_btn = button(text("Play Next").size(14))
                         .on_press(Message::PlayNext(vec![track.clone()]))
                         .style(item_style)
                         .padding([4, 8])
                         .width(Length::Fill);
 
-                    let add_queue_btn = button(text("Add to Queue").size(12))
+                    let add_queue_btn = button(text("Add to Queue").size(14))
                         .on_press(Message::AddToQueue(vec![track.clone()]))
                         .style(item_style)
                         .padding([4, 8])
                         .width(Length::Fill);
 
                     let like_label = if track.liked { "Unlike this song" } else { "Like this song" };
-                    let like_btn = button(text(like_label).size(12))
+                    let like_btn = button(text(like_label).size(14))
                         .on_press(Message::ToggleLikeTrack(track.clone()))
                         .style(item_style)
                         .padding([4, 8])
                         .width(Length::Fill);
 
-                    let tag_btn = button(text("Edit ID3 tag").size(12))
+                    let tag_btn = button(text("Edit ID3 tag").size(14))
                         .on_press(Message::OpenTagEditor(vec![track.clone()]))
                         .style(item_style)
                         .padding([4, 8])
                         .width(Length::Fill);
 
-                    let folder_btn = button(text("Open local file folder").size(12))
+                    let folder_btn = button(text("Open local file folder").size(14))
                         .on_press(Message::OpenLocalFolder(track.path.clone()))
                         .style(item_style)
                         .padding([4, 8])
@@ -4272,6 +4305,17 @@ impl AppState {
                         folder_btn,
                     ];
 
+                    if self.playlist_tab == PlaylistTab::Playlists {
+                        if let Some(playlist_name) = &self.selected_playlist {
+                            let remove_btn = button(text("Remove from current playlist").size(14))
+                                .on_press(Message::RemoveTrackFromPlaylist(playlist_name.clone(), track.clone()))
+                                .style(item_style)
+                                .padding([4, 8])
+                                .width(Length::Fill);
+                            track_actions = track_actions.push(Space::with_height(4)).push(remove_btn);
+                        }
+                    }
+
                     let mut show_reset_order = false;
                     if let Some(name) = &self.selected_playlist {
                         if name != "Recently Played" && name != "Most Played" {
@@ -4282,7 +4326,7 @@ impl AppState {
                     }
 
                     if show_reset_order {
-                        let reset_order_btn = button(text("Reset to natural order").size(12))
+                        let reset_order_btn = button(text("Reset to natural order").size(14))
                             .on_press(Message::ResetPlaylistSongOrder)
                             .style(item_style)
                             .padding([4, 8])
@@ -4296,35 +4340,39 @@ impl AppState {
                 ContextMenuTarget::MultipleTracks(tracks) => {
                     let title = format!("Selection Menu: {} Songs", tracks.len());
 
-                    for pl in &custom_playlists {
-                        playlist_select = playlist_select.push(
-                            button(text(format!("  + {}", pl)).size(12))
-                                .on_press(Message::AddTracksToPlaylist(pl.clone(), tracks.clone()))
-                                .style(item_style)
-                                .padding([4, 8])
-                                .width(Length::Fill)
-                        );
+                    if self.playlist_menu_expanded {
+                        let mut pl_col = column![].spacing(4);
+                        for pl in &custom_playlists {
+                            pl_col = pl_col.push(
+                                button(text(format!("  + {}", pl)).size(14))
+                                    .on_press(Message::AddTracksToPlaylist(pl.clone(), tracks.clone()))
+                                    .style(item_style)
+                                    .padding([4, 8])
+                                    .width(Length::Fill)
+                            );
+                        }
+                        playlist_select = playlist_select.push(pl_col);
                     }
 
-                    let play_next_btn = button(text("Play Next").size(12))
+                    let play_next_btn = button(text("Play Next").size(14))
                         .on_press(Message::PlayNext(tracks.clone()))
                         .style(item_style)
                         .padding([4, 8])
                         .width(Length::Fill);
 
-                    let add_queue_btn = button(text("Add to Queue").size(12))
+                    let add_queue_btn = button(text("Add to Queue").size(14))
                         .on_press(Message::AddToQueue(tracks.clone()))
                         .style(item_style)
                         .padding([4, 8])
                         .width(Length::Fill);
 
-                    let tag_btn = button(text("Edit ID3 tags").size(12))
+                    let tag_btn = button(text("Edit ID3 tags").size(14))
                         .on_press(Message::OpenTagEditor(tracks.clone()))
                         .style(item_style)
                         .padding([4, 8])
                         .width(Length::Fill);
 
-                    let create = button(text("+ Create playlist with selection").size(12))
+                    let create = button(text("+ Create playlist with selection").size(14))
                         .on_press(Message::CreatePlaylistWithTracks("Selected Tracks Playlist".to_string(), tracks.clone()))
                         .style(accent_item_style)
                         .padding([4, 8])
@@ -4342,12 +4390,12 @@ impl AppState {
                 }
                 ContextMenuTarget::Playlist(name) => {
                     let title = format!("Playlist: {name}");
-                    let rename_btn = button(text("Rename Playlist").size(12))
+                    let rename_btn = button(text("Rename Playlist").size(14))
                         .on_press(Message::OpenPlaylistDialog(PlaylistDialogMode::Rename(name.clone())))
                         .style(item_style)
                         .padding([4, 8])
                         .width(Length::Fill);
-                    let delete_btn = button(text("Delete Playlist").size(12))
+                    let delete_btn = button(text("Delete Playlist").size(14))
                         .on_press(Message::DeletePlaylist(name.clone()))
                         .style(item_style)
                         .padding([4, 8])
@@ -4364,12 +4412,12 @@ impl AppState {
                 }
                 ContextMenuTarget::SmartPlaylist(name) => {
                     let title = format!("Smart Playlist: {name}");
-                    let edit_btn = button(text("Edit Smart Playlist").size(12))
+                    let edit_btn = button(text("Edit Smart Playlist").size(14))
                         .on_press(Message::EditSmartPlaylist(name.clone()))
                         .style(item_style)
                         .padding([4, 8])
                         .width(Length::Fill);
-                    let delete_btn = button(text("Delete Smart Playlist").size(12))
+                    let delete_btn = button(text("Delete Smart Playlist").size(14))
                         .on_press(Message::DeleteSmartPlaylist(name.clone()))
                         .style(item_style)
                         .padding([4, 8])
@@ -4390,7 +4438,7 @@ impl AppState {
                     
                     let mut cols_col = column![
                         text("Show / Hide:")
-                            .size(11)
+                            .size(13)
                             .color(theme::subtext())
                             .font(crate::ui::icons::UI_FONT_BOLD),
                         Space::with_height(4)
@@ -4407,7 +4455,7 @@ impl AppState {
                                     .font(crate::ui::icons::NERD_FONT_MONO)
                                     .color(if is_visible { theme::accent() } else { theme::overlay0() })
                                     .size(14),
-                                text(col_label).size(13).color(theme::text())
+                                text(col_label).size(14).color(theme::text())
                             ].spacing(8)
                         )
                         .on_press(Message::ToggleColumnVisibility(col))
@@ -4428,7 +4476,9 @@ impl AppState {
                 }
             };
 
-            playlist_select = playlist_select.push(Space::with_height(4)).push(create_btn);
+            if !is_playlist_target || self.playlist_menu_expanded {
+                playlist_select = playlist_select.push(Space::with_height(4)).push(create_btn);
+            }
 
             let mut menu_col = column![
                 row![
