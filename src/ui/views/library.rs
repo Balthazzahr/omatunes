@@ -883,6 +883,10 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
     let table_columns = get_responsive_columns(state);
     let mut header_widgets: Vec<Element<'_, Message>> = Vec::new();
     
+    if state.is_draggable_playlist_view() {
+        header_widgets.push(iced::widget::Space::with_width(iced::Length::Fixed(28.0)).into());
+    }
+    
     for col in table_columns {
         let label = col.label();
         let width = col_width(col);
