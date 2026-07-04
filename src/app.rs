@@ -1265,6 +1265,27 @@ impl AppState {
             Message::ToggleShuffle => {
                 self.shuffle = !self.shuffle;
                 self.send_mpris(MprisUpdate::Shuffle(self.shuffle));
+                if self.shuffle && !self.queue.is_empty() {
+                    // Shuffling queue in-place, keeping the current track at index 0 or its current position
+                    use rand::seq::SliceRandom;
+                    let mut rng = rand::thread_rng();
+                    let current_track_id = self.current_track.as_ref().map(|t| t.id);
+                    if let Some(ct_id) = current_track_id {
+                        if let Some(pos) = self.queue.iter().position(|t| t.id == ct_id) {
+                            let current_item = self.queue.remove(pos);
+                            self.queue.shuffle(&mut rng);
+                            self.queue.insert(0, current_item);
+                        } else {
+                            self.queue.shuffle(&mut rng);
+                        }
+                    } else {
+                        self.queue.shuffle(&mut rng);
+                    }
+                    let queue_paths: Vec<PathBuf> = self.queue.iter().map(|t| t.path.clone()).collect();
+                    crate::db::write(|db| {
+                        db.last_queue_paths = queue_paths;
+                    });
+                }
                 Task::none()
             }
 
@@ -5029,29 +5050,14 @@ impl AppState {
             return Task::none();
         }
 
-        let next_idx = if self.shuffle {
-            use rand::Rng;
-            let current_idx = self.current_track.as_ref()
-                .and_then(|ct| self.queue.iter().position(|t| t.id == ct.id));
-            let len = self.queue.len();
-            if len == 1 { 0 } else {
-                let mut rng = rand::thread_rng();
-                let mut idx = rng.gen_range(0..len);
-                if let Some(cur) = current_idx {
-                    while idx == cur { idx = rng.gen_range(0..len); }
-                }
-                idx
+        let current_idx = self.current_track.as_ref()
+            .and_then(|ct| self.queue.iter().position(|t| t.id == ct.id));
+        let next_idx = match current_idx {
+            Some(i) => {
+                let new = i as i32 + delta;
+                if new < 0 { self.queue.len() - 1 } else { new as usize % self.queue.len() }
             }
-        } else {
-            let current_idx = self.current_track.as_ref()
-                .and_then(|ct| self.queue.iter().position(|t| t.id == ct.id));
-            match current_idx {
-                Some(i) => {
-                    let new = i as i32 + delta;
-                    if new < 0 { self.queue.len() - 1 } else { new as usize % self.queue.len() }
-                }
-                None => 0,
-            }
+            None => 0,
         };
 
         if let Some(track) = self.queue.get(next_idx).cloned() {
