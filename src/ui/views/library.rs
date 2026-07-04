@@ -1665,11 +1665,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         Space::with_width(0.0).into()
     };
 
-    let search_placeholder = if state.view_mode == ViewMode::NowPlaying {
-        "Search queue..."
-    } else {
-        "Search songs..."
-    };
+    let search_placeholder = "Search songs...";
 
     let song_search_input = row![
         text_input(search_placeholder, &state.search_query)
@@ -1736,47 +1732,19 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         })
         .padding(0);
 
-    let clear_queue_btn: Element<'_, Message> = if state.view_mode == ViewMode::NowPlaying {
-        button(text("Clear Queue").size(11))
-            .on_press(Message::ClearQueue)
-            .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
-                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-                iced::widget::button::Style {
-                    text_color: theme::red(),
-                    background: Some(iced::Background::Color(if is_hovered { theme::surface0() } else { iced::Color::TRANSPARENT })),
-                    border: iced::Border {
-                        color: theme::red(),
-                        width: 1.0,
-                        radius: 4.0.into(),
-                    },
-                    ..Default::default()
-                }
-            })
-            .padding([4, 8])
-            .into()
-    } else {
-        Space::with_width(0.0).into()
-    };
+    let clear_queue_btn: Element<'_, Message> = Space::with_width(0.0).into();
 
-    let group_by_album_checkbox = if state.view_mode != ViewMode::NowPlaying {
-        Element::from(
-            row![
-                checkbox("Group by Album", state.group_by_album)
-                    .on_toggle(|_| Message::ToggleGroupByAlbum)
-                    .size(14),
-                Space::with_width(12),
-            ]
-            .align_y(Alignment::Center)
-        )
-    } else {
-        Space::with_width(0.0).into()
-    };
+    let group_by_album_checkbox = Element::from(
+        row![
+            checkbox("Group by Album", state.group_by_album)
+                .on_toggle(|_| Message::ToggleGroupByAlbum)
+                .size(14),
+            Space::with_width(12),
+        ]
+        .align_y(Alignment::Center)
+    );
 
-    let clear_queue_spacer: Element<'_, Message> = if state.view_mode == ViewMode::NowPlaying {
-        row![Space::with_width(12), clear_queue_btn].into()
-    } else {
-        Space::with_width(0.0).into()
-    };
+    let clear_queue_spacer: Element<'_, Message> = Space::with_width(0.0).into();
 
     let right_controls = row![
         group_by_album_checkbox,
