@@ -2450,6 +2450,19 @@ impl AppState {
 
             Message::ToggleQueuePopover => {
                 self.show_queue_popover = !self.show_queue_popover;
+                if self.show_queue_popover {
+                    let current_track_id = self.current_track.as_ref().map(|t| t.id);
+                    if let Some(ct_id) = current_track_id {
+                        if let Some(idx) = self.queue.iter().position(|t| t.id == ct_id) {
+                            // Each item is approx 42px tall, scroll to center it (subtracting half height of viewport, ~200px)
+                            let offset_y = (idx as f32 * 42.0 - 150.0).max(0.0);
+                            return scrollable::scroll_to(
+                                self.queue_scroll_id.clone(),
+                                scrollable::AbsoluteOffset { x: 0.0, y: offset_y },
+                            );
+                        }
+                    }
+                }
                 Task::none()
             }
 
@@ -4645,8 +4658,8 @@ impl AppState {
                 let remove_btn = button(
                     text("\u{f00d}")
                         .font(crate::ui::icons::NERD_FONT_MONO)
-                        .size(10)
-                        .color(theme::overlay0())
+                        .size(12)
+                        .color(theme::red())
                 )
                 .on_press(Message::RemoveQueueTrack(idx))
                 .style(iced::widget::button::text)
@@ -4682,19 +4695,22 @@ impl AppState {
                 .align_y(Alignment::Center)
                 .padding([4, 8]);
 
-                let mut row_element: Element<'_, Message> = container(track_row_inner)
-                    .width(Length::Fill)
-                    .style(move |_| iced::widget::container::Style {
-                        background: if is_current {
-                            Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.12)))
-                        } else if idx % 2 == 1 {
-                            Some(iced::Background::Color(theme::mantle()))
-                        } else {
-                            None
-                        },
-                        ..Default::default()
-                    })
-                    .into();
+                let mut row_element: Element<'_, Message> = mouse_area(
+                    container(track_row_inner)
+                        .width(Length::Fill)
+                        .style(move |_| iced::widget::container::Style {
+                            background: if is_current {
+                                Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.12)))
+                            } else if idx % 2 == 1 {
+                                Some(iced::Background::Color(theme::mantle()))
+                            } else {
+                                None
+                            },
+                            ..Default::default()
+                        })
+                )
+                .on_press(Message::PlayQueueTrack(idx))
+                .into();
 
                 // Drag-over highlight: when dragging, wrap with mouse_area to detect hover
                 if self.dragging_queue_index.is_some() {
@@ -4710,6 +4726,7 @@ impl AppState {
         let scroll_content = scrollable(
             column(rows).spacing(0).width(Length::Fill)
         )
+        .id(self.queue_scroll_id.clone())
         .height(Length::Shrink);
 
         // The panel itself
@@ -4744,8 +4761,8 @@ impl AppState {
                 ..Default::default()
             });
 
-        // Position: anchored below the top bar
-        let panel_left_offset = (self.window_width - 360.0 - 12.0).max(0.0);
+        // Position: Anchored directly below the "Now Playing" tab
+        let panel_left_offset = (self.sidebar_width.round() + 6.0).max(0.0);
         let panel_top_offset = self.player_height;
 
         let positioned_panel = container(panel)
