@@ -804,7 +804,7 @@ impl std::hash::Hash for TrackListDependency {
 }
 
 pub fn get_available_track_list_width(state: &AppState) -> f32 {
-    let sidebar_visible = state.selected_playlist.is_none() && (state.view_mode != ViewMode::NowPlaying);
+    let sidebar_visible = state.selected_playlist.is_none();
     let sidebar_w = if sidebar_visible { state.sidebar_width.round() + 6.0 } else { 0.0 };
     
     let is_right_open = state.right_panel_tab.is_some() && state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 600.0);
@@ -1139,55 +1139,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         Space::new(Length::Fixed(0.0), Length::Fixed(0.0)).into()
     };
 
-    let headers: Element<'_, Message> = if state.view_mode == ViewMode::NowPlaying {
-        let table_columns = get_responsive_columns(state);
-        let mut header_widgets: Vec<Element<'_, Message>> = Vec::new();
-        header_widgets.push(Space::with_width(Length::Fixed(28.0)).into());
-        
-        for col in table_columns {
-            let label = col.label();
-            let width = col_width(col);
-            let sort_col = table_col_to_sort_col(col);
-            let is_sorted = state.sort_column == Some(sort_col);
-            let arrow = if is_sorted {
-                if state.sort_ascending { " ▲" } else { " ▼" }
-            } else {
-                ""
-            };
-            let txt = text(format!("{label}{arrow}"))
-                .size(11)
-                .font(crate::ui::icons::UI_FONT_BOLD)
-                .color(if is_sorted { theme::accent() } else { theme::subtext() });
-            
-            let btn = button(txt)
-                .style(iced::widget::button::text)
-                .padding(0)
-                .width(width);
-
-            let mut header_area: Element<'_, Message> = mouse_area(btn)
-                .on_press(Message::ColumnHeaderDragStart(col))
-                .on_release(Message::ColumnHeaderDragEnd)
-                .on_right_press(Message::ToggleContextMenu(Some(crate::app::ContextMenuTarget::Header(col))))
-                .into();
-
-            if state.dragging_column_header.is_some() {
-                header_area = mouse_area(header_area)
-                    .on_enter(Message::ColumnHeaderDragOver(col))
-                    .into();
-            }
-
-        }
-
-        container(
-            row(header_widgets)
-                .spacing(12)
-                .align_y(Alignment::Center)
-                .padding([8, 12])
-        )
-        .style(theme::header)
-        .width(Length::Fill)
-        .into()
-    } else if state.tracks.is_empty() {
+    let headers: Element<'_, Message> = if state.tracks.is_empty() {
         Space::with_height(0.0).into()
     } else {
         table_headers.into()
