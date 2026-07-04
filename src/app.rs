@@ -4716,9 +4716,6 @@ impl AppState {
                 .align_y(Alignment::Center)
                 .padding([4, 8]);
 
-                let mut row_element: Element<'_, Message> = mouse_area(
-                    container(track_row_inner)
-                        .width(Length::Fill)
                 // Detect if background is light or dark to compute the custom saturated panel style
                 let base_color = theme::base();
                 let is_dark = (base_color.r + base_color.g + base_color.b) / 3.0 < 0.5;
