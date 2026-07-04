@@ -61,6 +61,21 @@ pub fn playback_controls<'a>(
     ];
 
     if let (Some(is_liked), Some(track)) = (liked, current_track) {
+        // Add playlist-plus button in Liked button's vacated position
+        row_children.push(
+            button(
+                text(icons::ICON_PLAYLIST_PLUS)
+                    .font(icons::NERD_FONT_MONO)
+                    .color(theme::overlay0())
+                    .size(32),
+            )
+            .on_press(Message::ToggleContextMenu(Some(crate::app::ContextMenuTarget::Track(track.clone()))))
+            .style(iced::widget::button::text)
+            .padding([8, 16])
+            .into()
+        );
+
+        // Like button shifted to the right
         let like_color = if is_liked { theme::red() } else { theme::overlay0() };
         row_children.push(
             button(
