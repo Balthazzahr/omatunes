@@ -147,21 +147,21 @@ Right-clicking an individual track opens the `Song Menu`:
 
 ---
 
-## 6. Now Playing / Up Next View
-The Now Playing view allows you to view and manage your active queue directly in the main song list area.
-* **Activating the View**: Click the **Now Playing** tab in the top tab bar (located directly to the right of the `Genres` tab).
-* **Toggle Behavior**: Clicking the **Now Playing** tab again will hide the queue and return you to the last active library view (e.g., Artists, Albums, or Genres).
-* **Dynamic Suffix Context Label**: When active, the tab expands to display the current playback context next to the title (e.g. `Now Playing · Best of the 90s` or `Now Playing · Tester`) in secondary text styling. This context updates automatically when playback is started from different views (Playlists, Smart Playlists, Artists, Albums, Genres, Autoplaylists) and displays a clean ellipsis (`...`) for truncation on narrow screens.
-* **Live Equalizer Animation**: A mini three-bar equalizer representation is rendered on the left side of the "Now Playing" text:
-  - **Playing**: The bars animate dynamically using a sine-wave algorithm to reflect active audio output.
-  - **Paused**: The animation freezes, holding the bars flat (static at 2px) to visually indicate a paused state.
-  - **Stopped / Idle**: The equalizer element is completely hidden when nothing is playing.
-* **Contrast Compliance**: When the Now Playing tab is active (which styles its background using the theme's active accent color), text colors dynamically adjust. It computes WCAG contrast ratios against the background to automatically switch text to either dark (`theme::base()`) or light (`theme::text()`) tokens, guaranteeing perfect readability regardless of what color scheme is loaded.
-* **Active Track Highlight**: The currently playing song is highlighted in your theme's active accent color with a live playing indicator icon.
-* **Queue Controls**: When the Now Playing view is active:
-  * **Search Queue**: Filter the active queue by matching song titles or artists using the right-aligned search input box.
-  * **Clear Queue**: Click the **Clear Queue** button (next to the search box) to empty the queue.
-  * **Interactive Reordering**: Drag and drop tracks inside the Now Playing list to dynamically change their playback order.
+## 6. Now Playing / Up Next Floating Queue Popover
+The Now Playing view has been redesigned into a compact, highly interactive **floating popover panel** that overlays the library without swapping screens.
+* **Activating the View**: Click the **Now Playing** tab in the library top tab bar. The tab background highlights in your theme's active accent color.
+* **Toggle & Dismissal**: Clicking the active tab again toggles it off. Alternatively, clicking anywhere outside the popover container dismisses it immediately, bringing focus back to the library view in the background.
+* **Anchor & Placement**: The popover anchors directly underneath the Now Playing tab button on the left of the tab bar (offset by the sidebar width plus margin spacers) for a clean visual alignment.
+* **Dimensions**: The panel is designed to be 30% wider (`468px`) and 40% taller (max height `588px`) to fit long track details comfortably and show more songs.
+* **Visual Contrast**: The popover background color automatically shifts saturation based on your theme's base color: it gets slightly less saturated on dark themes and more saturated/distinct on light themes. Adjacent row backgrounds alternate between base and mantle colors to provide clear delineation between successive tracks.
+* **Active Track Highlight**: The currently playing song is highlighted using your theme's accent color (and with a lower-opacity accent tint in the row background).
+* **Automatic Scroll-to-Center**: Opening the popover automatically triggers a smooth scrolling action to center the currently playing track within the scrollable queue list.
+* **Queue Interaction**:
+  * **Play on Click**: Clicking any row title/artist instantly plays that track (shifting playback context to the queue) without closing the popover.
+  * **Remove Song**: Hovering/viewing rows reveals a larger, red remove icon (✕). Clicking it instantly deletes the track from the queue.
+  * **Drag Reordering**: Drag and drop track handles (`\u{f0c9}`) to dynamically rearrange the playback sequence.
+  * **Clear Queue**: Click the **Clear** button in the popover header to empty the active queue.
+* **Deterministic Shuffle Integration**: When shuffle is toggled on, the tracks in the queue are physically shuffled in-place (keeping the current track at index 0). The popover displays the exact, shuffled playing order deterministically, letting you see exactly what will play next. Toggling shuffle off retains the current layout.
  
 ---
 
