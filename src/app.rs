@@ -4096,6 +4096,16 @@ impl AppState {
             view_stack = view_stack.push(self.shortcuts_modal_view());
         }
 
+        // Queue popover overlay
+        if self.show_queue_popover
+            && self.show_tag_editor.is_none()
+            && self.playlist_dialog.is_none()
+            && self.show_settings.is_none()
+            && !self.show_shortcuts
+        {
+            view_stack = view_stack.push(self.queue_popover_view());
+        }
+
         if let Some(ref target) = self.show_context_menu {
             let custom_playlists = crate::db::get(|db| db.playlists.keys().cloned().collect::<Vec<String>>());
             
@@ -4532,6 +4542,228 @@ impl AppState {
         }
 
         view_stack.into()
+    }
+
+    fn queue_popover_view(&self) -> Element<'_, Message> {
+        use iced::widget::{button, column, container, mouse_area, row, scrollable, text, Space, stack};
+        use iced::{Alignment, Length};
+        use crate::ui::theme;
+
+        // Dismiss layer: transparent full-window click target behind the panel
+        let dismiss_layer = mouse_area(
+            container(Space::new(Length::Fill, Length::Fill))
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .style(|_| iced::widget::container::Style {
+                    background: Some(iced::Background::Color(
+                        iced::Color::from_rgba(0.0, 0.0, 0.0, 0.0)
+                    )),
+                    ..Default::default()
+                })
+        )
+        .on_press(Message::CloseQueuePopover);
+
+        // Header row: "Queue" label + count + Clear button
+        let queue_count = self.queue.len();
+        let header = row![
+            text(format!("Queue ({queue_count})"))
+                .size(12)
+                .font(crate::ui::icons::UI_FONT_BOLD)
+                .color(theme::subtext())
+                .width(Length::Fill),
+            button(
+                text("Clear")
+                    .size(11)
+                    .color(theme::red())
+            )
+            .on_press(Message::ClearQueue)
+            .style(move |_: &iced::Theme, status: iced::widget::button::Status| {
+                let hovered = status == iced::widget::button::Status::Hovered
+                    || status == iced::widget::button::Status::Pressed;
+                iced::widget::button::Style {
+                    text_color: theme::red(),
+                    background: if hovered {
+                        Some(iced::Background::Color(theme::surface0()))
+                    } else {
+                        None
+                    },
+                    border: iced::Border {
+                        color: if hovered { theme::red() } else { iced::Color::TRANSPARENT },
+                        width: 1.0,
+                        radius: 4.0.into(),
+                    },
+                    ..Default::default()
+                }
+            })
+            .padding([2, 6]),
+        ]
+        .spacing(8)
+        .align_y(Alignment::Center)
+        .padding([8, 12]);
+
+        // Queue rows
+        let current_track_id = self.current_track.as_ref().map(|t| t.id);
+        let mut rows: Vec<Element<'_, Message>> = Vec::new();
+
+        if self.queue.is_empty() {
+            rows.push(
+                container(
+                    text("The play queue is empty.")
+                        .size(13)
+                        .color(theme::overlay0())
+                )
+                .padding([12, 12])
+                .width(Length::Fill)
+                .into()
+            );
+        } else {
+            for (idx, track) in self.queue.iter().enumerate() {
+                let is_current = current_track_id == Some(track.id);
+                let title_color = if is_current { theme::accent() } else { theme::text() };
+
+                // Drag handle
+                let drag_handle = mouse_area(
+                    container(
+                        text("\u{f0c9}")
+                            .font(crate::ui::icons::NERD_FONT_MONO)
+                            .color(if self.dragging_queue_index == Some(idx) {
+                                theme::accent()
+                            } else {
+                                theme::overlay0()
+                            })
+                            .size(11)
+                    )
+                    .padding([4, 6])
+                )
+                .on_press(Message::QueueDragStart(idx))
+                .on_release(Message::QueueDragEnd)
+                .interaction(iced::mouse::Interaction::Grab);
+
+                // Remove (✕) button
+                let remove_btn = button(
+                    text("\u{f00d}")
+                        .font(crate::ui::icons::NERD_FONT_MONO)
+                        .size(10)
+                        .color(theme::overlay0())
+                )
+                .on_press(Message::RemoveQueueTrack(idx))
+                .style(iced::widget::button::text)
+                .padding([4, 4]);
+
+                // Track info
+                let title_txt = text(track.title.clone())
+                    .size(13)
+                    .color(title_color)
+                    .width(Length::Fill);
+                let artist_txt = text(track.artist.clone())
+                    .size(11)
+                    .color(theme::subtext())
+                    .width(Length::Fill);
+
+                let info_col = column![title_txt, artist_txt]
+                    .spacing(2)
+                    .width(Length::Fill);
+
+                // Position number
+                let pos_txt = text(format!("{}", idx + 1))
+                    .size(11)
+                    .color(theme::overlay0())
+                    .width(Length::Fixed(20.0));
+
+                let track_row_inner = row![
+                    drag_handle,
+                    pos_txt,
+                    info_col,
+                    remove_btn,
+                ]
+                .spacing(4)
+                .align_y(Alignment::Center)
+                .padding([4, 8]);
+
+                let mut row_element: Element<'_, Message> = container(track_row_inner)
+                    .width(Length::Fill)
+                    .style(move |_| iced::widget::container::Style {
+                        background: if is_current {
+                            Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.12)))
+                        } else if idx % 2 == 1 {
+                            Some(iced::Background::Color(theme::mantle()))
+                        } else {
+                            None
+                        },
+                        ..Default::default()
+                    })
+                    .into();
+
+                // Drag-over highlight: when dragging, wrap with mouse_area to detect hover
+                if self.dragging_queue_index.is_some() {
+                    row_element = mouse_area(row_element)
+                        .on_enter(Message::QueueDragOver(idx))
+                        .into();
+                }
+
+                rows.push(row_element);
+            }
+        }
+
+        let scroll_content = scrollable(
+            column(rows).spacing(0).width(Length::Fill)
+        )
+        .height(Length::Shrink);
+
+        // The panel itself
+        let panel_content = column![
+            header,
+            container(Space::new(Length::Fill, Length::Fixed(1.0)))
+                .style(|_| iced::widget::container::Style {
+                    background: Some(iced::Background::Color(theme::surface0())),
+                    ..Default::default()
+                })
+                .width(Length::Fill),
+            scroll_content,
+        ]
+        .spacing(0)
+        .width(Length::Fixed(360.0));
+
+        let panel = container(panel_content)
+            .width(Length::Fixed(360.0))
+            .max_height(420.0)
+            .style(|_| iced::widget::container::Style {
+                background: Some(iced::Background::Color(theme::base())),
+                border: iced::Border {
+                    color: theme::surface0(),
+                    width: 1.0,
+                    radius: 8.0.into(),
+                },
+                shadow: iced::Shadow {
+                    color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.4),
+                    offset: [0.0, 4.0].into(),
+                    blur_radius: 12.0,
+                },
+                ..Default::default()
+            });
+
+        // Position: anchored below the top bar
+        let panel_left_offset = (self.window_width - 360.0 - 12.0).max(0.0);
+        let panel_top_offset = self.player_height;
+
+        let positioned_panel = container(panel)
+            .padding(iced::Padding {
+                top: panel_top_offset,
+                left: panel_left_offset,
+                right: 0.0,
+                bottom: 0.0,
+            })
+            .width(Length::Fill)
+            .height(Length::Fill);
+
+        // Stack: dismiss layer behind, panel in front
+        stack![
+            dismiss_layer,
+            positioned_panel,
+        ]
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
     }
 
     fn shortcuts_modal_view(&self) -> Element<'_, Message> {

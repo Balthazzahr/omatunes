@@ -1726,7 +1726,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         .padding([0, 8])
         .height(28.0);
 
-    let is_now_playing_active = state.view_mode == ViewMode::NowPlaying;
+    let is_now_playing_active = state.show_queue_popover;
 
     // Calculate contrast-compliant text colors
     let light_text = theme::text();
@@ -1830,7 +1830,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     }
 
     let now_playing_tab = button(container(now_playing_row).center_y(Length::Fill).padding([0, 12]))
-        .on_press(Message::SelectViewMode(ViewMode::NowPlaying))
+        .on_press(Message::ToggleQueuePopover)
         .height(28)
         .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
             let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
