@@ -235,6 +235,8 @@ pub enum Message {
     CreatePlaylistFromContext(String, bool),
     ModifiersChanged(iced::keyboard::Modifiers),
     AddTracksToPlaylist(String, Vec<Track>),
+    RemoveTrackFromPlaylist(String, Track),
+    TogglePlaylistMenuExpanded,
     CreatePlaylistWithTracks(String, Vec<Track>),
     ToggleColumnVisibility(crate::db::TableColumn),
     MoveColumnLeft(crate::db::TableColumn),
