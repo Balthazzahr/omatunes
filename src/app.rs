@@ -834,21 +834,6 @@ impl AppState {
     pub fn update_filtered_tracks(&mut self) {
         self.track_list_start = 0;
         self.track_list_end = 500;
-        if self.view_mode == ViewMode::NowPlaying {
-            if !self.search_query.is_empty() {
-                let query = self.search_query.to_lowercase();
-                self.tracks = self.queue.iter().filter(|t| {
-                    let match_title = self.filter_title && t.title.to_lowercase().contains(&query);
-                    let match_artist = self.filter_artist && t.artist.to_lowercase().contains(&query);
-                    let match_album = self.filter_album && t.album.to_lowercase().contains(&query);
-                    let match_genre = self.filter_genre && t.genre.to_lowercase().contains(&query);
-                    match_title || match_artist || match_album || match_genre
-                }).cloned().collect();
-            } else {
-                self.tracks = self.queue.clone();
-            }
-            return;
-        }
         if !self.search_query.is_empty() {
             let query = self.search_query.to_lowercase();
             self.tracks = self.all_tracks.iter().filter(|t| {
@@ -2334,10 +2319,9 @@ impl AppState {
                 ));
 
                 if let (Some(vm), sel_playlist, sel_folder, sel_artist, sel_album, sel_genre, last_track, last_queue, last_pos) = saved {
-                    self.view_mode = vm;
-                    if vm != ViewMode::NowPlaying {
-                        self.last_browsing_view = vm;
-                    }
+                    let restore_vm = if vm == ViewMode::NowPlaying { ViewMode::Artists } else { vm };
+                    self.view_mode = restore_vm;
+                    self.last_browsing_view = restore_vm;
                     self.selected_playlist = sel_playlist;
                     self.selected_folder = sel_folder;
                     self.selected_artist = sel_artist;
@@ -3872,9 +3856,6 @@ impl AppState {
                         let item = self.queue.remove(source_idx);
                         self.queue.insert(target_idx, item);
                         self.dragging_queue_index = Some(target_idx);
-                        if self.view_mode == ViewMode::NowPlaying {
-                            self.update_filtered_tracks();
-                        }
                         let queue_paths: Vec<PathBuf> = self.queue.iter().map(|t| t.path.clone()).collect();
                         crate::db::write(|db| {
                             db.last_queue_paths = queue_paths;
