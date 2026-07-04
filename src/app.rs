@@ -4719,14 +4719,35 @@ impl AppState {
                 let mut row_element: Element<'_, Message> = mouse_area(
                     container(track_row_inner)
                         .width(Length::Fill)
+                // Detect if background is light or dark to compute the custom saturated panel style
+                let base_color = theme::base();
+                let is_dark = (base_color.r + base_color.g + base_color.b) / 3.0 < 0.5;
+
+                // Alternate background logic:
+                // We construct two contrasting colors using base and mantle, slightly shifting saturation/lightness.
+                let row_bg_even = if is_current {
+                    Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.12)))
+                } else if idx % 2 == 1 {
+                    if is_dark {
+                        // Less saturated/slightly lighter for alternate rows on dark theme
+                        Some(iced::Background::Color(theme::mantle()))
+                    } else {
+                        // More saturated/slightly darker for alternate rows on light theme
+                        Some(iced::Background::Color(theme::mantle()))
+                    }
+                } else {
+                    if is_dark {
+                        Some(iced::Background::Color(theme::base()))
+                    } else {
+                        None
+                    }
+                };
+
+                let mut row_element: Element<'_, Message> = mouse_area(
+                    container(track_row_inner)
+                        .width(Length::Fill)
                         .style(move |_| iced::widget::container::Style {
-                            background: if is_current {
-                                Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.12)))
-                            } else if idx % 2 == 1 {
-                                Some(iced::Background::Color(theme::mantle()))
-                            } else {
-                                None
-                            },
+                            background: row_bg_even,
                             ..Default::default()
                         })
                 )
@@ -4750,7 +4771,7 @@ impl AppState {
         .id(self.queue_scroll_id.clone())
         .height(Length::Shrink);
 
-        // The panel itself
+        // The panel itself (30% wider: 360 * 1.3 = 468)
         let panel_content = column![
             header,
             container(Space::new(Length::Fill, Length::Fixed(1.0)))
@@ -4762,13 +4783,24 @@ impl AppState {
             scroll_content,
         ]
         .spacing(0)
-        .width(Length::Fixed(360.0));
+        .width(Length::Fixed(468.0));
+
+        // Background color styling based on theme light/dark saturation shift
+        let base_col = theme::base();
+        let is_dark = (base_col.r + base_col.g + base_col.b) / 3.0 < 0.5;
+        let popover_bg = if is_dark {
+            // For dark backgrounds: blend with mantle to make it slightly less saturated / deeper
+            theme::lerp_color(base_col, theme::mantle(), 0.5)
+        } else {
+            // For light backgrounds: blend with mantle or surface0 to make it more saturated / distinct
+            theme::lerp_color(base_col, theme::surface0(), 0.15)
+        };
 
         let panel = container(panel_content)
-            .width(Length::Fixed(360.0))
-            .max_height(420.0)
-            .style(|_| iced::widget::container::Style {
-                background: Some(iced::Background::Color(theme::base())),
+            .width(Length::Fixed(468.0))
+            .max_height(588.0) // 40% taller: 420 * 1.4 = 588
+            .style(move |_| iced::widget::container::Style {
+                background: Some(iced::Background::Color(popover_bg)),
                 border: iced::Border {
                     color: theme::surface0(),
                     width: 1.0,
