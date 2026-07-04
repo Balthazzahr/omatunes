@@ -682,6 +682,7 @@ impl AppState {
             last_click_genre: None,
             hovered_playlist: None,
             show_context_menu: None,
+            playlist_menu_expanded: false,
             modifiers: Default::default(),
             selected_tracks: Vec::new(),
             last_clicked_track: None,
