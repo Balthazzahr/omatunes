@@ -536,6 +536,7 @@ pub struct AppState {
     pub playing_context: Option<PlayingContext>,
     pub animation_tick: u32,
     pub show_queue_popover: bool,
+    pub queue_scroll_id: scrollable::Id,
 }
 
 impl AppState {
@@ -712,6 +713,7 @@ impl AppState {
             playing_context: None,
             animation_tick: 0,
             show_queue_popover: false,
+            queue_scroll_id: scrollable::Id::unique(),
         };
 
         (state, scan_task)
