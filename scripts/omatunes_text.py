@@ -228,6 +228,28 @@ def get_theme_colors():
 
 COLORS, theme_colors = get_theme_colors()
 
+def is_track_liked(track_url):
+    if not track_url:
+        return False
+    import urllib.parse
+    path_str = track_url
+    if path_str.startswith("file://"):
+        path_str = urllib.parse.unquote(path_str[7:])
+    db_path = pathlib.Path.home() / ".config/omatunes/db.json"
+    if not db_path.exists():
+        return False
+    try:
+        with open(db_path, "r") as f:
+            db_data = json.load(f)
+        favorites = db_data.get("favorites", [])
+        norm_path = os.path.abspath(os.path.expanduser(path_str))
+        for fav in favorites:
+            if os.path.abspath(os.path.expanduser(fav)) == norm_path:
+                return True
+    except:
+        pass
+    return False
+
 if len(sys.argv) > 1:
     arg = sys.argv[1]
     if arg == "--click" and len(sys.argv) > 2:
@@ -263,7 +285,7 @@ if len(sys.argv) > 1:
 cmd = [
     "playerctl",
     "-f",
-    "{{status}}||{{title}}||{{artist}}||{{album}}",
+    "{{status}}||{{title}}||{{artist}}||{{album}}||{{xesam:url}}",
     "--player=omatunes",
     "metadata"
 ]
@@ -271,7 +293,7 @@ cmd = [
 raw_output = get(cmd)
 parts = raw_output.split("||")
 
-if len(parts) != 4:
+if len(parts) != 5:
     print(json.dumps({}))
     sys.exit(0)
 
@@ -290,6 +312,7 @@ title = escape(title_raw)
 artist_raw = parts[2].strip()
 artist = escape(artist_raw)
 album = escape(parts[3].strip())
+track_url = parts[4].strip()
 
 # -------------------
 # Session & Notifications
@@ -384,19 +407,28 @@ tooltip_lines = [
     "\U000f057e  Scroll \u2014 Volume Up/Down",
 ]
 
-icon_color = COLORS.get("cyan") if status == "playing" else "#565f89"
-
+# Bar text: play (U+F04B) / pause (U+F04C) icon — same codepoints as the Rust app (icons.rs)
+# Liked heart: U+F004 nf-fa-heart in theme red — same codepoint and color as the Rust app
 if status == "playing":
+    icon_char = "\uf04b"  # ICON_PLAY
+    icon_color = COLORS.get("cyan", "#81c8be")
     artist_color = theme_colors['artist']
     song_color = theme_colors['song']
 else:
+    icon_char = "\uf04c"  # ICON_PAUSE
+    icon_color = "#565f89"
     artist_color = "#565f89"
     song_color = "#565f89"
 
+liked = is_track_liked(track_url)
+red = COLORS.get("red", "#f28fad")
+heart_span = f" <span foreground='{red}'>\uf004</span>" if liked else ""
+
 display_text = (
-    f"<span foreground='{icon_color}'>\uf001 </span>"
+    f"<span foreground='{icon_color}'>{icon_char} </span>"
     f"<span foreground='{artist_color}'><b>{artist}</b></span> - "
     f"<span foreground='{song_color}'><i>{truncate_text(title, 24)}</i></span>"
+    f"{heart_span}"
 )
 
 print(json.dumps({
