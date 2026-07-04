@@ -287,6 +287,8 @@ pub enum Message {
     PlayerDragMove(f32),
     PlayerDragEnd,
     HoverPlayerResizer(bool),
+    ToggleQueuePopover,
+    CloseQueuePopover,
 }
 
 #[derive(Debug, Clone)]
@@ -2444,24 +2446,29 @@ impl AppState {
             }
 
             Message::SelectViewMode(mode) => {
-                if mode == ViewMode::NowPlaying {
-                    if self.view_mode == ViewMode::NowPlaying {
-                        self.view_mode = self.last_browsing_view;
-                    } else {
-                        self.view_mode = ViewMode::NowPlaying;
-                    }
-                } else {
+                if mode != ViewMode::NowPlaying {
                     self.last_browsing_view = mode;
                     self.view_mode = mode;
+                    self.show_queue_popover = false;
+                    self.selected_playlist = None;
+                    self.selected_folder = None;
+                    self.selected_artist = None;
+                    self.selected_album = None;
+                    self.selected_genre = None;
+                    self.selected_tracks.clear();
+                    self.search_query.clear();
+                    self.update_filtered_tracks();
                 }
-                self.selected_playlist = None;
-                self.selected_folder = None;
-                self.selected_artist = None;
-                self.selected_album = None;
-                self.selected_genre = None;
-                self.selected_tracks.clear();
-                self.search_query.clear();
-                self.update_filtered_tracks();
+                Task::none()
+            }
+
+            Message::ToggleQueuePopover => {
+                self.show_queue_popover = !self.show_queue_popover;
+                Task::none()
+            }
+
+            Message::CloseQueuePopover => {
+                self.show_queue_popover = false;
                 Task::none()
             }
 
