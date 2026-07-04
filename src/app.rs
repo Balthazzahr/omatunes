@@ -506,6 +506,7 @@ pub struct AppState {
 
     pub hovered_playlist: Option<String>,
     pub show_context_menu: Option<ContextMenuTarget>,
+    pub playlist_menu_expanded: bool,
     pub modifiers: iced::keyboard::Modifiers,
     pub selected_tracks: Vec<Track>,
     pub last_clicked_track: Option<Track>,
