@@ -4483,7 +4483,7 @@ impl AppState {
             let mut menu_col = column![
                 row![
                     text(title)
-                        .size(14)
+                        .size(15)
                         .font(crate::ui::icons::UI_FONT_BOLD)
                         .color(theme::accent()),
                     Space::with_width(Length::Fill),
