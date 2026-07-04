@@ -137,63 +137,35 @@ Most of this is also editable straight from the in-app Settings panel — you do
 
 ## Waybar Integration
 
-The Waybar setup uses four small modules grouped together, giving you dedicated play/next/like buttons alongside a track-info display with hover stats.
+The Waybar setup uses a single `custom/omatunes` module that shows a music note icon, artist, and
+track name in the bar, with a tooltip summarising the track and your available mouse controls.
 
 Add this to `~/.config/waybar/config.jsonc`:
 
 ```jsonc
   "modules-left": [
     ...
-    "group/omatunes-group"
+    "custom/omatunes"
   ],
 
-  "group/omatunes-group": {
-    "orientation": "horizontal",
-    "modules": [
-      "custom/omatunes-play",
-      "custom/omatunes-next",
-      "custom/omatunes-text",
-      "custom/omatunes-like"
-    ]
-  },
-
-  "custom/omatunes-play": {
-    "exec": "~/.local/bin/omatunes_scripts/omatunes_text.py --button play",
-    "interval": 1,
-    "return-type": "json",
-    "format": "{}",
-    "on-click": "~/.local/bin/omatunes_scripts/omatunes_text.py --click play"
-  },
-  "custom/omatunes-next": {
-    "exec": "~/.local/bin/omatunes_scripts/omatunes_text.py --button next",
-    "interval": 1,
-    "return-type": "json",
-    "format": "{}",
-    "on-click": "~/.local/bin/omatunes_scripts/omatunes_text.py --click next"
-  },
-  "custom/omatunes-like": {
-    "exec": "~/.local/bin/omatunes_scripts/omatunes_text.py --button like",
-    "interval": 1,
-    "return-type": "json",
-    "format": "{}",
-    "on-click": "~/.local/bin/omatunes_scripts/omatunes_text.py --click like"
-  },
-  "custom/omatunes-text": {
-    "exec": "~/.local/bin/omatunes_scripts/omatunes_text.py",
+  "custom/omatunes": {
+    "exec": "/home/yourname/.local/bin/omatunes_scripts/omatunes_text.py",
     "interval": 1,
     "return-type": "json",
     "format": "{}",
     "markup": "pango",
-    "on-click": "hyprctl dispatch focuswindow class:^omatunes$ || hyprctl dispatch focuswindow title:^omatunes$",
-    "on-scroll-up": "~/.local/bin/omatunes_scripts/omatunes_volume.sh up",
-    "on-scroll-down": "~/.local/bin/omatunes_scripts/omatunes_volume.sh down",
-    "tooltip": true
+    "tooltip": true,
+    "on-click": "/home/yourname/.local/bin/omatunes_scripts/omatunes_text.py --click play",
+    "on-click-middle": "/home/yourname/.local/bin/omatunes_scripts/omatunes_text.py --click like",
+    "on-click-right": "/home/yourname/.local/bin/omatunes_scripts/omatunes_text.py --click next",
+    "on-scroll-up": "/home/yourname/.local/bin/omatunes_scripts/omatunes_volume.sh up",
+    "on-scroll-down": "/home/yourname/.local/bin/omatunes_scripts/omatunes_volume.sh down"
   }
 ```
 
-For the CSS that pulls these into one clean pill-shaped module (and makes it collapse tidily when omaTUNES isn't running), see the [Waybar Integration section](USER_MANUAL.md#waybar-integration) in the User Manual.
+> Replace `/home/yourname/` with your actual home path — Waybar requires fully expanded paths.
 
-> Note: paths above use `~` for readability — Waybar needs the fully expanded path (e.g. `/home/yourname/.local/bin/omatunes_scripts/...`) in your actual config.
+For CSS styling, see the [Waybar Integration section](USER_MANUAL.md#waybar-integration) in the User Manual.
 
 ---
 

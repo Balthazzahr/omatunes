@@ -211,94 +211,47 @@ Open Settings (the gear icon at the far right of the library tab row) to get to 
 
 ## Waybar Integration
 
-OmaTUNES writes its player state to `/tmp/omatunes_waybar_state.json` and listens on UDP port `18888` for commands, which is what the bundled Waybar scripts talk to.
+OmaTUNES listens on UDP port `18888` for commands, which the Waybar script talks to.
 
 ### CSS
 
-To style the grouped modules into a single unified pill (and have it collapse cleanly when OmaTUNES isn't running), drop this into `~/.config/waybar/style.css`:
+Drop this into `~/.config/waybar/style.css` for a clean rounded pill that collapses when omaTUNES
+isn't running:
 
 ```css
-#omatunes-group {
-  background-color: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
-}
-
-#custom-omatunes-play {
+#custom-omatunes {
   background-color: @theme_bg;
   border: 2px solid @active_border;
-  border-right: none;
-  border-radius: 50px 0 0 50px;
-  padding-left: 15px;
-  padding-right: 5px;
-  margin-top: 3px;
-  margin-bottom: 3px;
-  transition: all 0.2s ease;
-}
-
-#custom-omatunes-play:hover {
-  background-color: #414559;
-}
-
-#custom-omatunes-next {
-  background-color: @theme_bg;
-  border-top: 2px solid @active_border;
-  border-bottom: 2px solid @active_border;
-  border-left: none;
-  border-right: none;
-  padding-left: 5px;
-  padding-right: 5px;
-  margin-top: 3px;
-  margin-bottom: 3px;
-  transition: all 0.2s ease;
-}
-
-#custom-omatunes-next:hover {
-  background-color: #414559;
-}
-
-#custom-omatunes-text {
-  background-color: @theme_bg;
-  border-top: 2px solid @active_border;
-  border-bottom: 2px solid @active_border;
-  border-left: none;
-  border-right: none;
-  padding-left: 10px;
-  padding-right: 10px;
-  margin-top: 3px;
-  margin-bottom: 3px;
-}
-
-#custom-omatunes-like {
-  background-color: @theme_bg;
-  border: 2px solid @active_border;
-  border-left: none;
-  border-radius: 0 50px 50px 0;
-  padding-left: 5px;
-  padding-right: 15px;
+  border-radius: 50px;
+  padding-left: 14px;
+  padding-right: 14px;
   margin-top: 3px;
   margin-bottom: 3px;
   margin-right: 10px;
   transition: all 0.2s ease;
 }
 
-#custom-omatunes-like:hover {
+#custom-omatunes:hover {
   background-color: #414559;
 }
 ```
 
 ### What each click/scroll does
 
-- **Play/Pause** — `--click play`, sends a play-pause command over UDP
-- **Next** — `--click next`
-- **Like** — `--click like`
-- **Clicking the track info text** — focuses the OmaTUNES window via `hyprctl`
-- **Scrolling over the track info text** — adjusts volume up/down
+| Input | Action |
+|---|---|
+| Left click | Play / Pause |
+| Middle click | Like / Unlike current track |
+| Right click | Next track |
+| Scroll up | Volume +5% |
+| Scroll down | Volume −5% |
 
-### Notifications and stats
+### Notifications
 
-The Waybar module also handles a few nice-to-haves on its own: a desktop notification at your 10th, 50th, and every 100th track of the day, an hourly "time flies" nudge for each active listening hour, and a hover tooltip showing your daily/weekly/monthly stats plus a monthly top-5 and all-time top-10 artist leaderboard. It reads your active Alacritty/Omarchy theme colors to keep the tooltip visually in sync with the rest of your setup.
+The Waybar script also handles a few nice-to-haves on its own: a desktop notification at your 10th,
+50th, and every 100th track of the day, and an hourly "time flies" nudge for each active listening
+hour. It reads your active Alacritty/Omarchy theme colors to keep the bar and tooltip visually in
+sync with the rest of your setup.
 
 ---
 
