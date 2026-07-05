@@ -33,7 +33,7 @@ pub struct StatsDb {
     #[serde(default)]
     pub last_active_timestamp: Option<i64>,
     #[serde(default)]
-    pub current_session_accum_secs: u64,
+    pub current_session_accum_secs: f64,
 }
 
 fn stats_path() -> PathBuf {
@@ -99,13 +99,13 @@ pub fn add_playback_time(artist: &str, genre: &str, secs: f64) {
         // Handle Session Closing Check (30 minutes = 1800 seconds)
         if let Some(last_ts) = db.last_active_timestamp {
             if now_ts - last_ts > 1800 {
-                db.current_session_accum_secs = 0;
+                db.current_session_accum_secs = 0.0;
             }
         } else {
-            db.current_session_accum_secs = 0;
+            db.current_session_accum_secs = 0.0;
         }
         
-        db.current_session_accum_secs += secs.round() as u64;
+        db.current_session_accum_secs += secs;
         db.last_active_timestamp = Some(now_ts);
         
         let day = db.daily_buckets.entry(date_str).or_default();
@@ -118,7 +118,7 @@ pub fn add_playback_time(artist: &str, genre: &str, secs: f64) {
         let genre_entry = day.genre_minutes.entry(clean_genre.to_string()).or_default();
         *genre_entry += minutes;
         
-        let session_mins = db.current_session_accum_secs as f64 / 60.0;
+        let session_mins = db.current_session_accum_secs / 60.0;
         if session_mins > day.longest_session_minutes {
             day.longest_session_minutes = session_mins;
         }
