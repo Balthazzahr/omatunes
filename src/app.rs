@@ -738,6 +738,10 @@ impl AppState {
             last_accumulated_position: Duration::ZERO,
             stats_sub_tab: StatsSubTab::Daily,
             active_notifications: Vec::new(),
+            last_checked_hour: {
+                use chrono::Timelike;
+                Some(chrono::Local::now().hour())
+            },
         };
 
         (state, scan_task)
@@ -1378,6 +1382,27 @@ impl AppState {
             }
 
             Message::PollAudio => {
+                // Dismiss old notifications after 5 seconds
+                self.active_notifications.retain(|n| n.created_at.elapsed() < Duration::from_secs(5));
+
+                // Hourly check
+                let current_hour = {
+                    use chrono::Timelike;
+                    chrono::Local::now().hour()
+                };
+                if self.last_checked_hour.is_none() {
+                    self.last_checked_hour = Some(current_hour);
+                } else if self.last_checked_hour != Some(current_hour) {
+                    self.last_checked_hour = Some(current_hour);
+                    if self.playback_state == PlaybackState::Playing {
+                        self.active_notifications.push(StatsNotification {
+                            title: "Time Flies".to_string(),
+                            message: "You've been listening for another hour! Take a break? ☕".to_string(),
+                            created_at: std::time::Instant::now(),
+                        });
+                    }
+                }
+
                 let mut tasks = Vec::new();
                 while let Ok(event) = self.audio.event_rx.try_recv() {
                     match event {
@@ -1410,6 +1435,25 @@ impl AppState {
                                     
                                     // Add to stats.json daily bucket track/artist play counts
                                     crate::stats::add_track_play(&track.artist, track.path.clone());
+
+                                    // Check milestone targets
+                                    let today_plays = crate::stats::get(|sdb| {
+                                        let today_str = chrono::Local::now().format("%Y-%m-%d").to_string();
+                                        sdb.daily_buckets.get(&today_str).map(|d| d.track_play_count).unwrap_or(0)
+                                    });
+                                    let milestone_opt = match today_plays {
+                                        10 => Some(("Bronze Milestone", "You have listened to 10 songs today! 🎧")),
+                                        50 => Some(("Silver Milestone", "You have listened to 50 songs today! 🌟")),
+                                        100 => Some(("Gold Milestone", "You have listened to 100 songs today! 🎉")),
+                                        _ => None,
+                                    };
+                                    if let Some((title, msg)) = milestone_opt {
+                                        self.active_notifications.push(StatsNotification {
+                                            title: title.to_string(),
+                                            message: msg.to_string(),
+                                            created_at: std::time::Instant::now(),
+                                        });
+                                    }
 
                                     if let Some(t) = self.all_tracks.iter_mut().find(|t| t.path == track.path) {
                                         t.play_count = count;
