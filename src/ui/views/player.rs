@@ -457,7 +457,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     fn make_cell<'a>(content: Element<'a, Message>, width: Length) -> Element<'a, Message> {
                         container(content)
                             .width(width)
-                            .height(Length::Fill)
+                            .height(Length::Shrink)
                             .padding(4)
                             .align_x(iced::alignment::Horizontal::Center)
                             .align_y(iced::alignment::Vertical::Center)
