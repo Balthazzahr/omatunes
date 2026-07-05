@@ -452,7 +452,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     fn make_cell<'a>(content: Element<'a, Message>, width: Length) -> Element<'a, Message> {
                         container(content)
                             .width(width)
-                            .height(Length::Fixed(32.0))
+                            .height(Length::Fixed(36.0))
                             .padding(4)
                             .align_x(iced::alignment::Horizontal::Center)
                             .align_y(iced::alignment::Vertical::Center)
@@ -479,52 +479,52 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
 
                     let header_col = |label: &'static str| {
                         row![
-                            text(label).size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
+                            text(label).size(11).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
                         ]
                         .align_y(Alignment::Center)
                     };
 
                     let headers = row![
-                        make_cell(Space::new(0, 0).into(), Length::Fixed(80.0)),
+                        make_cell(Space::new(0, 0).into(), Length::Fixed(90.0)),
                         make_cell(
                             row![
-                                text(crate::ui::icons::ICON_MUSIC).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                text(crate::ui::icons::ICON_MUSIC).font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::accent()),
                                 Space::with_width(3),
                                 header_col("Songs")
                             ].align_y(Alignment::Center).into(),
-                            Length::Fixed(50.0)
+                            Length::Fixed(55.0)
                         ),
                         make_cell(
                             row![
-                                text(crate::ui::icons::ICON_CLOCK).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                text(crate::ui::icons::ICON_CLOCK).font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::accent()),
                                 Space::with_width(3),
                                 header_col("Mins")
-                            ].align_y(Alignment::Center).into(),
-                            Length::Fixed(65.0)
-                        ),
-                        make_cell(
-                            row![
-                                text(crate::ui::icons::ICON_TAG).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
-                                Space::with_width(3),
-                                header_col("Genre")
                             ].align_y(Alignment::Center).into(),
                             Length::Fixed(75.0)
                         ),
                         make_cell(
                             row![
-                                text(crate::ui::icons::ICON_PERSON).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                text(crate::ui::icons::ICON_TAG).font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::accent()),
                                 Space::with_width(3),
-                                header_col("Artist")
+                                header_col("Genre")
                             ].align_y(Alignment::Center).into(),
-                            Length::Fixed(80.0)
+                            Length::Fixed(85.0)
                         ),
                         make_cell(
                             row![
-                                text(crate::ui::icons::ICON_BOLT).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                text(crate::ui::icons::ICON_PERSON).font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::accent()),
+                                Space::with_width(3),
+                                header_col("Artist")
+                            ].align_y(Alignment::Center).into(),
+                            Length::Fixed(95.0)
+                        ),
+                        make_cell(
+                            row![
+                                text(crate::ui::icons::ICON_BOLT).font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::accent()),
                                 Space::with_width(3),
                                 header_col("Sess")
                             ].align_y(Alignment::Center).into(),
-                            Length::Fixed(68.0)
+                            Length::Fixed(75.0)
                         ),
                     ];
 
@@ -533,47 +533,53 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     for (idx, row_data) in r_stats.iter().enumerate() {
                         let row_header_el = match idx {
                             0 => row![
-                                text(crate::ui::icons::ICON_CALENDAR_TODAY).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                text(crate::ui::icons::ICON_CALENDAR_TODAY).font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::accent()),
                                 Space::with_width(4),
-                                text("Today").size(9).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
+                                text("Today").size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
                             ],
                             1 => row![
-                                text("\u{f00ed}").font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                text("\u{f00ed}").font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::accent()),
                                 Space::with_width(4),
-                                text("Week").size(9).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
+                                text("Week").size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
                             ],
                             2 => row![
-                                text(crate::ui::icons::ICON_CALENDAR_MONTH).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                text(crate::ui::icons::ICON_CALENDAR_MONTH).font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::accent()),
                                 Space::with_width(4),
-                                text("Month").size(9).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
+                                text("Month").size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
                             ],
                             _ => row![
-                                text(crate::ui::icons::ICON_CD).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                text(crate::ui::icons::ICON_CD).font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::accent()),
                                 Space::with_width(4),
-                                text("All-Time").size(9).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
+                                text("All-Time").size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
                             ],
                         };
 
                         let table_row = row![
-                            make_cell(row_header_el.align_y(Alignment::Center).into(), Length::Fixed(80.0)),
-                            make_cell(text(format!("{}", row_data.songs)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(50.0)),
-                            make_cell(text(format!("{:.1}", row_data.minutes)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(65.0)),
-                            make_cell(text(truncate(&row_data.top_genre, 10)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(75.0)),
-                            make_cell(text(truncate(&row_data.top_artist, 10)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(80.0)),
-                            make_cell(text(format!("{:.1}", row_data.longest_session)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(68.0)),
+                            make_cell(row_header_el.align_y(Alignment::Center).into(), Length::Fixed(90.0)),
+                            make_cell(text(format!("{}", row_data.songs)).size(11).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(55.0)),
+                            make_cell(text(format!("{:.1}", row_data.minutes)).size(11).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(75.0)),
+                            make_cell(text(truncate(&row_data.top_genre, 12)).size(11).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(85.0)),
+                            make_cell(text(truncate(&row_data.top_artist, 12)).size(11).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(95.0)),
+                            make_cell(text(format!("{:.1}", row_data.longest_session)).size(11).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(75.0)),
                         ];
                         table_col = table_col.push(table_row);
                     }
 
                     scrollable(
                         column![
-                            text("Listening Statistics").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(16),
+                            text("Listening Statistics")
+                                .font(crate::ui::icons::UI_FONT_BOLD)
+                                .color(theme::accent())
+                                .size(18),
                             Space::with_height(16),
                             table_col,
                         ]
                         .spacing(4)
+                        .align_x(Alignment::Center)
+                        .width(Length::Fill)
                         .padding(16)
                     )
+                    .width(Length::Fill)
                     .height(Length::Fill)
                     .into()
                 }
@@ -617,10 +623,12 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
 
                         row![
                             text(format!("{rank}.")).width(Length::Fixed(24.0)).font(crate::ui::icons::UI_FONT).color(theme::subtext()),
-                            text(truncate(name, 18)).width(Length::Fixed(180.0)).font(crate::ui::icons::UI_FONT_BOLD).color(name_color),
-                            text(format_hours_mins(mins)).width(Length::Fixed(80.0)).font(crate::ui::icons::UI_FONT_BOLD).color(Color::from_rgb(0.53, 0.70, 0.98)),
-                            text(format!("({tracks} tracks)")).font(crate::ui::icons::UI_FONT).color(theme::subtext()).size(11),
+                            text(truncate(name, 24)).width(Length::Fill).font(crate::ui::icons::UI_FONT_BOLD).color(name_color),
+                            text(format_hours_mins(mins)).width(Length::Fixed(80.0)).font(crate::ui::icons::UI_FONT_BOLD).color(Color::from_rgb(0.53, 0.70, 0.98)).align_x(iced::alignment::Horizontal::Right),
+                            Space::with_width(12),
+                            text(format!("({tracks} tracks)")).font(crate::ui::icons::UI_FONT).color(theme::subtext()).size(11).width(Length::Fixed(100.0)).align_x(iced::alignment::Horizontal::Right),
                         ]
+                        .width(Length::Fill)
                         .align_y(Alignment::Center)
                         .spacing(4)
                     };
@@ -632,7 +640,9 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             text("Monthly Leaderboard (Top 5):").font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).size(14)
                         ].align_y(Alignment::Center),
                         Space::with_height(8)
-                    ].spacing(4);
+                    ]
+                    .width(Length::Fill)
+                    .spacing(4);
 
                     for (idx, (name, mins, tracks)) in monthly.into_iter().enumerate() {
                         monthly_col = monthly_col.push(render_leaderboard_row(idx + 1, &name, mins, tracks));
@@ -645,7 +655,9 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             text("All-Time Legends (Top 10):").font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).size(14)
                         ].align_y(Alignment::Center),
                         Space::with_height(8)
-                    ].spacing(4);
+                    ]
+                    .width(Length::Fill)
+                    .spacing(4);
 
                     for (idx, (name, mins, tracks)) in all_time.into_iter().enumerate() {
                         all_time_col = all_time_col.push(render_leaderboard_row(idx + 1, &name, mins, tracks));
@@ -657,9 +669,11 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             Space::with_height(24),
                             all_time_col,
                         ]
+                        .width(Length::Fill)
                         .spacing(4)
                         .padding(16)
                     )
+                    .width(Length::Fill)
                     .height(Length::Fill)
                     .into()
                 }
