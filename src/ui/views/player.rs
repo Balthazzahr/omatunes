@@ -447,7 +447,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
 
             let active_view: Element<'_, Message> = match state.stats_sub_tab {
                 crate::app::StatsSubTab::ListeningStats => {
-                    let r_stats = crate::stats::get_restructured_stats();
+                    let r_stats = crate::stats::get_restructured_stats(&state.tracks);
                     
                     fn make_cell<'a>(content: Element<'a, Message>, width: Length) -> Element<'a, Message> {
                         container(content)
@@ -498,7 +498,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             row![
                                 text(crate::ui::icons::ICON_CLOCK).font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::accent()),
                                 Space::with_width(3),
-                                header_col("Mins")
+                                header_col("Hours")
                             ].align_y(Alignment::Center).into(),
                             Length::Fixed(75.0)
                         ),
@@ -557,10 +557,10 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                         let table_row = row![
                             make_cell(row_header_el.align_y(Alignment::Center).into(), Length::Fixed(90.0)),
                             make_cell(text(format!("{}", row_data.songs)).size(11).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(55.0)),
-                            make_cell(text(format!("{:.1}", row_data.minutes)).size(11).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(75.0)),
+                            make_cell(text(format!("{:.1}", row_data.minutes / 60.0)).size(11).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(75.0)),
                             make_cell(text(truncate(&row_data.top_genre, 12)).size(11).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(85.0)),
                             make_cell(text(truncate(&row_data.top_artist, 12)).size(11).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(95.0)),
-                            make_cell(text(format!("{:.1}", row_data.longest_session)).size(11).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(75.0)),
+                            make_cell(text(format!("{:.1}", row_data.longest_session / 60.0)).size(11).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(75.0)),
                         ];
                         table_col = table_col.push(table_row);
                     }
@@ -621,9 +621,26 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             theme::text()
                         };
 
+                        let artist_btn = button(
+                            text(truncate(name, 24))
+                                .font(crate::ui::icons::UI_FONT_BOLD)
+                                .color(name_color)
+                        )
+                        .on_press(Message::SelectArtist(name.to_string()))
+                        .padding(0)
+                        .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+                            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                            iced::widget::button::Style {
+                                background: None,
+                                text_color: if is_hovered { theme::accent() } else { name_color },
+                                border: iced::Border::default(),
+                                ..Default::default()
+                            }
+                        });
+
                         row![
-                            text(format!("{rank}.")).width(Length::Fixed(24.0)).font(crate::ui::icons::UI_FONT).color(theme::subtext()),
-                            text(truncate(name, 24)).width(Length::Fill).font(crate::ui::icons::UI_FONT_BOLD).color(name_color),
+                            text(format!("{rank}.")).width(Length::Fixed(32.0)).font(crate::ui::icons::UI_FONT).color(theme::subtext()),
+                            container(artist_btn).width(Length::Fill),
                             text(format_hours_mins(mins)).width(Length::Fixed(80.0)).font(crate::ui::icons::UI_FONT_BOLD).color(Color::from_rgb(0.53, 0.70, 0.98)).align_x(iced::alignment::Horizontal::Right),
                             Space::with_width(12),
                             text(format!("({tracks} tracks)")).font(crate::ui::icons::UI_FONT).color(theme::subtext()).size(11).width(Length::Fixed(100.0)).align_x(iced::alignment::Horizontal::Right),
