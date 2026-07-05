@@ -424,20 +424,20 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                         column![
                             text("Listening Time").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
                             Space::with_height(8),
-                            render_stat_row("Today:", &format!("{:.1} mins", p_stats.today_minutes)),
-                            render_stat_row("Yesterday:", &format!("{:.1} mins", p_stats.yesterday_minutes)),
+                            render_stat_row("Today:".to_string(), format!("{:.1} mins", p_stats.today_minutes)),
+                            render_stat_row("Yesterday:".to_string(), format!("{:.1} mins", p_stats.yesterday_minutes)),
                             Space::with_height(16),
                             
                             text("Listening Streaks").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
                             Space::with_height(8),
-                            render_stat_row("Current Streak:", &format!("{} days", s_stats.current_streak)),
-                            render_stat_row("Longest Streak:", &format!("{} days", s_stats.longest_streak)),
+                            render_stat_row("Current Streak:".to_string(), format!("{} days", s_stats.current_streak)),
+                            render_stat_row("Longest Streak:".to_string(), format!("{} days", s_stats.longest_streak)),
                             Space::with_height(16),
                             
                             text("Milestone Progress").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
                             Space::with_height(8),
-                            render_stat_row("Plays Today:", &format!("{today_plays} songs")),
-                            render_stat_row("Next Milestone:", if today_plays < 10 { "10 songs (Bronze) 🎧" } else if today_plays < 50 { "50 songs (Silver) 🌟" } else if today_plays < 100 { "100 songs (Gold) 🎉" } else { "All Milestones Unlocked!" }),
+                            render_stat_row("Plays Today:".to_string(), format!("{today_plays} songs")),
+                            render_stat_row("Next Milestone:".to_string(), (if today_plays < 10 { "10 songs (Bronze) 🎧" } else if today_plays < 50 { "50 songs (Silver) 🌟" } else if today_plays < 100 { "100 songs (Gold) 🎉" } else { "All Milestones Unlocked!" }).to_string()),
                         ]
                         .spacing(4)
                         .padding(16)
@@ -453,16 +453,16 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                         column![
                             text("Listening Time").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
                             Space::with_height(8),
-                            render_stat_row("This Month:", &format!("{:.1} mins", p_stats.this_month_minutes)),
-                            render_stat_row("Last Month:", &format!("{:.1} mins", p_stats.last_month_minutes)),
-                            render_stat_row("This Year:", &format!("{:.1} mins", p_stats.this_year_minutes)),
-                            render_stat_row("Last Year:", &format!("{:.1} mins", p_stats.last_year_minutes)),
+                            render_stat_row("This Month:".to_string(), format!("{:.1} mins", p_stats.this_month_minutes)),
+                            render_stat_row("Last Month:".to_string(), format!("{:.1} mins", p_stats.last_month_minutes)),
+                            render_stat_row("This Year:".to_string(), format!("{:.1} mins", p_stats.this_year_minutes)),
+                            render_stat_row("Last Year:".to_string(), format!("{:.1} mins", p_stats.last_year_minutes)),
                             Space::with_height(20),
                             
-                            render_leaderboard_minutes("Top Artists by Time (This Month)", &top_mins),
+                            render_leaderboard_minutes("Top Artists by Time (This Month)".to_string(), top_mins),
                             Space::with_height(20),
                             
-                            render_leaderboard_counts("Top Artists by Plays (This Month)", &top_plays),
+                            render_leaderboard_counts("Top Artists by Plays (This Month)".to_string(), top_plays),
                         ]
                         .spacing(4)
                         .padding(16)
@@ -479,20 +479,20 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                         column![
                             text("Listening Time").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
                             Space::with_height(8),
-                            render_stat_row("All-Time Total:", &format!("{:.1} mins", p_stats.all_time_minutes)),
+                            render_stat_row("All-Time Total:".to_string(), format!("{:.1} mins", p_stats.all_time_minutes)),
                             Space::with_height(16),
                             
                             text("Library Coverage").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
                             Space::with_height(8),
-                            render_stat_row("Unique Tracks Played:", &format!("{}", u_stats.unique_tracks)),
-                            render_stat_row("Unique Artists Played:", &format!("{}", u_stats.unique_artists)),
-                            render_stat_row("Unique Albums Played:", &format!("{}", u_stats.unique_albums)),
+                            render_stat_row("Unique Tracks Played:".to_string(), format!("{}", u_stats.unique_tracks)),
+                            render_stat_row("Unique Artists Played:".to_string(), format!("{}", u_stats.unique_artists)),
+                            render_stat_row("Unique Albums Played:".to_string(), format!("{}", u_stats.unique_albums)),
                             Space::with_height(20),
                             
-                            render_leaderboard_minutes("Top Artists by Time (All-Time)", &top_mins),
+                            render_leaderboard_minutes("Top Artists by Time (All-Time)".to_string(), top_mins),
                             Space::with_height(20),
                             
-                            render_leaderboard_counts("Top Artists by Plays (All-Time)", &top_plays),
+                            render_leaderboard_counts("Top Artists by Plays (All-Time)".to_string(), top_plays),
                         ]
                         .spacing(4)
                         .padding(16)
