@@ -3472,6 +3472,11 @@ impl AppState {
                 Task::none()
             }
 
+            Message::SelectStatsSubTab(sub_tab) => {
+                self.stats_sub_tab = sub_tab;
+                Task::none()
+            }
+
             Message::SelectTagEditorTab(tab) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.active_tab = tab;
