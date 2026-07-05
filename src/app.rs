@@ -5215,6 +5215,7 @@ impl AppState {
         self.playback_state = PlaybackState::Playing;
         self.position = Duration::ZERO;
         self.duration = Duration::ZERO;
+        self.last_accumulated_position = Duration::ZERO;
         self.current_track_play_counted = false;
         self.notify_mpris_track(PlaybackStatus::Playing);
 
