@@ -449,7 +449,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                 crate::app::StatsSubTab::ListeningStats => {
                     let r_stats = crate::stats::get_restructured_stats();
                     
-                    fn make_cell<'a>(content: impl Into<Element<'a, Message>>, width: Length) -> Element<'a, Message> {
+                    fn make_cell<'a>(content: Element<'a, Message>, width: Length) -> Element<'a, Message> {
                         container(content)
                             .width(width)
                             .height(Length::Fixed(32.0))
