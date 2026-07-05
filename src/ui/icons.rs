@@ -57,5 +57,6 @@ pub const ICON_BOLT:       &str = "\u{f0e7}";  // bolt/flash
 pub const ICON_PERSON:     &str = "\u{f4ff}";  // artist/person icon (nf-oct-person)
 pub const ICON_CD:         &str = "\u{e271}";  // compact disc (nf-md-disc)
 pub const ICON_TAG:        &str = "\u{f02b}";  // tag
+pub const ICON_CLOCK:      &str = "\u{f017}";  // clock (nf-fa-clock_o)
 
 
