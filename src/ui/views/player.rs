@@ -501,15 +501,239 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     .into()
                 }
                 crate::app::StatsSubTab::Library => {
-                    container(
-                        text("Library Composition Content")
-                            .color(theme::text())
-                            .size(16)
+                    let tracks = &state.all_tracks;
+                    
+                    // 1. Artist aggregation
+                    let mut artist_counts: HashMap<String, usize> = HashMap::new();
+                    for t in tracks {
+                        if !t.artist.trim().is_empty() {
+                            *artist_counts.entry(t.artist.clone()).or_default() += 1;
+                        }
+                    }
+                    let mut artists: Vec<(String, usize)> = artist_counts.into_iter().collect();
+                    artists.sort_by(|a, b| b.1.cmp(&a.1));
+                    
+                    let total_tracks = tracks.len();
+                    
+                    // Top 5 + Other
+                    let mut artist_slices = Vec::new();
+                    let mut other_artist_count = 0;
+                    let colors = [
+                        theme::accent(),
+                        Color::from_rgb(0.53, 0.70, 0.98),
+                        Color::from_rgb(0.65, 0.89, 0.63),
+                        Color::from_rgb(0.98, 0.70, 0.53),
+                        Color::from_rgb(0.79, 0.65, 0.97),
+                        theme::overlay0(),
+                    ];
+                    
+                    for (idx, (name, count)) in artists.iter().enumerate() {
+                        if idx < 5 {
+                            artist_slices.push(crate::ui::views::charts::PieSlice {
+                                label: name.clone(),
+                                count: *count,
+                                percentage: if total_tracks > 0 { *count as f32 / total_tracks as f32 } else { 0.0 },
+                                color: colors[idx],
+                            });
+                        } else {
+                            other_artist_count += count;
+                        }
+                    }
+                    if other_artist_count > 0 {
+                        artist_slices.push(crate::ui::views::charts::PieSlice {
+                            label: "Other".to_string(),
+                            count: other_artist_count,
+                            percentage: if total_tracks > 0 { other_artist_count as f32 / total_tracks as f32 } else { 0.0 },
+                            color: colors[5],
+                        });
+                    }
+
+                    // 2. Genre aggregation
+                    let mut genre_counts: HashMap<String, usize> = HashMap::new();
+                    for t in tracks {
+                        let g = if t.genre.trim().is_empty() { "Unknown".to_string() } else { t.genre.clone() };
+                        *genre_counts.entry(g).or_default() += 1;
+                    }
+                    let mut genres: Vec<(String, usize)> = genre_counts.into_iter().collect();
+                    genres.sort_by(|a, b| b.1.cmp(&a.1));
+                    
+                    let mut genre_slices = Vec::new();
+                    let mut other_genre_count = 0;
+                    for (idx, (name, count)) in genres.iter().enumerate() {
+                        if idx < 5 {
+                            genre_slices.push(crate::ui::views::charts::PieSlice {
+                                label: name.clone(),
+                                count: *count,
+                                percentage: if total_tracks > 0 { *count as f32 / total_tracks as f32 } else { 0.0 },
+                                color: colors[idx],
+                            });
+                        } else {
+                            other_genre_count += count;
+                        }
+                    }
+                    if other_genre_count > 0 {
+                        genre_slices.push(crate::ui::views::charts::PieSlice {
+                            label: "Other".to_string(),
+                            count: other_genre_count,
+                            percentage: if total_tracks > 0 { other_genre_count as f32 / total_tracks as f32 } else { 0.0 },
+                            color: colors[5],
+                        });
+                    }
+
+                    // 3. Format aggregation
+                    let mut format_counts: HashMap<String, usize> = HashMap::new();
+                    for t in tracks {
+                        let ext = t.path.extension()
+                            .and_then(|e| e.to_str())
+                            .map(|s| s.to_uppercase())
+                            .unwrap_or_else(|| "UNKNOWN".to_string());
+                        *format_counts.entry(ext).or_default() += 1;
+                    }
+                    let mut formats: Vec<(String, usize)> = format_counts.into_iter().collect();
+                    formats.sort_by(|a, b| b.1.cmp(&a.1));
+                    
+                    let mut format_slices = Vec::new();
+                    let mut other_format_count = 0;
+                    for (idx, (name, count)) in formats.iter().enumerate() {
+                        if idx < 5 {
+                            format_slices.push(crate::ui::views::charts::PieSlice {
+                                label: name.clone(),
+                                count: *count,
+                                percentage: if total_tracks > 0 { *count as f32 / total_tracks as f32 } else { 0.0 },
+                                color: colors[idx],
+                            });
+                        } else {
+                            other_format_count += count;
+                        }
+                    }
+                    if other_format_count > 0 {
+                        format_slices.push(crate::ui::views::charts::PieSlice {
+                            label: "Other".to_string(),
+                            count: other_format_count,
+                            percentage: if total_tracks > 0 { other_format_count as f32 / total_tracks as f32 } else { 0.0 },
+                            color: colors[5],
+                        });
+                    }
+
+                    // 4. Decades aggregation
+                    let mut decade_counts: HashMap<i32, usize> = HashMap::new();
+                    for t in tracks {
+                        if t.year > 0 {
+                            let dec = (t.year / 10) * 10;
+                            *decade_counts.entry(dec).or_default() += 1;
+                        }
+                    }
+                    let mut decades: Vec<(i32, usize)> = decade_counts.into_iter().collect();
+                    decades.sort_by(|a, b| a.0.cmp(&b.0));
+                    
+                    let mut decade_bars = Vec::new();
+                    for (idx, (dec, count)) in decades.iter().enumerate() {
+                        let color = colors[idx % colors.len()];
+                        decade_bars.push(crate::ui::views::charts::BarItem {
+                            label: format!("{dec}s"),
+                            value: *count,
+                            color,
+                        });
+                    }
+
+                    // Helper to render legends column
+                    let render_pie_legend = |slices: &[crate::ui::views::charts::PieSlice]| {
+                        let mut legend_col = column![].spacing(4);
+                        for slice in slices {
+                            let item = row![
+                                container(Space::new(12, 12))
+                                    .style(move |_| iced::widget::container::Style {
+                                        background: Some(iced::Background::Color(slice.color)),
+                                        border: iced::Border {
+                                            radius: 2.0.into(),
+                                            ..Default::default()
+                                        },
+                                        ..Default::default()
+                                    }),
+                                Space::with_width(6),
+                                text(slice.label.clone()).size(12).font(crate::ui::icons::UI_FONT).color(theme::text()).width(Length::Fixed(160.0)),
+                                text(format!("{}", slice.count)).size(12).font(crate::ui::icons::UI_FONT_BOLD).color(theme::subtext()).align_x(iced::alignment::Horizontal::Right).width(Length::Fill),
+                            ]
+                            .align_y(Alignment::Center);
+                            legend_col = legend_col.push(item);
+                        }
+                        legend_col
+                    };
+
+                    let render_bar_legend = |bars: &[crate::ui::views::charts::BarItem]| {
+                        let mut legend_col = column![].spacing(4);
+                        for bar in bars {
+                            let item = row![
+                                container(Space::new(12, 12))
+                                    .style(move |_| iced::widget::container::Style {
+                                        background: Some(iced::Background::Color(bar.color)),
+                                        border: iced::Border {
+                                            radius: 2.0.into(),
+                                            ..Default::default()
+                                        },
+                                        ..Default::default()
+                                    }),
+                                Space::with_width(6),
+                                text(bar.label.clone()).size(12).font(crate::ui::icons::UI_FONT).color(theme::text()).width(Length::Fixed(160.0)),
+                                text(format!("{}", bar.value)).size(12).font(crate::ui::icons::UI_FONT_BOLD).color(theme::subtext()).align_x(iced::alignment::Horizontal::Right).width(Length::Fill),
+                            ]
+                            .align_y(Alignment::Center);
+                            legend_col = legend_col.push(item);
+                        }
+                        legend_col
+                    };
+
+                    scrollable(
+                        column![
+                            text("Library Composition").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(16),
+                            Space::with_height(4),
+                            text(format!("Total tracks: {total_tracks}")).size(13).font(crate::ui::icons::UI_FONT).color(theme::subtext()),
+                            Space::with_height(16),
+                            
+                            // Artists Chart
+                            text("Top Artists").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
+                            Space::with_height(8),
+                            row![
+                                crate::ui::views::charts::view_pie_chart(artist_slices.clone()),
+                                Space::with_width(12),
+                                render_pie_legend(&artist_slices),
+                            ]
+                            .align_y(Alignment::Center),
+                            Space::with_height(24),
+                            
+                            // Genres Chart
+                            text("Top Genres").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
+                            Space::with_height(8),
+                            row![
+                                crate::ui::views::charts::view_pie_chart(genre_slices.clone()),
+                                Space::with_width(12),
+                                render_pie_legend(&genre_slices),
+                            ]
+                            .align_y(Alignment::Center),
+                            Space::with_height(24),
+                            
+                            // Format Chart
+                            text("Audio Formats").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
+                            Space::with_height(8),
+                            row![
+                                crate::ui::views::charts::view_pie_chart(format_slices.clone()),
+                                Space::with_width(12),
+                                render_pie_legend(&format_slices),
+                            ]
+                            .align_y(Alignment::Center),
+                            Space::with_height(24),
+
+                            // Decades Chart
+                            text("Tracks by Decade").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
+                            Space::with_height(8),
+                            crate::ui::views::charts::view_bar_chart(decade_bars.clone()),
+                            Space::with_height(8),
+                            render_bar_legend(&decade_bars),
+                        ]
+                        .spacing(4)
+                        .padding(16)
                     )
-                    .width(Length::Fill)
                     .height(Length::Fill)
-                    .center_x(Length::Fill)
-                    .center_y(Length::Fill)
                     .into()
                 }
             };
