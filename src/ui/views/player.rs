@@ -1,5 +1,6 @@
 use iced::widget::{column, container, image, row, text, Space, button, slider, mouse_area, stack, scrollable};
-use iced::{Alignment, Element, Length};
+use iced::{Alignment, Element, Length, Color};
+use std::collections::HashMap;
 
 use crate::app::{AppState, Message, MIN_VOLUME_SLIDER_WIDTH, MAX_VOLUME_SLIDER_WIDTH, PLAYER_FIXED_WIDTH};
 use crate::audio::PlaybackState;
