@@ -120,11 +120,19 @@ impl<Message> canvas::Program<Message> for BarChartProgram {
 
         for (i, bar) in self.bars.iter().enumerate() {
             let x = pad_left + i as f32 * (bar_w + gap_w) + gap_w / 2.0;
-            let h = (bar.value / max_val) * chart_h;
-            let y = chart_h - h + pad_bottom;
 
-            let rect_path = Path::rectangle(Point::new(x, y), Size::new(bar_w, h));
-            frame.fill(&rect_path, bar.color);
+            // Draw a subtle placeholder base bar for all slots
+            let base_h = 2.0f32;
+            let base_path = Path::rectangle(Point::new(x, chart_h - base_h + pad_bottom), Size::new(bar_w, base_h));
+            let mut base_color = bar.color;
+            base_color.a = 0.15; // 15% opacity for muted look
+            frame.fill(&base_path, base_color);
+
+            let h = (bar.value / max_val) * chart_h;
+            if h > 2.0 {
+                let rect_path = Path::rectangle(Point::new(x, chart_h - h + pad_bottom), Size::new(bar_w, h));
+                frame.fill(&rect_path, bar.color);
+            }
         }
 
         vec![frame.into_geometry()]
