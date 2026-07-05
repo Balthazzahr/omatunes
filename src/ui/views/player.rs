@@ -485,8 +485,8 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     };
 
                     let headers = row![
-                        table_cell(Space::new(0, 0).into(), Length::Fixed(80.0)),
-                        table_cell(
+                        make_cell(Space::new(0, 0).into(), Length::Fixed(80.0)),
+                        make_cell(
                             row![
                                 text(crate::ui::icons::ICON_MUSIC).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
                                 Space::with_width(3),
@@ -494,7 +494,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             ].align_y(Alignment::Center).into(),
                             Length::Fixed(50.0)
                         ),
-                        table_cell(
+                        make_cell(
                             row![
                                 text(crate::ui::icons::ICON_CLOCK).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
                                 Space::with_width(3),
@@ -502,7 +502,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             ].align_y(Alignment::Center).into(),
                             Length::Fixed(65.0)
                         ),
-                        table_cell(
+                        make_cell(
                             row![
                                 text(crate::ui::icons::ICON_TAG).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
                                 Space::with_width(3),
@@ -510,7 +510,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             ].align_y(Alignment::Center).into(),
                             Length::Fixed(75.0)
                         ),
-                        table_cell(
+                        make_cell(
                             row![
                                 text(crate::ui::icons::ICON_PERSON).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
                                 Space::with_width(3),
@@ -518,7 +518,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             ].align_y(Alignment::Center).into(),
                             Length::Fixed(80.0)
                         ),
-                        table_cell(
+                        make_cell(
                             row![
                                 text(crate::ui::icons::ICON_BOLT).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
                                 Space::with_width(3),
@@ -555,12 +555,12 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                         };
 
                         let table_row = row![
-                            table_cell(row_header_el.align_y(Alignment::Center).into(), Length::Fixed(80.0)),
-                            table_cell(text(format!("{}", row_data.songs)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(50.0)),
-                            table_cell(text(format!("{:.1}", row_data.minutes)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(65.0)),
-                            table_cell(text(truncate(&row_data.top_genre, 10)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(75.0)),
-                            table_cell(text(truncate(&row_data.top_artist, 10)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(80.0)),
-                            table_cell(text(format!("{:.1}", row_data.longest_session)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(68.0)),
+                            make_cell(row_header_el.align_y(Alignment::Center).into(), Length::Fixed(80.0)),
+                            make_cell(text(format!("{}", row_data.songs)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(50.0)),
+                            make_cell(text(format!("{:.1}", row_data.minutes)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(65.0)),
+                            make_cell(text(truncate(&row_data.top_genre, 10)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(75.0)),
+                            make_cell(text(truncate(&row_data.top_artist, 10)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(80.0)),
+                            make_cell(text(format!("{:.1}", row_data.longest_session)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(68.0)),
                         ];
                         table_col = table_col.push(table_row);
                     }
