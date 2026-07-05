@@ -72,7 +72,7 @@ impl<Message> canvas::Program<Message> for PieChartProgram {
 #[derive(Clone, Debug)]
 pub struct BarItem {
     pub label: String,
-    pub value: usize,
+    pub value: f32,
     pub color: Color,
 }
 
@@ -108,7 +108,11 @@ impl<Message> canvas::Program<Message> for BarChartProgram {
         let chart_w = bounds.width - pad_left * 2.0;
         let chart_h = bounds.height - pad_bottom * 2.0;
 
-        let max_val = self.bars.iter().map(|b| b.value).max().unwrap_or(1) as f32;
+        let max_val = self.bars.iter()
+            .map(|b| b.value)
+            .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
+            .unwrap_or(0.0)
+            .max(1.0f32);
         let num_bars = self.bars.len();
 
         let bar_w = (chart_w / num_bars as f32) * 0.7;
@@ -116,7 +120,7 @@ impl<Message> canvas::Program<Message> for BarChartProgram {
 
         for (i, bar) in self.bars.iter().enumerate() {
             let x = pad_left + i as f32 * (bar_w + gap_w) + gap_w / 2.0;
-            let h = if max_val > 0.0 { (bar.value as f32 / max_val) * chart_h } else { 0.0 };
+            let h = (bar.value / max_val) * chart_h;
             let y = chart_h - h + pad_bottom;
 
             let rect_path = Path::rectangle(Point::new(x, y), Size::new(bar_w, h));
