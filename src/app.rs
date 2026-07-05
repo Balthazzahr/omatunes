@@ -259,6 +259,7 @@ pub enum Message {
     MoveColumnRight(crate::db::TableColumn),
     SelectPlaylistTab(PlaylistTab),
     ToggleRightPanelTab(RightPanelTab),
+    SelectStatsSubTab(StatsSubTab),
 
     OpenSettings,
     CloseSettings,
