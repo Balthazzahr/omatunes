@@ -1390,10 +1390,26 @@ impl AppState {
                             if current_secs != old_secs {
                                 crate::db::write(|db| db.last_position_secs = current_secs);
                             }
+
+                            // Accumulate playback time
+                            if self.playback_state == PlaybackState::Playing {
+                                let diff = position.saturating_sub(self.last_accumulated_position);
+                                if diff > Duration::ZERO && diff <= Duration::from_secs(1) {
+                                    if let Some(ref track) = self.current_track {
+                                        crate::stats::add_playback_time(&track.artist, track.path.clone(), diff.as_secs_f64());
+                                    }
+                                }
+                            }
+                            self.last_accumulated_position = position;
+
                             if !self.current_track_play_counted && duration > Duration::ZERO && position >= duration / 2 {
                                 if let Some(ref mut track) = self.current_track {
                                     let count = crate::db::increment_play_count(track.path.clone());
                                     track.play_count = count;
+                                    
+                                    // Add to stats.json daily bucket track/artist play counts
+                                    crate::stats::add_track_play(&track.artist, track.path.clone());
+
                                     if let Some(t) = self.all_tracks.iter_mut().find(|t| t.path == track.path) {
                                         t.play_count = count;
                                     }
@@ -1407,10 +1423,12 @@ impl AppState {
 
                         AudioEvent::Paused => {
                             self.playback_state = PlaybackState::Paused;
+                            self.last_accumulated_position = Duration::ZERO;
                         }
                         AudioEvent::Stopped => {
                             self.playback_state = PlaybackState::Stopped;
                             self.position = Duration::ZERO;
+                            self.last_accumulated_position = Duration::ZERO;
                             self.send_mpris(MprisUpdate::Status(PlaybackStatus::Stopped));
                         }
                         AudioEvent::TrackEnded => {
