@@ -699,7 +699,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             row![
                                 crate::ui::views::charts::view_pie_chart(artist_slices.clone()),
                                 Space::with_width(12),
-                                render_pie_legend(&artist_slices),
+                                render_pie_legend(artist_slices.clone()),
                             ]
                             .align_y(Alignment::Center),
                             Space::with_height(24),
@@ -710,7 +710,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             row![
                                 crate::ui::views::charts::view_pie_chart(genre_slices.clone()),
                                 Space::with_width(12),
-                                render_pie_legend(&genre_slices),
+                                render_pie_legend(genre_slices.clone()),
                             ]
                             .align_y(Alignment::Center),
                             Space::with_height(24),
@@ -721,7 +721,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             row![
                                 crate::ui::views::charts::view_pie_chart(format_slices.clone()),
                                 Space::with_width(12),
-                                render_pie_legend(&format_slices),
+                                render_pie_legend(format_slices.clone()),
                             ]
                             .align_y(Alignment::Center),
                             Space::with_height(24),
@@ -731,7 +731,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             Space::with_height(8),
                             crate::ui::views::charts::view_bar_chart(decade_bars.clone()),
                             Space::with_height(8),
-                            render_bar_legend(&decade_bars),
+                            render_bar_legend(decade_bars.clone()),
                         ]
                         .spacing(4)
                         .padding(16)
