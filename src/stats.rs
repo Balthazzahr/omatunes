@@ -12,6 +12,10 @@ pub struct DayStats {
     pub artist_minutes: HashMap<String, f64>,
     pub artist_track_counts: HashMap<String, u32>,
     pub track_play_counts: HashMap<PathBuf, u32>,
+    #[serde(default)]
+    pub genre_minutes: HashMap<String, f64>,
+    #[serde(default)]
+    pub longest_session_minutes: f64,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -26,6 +30,10 @@ pub struct StatsDb {
     pub legacy_artist_minutes: HashMap<String, f64>,
     #[serde(default)]
     pub legacy_artist_tracks: HashMap<String, u32>,
+    #[serde(default)]
+    pub last_active_timestamp: Option<i64>,
+    #[serde(default)]
+    pub current_session_accum_secs: u64,
 }
 
 fn stats_path() -> PathBuf {
