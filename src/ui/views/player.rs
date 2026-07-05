@@ -449,27 +449,33 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                 crate::app::StatsSubTab::ListeningStats => {
                     let r_stats = crate::stats::get_restructured_stats(&state.tracks);
                     
-                    fn make_cell<'a>(content: Element<'a, Message>, width: Length) -> Element<'a, Message> {
+                    fn make_cell<'a>(content: Element<'a, Message>, width: Length, has_border: bool) -> Element<'a, Message> {
                         container(content)
                             .width(width)
                             .height(Length::Shrink)
-                            .padding(4)
+                            .padding([8, 10])
                             .align_x(iced::alignment::Horizontal::Center)
                             .align_y(iced::alignment::Vertical::Center)
-                            .style(|_| iced::widget::container::Style {
-                                border: iced::Border {
-                                    color: crate::ui::theme::overlay0(),
-                                    width: 1.0,
-                                    ..Default::default()
-                                },
-                                ..Default::default()
+                            .style(move |_theme: &iced::Theme| {
+                                if has_border {
+                                    iced::widget::container::Style {
+                                        border: iced::Border {
+                                            color: crate::ui::theme::overlay0(),
+                                            width: 1.0,
+                                            ..Default::default()
+                                        },
+                                        ..Default::default()
+                                    }
+                                } else {
+                                    iced::widget::container::Style::default()
+                                }
                             })
                             .into()
                     }
 
                     let header_col = |label: &'static str| {
                         row![
-                            text(label).size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center)
+                            text(label).size(12).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center)
                         ]
                         .align_y(Alignment::Center)
                         .width(Length::Fill)
@@ -480,7 +486,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                         Space::new(Length::FillPortion(165), Length::Fixed(18.0)), // Column 0 + Songs + Hours = 70 + 45 + 50 = 165
                         container(
                             text("Most Played")
-                                .size(9)
+                                .size(11)
                                 .font(crate::ui::icons::UI_FONT_BOLD)
                                 .color(theme::accent())
                         )
@@ -493,49 +499,54 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     .width(Length::Fill);
 
                     let headers = row![
-                        make_cell(Space::new(0, 0).into(), Length::FillPortion(70)),
+                        make_cell(Space::new(0, 0).into(), Length::FillPortion(70), false),
                         make_cell(
                             row![
-                                text(crate::ui::icons::ICON_MUSIC).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                text(crate::ui::icons::ICON_MUSIC).font(crate::ui::icons::NERD_FONT_MONO).size(12).color(theme::accent()),
                                 Space::with_width(3),
                                 header_col("Songs")
                             ].align_y(Alignment::Center).into(),
-                            Length::FillPortion(45)
+                            Length::FillPortion(45),
+                            false
                         ),
                         make_cell(
                             row![
-                                text(crate::ui::icons::ICON_CLOCK).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                text(crate::ui::icons::ICON_CLOCK).font(crate::ui::icons::NERD_FONT_MONO).size(12).color(theme::accent()),
                                 Space::with_width(3),
                                 header_col("Hours")
                             ].align_y(Alignment::Center).into(),
-                            Length::FillPortion(50)
+                            Length::FillPortion(50),
+                            false
                         ),
                         make_cell(
                             row![
-                                text(crate::ui::icons::ICON_TAG).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                text(crate::ui::icons::ICON_TAG).font(crate::ui::icons::NERD_FONT_MONO).size(12).color(theme::accent()),
                                 Space::with_width(3),
                                 header_col("Genre")
                             ].align_y(Alignment::Center).into(),
-                            Length::FillPortion(75)
+                            Length::FillPortion(75),
+                            false
                         ),
                         make_cell(
                             row![
-                                text(crate::ui::icons::ICON_PERSON).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                text(crate::ui::icons::ICON_PERSON).font(crate::ui::icons::NERD_FONT_MONO).size(12).color(theme::accent()),
                                 Space::with_width(3),
                                 header_col("Artist")
                             ].align_y(Alignment::Center).into(),
-                            Length::FillPortion(85)
+                            Length::FillPortion(85),
+                            false
                         ),
                         make_cell(
                             row![
-                                text(crate::ui::icons::ICON_BOLT).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                text(crate::ui::icons::ICON_BOLT).font(crate::ui::icons::NERD_FONT_MONO).size(12).color(theme::accent()),
                                 Space::with_width(3),
                                 column![
-                                    text("Longest").size(8).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center),
-                                    text("Session").size(8).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center),
+                                    text("Longest").size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center),
+                                    text("Session").size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center),
                                 ].spacing(0).width(Length::Fill)
                             ].align_y(Alignment::Center).into(),
-                            Length::FillPortion(85)
+                            Length::FillPortion(85),
+                            false
                         ),
                     ]
                     .width(Length::Fill)
@@ -546,24 +557,24 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     for (idx, row_data) in r_stats.iter().enumerate() {
                         let row_header_el = match idx {
                             0 => row![
-                                text(crate::ui::icons::ICON_CALENDAR_TODAY).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                text(crate::ui::icons::ICON_CALENDAR_TODAY).font(crate::ui::icons::NERD_FONT_MONO).size(12).color(theme::accent()),
                                 Space::with_width(4),
-                                text("Today").size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
+                                text("Today").size(12).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
                             ],
                             1 => row![
-                                text("\u{f00ed}").font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                text("\u{f00ed}").font(crate::ui::icons::NERD_FONT_MONO).size(12).color(theme::accent()),
                                 Space::with_width(4),
-                                text("Week").size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
+                                text("Week").size(12).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
                             ],
                             2 => row![
-                                text(crate::ui::icons::ICON_CALENDAR_MONTH).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                text(crate::ui::icons::ICON_CALENDAR_MONTH).font(crate::ui::icons::NERD_FONT_MONO).size(12).color(theme::accent()),
                                 Space::with_width(4),
-                                text("Month").size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
+                                text("Month").size(12).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
                             ],
                             _ => row![
-                                text(crate::ui::icons::ICON_CD).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                text(crate::ui::icons::ICON_CD).font(crate::ui::icons::NERD_FONT_MONO).size(12).color(theme::accent()),
                                 Space::with_width(4),
-                                text("All-Time").size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
+                                text("All-Time").size(12).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
                             ],
                         };
 
@@ -572,7 +583,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             button(
                                 text(artist_name.clone())
                                     .font(crate::ui::icons::UI_FONT_BOLD)
-                                    .size(10)
+                                    .size(12)
                                     .color(theme::accent())
                                     .width(Length::Fill)
                                     .align_x(iced::alignment::Horizontal::Center)
@@ -591,7 +602,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             })
                             .into()
                         } else {
-                            text("-").size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center).into()
+                            text("-").size(12).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center).into()
                         };
 
                         let genre_name = &row_data.top_genre;
@@ -599,7 +610,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             button(
                                 text(genre_name.clone())
                                     .font(crate::ui::icons::UI_FONT_BOLD)
-                                    .size(10)
+                                    .size(12)
                                     .color(theme::accent())
                                     .width(Length::Fill)
                                     .align_x(iced::alignment::Horizontal::Center)
@@ -618,16 +629,16 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             })
                             .into()
                         } else {
-                            text("-").size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center).into()
+                            text("-").size(12).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center).into()
                         };
 
                         let table_row = row![
-                            make_cell(row_header_el.align_y(Alignment::Center).into(), Length::FillPortion(70)),
-                            make_cell(text(format!("{}", row_data.songs)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center).into(), Length::FillPortion(45)),
-                            make_cell(text(format!("{:.1}", row_data.minutes / 60.0)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center).into(), Length::FillPortion(50)),
-                            make_cell(genre_btn, Length::FillPortion(75)),
-                            make_cell(artist_btn, Length::FillPortion(85)),
-                            make_cell(text(format!("{:.1}", row_data.longest_session / 60.0)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center).into(), Length::FillPortion(85)),
+                            make_cell(row_header_el.align_y(Alignment::Center).into(), Length::FillPortion(70), true),
+                            make_cell(text(format!("{}", row_data.songs)).size(12).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center).into(), Length::FillPortion(45), true),
+                            make_cell(text(format!("{:.1}", row_data.minutes / 60.0)).size(12).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center).into(), Length::FillPortion(50), true),
+                            make_cell(genre_btn, Length::FillPortion(75), true),
+                            make_cell(artist_btn, Length::FillPortion(85), true),
+                            make_cell(text(format!("{:.1}", row_data.longest_session / 60.0)).size(12).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center).into(), Length::FillPortion(85), true),
                         ]
                         .width(Length::Fill)
                         .height(Length::Shrink);
@@ -635,11 +646,15 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     }
 
                     scrollable(
-                        column![table_col]
-                            .spacing(0)
-                            .align_x(Alignment::Center)
-                            .width(Length::Fill)
-                            .padding([5, 5])
+                        container(
+                            column![table_col]
+                                .spacing(0)
+                                .align_x(Alignment::Center)
+                                .width(Length::Fill)
+                        )
+                        .width(Length::Fill)
+                        .height(Length::Fill)
+                        .padding([5, 5])
                     )
                     .width(Length::Fill)
                     .height(Length::Fill)
