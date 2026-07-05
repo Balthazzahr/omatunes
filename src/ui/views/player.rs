@@ -670,7 +670,6 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     }
 
                     let history_hours = crate::stats::get_last_14_days_hours();
-                    println!("DEBUG TREND BARS: {:?}", history_hours);
                     let bar_color = theme::accent();
                     let bars: Vec<crate::ui::views::charts::BarItem> = history_hours.into_iter()
                         .enumerate()
