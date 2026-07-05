@@ -477,23 +477,6 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                         .width(Length::Fill)
                     };
 
-                    // Grouping header above Genre and Artist columns (ratios: 110 + 110 = 220)
-                    let top_header = row![
-                        Space::new(Length::FillPortion(180), Length::Fixed(18.0)), // Column 0 + Songs + Hours = 80 + 50 + 50 = 180
-                        container(
-                            text("Top")
-                                .size(11)
-                                .font(crate::ui::icons::UI_FONT_BOLD)
-                                .color(theme::accent())
-                        )
-                        .width(Length::FillPortion(220))
-                        .height(Length::Fixed(18.0))
-                        .align_x(iced::alignment::Horizontal::Center)
-                        .align_y(iced::alignment::Vertical::Center),
-                        Space::new(Length::FillPortion(60), Length::Fixed(18.0)), // Peak = 60
-                    ]
-                    .width(Length::Fill);
-
                     let peak_hdr = iced::widget::tooltip(
                         text("Peak")
                             .size(12)
@@ -528,12 +511,12 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             iced::alignment::Horizontal::Right
                         ),
                         make_cell(
-                            header_col("Genre", iced::alignment::Horizontal::Left).into(),
+                            header_col("Top Genre", iced::alignment::Horizontal::Left).into(),
                             Length::FillPortion(110),
                             iced::alignment::Horizontal::Left
                         ),
                         make_cell(
-                            header_col("Artist", iced::alignment::Horizontal::Left).into(),
+                            header_col("Top Artist", iced::alignment::Horizontal::Left).into(),
                             Length::FillPortion(110),
                             iced::alignment::Horizontal::Left
                         ),
@@ -552,7 +535,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             ..Default::default()
                         });
 
-                    let mut table_col = column![top_header, headers, divider].spacing(0).width(Length::Fill);
+                    let mut table_col = column![Space::with_height(10), headers, divider].spacing(0).width(Length::Fill);
 
                     for (idx, row_data) in r_stats.iter().enumerate() {
                         let row_header_el = match idx {
