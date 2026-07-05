@@ -454,8 +454,8 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             .width(width)
                             .height(Length::Fixed(32.0))
                             .padding(4)
-                            .center_x(Length::Fill)
-                            .center_y(Length::Fill)
+                            .align_x(iced::alignment::Horizontal::Center)
+                            .align_y(iced::alignment::Vertical::Center)
                             .style(|_| iced::widget::container::Style {
                                 border: iced::Border {
                                     color: crate::ui::theme::overlay0(),
