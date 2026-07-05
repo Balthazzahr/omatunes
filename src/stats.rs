@@ -89,16 +89,39 @@ where
 
 // ── Accumulation Helper ───────────────────────────────────────────────────────
 
-pub fn add_playback_time(artist: &str, track_path: PathBuf, secs: f64) {
-    let date_str = chrono::Local::now().format("%Y-%m-%d").to_string();
+pub fn add_playback_time(artist: &str, genre: &str, secs: f64) {
+    let now_dt = chrono::Local::now();
+    let date_str = now_dt.format("%Y-%m-%d").to_string();
+    let now_ts = now_dt.timestamp();
     let minutes = secs / 60.0;
     
     write(|db| {
+        // Handle Session Closing Check (30 minutes = 1800 seconds)
+        if let Some(last_ts) = db.last_active_timestamp {
+            if now_ts - last_ts > 1800 {
+                db.current_session_accum_secs = 0;
+            }
+        } else {
+            db.current_session_accum_secs = 0;
+        }
+        
+        db.current_session_accum_secs += secs.round() as u64;
+        db.last_active_timestamp = Some(now_ts);
+        
         let day = db.daily_buckets.entry(date_str).or_default();
         day.total_minutes += minutes;
         
         let artist_entry = day.artist_minutes.entry(artist.to_string()).or_default();
         *artist_entry += minutes;
+        
+        let clean_genre = if genre.trim().is_empty() { "Unknown" } else { genre };
+        let genre_entry = day.genre_minutes.entry(clean_genre.to_string()).or_default();
+        *genre_entry += minutes;
+        
+        let session_mins = db.current_session_accum_secs as f64 / 60.0;
+        if session_mins > day.longest_session_minutes {
+            day.longest_session_minutes = session_mins;
+        }
     });
 }
 
