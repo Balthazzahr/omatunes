@@ -54,7 +54,7 @@ fn sync_system_volume(volume: f32) {
     });
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PlaybackState {
     Stopped,
     Playing,
