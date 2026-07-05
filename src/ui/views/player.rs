@@ -1,4 +1,4 @@
-use iced::widget::{column, container, image, row, text, Space, button, slider, mouse_area, stack, scrollable};
+use iced::widget::{column, container, image, row, text, Space, button, slider, mouse_area, stack, scrollable, tooltip};
 use iced::{Alignment, Element, Length, Color};
 use std::collections::HashMap;
 
@@ -164,42 +164,61 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     .align_y(Alignment::Center)
     .padding(16);
 
-    let tab_btn = |tab: crate::app::RightPanelTab, icon_str: &'static str| {
+    let tab_btn = |tab: crate::app::RightPanelTab, icon_str: &'static str, tooltip_text: &'static str| {
         let is_active = state.right_panel_tab == Some(tab);
         let btn_icon = text(icon_str)
             .size(28)
             .font(crate::ui::icons::NERD_FONT_MONO);
         
-        button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
-        .on_press(Message::ToggleRightPanelTab(tab))
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
-            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-            iced::widget::button::Style {
-                background: Some(iced::Background::Color(if is_active {
-                    theme::surface0()
-                } else if is_hovered {
-                    theme::surface0()
-                } else {
-                    iced::Color::TRANSPARENT
-                })),
-                text_color: if is_active {
-                    theme::accent()
-                } else if is_hovered {
-                    theme::text()
-                } else {
-                    theme::subtext()
-                },
-                border: iced::Border {
-                    color: theme::surface0(),
-                    width: 1.0,
-                    radius: 0.0.into(),
-                },
-                ..Default::default()
-            }
-        })
-        .padding(0)
+        let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
+            .on_press(Message::ToggleRightPanelTab(tab))
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                iced::widget::button::Style {
+                    background: Some(iced::Background::Color(if is_active {
+                        theme::surface0()
+                    } else if is_hovered {
+                        theme::surface0()
+                    } else {
+                        iced::Color::TRANSPARENT
+                    })),
+                    text_color: if is_active {
+                        theme::accent()
+                    } else if is_hovered {
+                        theme::text()
+                    } else {
+                        theme::subtext()
+                    },
+                    border: iced::Border {
+                        color: theme::surface0(),
+                        width: 1.0,
+                        radius: 0.0.into(),
+                    },
+                    ..Default::default()
+                }
+            })
+            .padding(0);
+
+        let tooltip_content = container(
+            text(tooltip_text)
+                .size(13)
+                .font(crate::ui::icons::UI_FONT)
+                .color(theme::text())
+        )
+        .padding(8)
+        .style(|_| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::surface0())),
+            border: iced::Border {
+                color: theme::surface1(),
+                width: 1.0,
+                radius: 4.0.into(),
+            },
+            ..Default::default()
+        });
+
+        tooltip(btn, tooltip_content, iced::widget::tooltip::Position::Left)
     };
 
     let left_sep = container(Space::new(Length::Fixed(1.0), Length::Fill))
@@ -214,9 +233,9 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         left_sep,
         container(
             column![
-                tab_btn(crate::app::RightPanelTab::Visualizer, crate::ui::icons::ICON_VISUALIZER),
-                tab_btn(crate::app::RightPanelTab::Statistics, crate::ui::icons::ICON_STATS),
-                tab_btn(crate::app::RightPanelTab::Lyrics, crate::ui::icons::ICON_LYRICS),
+                tab_btn(crate::app::RightPanelTab::Visualizer, crate::ui::icons::ICON_VISUALIZER, "Visualizer"),
+                tab_btn(crate::app::RightPanelTab::Statistics, crate::ui::icons::ICON_STATS, "Listening Statistics"),
+                tab_btn(crate::app::RightPanelTab::Lyrics, crate::ui::icons::ICON_LYRICS, "Lyrics"),
             ]
             .width(Length::Fill)
             .height(Length::Fill)
