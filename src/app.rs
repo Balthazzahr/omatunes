@@ -557,6 +557,7 @@ pub struct AppState {
     pub last_accumulated_position: Duration,
     pub stats_sub_tab: StatsSubTab,
     pub active_notifications: Vec<StatsNotification>,
+    pub last_checked_hour: Option<u32>,
 }
 
 impl AppState {
