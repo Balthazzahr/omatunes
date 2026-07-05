@@ -449,12 +449,12 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                 crate::app::StatsSubTab::ListeningStats => {
                     let r_stats = crate::stats::get_restructured_stats(&state.tracks);
                     
-                    fn make_cell<'a>(content: Element<'a, Message>, width: Length) -> Element<'a, Message> {
+                    fn make_cell<'a>(content: Element<'a, Message>, width: Length, align_x: iced::alignment::Horizontal) -> Element<'a, Message> {
                         container(content)
                             .width(width)
                             .height(Length::Shrink)
                             .padding([12, 10])
-                            .align_x(iced::alignment::Horizontal::Left)
+                            .align_x(align_x)
                             .align_y(iced::alignment::Vertical::Center)
                             .into()
                     }
@@ -469,9 +469,9 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                         }
                     };
 
-                    let header_col = |label: &'static str| {
+                    let header_col = |label: &'static str, align_x: iced::alignment::Horizontal| {
                         row![
-                            text(label).size(12).font(crate::ui::icons::UI_FONT_BOLD).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Left)
+                            text(label).size(12).font(crate::ui::icons::UI_FONT_BOLD).color(theme::subtext()).width(Length::Fill).align_x(align_x)
                         ]
                         .align_y(Alignment::Center)
                         .width(Length::Fill)
@@ -490,58 +490,57 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                         .height(Length::Fixed(18.0))
                         .align_x(iced::alignment::Horizontal::Center)
                         .align_y(iced::alignment::Vertical::Center),
-                        Space::new(Length::FillPortion(60), Length::Fixed(18.0)), // Longest Session = 60
+                        Space::new(Length::FillPortion(60), Length::Fixed(18.0)), // Peak = 60
                     ]
                     .width(Length::Fill);
 
+                    let peak_hdr = iced::widget::tooltip(
+                        text("Peak")
+                            .size(12)
+                            .font(crate::ui::icons::UI_FONT_BOLD)
+                            .color(theme::subtext())
+                            .align_x(iced::alignment::Horizontal::Right)
+                            .width(Length::Fill),
+                        text("Longest session length"),
+                        iced::widget::tooltip::Position::Top
+                    )
+                    .style(|_theme: &iced::Theme| iced::widget::container::Style {
+                        background: Some(iced::Background::Color(theme::mantle())),
+                        text_color: Some(theme::text()),
+                        border: iced::Border {
+                            color: theme::overlay0(),
+                            width: 1.0,
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    });
+
                     let headers = row![
+                        make_cell(Space::new(0, 0).into(), Length::FillPortion(80), iced::alignment::Horizontal::Left),
                         make_cell(
-                            row![
-                                text(crate::ui::icons::ICON_MUSIC).font(crate::ui::icons::NERD_FONT_MONO).size(12).color(theme::subtext()),
-                                Space::with_width(3),
-                                text("Period").size(12).font(crate::ui::icons::UI_FONT_BOLD).color(theme::subtext())
-                            ].align_y(Alignment::Center).into(),
-                            Length::FillPortion(80)
+                            header_col("Songs", iced::alignment::Horizontal::Right),
+                            Length::FillPortion(50),
+                            iced::alignment::Horizontal::Right
                         ),
                         make_cell(
-                            row![
-                                text(crate::ui::icons::ICON_CD).font(crate::ui::icons::NERD_FONT_MONO).size(12).color(theme::subtext()),
-                                Space::with_width(3),
-                                header_col("Songs")
-                            ].align_y(Alignment::Center).into(),
-                            Length::FillPortion(50)
+                            header_col("Hours", iced::alignment::Horizontal::Right),
+                            Length::FillPortion(50),
+                            iced::alignment::Horizontal::Right
                         ),
                         make_cell(
-                            row![
-                                text(crate::ui::icons::ICON_CLOCK).font(crate::ui::icons::NERD_FONT_MONO).size(12).color(theme::subtext()),
-                                Space::with_width(3),
-                                header_col("Hours")
-                            ].align_y(Alignment::Center).into(),
-                            Length::FillPortion(50)
+                            header_col("Genre", iced::alignment::Horizontal::Left),
+                            Length::FillPortion(110),
+                            iced::alignment::Horizontal::Left
                         ),
                         make_cell(
-                            row![
-                                text(crate::ui::icons::ICON_TAG).font(crate::ui::icons::NERD_FONT_MONO).size(12).color(theme::subtext()),
-                                Space::with_width(3),
-                                header_col("Genre")
-                            ].align_y(Alignment::Center).into(),
-                            Length::FillPortion(110)
+                            header_col("Artist", iced::alignment::Horizontal::Left),
+                            Length::FillPortion(110),
+                            iced::alignment::Horizontal::Left
                         ),
                         make_cell(
-                            row![
-                                text(crate::ui::icons::ICON_PERSON).font(crate::ui::icons::NERD_FONT_MONO).size(12).color(theme::subtext()),
-                                Space::with_width(3),
-                                header_col("Artist")
-                            ].align_y(Alignment::Center).into(),
-                            Length::FillPortion(110)
-                        ),
-                        make_cell(
-                            row![
-                                text(crate::ui::icons::ICON_BOLT).font(crate::ui::icons::NERD_FONT_MONO).size(12).color(theme::subtext()),
-                                Space::with_width(3),
-                                header_col("Longest")
-                            ].align_y(Alignment::Center).into(),
-                            Length::FillPortion(60)
+                            peak_hdr.into(),
+                            Length::FillPortion(60),
+                            iced::alignment::Horizontal::Right
                         ),
                     ]
                     .width(Length::Fill)
@@ -658,12 +657,12 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                         };
 
                         let table_row = row![
-                            make_cell(row_header_el.align_y(Alignment::Center).into(), Length::FillPortion(80)),
-                            make_cell(text(format!("{}", row_data.songs)).size(12).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Left).into(), Length::FillPortion(50)),
-                            make_cell(text(format!("{:.1}", row_data.minutes / 60.0)).size(12).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Left).into(), Length::FillPortion(50)),
-                            make_cell(genre_btn, Length::FillPortion(110)),
-                            make_cell(artist_btn, Length::FillPortion(110)),
-                            make_cell(text(format!("{:.1}", row_data.longest_session / 60.0)).size(12).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Left).into(), Length::FillPortion(60)),
+                            make_cell(row_header_el.align_y(Alignment::Center).into(), Length::FillPortion(80), iced::alignment::Horizontal::Left),
+                            make_cell(text(format!("{}", row_data.songs)).size(12).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Right).into(), Length::FillPortion(50), iced::alignment::Horizontal::Right),
+                            make_cell(text(format!("{:.1}", row_data.minutes / 60.0)).size(12).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Right).into(), Length::FillPortion(50), iced::alignment::Horizontal::Right),
+                            make_cell(genre_btn, Length::FillPortion(110), iced::alignment::Horizontal::Left),
+                            make_cell(artist_btn, Length::FillPortion(110), iced::alignment::Horizontal::Left),
+                            make_cell(text(format!("{:.1}", row_data.longest_session / 60.0)).size(12).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Right).into(), Length::FillPortion(60), iced::alignment::Horizontal::Right),
                         ]
                         .width(Length::Fill)
                         .height(Length::Shrink);
@@ -671,6 +670,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     }
 
                     let history_hours = crate::stats::get_last_14_days_hours();
+                    println!("DEBUG TREND BARS: {:?}", history_hours);
                     let bar_color = theme::accent();
                     let bars: Vec<crate::ui::views::charts::BarItem> = history_hours.into_iter()
                         .enumerate()
