@@ -729,7 +729,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
             .width(Length::Fill)
             .height(Length::Fill)
             .spacing(0)
-            .into()to()
+            .into()
         }
         crate::app::RightPanelTab::Lyrics => {
             let display_track = if !matches!(state.playback_state, crate::audio::PlaybackState::Stopped) {
