@@ -281,6 +281,78 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     }
 }
 
+}
+
+fn render_stat_row(label: &str, value: &str) -> Element<'static, Message> {
+    row![
+        text(label).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fixed(180.0)),
+        text(value).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).align_x(iced::alignment::Horizontal::Right).width(Length::Fill),
+    ]
+    .align_y(Alignment::Center)
+    .padding([4, 0])
+    .into()
+}
+
+fn render_leaderboard_minutes(title: &str, entries: &[(String, f64)]) -> Element<'static, Message> {
+    let mut col = column![
+        text(title).font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
+        Space::with_height(6),
+    ].spacing(2);
+    
+    if entries.is_empty() {
+        col = col.push(text("No stats yet").font(crate::ui::icons::UI_FONT).color(theme::overlay0()));
+    } else {
+        for (idx, (name, mins)) in entries.iter().enumerate() {
+            let rank = idx + 1;
+            let medal_color = match rank {
+                1 => theme::yellow(),
+                2 => theme::text(),
+                3 => theme::red(),
+                _ => theme::subtext(),
+            };
+            
+            let row_item = row![
+                text(format!("{rank}.")).font(crate::ui::icons::UI_FONT_BOLD).color(medal_color).width(Length::Fixed(24.0)),
+                text(name).font(crate::ui::icons::UI_FONT).color(theme::text()).width(Length::Fixed(200.0)),
+                text(format!("{:.1}m", mins)).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).align_x(iced::alignment::Horizontal::Right).width(Length::Fill),
+            ]
+            .align_y(Alignment::Center);
+            col = col.push(row_item);
+        }
+    }
+    col.into()
+}
+
+fn render_leaderboard_counts(title: &str, entries: &[(String, u32)]) -> Element<'static, Message> {
+    let mut col = column![
+        text(title).font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
+        Space::with_height(6),
+    ].spacing(2);
+    
+    if entries.is_empty() {
+        col = col.push(text("No stats yet").font(crate::ui::icons::UI_FONT).color(theme::overlay0()));
+    } else {
+        for (idx, (name, count)) in entries.iter().enumerate() {
+            let rank = idx + 1;
+            let medal_color = match rank {
+                1 => theme::yellow(),
+                2 => theme::text(),
+                3 => theme::red(),
+                _ => theme::subtext(),
+            };
+            
+            let row_item = row![
+                text(format!("{rank}.")).font(crate::ui::icons::UI_FONT_BOLD).color(medal_color).width(Length::Fixed(24.0)),
+                text(name).font(crate::ui::icons::UI_FONT).color(theme::text()).width(Length::Fixed(200.0)),
+                text(format!("{count} plays")).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).align_x(iced::alignment::Horizontal::Right).width(Length::Fill),
+            ]
+            .align_y(Alignment::Center);
+            col = col.push(row_item);
+        }
+    }
+    col.into()
+}
+
 pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
     let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 450.0);
     if !is_allowed {
