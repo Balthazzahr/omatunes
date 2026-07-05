@@ -452,7 +452,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     fn make_cell<'a>(content: Element<'a, Message>, width: Length) -> Element<'a, Message> {
                         container(content)
                             .width(width)
-                            .height(Length::Fixed(36.0))
+                            .height(Length::Fill)
                             .padding(4)
                             .align_x(iced::alignment::Horizontal::Center)
                             .align_y(iced::alignment::Vertical::Center)
@@ -467,48 +467,40 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             .into()
                     }
 
-                    let truncate = |s: &str, max_chars: usize| -> String {
-                        if s.chars().count() > max_chars {
-                            let mut truncated: String = s.chars().take(max_chars - 1).collect();
-                            truncated.push('…');
-                            truncated
-                        } else {
-                            s.to_string()
-                        }
-                    };
-
                     let header_col = |label: &'static str| {
                         row![
-                            text(label).size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
+                            text(label).size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center)
                         ]
                         .align_y(Alignment::Center)
+                        .width(Length::Fill)
                     };
 
-                    // Grouping header above Genre and Artist columns (width: 75.0 + 85.0 = 160.0)
+                    // Grouping header above Genre and Artist columns (ratios: 75 + 85 = 160)
                     let top_header = row![
-                        Space::new(Length::Fixed(165.0), Length::Fixed(18.0)), // Column 0 + Songs + Hours = 70 + 45 + 50 = 165
+                        Space::new(Length::FillPortion(165), Length::Fixed(18.0)), // Column 0 + Songs + Hours = 70 + 45 + 50 = 165
                         container(
                             text("Most Played")
                                 .size(9)
                                 .font(crate::ui::icons::UI_FONT_BOLD)
                                 .color(theme::accent())
                         )
-                        .width(Length::Fixed(160.0))
+                        .width(Length::FillPortion(160))
                         .height(Length::Fixed(18.0))
                         .align_x(iced::alignment::Horizontal::Center)
                         .align_y(iced::alignment::Vertical::Center),
-                        Space::new(Length::Fixed(85.0), Length::Fixed(18.0)), // Longest Session = 85
-                    ];
+                        Space::new(Length::FillPortion(85), Length::Fixed(18.0)), // Longest Session = 85
+                    ]
+                    .width(Length::Fill);
 
                     let headers = row![
-                        make_cell(Space::new(0, 0).into(), Length::Fixed(70.0)),
+                        make_cell(Space::new(0, 0).into(), Length::FillPortion(70)),
                         make_cell(
                             row![
                                 text(crate::ui::icons::ICON_MUSIC).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
                                 Space::with_width(3),
                                 header_col("Songs")
                             ].align_y(Alignment::Center).into(),
-                            Length::Fixed(45.0)
+                            Length::FillPortion(45)
                         ),
                         make_cell(
                             row![
@@ -516,7 +508,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                                 Space::with_width(3),
                                 header_col("Hours")
                             ].align_y(Alignment::Center).into(),
-                            Length::Fixed(50.0)
+                            Length::FillPortion(50)
                         ),
                         make_cell(
                             row![
@@ -524,7 +516,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                                 Space::with_width(3),
                                 header_col("Genre")
                             ].align_y(Alignment::Center).into(),
-                            Length::Fixed(75.0)
+                            Length::FillPortion(75)
                         ),
                         make_cell(
                             row![
@@ -532,22 +524,24 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                                 Space::with_width(3),
                                 header_col("Artist")
                             ].align_y(Alignment::Center).into(),
-                            Length::Fixed(85.0)
+                            Length::FillPortion(85)
                         ),
                         make_cell(
                             row![
                                 text(crate::ui::icons::ICON_BOLT).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
                                 Space::with_width(3),
                                 column![
-                                    text("Longest").size(8).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()),
-                                    text("Session").size(8).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()),
-                                ].spacing(0)
+                                    text("Longest").size(8).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center),
+                                    text("Session").size(8).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center),
+                                ].spacing(0).width(Length::Fill)
                             ].align_y(Alignment::Center).into(),
-                            Length::Fixed(85.0)
+                            Length::FillPortion(85)
                         ),
-                    ];
+                    ]
+                    .width(Length::Fill)
+                    .height(Length::Shrink);
 
-                    let mut table_col = column![top_header, headers].spacing(0);
+                    let mut table_col = column![top_header, headers].spacing(0).width(Length::Fill);
 
                     for (idx, row_data) in r_stats.iter().enumerate() {
                         let row_header_el = match idx {
@@ -573,30 +567,79 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             ],
                         };
 
+                        let artist_name = &row_data.top_artist;
+                        let artist_btn = if artist_name != "-" {
+                            button(
+                                text(artist_name.clone())
+                                    .font(crate::ui::icons::UI_FONT_BOLD)
+                                    .size(10)
+                                    .color(theme::accent())
+                                    .width(Length::Fill)
+                                    .align_x(iced::alignment::Horizontal::Center)
+                            )
+                            .on_press(Message::SelectArtist(artist_name.clone()))
+                            .padding(0)
+                            .width(Length::Fill)
+                            .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+                                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                                iced::widget::button::Style {
+                                    background: None,
+                                    text_color: if is_hovered { theme::text() } else { theme::accent() },
+                                    border: iced::Border::default(),
+                                    ..Default::default()
+                                }
+                            })
+                            .into()
+                        } else {
+                            text("-").size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center).into()
+                        };
+
+                        let genre_name = &row_data.top_genre;
+                        let genre_btn = if genre_name != "-" {
+                            button(
+                                text(genre_name.clone())
+                                    .font(crate::ui::icons::UI_FONT_BOLD)
+                                    .size(10)
+                                    .color(theme::accent())
+                                    .width(Length::Fill)
+                                    .align_x(iced::alignment::Horizontal::Center)
+                            )
+                            .on_press(Message::SelectGenre(genre_name.clone()))
+                            .padding(0)
+                            .width(Length::Fill)
+                            .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+                                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                                iced::widget::button::Style {
+                                    background: None,
+                                    text_color: if is_hovered { theme::text() } else { theme::accent() },
+                                    border: iced::Border::default(),
+                                    ..Default::default()
+                                }
+                            })
+                            .into()
+                        } else {
+                            text("-").size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center).into()
+                        };
+
                         let table_row = row![
-                            make_cell(row_header_el.align_y(Alignment::Center).into(), Length::Fixed(70.0)),
-                            make_cell(text(format!("{}", row_data.songs)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(45.0)),
-                            make_cell(text(format!("{:.1}", row_data.minutes / 60.0)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(50.0)),
-                            make_cell(text(truncate(&row_data.top_genre, 10)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(75.0)),
-                            make_cell(text(truncate(&row_data.top_artist, 11)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(85.0)),
-                            make_cell(text(format!("{:.1}", row_data.longest_session / 60.0)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(85.0)),
-                        ];
+                            make_cell(row_header_el.align_y(Alignment::Center).into(), Length::FillPortion(70)),
+                            make_cell(text(format!("{}", row_data.songs)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center).into(), Length::FillPortion(45)),
+                            make_cell(text(format!("{:.1}", row_data.minutes / 60.0)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center).into(), Length::FillPortion(50)),
+                            make_cell(genre_btn, Length::FillPortion(75)),
+                            make_cell(artist_btn, Length::FillPortion(85)),
+                            make_cell(text(format!("{:.1}", row_data.longest_session / 60.0)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Center).into(), Length::FillPortion(85)),
+                        ]
+                        .width(Length::Fill)
+                        .height(Length::Shrink);
                         table_col = table_col.push(table_row);
                     }
 
                     scrollable(
-                        column![
-                            text("Listening Statistics")
-                                .font(crate::ui::icons::UI_FONT_BOLD)
-                                .color(theme::accent())
-                                .size(18),
-                            Space::with_height(16),
-                            table_col,
-                        ]
-                        .spacing(4)
-                        .align_x(Alignment::Center)
-                        .width(Length::Fill)
-                        .padding(16)
+                        column![table_col]
+                            .spacing(0)
+                            .align_x(Alignment::Center)
+                            .width(Length::Fill)
+                            .padding([5, 5])
                     )
                     .width(Length::Fill)
                     .height(Length::Fill)
@@ -713,7 +756,9 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     .height(Length::Fill)
                     .into()
                 }
-                        column![
+            };
+
+            column![
                 container(active_view)
                     .width(Length::Fill)
                     .height(Length::Fill),
