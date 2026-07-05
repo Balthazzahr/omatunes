@@ -619,9 +619,11 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     // 4. Decades aggregation
                     let mut decade_counts: HashMap<i32, usize> = HashMap::new();
                     for t in tracks {
-                        if t.year > 0 {
-                            let dec = (t.year / 10) * 10;
-                            *decade_counts.entry(dec).or_default() += 1;
+                        if let Some(yr) = t.year {
+                            if yr > 0 {
+                                let dec = ((yr / 10) * 10) as i32;
+                                *decade_counts.entry(dec).or_default() += 1;
+                            }
                         }
                     }
                     let mut decades: Vec<(i32, usize)> = decade_counts.into_iter().collect();
