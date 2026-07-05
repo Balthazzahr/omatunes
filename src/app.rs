@@ -59,10 +59,8 @@ pub enum RightPanelTab {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum StatsSubTab {
-    Daily,
-    Monthly,
-    AllTime,
-    Library,
+    ListeningStats,
+    Leaderboard,
 }
 
 #[derive(Debug, Clone)]
