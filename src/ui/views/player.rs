@@ -447,7 +447,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
 
             let active_view: Element<'_, Message> = match state.stats_sub_tab {
                 crate::app::StatsSubTab::ListeningStats => {
-                    let r_stats = crate::stats::get_restructured_stats(&state.tracks);
+                    let r_stats = crate::stats::get_restructured_stats(&state.all_tracks);
                     
                     fn make_cell<'a>(content: Element<'a, Message>, width: Length, align_x: iced::alignment::Horizontal) -> Element<'a, Message> {
                         container(content)
@@ -481,7 +481,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     let top_header = row![
                         Space::new(Length::FillPortion(180), Length::Fixed(18.0)), // Column 0 + Songs + Hours = 80 + 50 + 50 = 180
                         container(
-                            text("Most Played")
+                            text("Top")
                                 .size(11)
                                 .font(crate::ui::icons::UI_FONT_BOLD)
                                 .color(theme::accent())
