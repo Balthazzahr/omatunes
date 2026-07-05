@@ -283,6 +283,18 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
             .center_y(Length::Fill)
             .into()
         }
+        crate::app::RightPanelTab::Statistics => {
+            container(
+                text("Statistics coming soon!")
+                    .color(theme::overlay0())
+                    .size(16)
+            )
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .center_x(Length::Fill)
+            .center_y(Length::Fill)
+            .into()
+        }
         crate::app::RightPanelTab::Lyrics => {
             let display_track = if !matches!(state.playback_state, crate::audio::PlaybackState::Stopped) {
                 state.current_track.as_ref()
