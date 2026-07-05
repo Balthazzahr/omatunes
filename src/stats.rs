@@ -410,7 +410,7 @@ pub struct RowStats {
     pub longest_session: f64,
 }
 
-pub fn get_restructured_stats() -> Vec<RowStats> {
+pub fn get_restructured_stats(tracks: &[crate::library::models::Track]) -> Vec<RowStats> {
     get(|db| {
         let now = chrono::Local::now().naive_local().date();
         let today_str = now.format("%Y-%m-%d").to_string();
@@ -419,6 +419,27 @@ pub fn get_restructured_stats() -> Vec<RowStats> {
         let monday = now - chrono::Duration::days(days_from_monday as i64);
         
         let this_month_prefix = now.format("%Y-%m").to_string();
+        
+        // Build artist to genre mapping from the library tracks
+        let mut artist_genre_counts: HashMap<String, HashMap<String, usize>> = HashMap::new();
+        for track in tracks {
+            if !track.artist.is_empty() && !track.genre.is_empty() {
+                *artist_genre_counts
+                    .entry(track.artist.clone())
+                    .or_default()
+                    .entry(track.genre.clone())
+                    .or_default() += 1;
+            }
+        }
+        
+        let mut artist_to_genre: HashMap<String, String> = HashMap::new();
+        for (artist, genres_map) in artist_genre_counts {
+            if let Some(best_genre) = genres_map.into_iter()
+                .max_by_key(|(_, count)| *count)
+                .map(|(genre, _)| genre) {
+                artist_to_genre.insert(artist, best_genre);
+            }
+        }
         
         let periods = vec![
             ("Today".to_string(), Box::new(move |d: &str| d == today_str) as Box<dyn Fn(&str) -> bool>),
@@ -447,6 +468,9 @@ pub fn get_restructured_stats() -> Vec<RowStats> {
                 minutes += db.legacy_minutes;
                 for (a, m) in &db.legacy_artist_minutes {
                     *artists.entry(a.clone()).or_default() += m;
+                    if let Some(g) = artist_to_genre.get(a) {
+                        *genres.entry(g.clone()).or_default() += m;
+                    }
                 }
             }
             
@@ -460,8 +484,16 @@ pub fn get_restructured_stats() -> Vec<RowStats> {
                     for (a, m) in &day.artist_minutes {
                         *artists.entry(a.clone()).or_default() += m;
                     }
-                    for (g, m) in &day.genre_minutes {
-                        *genres.entry(g.clone()).or_default() += m;
+                    if day.genre_minutes.is_empty() {
+                        for (a, m) in &day.artist_minutes {
+                            if let Some(g) = artist_to_genre.get(a) {
+                                *genres.entry(g.clone()).or_default() += m;
+                            }
+                        }
+                    } else {
+                        for (g, m) in &day.genre_minutes {
+                            *genres.entry(g.clone()).or_default() += m;
+                        }
                     }
                 }
             }
