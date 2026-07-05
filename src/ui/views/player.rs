@@ -281,8 +281,6 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     }
 }
 
-}
-
 fn render_stat_row(label: &str, value: &str) -> Element<'static, Message> {
     row![
         text(label).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fixed(180.0)),
