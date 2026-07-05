@@ -52,8 +52,8 @@ impl<Message> canvas::Program<Message> for PieChartProgram {
             builder.arc(canvas::path::Arc {
                 center,
                 radius,
-                start_angle,
-                end_angle,
+                start_angle: iced::Radians(start_angle),
+                end_angle: iced::Radians(end_angle),
             });
             builder.line_to(center);
             
