@@ -53,7 +53,23 @@ pub enum ViewMode {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RightPanelTab {
     Visualizer,
+    Statistics,
     Lyrics,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum StatsSubTab {
+    Daily,
+    Monthly,
+    AllTime,
+    Library,
+}
+
+#[derive(Debug, Clone)]
+pub struct StatsNotification {
+    pub title: String,
+    pub message: String,
+    pub created_at: std::time::Instant,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
