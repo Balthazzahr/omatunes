@@ -397,7 +397,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     .font(crate::ui::icons::UI_FONT_BOLD)
                     .color(theme::text()),
             ]
-            .padding([16, 16, 8, 16])
+            .padding(iced::Padding { top: 16.0, right: 16.0, bottom: 8.0, left: 16.0 })
             .align_y(Alignment::Center);
 
             column![
