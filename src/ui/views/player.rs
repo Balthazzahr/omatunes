@@ -191,8 +191,9 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                     theme::subtext()
                 },
                 border: iced::Border {
+                    color: theme::surface0(),
+                    width: 1.0,
                     radius: 0.0.into(),
-                    ..Default::default()
                 },
                 ..Default::default()
             }
@@ -200,21 +201,35 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .padding(0)
     };
 
-    let tab_strip = container(
-        column![
-            tab_btn(crate::app::RightPanelTab::Visualizer, crate::ui::icons::ICON_VISUALIZER),
-            tab_btn(crate::app::RightPanelTab::Lyrics, crate::ui::icons::ICON_LYRICS),
-        ]
-        .width(Length::Fill)
+    let left_sep = container(Space::new(Length::Fixed(1.0), Length::Fill))
+        .style(|_| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::surface0())),
+            ..Default::default()
+        })
+        .width(1.0)
+        .height(Length::Fill);
+
+    let tab_strip = row![
+        left_sep,
+        container(
+            column![
+                tab_btn(crate::app::RightPanelTab::Visualizer, crate::ui::icons::ICON_VISUALIZER),
+                tab_btn(crate::app::RightPanelTab::Statistics, crate::ui::icons::ICON_STATS),
+                tab_btn(crate::app::RightPanelTab::Lyrics, crate::ui::icons::ICON_LYRICS),
+            ]
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .spacing(0)
+        )
+        .width(55.0)
         .height(Length::Fill)
-        .spacing(0)
-    )
+        .style(|_| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::mantle())),
+            ..Default::default()
+        })
+    ]
     .width(56.0)
-    .height(Length::Fill)
-    .style(|_| iced::widget::container::Style {
-        background: Some(iced::Background::Color(theme::mantle())),
-        ..Default::default()
-    });
+    .height(Length::Fill);
 
     let left_side_width = if state.right_panel_tab.is_some() {
         Length::Fill
