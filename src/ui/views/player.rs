@@ -414,39 +414,92 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
 
             let active_view: Element<'_, Message> = match state.stats_sub_tab {
                 crate::app::StatsSubTab::Daily => {
-                    container(
-                        text("Daily Stats Content")
-                            .color(theme::text())
-                            .size(16)
+                    let p_stats = crate::stats::get_period_stats();
+                    let s_stats = crate::stats::get_streak_stats();
+                    
+                    let today_plays = crate::stats::get(|sdb| {
+                        let today_str = chrono::Local::now().format("%Y-%m-%d").to_string();
+                        sdb.daily_buckets.get(&today_str).map(|d| d.track_play_count).unwrap_or(0)
+                    });
+
+                    scrollable(
+                        column![
+                            text("Listening Time").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
+                            Space::with_height(8),
+                            render_stat_row("Today:", &format!("{:.1} mins", p_stats.today_minutes)),
+                            render_stat_row("Yesterday:", &format!("{:.1} mins", p_stats.yesterday_minutes)),
+                            Space::with_height(16),
+                            
+                            text("Listening Streaks").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
+                            Space::with_height(8),
+                            render_stat_row("Current Streak:", &format!("{} days", s_stats.current_streak)),
+                            render_stat_row("Longest Streak:", &format!("{} days", s_stats.longest_streak)),
+                            Space::with_height(16),
+                            
+                            text("Milestone Progress").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
+                            Space::with_height(8),
+                            render_stat_row("Plays Today:", &format!("{today_plays} songs")),
+                            render_stat_row("Next Milestone:", if today_plays < 10 { "10 songs (Bronze) 🎧" } else if today_plays < 50 { "50 songs (Silver) 🌟" } else if today_plays < 100 { "100 songs (Gold) 🎉" } else { "All Milestones Unlocked!" }),
+                        ]
+                        .spacing(4)
+                        .padding(16)
                     )
-                    .width(Length::Fill)
                     .height(Length::Fill)
-                    .center_x(Length::Fill)
-                    .center_y(Length::Fill)
                     .into()
                 }
                 crate::app::StatsSubTab::Monthly => {
-                    container(
-                        text("Monthly Stats Content")
-                            .color(theme::text())
-                            .size(16)
+                    let p_stats = crate::stats::get_period_stats();
+                    let (top_mins, top_plays) = crate::stats::get_monthly_leaderboards();
+                    
+                    scrollable(
+                        column![
+                            text("Listening Time").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
+                            Space::with_height(8),
+                            render_stat_row("This Month:", &format!("{:.1} mins", p_stats.this_month_minutes)),
+                            render_stat_row("Last Month:", &format!("{:.1} mins", p_stats.last_month_minutes)),
+                            render_stat_row("This Year:", &format!("{:.1} mins", p_stats.this_year_minutes)),
+                            render_stat_row("Last Year:", &format!("{:.1} mins", p_stats.last_year_minutes)),
+                            Space::with_height(20),
+                            
+                            render_leaderboard_minutes("Top Artists by Time (This Month)", &top_mins),
+                            Space::with_height(20),
+                            
+                            render_leaderboard_counts("Top Artists by Plays (This Month)", &top_plays),
+                        ]
+                        .spacing(4)
+                        .padding(16)
                     )
-                    .width(Length::Fill)
                     .height(Length::Fill)
-                    .center_x(Length::Fill)
-                    .center_y(Length::Fill)
                     .into()
                 }
                 crate::app::StatsSubTab::AllTime => {
-                    container(
-                        text("All-Time Stats Content")
-                            .color(theme::text())
-                            .size(16)
+                    let p_stats = crate::stats::get_period_stats();
+                    let u_stats = crate::stats::get_unique_stats(&state.all_tracks);
+                    let (top_mins, top_plays) = crate::stats::get_all_time_leaderboards();
+                    
+                    scrollable(
+                        column![
+                            text("Listening Time").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
+                            Space::with_height(8),
+                            render_stat_row("All-Time Total:", &format!("{:.1} mins", p_stats.all_time_minutes)),
+                            Space::with_height(16),
+                            
+                            text("Library Coverage").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
+                            Space::with_height(8),
+                            render_stat_row("Unique Tracks Played:", &format!("{}", u_stats.unique_tracks)),
+                            render_stat_row("Unique Artists Played:", &format!("{}", u_stats.unique_artists)),
+                            render_stat_row("Unique Albums Played:", &format!("{}", u_stats.unique_albums)),
+                            Space::with_height(20),
+                            
+                            render_leaderboard_minutes("Top Artists by Time (All-Time)", &top_mins),
+                            Space::with_height(20),
+                            
+                            render_leaderboard_counts("Top Artists by Plays (All-Time)", &top_plays),
+                        ]
+                        .spacing(4)
+                        .padding(16)
                     )
-                    .width(Length::Fill)
                     .height(Length::Fill)
-                    .center_x(Length::Fill)
-                    .center_y(Length::Fill)
                     .into()
                 }
                 crate::app::StatsSubTab::Library => {
