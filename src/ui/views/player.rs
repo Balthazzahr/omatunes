@@ -640,7 +640,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     }
 
                     // Helper to render legends column
-                    let render_pie_legend = |slices: &[crate::ui::views::charts::PieSlice]| {
+                    let render_pie_legend = |slices: Vec<crate::ui::views::charts::PieSlice>| {
                         let mut legend_col = column![].spacing(4);
                         for slice in slices {
                             let item = row![
@@ -663,7 +663,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                         legend_col
                     };
 
-                    let render_bar_legend = |bars: &[crate::ui::views::charts::BarItem]| {
+                    let render_bar_legend = |bars: Vec<crate::ui::views::charts::BarItem>| {
                         let mut legend_col = column![].spacing(4);
                         for bar in bars {
                             let item = row![
