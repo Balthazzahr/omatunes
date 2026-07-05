@@ -449,7 +449,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                 crate::app::StatsSubTab::ListeningStats => {
                     let r_stats = crate::stats::get_restructured_stats();
                     
-                    let table_cell = |content: Element<'_, Message>, width: Length| {
+                    let table_cell = |content: Element<'_, Message>, width: Length| -> Element<'_, Message> {
                         container(content)
                             .width(width)
                             .height(Length::Fixed(32.0))
@@ -464,6 +464,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                                 },
                                 ..Default::default()
                             })
+                            .into()
                     };
 
                     let truncate = |s: &str, max_chars: usize| -> String {
@@ -476,7 +477,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                         }
                     };
 
-                    let header_col = |label: &str| {
+                    let header_col = |label: &'static str| {
                         row![
                             text(label).size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
                         ]
