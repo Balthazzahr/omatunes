@@ -4668,6 +4668,55 @@ impl AppState {
             view_stack = view_stack.push(full_overlay);
         }
 
+        if !self.active_notifications.is_empty() {
+            let mut toasts_col = column![].spacing(8);
+            for n in &self.active_notifications {
+                let toast_card = container(
+                    column![
+                        row![
+                            text(crate::ui::icons::ICON_MUSIC)
+                                .font(crate::ui::icons::NERD_FONT_MONO)
+                                .size(16)
+                                .color(theme::accent()),
+                            Space::with_width(8),
+                            text(&n.title)
+                                .size(14)
+                                .font(crate::ui::icons::UI_FONT_BOLD)
+                                .color(theme::accent()),
+                        ]
+                        .align_y(Alignment::Center),
+                        Space::with_height(6),
+                        text(&n.message)
+                            .size(13)
+                            .font(crate::ui::icons::UI_FONT)
+                            .color(theme::text())
+                    ]
+                    .spacing(0)
+                )
+                .width(Length::Fixed(300.0))
+                .padding(12)
+                .style(|_| iced::widget::container::Style {
+                    background: Some(iced::Background::Color(theme::surface0())),
+                    border: iced::Border {
+                        color: theme::accent(),
+                        width: 2.0,
+                        radius: 8.0.into(),
+                    },
+                    ..Default::default()
+                });
+                toasts_col = toasts_col.push(toast_card);
+            }
+            
+            let toasts_overlay = container(toasts_col)
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .align_x(iced::alignment::Horizontal::Right)
+                .align_y(iced::alignment::Vertical::Bottom)
+                .padding(iced::Padding { top: 0.0, right: 24.0, bottom: 24.0, left: 0.0 });
+                
+            view_stack = view_stack.push(toasts_overlay);
+        }
+
         view_stack.into()
     }
 
