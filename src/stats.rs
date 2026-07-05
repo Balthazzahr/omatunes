@@ -345,7 +345,7 @@ pub fn get_unique_stats(all_tracks: &[crate::library::models::Track]) -> UniqueS
     })
 }
 
-pub fn get_monthly_leaderboards() -> (Vec<(String, f64)>, Vec<(String, u32)>) {
+pub fn get_combined_monthly_leaderboard() -> Vec<(String, f64, u32)> {
     get(|db| {
         let now = chrono::Local::now().naive_local().date();
         let this_month_prefix = now.format("%Y-%m").to_string();
@@ -364,19 +364,18 @@ pub fn get_monthly_leaderboards() -> (Vec<(String, f64)>, Vec<(String, u32)>) {
             }
         }
         
-        let mut top_minutes: Vec<(String, f64)> = artists_minutes.into_iter().collect();
-        top_minutes.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
-        top_minutes.truncate(5);
+        let mut combined: Vec<(String, f64, u32)> = artists_minutes.into_iter().map(|(name, mins)| {
+            let count = artists_tracks.get(&name).cloned().unwrap_or(0);
+            (name, mins, count)
+        }).collect();
         
-        let mut top_tracks: Vec<(String, u32)> = artists_tracks.into_iter().collect();
-        top_tracks.sort_by(|a, b| b.1.cmp(&a.1));
-        top_tracks.truncate(5);
-        
-        (top_minutes, top_tracks)
+        combined.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        combined.truncate(5);
+        combined
     })
 }
 
-pub fn get_all_time_leaderboards() -> (Vec<(String, f64)>, Vec<(String, u32)>) {
+pub fn get_combined_all_time_leaderboard() -> Vec<(String, f64, u32)> {
     get(|db| {
         let mut artists_minutes: HashMap<String, f64> = db.legacy_artist_minutes.clone();
         let mut artists_tracks: HashMap<String, u32> = db.legacy_artist_tracks.clone();
@@ -390,14 +389,103 @@ pub fn get_all_time_leaderboards() -> (Vec<(String, f64)>, Vec<(String, u32)>) {
             }
         }
         
-        let mut top_minutes: Vec<(String, f64)> = artists_minutes.into_iter().collect();
-        top_minutes.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
-        top_minutes.truncate(10);
+        let mut combined: Vec<(String, f64, u32)> = artists_minutes.into_iter().map(|(name, mins)| {
+            let count = artists_tracks.get(&name).cloned().unwrap_or(0);
+            (name, mins, count)
+        }).collect();
         
-        let mut top_tracks: Vec<(String, u32)> = artists_tracks.into_iter().collect();
-        top_tracks.sort_by(|a, b| b.1.cmp(&a.1));
-        top_tracks.truncate(10);
+        combined.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        combined.truncate(10);
+        combined
+    })
+}
+
+#[derive(Debug, Clone)]
+pub struct RowStats {
+    pub period_label: String,
+    pub songs: u32,
+    pub minutes: f64,
+    pub top_genre: String,
+    pub top_artist: String,
+    pub longest_session: f64,
+}
+
+pub fn get_restructured_stats() -> Vec<RowStats> {
+    get(|db| {
+        let now = chrono::Local::now().naive_local().date();
+        let today_str = now.format("%Y-%m-%d").to_string();
         
-        (top_minutes, top_tracks)
+        let days_from_monday = now.weekday().num_days_from_monday();
+        let monday = now - chrono::Duration::days(days_from_monday as i64);
+        
+        let this_month_prefix = now.format("%Y-%m").to_string();
+        
+        let periods = vec![
+            ("Today".to_string(), Box::new(move |d: &str| d == today_str) as Box<dyn Fn(&str) -> bool>),
+            ("This Week".to_string(), Box::new(move |d: &str| {
+                if let Some(date) = parse_date(d) {
+                    date >= monday && date <= now
+                } else {
+                    false
+                }
+            })),
+            ("This Month".to_string(), Box::new(move |d: &str| d.starts_with(&this_month_prefix))),
+            ("All-Time".to_string(), Box::new(move |_d: &str| true)),
+        ];
+        
+        let mut rows = Vec::new();
+        
+        for (label, filter) in periods {
+            let mut songs = 0;
+            let mut minutes = 0.0;
+            let mut longest_session = 0.0;
+            let mut artists: HashMap<String, f64> = HashMap::new();
+            let mut genres: HashMap<String, f64> = HashMap::new();
+            
+            if label == "All-Time" {
+                songs += db.legacy_tracks;
+                minutes += db.legacy_minutes;
+                for (a, m) in &db.legacy_artist_minutes {
+                    *artists.entry(a.clone()).or_default() += m;
+                }
+            }
+            
+            for (date_str, day) in &db.daily_buckets {
+                if filter(date_str) {
+                    songs += day.track_play_count;
+                    minutes += day.total_minutes;
+                    if day.longest_session_minutes > longest_session {
+                        longest_session = day.longest_session_minutes;
+                    }
+                    for (a, m) in &day.artist_minutes {
+                        *artists.entry(a.clone()).or_default() += m;
+                    }
+                    for (g, m) in &day.genre_minutes {
+                        *genres.entry(g.clone()).or_default() += m;
+                    }
+                }
+            }
+            
+            let top_artist = artists.into_iter()
+                .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal))
+                .map(|(name, _)| name)
+                .unwrap_or_else(|| "-".to_string());
+                
+            let top_genre = genres.into_iter()
+                .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal))
+                .map(|(name, _)| name)
+                .unwrap_or_else(|| "-".to_string());
+                
+            rows.push(RowStats {
+                period_label: label,
+                songs,
+                minutes,
+                top_genre,
+                top_artist,
+                longest_session,
+            });
+        }
+        
+        rows
     })
 }
