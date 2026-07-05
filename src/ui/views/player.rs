@@ -389,9 +389,9 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
             .into()
         }
         crate::app::RightPanelTab::Statistics => {
-            let switcher_btn = |sub_tab: crate::app::StatsSubTab, icon_str: &'static str| {
+            let switcher_btn = |sub_tab: crate::app::StatsSubTab, icon_str: &'static str, tooltip_text: &'static str| {
                 let is_active = state.stats_sub_tab == sub_tab;
-                button(
+                let btn = button(
                     text(icon_str)
                         .size(20)
                         .font(crate::ui::icons::NERD_FONT_MONO)
@@ -415,342 +415,246 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                         },
                         ..Default::default()
                     }
-                })
+                });
+
+                let tooltip_content = container(
+                    text(tooltip_text)
+                        .size(12)
+                        .font(crate::ui::icons::UI_FONT)
+                        .color(theme::text())
+                )
+                .padding(6)
+                .style(|_| iced::widget::container::Style {
+                    background: Some(iced::Background::Color(theme::surface0())),
+                    border: iced::Border {
+                        color: theme::surface1(),
+                        width: 1.0,
+                        radius: 4.0.into(),
+                    },
+                    ..Default::default()
+                });
+
+                tooltip(btn, tooltip_content, iced::widget::tooltip::Position::Top)
             };
 
             let switcher_row = row![
-                switcher_btn(crate::app::StatsSubTab::Daily, crate::ui::icons::ICON_CALENDAR_TODAY),
-                Space::with_width(16),
-                switcher_btn(crate::app::StatsSubTab::Monthly, crate::ui::icons::ICON_CALENDAR_MONTH),
-                Space::with_width(16),
-                switcher_btn(crate::app::StatsSubTab::AllTime, crate::ui::icons::ICON_TROPHY),
-                Space::with_width(16),
-                switcher_btn(crate::app::StatsSubTab::Library, crate::ui::icons::ICON_LIBRARY),
+                switcher_btn(crate::app::StatsSubTab::ListeningStats, "\u{f201}", "Listening Statistics"),
+                Space::with_width(24),
+                switcher_btn(crate::app::StatsSubTab::Leaderboard, crate::ui::icons::ICON_PODIUM, "Leaderboards"),
             ]
             .spacing(0)
             .align_y(Alignment::Center);
 
             let active_view: Element<'_, Message> = match state.stats_sub_tab {
-                crate::app::StatsSubTab::Daily => {
-                    let p_stats = crate::stats::get_period_stats();
-                    let s_stats = crate::stats::get_streak_stats();
+                crate::app::StatsSubTab::ListeningStats => {
+                    let r_stats = crate::stats::get_restructured_stats();
                     
-                    let today_plays = crate::stats::get(|sdb| {
-                        let today_str = chrono::Local::now().format("%Y-%m-%d").to_string();
-                        sdb.daily_buckets.get(&today_str).map(|d| d.track_play_count).unwrap_or(0)
-                    });
+                    let table_cell = |content: Element<'_, Message>, width: Length| {
+                        container(content)
+                            .width(width)
+                            .height(Length::Fixed(32.0))
+                            .padding(4)
+                            .center_x(Length::Fill)
+                            .center_y(Length::Fill)
+                            .style(|_| iced::widget::container::Style {
+                                border: iced::Border {
+                                    color: theme::surface1(),
+                                    width: 1.0,
+                                    ..Default::default()
+                                },
+                                ..Default::default()
+                            })
+                    };
 
-                    scrollable(
-                        column![
-                            text("Listening Time").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
-                            Space::with_height(8),
-                            render_stat_row("Today:".to_string(), format!("{:.1} mins", p_stats.today_minutes)),
-                            render_stat_row("Yesterday:".to_string(), format!("{:.1} mins", p_stats.yesterday_minutes)),
-                            Space::with_height(16),
-                            
-                            text("Listening Streaks").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
-                            Space::with_height(8),
-                            render_stat_row("Current Streak:".to_string(), format!("{} days", s_stats.current_streak)),
-                            render_stat_row("Longest Streak:".to_string(), format!("{} days", s_stats.longest_streak)),
-                            Space::with_height(16),
-                            
-                            text("Milestone Progress").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
-                            Space::with_height(8),
-                            render_stat_row("Plays Today:".to_string(), format!("{today_plays} songs")),
-                            render_stat_row("Next Milestone:".to_string(), (if today_plays < 10 { "10 songs (Bronze) 🎧" } else if today_plays < 50 { "50 songs (Silver) 🌟" } else if today_plays < 100 { "100 songs (Gold) 🎉" } else { "All Milestones Unlocked!" }).to_string()),
-                        ]
-                        .spacing(4)
-                        .padding(16)
-                    )
-                    .height(Length::Fill)
-                    .into()
-                }
-                crate::app::StatsSubTab::Monthly => {
-                    let p_stats = crate::stats::get_period_stats();
-                    let (top_mins, top_plays) = crate::stats::get_monthly_leaderboards();
-                    
-                    scrollable(
-                        column![
-                            text("Listening Time").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
-                            Space::with_height(8),
-                            render_stat_row("This Month:".to_string(), format!("{:.1} mins", p_stats.this_month_minutes)),
-                            render_stat_row("Last Month:".to_string(), format!("{:.1} mins", p_stats.last_month_minutes)),
-                            render_stat_row("This Year:".to_string(), format!("{:.1} mins", p_stats.this_year_minutes)),
-                            render_stat_row("Last Year:".to_string(), format!("{:.1} mins", p_stats.last_year_minutes)),
-                            Space::with_height(20),
-                            
-                            render_leaderboard_minutes("Top Artists by Time (This Month)".to_string(), top_mins),
-                            Space::with_height(20),
-                            
-                            render_leaderboard_counts("Top Artists by Plays (This Month)".to_string(), top_plays),
-                        ]
-                        .spacing(4)
-                        .padding(16)
-                    )
-                    .height(Length::Fill)
-                    .into()
-                }
-                crate::app::StatsSubTab::AllTime => {
-                    let p_stats = crate::stats::get_period_stats();
-                    let u_stats = crate::stats::get_unique_stats(&state.all_tracks);
-                    let (top_mins, top_plays) = crate::stats::get_all_time_leaderboards();
-                    
-                    scrollable(
-                        column![
-                            text("Listening Time").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
-                            Space::with_height(8),
-                            render_stat_row("All-Time Total:".to_string(), format!("{:.1} mins", p_stats.all_time_minutes)),
-                            Space::with_height(16),
-                            
-                            text("Library Coverage").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
-                            Space::with_height(8),
-                            render_stat_row("Unique Tracks Played:".to_string(), format!("{}", u_stats.unique_tracks)),
-                            render_stat_row("Unique Artists Played:".to_string(), format!("{}", u_stats.unique_artists)),
-                            render_stat_row("Unique Albums Played:".to_string(), format!("{}", u_stats.unique_albums)),
-                            Space::with_height(20),
-                            
-                            render_leaderboard_minutes("Top Artists by Time (All-Time)".to_string(), top_mins),
-                            Space::with_height(20),
-                            
-                            render_leaderboard_counts("Top Artists by Plays (All-Time)".to_string(), top_plays),
-                        ]
-                        .spacing(4)
-                        .padding(16)
-                    )
-                    .height(Length::Fill)
-                    .into()
-                }
-                crate::app::StatsSubTab::Library => {
-                    let tracks = &state.all_tracks;
-                    
-                    // 1. Artist aggregation
-                    let mut artist_counts: HashMap<String, usize> = HashMap::new();
-                    for t in tracks {
-                        if !t.artist.trim().is_empty() {
-                            *artist_counts.entry(t.artist.clone()).or_default() += 1;
+                    let truncate = |s: &str, max_chars: usize| -> String {
+                        if s.chars().count() > max_chars {
+                            let mut truncated: String = s.chars().take(max_chars - 1).collect();
+                            truncated.push('…');
+                            truncated
+                        } else {
+                            s.to_string()
                         }
-                    }
-                    let mut artists: Vec<(String, usize)> = artist_counts.into_iter().collect();
-                    artists.sort_by(|a, b| b.1.cmp(&a.1));
-                    
-                    let total_tracks = tracks.len();
-                    
-                    // Top 5 + Other
-                    let mut artist_slices = Vec::new();
-                    let mut other_artist_count = 0;
-                    let colors = [
-                        theme::accent(),
-                        Color::from_rgb(0.53, 0.70, 0.98),
-                        Color::from_rgb(0.65, 0.89, 0.63),
-                        Color::from_rgb(0.98, 0.70, 0.53),
-                        Color::from_rgb(0.79, 0.65, 0.97),
-                        theme::overlay0(),
+                    };
+
+                    let header_col = |label: &str| {
+                        row![
+                            text(label).size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
+                        ]
+                        .align_y(Alignment::Center)
+                    };
+
+                    let headers = row![
+                        table_cell(Space::new(0, 0).into(), Length::Fixed(80.0)),
+                        table_cell(
+                            row![
+                                text(crate::ui::icons::ICON_MUSIC).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                Space::with_width(3),
+                                header_col("Songs")
+                            ].align_y(Alignment::Center).into(),
+                            Length::Fixed(50.0)
+                        ),
+                        table_cell(
+                            row![
+                                text(crate::ui::icons::ICON_CLOCK).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                Space::with_width(3),
+                                header_col("Mins")
+                            ].align_y(Alignment::Center).into(),
+                            Length::Fixed(65.0)
+                        ),
+                        table_cell(
+                            row![
+                                text(crate::ui::icons::ICON_TAG).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                Space::with_width(3),
+                                header_col("Genre")
+                            ].align_y(Alignment::Center).into(),
+                            Length::Fixed(75.0)
+                        ),
+                        table_cell(
+                            row![
+                                text(crate::ui::icons::ICON_PERSON).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                Space::with_width(3),
+                                header_col("Artist")
+                            ].align_y(Alignment::Center).into(),
+                            Length::Fixed(80.0)
+                        ),
+                        table_cell(
+                            row![
+                                text(crate::ui::icons::ICON_BOLT).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                Space::with_width(3),
+                                header_col("Sess")
+                            ].align_y(Alignment::Center).into(),
+                            Length::Fixed(68.0)
+                        ),
                     ];
-                    
-                    for (idx, (name, count)) in artists.iter().enumerate() {
-                        if idx < 5 {
-                            artist_slices.push(crate::ui::views::charts::PieSlice {
-                                label: name.clone(),
-                                count: *count,
-                                percentage: if total_tracks > 0 { *count as f32 / total_tracks as f32 } else { 0.0 },
-                                color: colors[idx],
-                            });
-                        } else {
-                            other_artist_count += count;
-                        }
-                    }
-                    if other_artist_count > 0 {
-                        artist_slices.push(crate::ui::views::charts::PieSlice {
-                            label: "Other".to_string(),
-                            count: other_artist_count,
-                            percentage: if total_tracks > 0 { other_artist_count as f32 / total_tracks as f32 } else { 0.0 },
-                            color: colors[5],
-                        });
-                    }
 
-                    // 2. Genre aggregation
-                    let mut genre_counts: HashMap<String, usize> = HashMap::new();
-                    for t in tracks {
-                        let g = if t.genre.trim().is_empty() { "Unknown".to_string() } else { t.genre.clone() };
-                        *genre_counts.entry(g).or_default() += 1;
-                    }
-                    let mut genres: Vec<(String, usize)> = genre_counts.into_iter().collect();
-                    genres.sort_by(|a, b| b.1.cmp(&a.1));
-                    
-                    let mut genre_slices = Vec::new();
-                    let mut other_genre_count = 0;
-                    for (idx, (name, count)) in genres.iter().enumerate() {
-                        if idx < 5 {
-                            genre_slices.push(crate::ui::views::charts::PieSlice {
-                                label: name.clone(),
-                                count: *count,
-                                percentage: if total_tracks > 0 { *count as f32 / total_tracks as f32 } else { 0.0 },
-                                color: colors[idx],
-                            });
-                        } else {
-                            other_genre_count += count;
-                        }
-                    }
-                    if other_genre_count > 0 {
-                        genre_slices.push(crate::ui::views::charts::PieSlice {
-                            label: "Other".to_string(),
-                            count: other_genre_count,
-                            percentage: if total_tracks > 0 { other_genre_count as f32 / total_tracks as f32 } else { 0.0 },
-                            color: colors[5],
-                        });
-                    }
+                    let mut table_col = column![headers].spacing(0);
 
-                    // 3. Format aggregation
-                    let mut format_counts: HashMap<String, usize> = HashMap::new();
-                    for t in tracks {
-                        let ext = t.path.extension()
-                            .and_then(|e| e.to_str())
-                            .map(|s| s.to_uppercase())
-                            .unwrap_or_else(|| "UNKNOWN".to_string());
-                        *format_counts.entry(ext).or_default() += 1;
-                    }
-                    let mut formats: Vec<(String, usize)> = format_counts.into_iter().collect();
-                    formats.sort_by(|a, b| b.1.cmp(&a.1));
-                    
-                    let mut format_slices = Vec::new();
-                    let mut other_format_count = 0;
-                    for (idx, (name, count)) in formats.iter().enumerate() {
-                        if idx < 5 {
-                            format_slices.push(crate::ui::views::charts::PieSlice {
-                                label: name.clone(),
-                                count: *count,
-                                percentage: if total_tracks > 0 { *count as f32 / total_tracks as f32 } else { 0.0 },
-                                color: colors[idx],
-                            });
-                        } else {
-                            other_format_count += count;
-                        }
-                    }
-                    if other_format_count > 0 {
-                        format_slices.push(crate::ui::views::charts::PieSlice {
-                            label: "Other".to_string(),
-                            count: other_format_count,
-                            percentage: if total_tracks > 0 { other_format_count as f32 / total_tracks as f32 } else { 0.0 },
-                            color: colors[5],
-                        });
-                    }
+                    for (idx, row_data) in r_stats.iter().enumerate() {
+                        let row_header_el = match idx {
+                            0 => row![
+                                text(crate::ui::icons::ICON_CALENDAR_TODAY).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                Space::with_width(4),
+                                text("Today").size(9).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
+                            ],
+                            1 => row![
+                                text("\u{f00ed}").font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                Space::with_width(4),
+                                text("Week").size(9).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
+                            ],
+                            2 => row![
+                                text(crate::ui::icons::ICON_CALENDAR_MONTH).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                Space::with_width(4),
+                                text("Month").size(9).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
+                            ],
+                            _ => row![
+                                text(crate::ui::icons::ICON_CD).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                Space::with_width(4),
+                                text("All-Time").size(9).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
+                            ],
+                        };
 
-                    // 4. Decades aggregation
-                    let mut decade_counts: HashMap<i32, usize> = HashMap::new();
-                    for t in tracks {
-                        if let Some(yr) = t.year {
-                            if yr > 0 {
-                                let dec = ((yr / 10) * 10) as i32;
-                                *decade_counts.entry(dec).or_default() += 1;
-                            }
-                        }
+                        let table_row = row![
+                            table_cell(row_header_el.align_y(Alignment::Center).into(), Length::Fixed(80.0)),
+                            table_cell(text(format!("{}", row_data.songs)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(50.0)),
+                            table_cell(text(format!("{:.1}", row_data.minutes)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(65.0)),
+                            table_cell(text(truncate(&row_data.top_genre, 10)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(75.0)),
+                            table_cell(text(truncate(&row_data.top_artist, 10)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(80.0)),
+                            table_cell(text(format!("{:.1}", row_data.longest_session)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(68.0)),
+                        ];
+                        table_col = table_col.push(table_row);
                     }
-                    let mut decades: Vec<(i32, usize)> = decade_counts.into_iter().collect();
-                    decades.sort_by(|a, b| a.0.cmp(&b.0));
-                    
-                    let mut decade_bars = Vec::new();
-                    for (idx, (dec, count)) in decades.iter().enumerate() {
-                        let color = colors[idx % colors.len()];
-                        decade_bars.push(crate::ui::views::charts::BarItem {
-                            label: format!("{dec}s"),
-                            value: *count,
-                            color,
-                        });
-                    }
-
-                    // Helper to render legends column
-                    let render_pie_legend = |slices: Vec<crate::ui::views::charts::PieSlice>| {
-                        let mut legend_col = column![].spacing(4);
-                        for slice in slices {
-                            let item = row![
-                                container(Space::new(12, 12))
-                                    .style(move |_| iced::widget::container::Style {
-                                        background: Some(iced::Background::Color(slice.color)),
-                                        border: iced::Border {
-                                            radius: 2.0.into(),
-                                            ..Default::default()
-                                        },
-                                        ..Default::default()
-                                    }),
-                                Space::with_width(6),
-                                text(slice.label.clone()).size(12).font(crate::ui::icons::UI_FONT).color(theme::text()).width(Length::Fixed(160.0)),
-                                text(format!("{}", slice.count)).size(12).font(crate::ui::icons::UI_FONT_BOLD).color(theme::subtext()).align_x(iced::alignment::Horizontal::Right).width(Length::Fill),
-                            ]
-                            .align_y(Alignment::Center);
-                            legend_col = legend_col.push(item);
-                        }
-                        legend_col
-                    };
-
-                    let render_bar_legend = |bars: Vec<crate::ui::views::charts::BarItem>| {
-                        let mut legend_col = column![].spacing(4);
-                        for bar in bars {
-                            let item = row![
-                                container(Space::new(12, 12))
-                                    .style(move |_| iced::widget::container::Style {
-                                        background: Some(iced::Background::Color(bar.color)),
-                                        border: iced::Border {
-                                            radius: 2.0.into(),
-                                            ..Default::default()
-                                        },
-                                        ..Default::default()
-                                    }),
-                                Space::with_width(6),
-                                text(bar.label.clone()).size(12).font(crate::ui::icons::UI_FONT).color(theme::text()).width(Length::Fixed(160.0)),
-                                text(format!("{}", bar.value)).size(12).font(crate::ui::icons::UI_FONT_BOLD).color(theme::subtext()).align_x(iced::alignment::Horizontal::Right).width(Length::Fill),
-                            ]
-                            .align_y(Alignment::Center);
-                            legend_col = legend_col.push(item);
-                        }
-                        legend_col
-                    };
 
                     scrollable(
                         column![
-                            text("Library Composition").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(16),
-                            Space::with_height(4),
-                            text(format!("Total tracks: {total_tracks}")).size(13).font(crate::ui::icons::UI_FONT).color(theme::subtext()),
+                            text("Listening Statistics").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(16),
                             Space::with_height(16),
-                            
-                            // Artists Chart
-                            text("Top Artists").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
-                            Space::with_height(8),
-                            row![
-                                crate::ui::views::charts::view_pie_chart(artist_slices.clone()),
-                                Space::with_width(12),
-                                render_pie_legend(artist_slices.clone()),
-                            ]
-                            .align_y(Alignment::Center),
-                            Space::with_height(24),
-                            
-                            // Genres Chart
-                            text("Top Genres").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
-                            Space::with_height(8),
-                            row![
-                                crate::ui::views::charts::view_pie_chart(genre_slices.clone()),
-                                Space::with_width(12),
-                                render_pie_legend(genre_slices.clone()),
-                            ]
-                            .align_y(Alignment::Center),
-                            Space::with_height(24),
-                            
-                            // Format Chart
-                            text("Audio Formats").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
-                            Space::with_height(8),
-                            row![
-                                crate::ui::views::charts::view_pie_chart(format_slices.clone()),
-                                Space::with_width(12),
-                                render_pie_legend(format_slices.clone()),
-                            ]
-                            .align_y(Alignment::Center),
-                            Space::with_height(24),
+                            table_col,
+                        ]
+                        .spacing(4)
+                        .padding(16)
+                    )
+                    .height(Length::Fill)
+                    .into()
+                }
+                crate::app::StatsSubTab::Leaderboard => {
+                    let monthly = crate::stats::get_combined_monthly_leaderboard();
+                    let all_time = crate::stats::get_combined_all_time_leaderboard();
 
-                            // Decades Chart
-                            text("Tracks by Decade").font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
-                            Space::with_height(8),
-                            crate::ui::views::charts::view_bar_chart(decade_bars.clone()),
-                            Space::with_height(8),
-                            render_bar_legend(decade_bars.clone()),
+                    let truncate = |s: &str, max_chars: usize| -> String {
+                        if s.chars().count() > max_chars {
+                            let mut truncated: String = s.chars().take(max_chars - 1).collect();
+                            truncated.push('…');
+                            truncated
+                        } else {
+                            s.to_string()
+                        }
+                    };
+
+                    let format_hours_mins = |mins: f64| -> String {
+                        let total_secs = (mins * 60.0) as u64;
+                        let h = total_secs / 3600;
+                        let m = (total_secs % 3600) / 60;
+                        if h > 0 {
+                            format!("{h}h {m}m")
+                        } else {
+                            format!("{m}m")
+                        }
+                    };
+
+                    let render_leaderboard_row = |rank: usize, name: &str, mins: f64, tracks: u32| {
+                        let name_color = if rank <= 3 {
+                            if rank == 1 {
+                                Color::from_rgb(0.98, 0.80, 0.28) // Gold
+                            } else if rank == 2 {
+                                Color::from_rgb(0.70, 0.70, 0.70) // Silver
+                            } else {
+                                Color::from_rgb(0.80, 0.52, 0.25) // Bronze
+                            }
+                        } else {
+                            theme::text()
+                        };
+
+                        row![
+                            text(format!("{rank}.")).width(Length::Fixed(24.0)).font(crate::ui::icons::UI_FONT).color(theme::subtext()),
+                            text(truncate(name, 18)).width(Length::Fixed(180.0)).font(crate::ui::icons::UI_FONT_BOLD).color(name_color),
+                            text(format_hours_mins(mins)).width(Length::Fixed(80.0)).font(crate::ui::icons::UI_FONT_BOLD).color(Color::from_rgb(0.53, 0.70, 0.98)),
+                            text(format!("({tracks} tracks)")).font(crate::ui::icons::UI_FONT).color(theme::subtext()).size(11),
+                        ]
+                        .align_y(Alignment::Center)
+                        .spacing(4)
+                    };
+
+                    let mut monthly_col = column![
+                        row![
+                            text(crate::ui::icons::ICON_PERSON).font(crate::ui::icons::NERD_FONT_MONO).size(14).color(theme::accent()),
+                            Space::with_width(6),
+                            text("Monthly Leaderboard (Top 5):").font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).size(14)
+                        ].align_y(Alignment::Center),
+                        Space::with_height(8)
+                    ].spacing(4);
+
+                    for (idx, (name, mins, tracks)) in monthly.into_iter().enumerate() {
+                        monthly_col = monthly_col.push(render_leaderboard_row(idx + 1, &name, mins, tracks));
+                    }
+
+                    let mut all_time_col = column![
+                        row![
+                            text(crate::ui::icons::ICON_CD).font(crate::ui::icons::NERD_FONT_MONO).size(14).color(theme::accent()),
+                            Space::with_width(6),
+                            text("All-Time Legends (Top 10):").font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).size(14)
+                        ].align_y(Alignment::Center),
+                        Space::with_height(8)
+                    ].spacing(4);
+
+                    for (idx, (name, mins, tracks)) in all_time.into_iter().enumerate() {
+                        all_time_col = all_time_col.push(render_leaderboard_row(idx + 1, &name, mins, tracks));
+                    }
+
+                    scrollable(
+                        column![
+                            monthly_col,
+                            Space::with_height(24),
+                            all_time_col,
                         ]
                         .spacing(4)
                         .padding(16)
@@ -778,7 +682,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     .width(Length::Fill)
                     .padding(12)
                     .center_x(Length::Fill)
-                    .style(|_| iced::widget::container::Style {
+            ]                 .style(|_| iced::widget::container::Style {
                         background: Some(iced::Background::Color(theme::mantle())),
                         ..Default::default()
                     })
