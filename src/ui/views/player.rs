@@ -281,7 +281,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     }
 }
 
-fn render_stat_row(label: &str, value: &str) -> Element<'static, Message> {
+fn render_stat_row<'a>(label: &'a str, value: &'a str) -> Element<'a, Message> {
     row![
         text(label).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fixed(180.0)),
         text(value).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).align_x(iced::alignment::Horizontal::Right).width(Length::Fill),
@@ -291,7 +291,7 @@ fn render_stat_row(label: &str, value: &str) -> Element<'static, Message> {
     .into()
 }
 
-fn render_leaderboard_minutes(title: &str, entries: &[(String, f64)]) -> Element<'static, Message> {
+fn render_leaderboard_minutes<'a>(title: &'a str, entries: &'a [(String, f64)]) -> Element<'a, Message> {
     let mut col = column![
         text(title).font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
         Space::with_height(6),
@@ -321,7 +321,7 @@ fn render_leaderboard_minutes(title: &str, entries: &[(String, f64)]) -> Element
     col.into()
 }
 
-fn render_leaderboard_counts(title: &str, entries: &[(String, u32)]) -> Element<'static, Message> {
+fn render_leaderboard_counts<'a>(title: &'a str, entries: &'a [(String, u32)]) -> Element<'a, Message> {
     let mut col = column![
         text(title).font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
         Space::with_height(6),
