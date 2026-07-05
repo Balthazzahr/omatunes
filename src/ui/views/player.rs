@@ -479,88 +479,107 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
 
                     let header_col = |label: &'static str| {
                         row![
-                            text(label).size(11).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
+                            text(label).size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
                         ]
                         .align_y(Alignment::Center)
                     };
 
+                    // Grouping header above Genre and Artist columns (width: 75.0 + 85.0 = 160.0)
+                    let top_header = row![
+                        Space::new(Length::Fixed(165.0), Length::Fixed(18.0)), // Column 0 + Songs + Hours = 70 + 45 + 50 = 165
+                        container(
+                            text("Most Played")
+                                .size(9)
+                                .font(crate::ui::icons::UI_FONT_BOLD)
+                                .color(theme::accent())
+                        )
+                        .width(Length::Fixed(160.0))
+                        .height(Length::Fixed(18.0))
+                        .align_x(iced::alignment::Horizontal::Center)
+                        .align_y(iced::alignment::Vertical::Center),
+                        Space::new(Length::Fixed(85.0), Length::Fixed(18.0)), // Longest Session = 85
+                    ];
+
                     let headers = row![
-                        make_cell(Space::new(0, 0).into(), Length::Fixed(90.0)),
+                        make_cell(Space::new(0, 0).into(), Length::Fixed(70.0)),
                         make_cell(
                             row![
-                                text(crate::ui::icons::ICON_MUSIC).font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::accent()),
+                                text(crate::ui::icons::ICON_MUSIC).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
                                 Space::with_width(3),
                                 header_col("Songs")
                             ].align_y(Alignment::Center).into(),
-                            Length::Fixed(55.0)
+                            Length::Fixed(45.0)
                         ),
                         make_cell(
                             row![
-                                text(crate::ui::icons::ICON_CLOCK).font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::accent()),
+                                text(crate::ui::icons::ICON_CLOCK).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
                                 Space::with_width(3),
                                 header_col("Hours")
+                            ].align_y(Alignment::Center).into(),
+                            Length::Fixed(50.0)
+                        ),
+                        make_cell(
+                            row![
+                                text(crate::ui::icons::ICON_TAG).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
+                                Space::with_width(3),
+                                header_col("Genre")
                             ].align_y(Alignment::Center).into(),
                             Length::Fixed(75.0)
                         ),
                         make_cell(
                             row![
-                                text(crate::ui::icons::ICON_TAG).font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::accent()),
+                                text(crate::ui::icons::ICON_PERSON).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
                                 Space::with_width(3),
-                                header_col("Genre")
+                                header_col("Artist")
                             ].align_y(Alignment::Center).into(),
                             Length::Fixed(85.0)
                         ),
                         make_cell(
                             row![
-                                text(crate::ui::icons::ICON_PERSON).font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::accent()),
+                                text(crate::ui::icons::ICON_BOLT).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
                                 Space::with_width(3),
-                                header_col("Artist")
+                                column![
+                                    text("Longest").size(8).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()),
+                                    text("Session").size(8).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()),
+                                ].spacing(0)
                             ].align_y(Alignment::Center).into(),
-                            Length::Fixed(95.0)
-                        ),
-                        make_cell(
-                            row![
-                                text(crate::ui::icons::ICON_BOLT).font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::accent()),
-                                Space::with_width(3),
-                                header_col("Sess")
-                            ].align_y(Alignment::Center).into(),
-                            Length::Fixed(75.0)
+                            Length::Fixed(85.0)
                         ),
                     ];
 
-                    let mut table_col = column![headers].spacing(0);
+                    let mut table_col = column![top_header, headers].spacing(0);
 
                     for (idx, row_data) in r_stats.iter().enumerate() {
                         let row_header_el = match idx {
                             0 => row![
-                                text(crate::ui::icons::ICON_CALENDAR_TODAY).font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::accent()),
+                                text(crate::ui::icons::ICON_CALENDAR_TODAY).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
                                 Space::with_width(4),
                                 text("Today").size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
                             ],
                             1 => row![
-                                text("\u{f00ed}").font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::accent()),
+                                text("\u{f00ed}").font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
                                 Space::with_width(4),
                                 text("Week").size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
                             ],
                             2 => row![
-                                text(crate::ui::icons::ICON_CALENDAR_MONTH).font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::accent()),
+                                text(crate::ui::icons::ICON_CALENDAR_MONTH).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
                                 Space::with_width(4),
                                 text("Month").size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
                             ],
                             _ => row![
-                                text(crate::ui::icons::ICON_CD).font(crate::ui::icons::NERD_FONT_MONO).size(11).color(theme::accent()),
+                                text(crate::ui::icons::ICON_CD).font(crate::ui::icons::NERD_FONT_MONO).size(10).color(theme::accent()),
                                 Space::with_width(4),
                                 text("All-Time").size(10).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text())
                             ],
                         };
 
                         let table_row = row![
-                            make_cell(row_header_el.align_y(Alignment::Center).into(), Length::Fixed(90.0)),
-                            make_cell(text(format!("{}", row_data.songs)).size(11).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(55.0)),
-                            make_cell(text(format!("{:.1}", row_data.minutes / 60.0)).size(11).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(75.0)),
-                            make_cell(text(truncate(&row_data.top_genre, 12)).size(11).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(85.0)),
-                            make_cell(text(truncate(&row_data.top_artist, 12)).size(11).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(95.0)),
-                            make_cell(text(format!("{:.1}", row_data.longest_session / 60.0)).size(11).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(75.0)),
+                            make_cell(row_header_el.align_y(Alignment::Center).into(), Length::Fixed(70.0)),
+                            make_cell(text(format!("{}", row_data.songs)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(45.0)),
+                            make_cell(text(format!("{:.1}", row_data.minutes / 60.0)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(50.0)),
+                            make_cell(text(truncate(&row_data.top_genre, 10)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(75.0)),
+                            make_cell(text(truncate(&row_data.top_artist, 11)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(85.0)),
+                            make_cell(text(format!("{:.1}", row_data.longest_session / 60.0)).size(10).font(crate::ui::icons::UI_FONT).color(theme::subtext()).into(), Length::Fixed(85.0)),
                         ];
                         table_col = table_col.push(table_row);
                     }
