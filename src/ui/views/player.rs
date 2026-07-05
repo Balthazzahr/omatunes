@@ -713,19 +713,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     .height(Length::Fill)
                     .into()
                 }
-            };
-
-            let title_row = row![
-                text("Statistics")
-                    .size(20)
-                    .font(crate::ui::icons::UI_FONT_BOLD)
-                    .color(theme::text()),
-            ]
-            .padding(iced::Padding { top: 16.0, right: 16.0, bottom: 8.0, left: 16.0 })
-            .align_y(Alignment::Center);
-
-            column![
-                title_row,
+                        column![
                 container(active_view)
                     .width(Length::Fill)
                     .height(Length::Fill),
@@ -741,7 +729,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
             .width(Length::Fill)
             .height(Length::Fill)
             .spacing(0)
-            .into()
+            .into()to()
         }
         crate::app::RightPanelTab::Lyrics => {
             let display_track = if !matches!(state.playback_state, crate::audio::PlaybackState::Stopped) {

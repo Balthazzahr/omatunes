@@ -3344,6 +3344,7 @@ impl AppState {
                 }
                 self.last_click_genre = Some((genre.clone(), now));
                 self.selected_genre = Some(genre);
+                self.view_mode = ViewMode::Genres;
                 self.selected_playlist = None;
                 self.selected_folder = None;
                 self.selected_artist = None;
