@@ -12,32 +12,80 @@ from datetime import datetime
 # potentially impacting streaks. This is a known tradeoff of the migration.
 # ──────────────────────────────────────────────────────────────────────────────
 
+def load_pickle(path):
+    if not path.exists():
+        return None
+    try:
+        with open(path, "rb") as f:
+            return pickle.load(f)
+    except Exception as e:
+        print(f"Warning: Failed to load {path}: {e}")
+        return None
+
+def merge_histories(h1, h2):
+    merged = {}
+    all_keys = set(h1.keys()) | set(h2.keys())
+    for k in all_keys:
+        d1 = h1.get(k, {})
+        d2 = h2.get(k, {})
+        
+        # Merge artists
+        art1 = d1.get("artists", {})
+        art2 = d2.get("artists", {})
+        merged_art = {}
+        for a in set(art1.keys()) | set(art2.keys()):
+            merged_art[a] = art1.get(a, 0.0) + art2.get(a, 0.0)
+            
+        # Merge artist_tracks
+        art_t1 = d1.get("artist_tracks", {})
+        art_t2 = d2.get("artist_tracks", {})
+        merged_art_t = {}
+        for a in set(art_t1.keys()) | set(art_t2.keys()):
+            merged_art_t[a] = art_t1.get(a, 0) + art_t2.get(a, 0)
+            
+        merged[k] = {
+            "tracks": d1.get("tracks", 0) + d2.get("tracks", 0),
+            "minutes": d1.get("minutes", 0.0) + d2.get("minutes", 0.0),
+            "artists": merged_art,
+            "artist_tracks": merged_art_t
+        }
+    return merged
+
 def migrate():
     home = pathlib.Path.home()
-    pickle_path = home / ".cache" / "waybar_omatunes_session.pkl"
+    spotify_path = home / ".cache" / "waybar_spotify_session.pkl"
+    omatunes_path = home / ".cache" / "waybar_omatunes_session.pkl"
     json_path = home / ".config" / "omatunes" / "stats.json"
 
     print("Starting omatunes listening history migration...")
-    print(f"Reading pickle file: {pickle_path}")
-
-    if not pickle_path.exists():
-        print(f"Error: {pickle_path} does not exist. Nothing to migrate.")
-        return
-
-    try:
-        with open(pickle_path, "rb") as f:
-            session = pickle.load(f)
-    except Exception as e:
-        print(f"Failed to load pickle file: {e}")
-        return
-
-    print("Pickle file loaded successfully.")
     
+    session_spotify = load_pickle(spotify_path)
+    session_omatunes = load_pickle(omatunes_path)
+
+    if not session_spotify and not session_omatunes:
+        print("Error: No legacy session files found. Nothing to migrate.")
+        return
+
+    # Merge session structures
+    session = {}
+    if session_spotify and session_omatunes:
+        print("Both Spotify and omaTUNES session pickle files found. Merging histories...")
+        session["total_tracks"] = session_spotify.get("total_tracks", 0) + session_omatunes.get("total_tracks", 0)
+        session["total_minutes"] = session_spotify.get("total_minutes", 0.0) + session_omatunes.get("total_minutes", 0.0)
+        session["daily_history"] = merge_histories(session_spotify.get("daily_history", {}), session_omatunes.get("daily_history", {}))
+        session["monthly_history"] = merge_histories(session_spotify.get("monthly_history", {}), session_omatunes.get("monthly_history", {}))
+    elif session_spotify:
+        print("Found legacy Spotify session file.")
+        session = session_spotify
+    else:
+        print("Found legacy omaTUNES session file.")
+        session = session_omatunes
+
     daily_buckets = {}
     legacy_tracks = session.get("total_tracks", 0)
-    legacy_minutes = session.get("total_minutes", 0)
+    legacy_minutes = session.get("total_minutes", 0.0)
 
-    # 1. Process daily history (up to last 60 days of detailed tracking)
+    # 1. Process daily history (detailed tracking)
     daily_hist = session.get("daily_history", {})
     migrated_days_tracks = 0
     migrated_days_minutes = 0.0
@@ -57,20 +105,18 @@ def migrate():
             "track_play_count": tracks,
             "artist_minutes": artists,
             "artist_track_counts": artist_tracks,
-            "track_play_counts": {} # track-level counts not detailed in old daily history
+            "track_play_counts": {},
+            "genre_minutes": {},
+            "longest_session_minutes": 0.0
         }
 
-    # 2. Process monthly history (synthesizing U+2014 undercount tradeoff warning)
-    # Any month present in monthly_history but not represented in daily_history
-    # gets consolidated on the 1st of that month.
+    # 2. Process monthly history (synthesizing)
     monthly_hist = session.get("monthly_history", {})
     print(f"Processing {len(monthly_hist)} monthly history entries...")
     
     for month_str, data in monthly_hist.items():
-        # Check if we have daily buckets for this month
         has_daily_in_month = any(day.startswith(month_str) for day in daily_buckets.keys())
         if not has_daily_in_month:
-            # Consolidate full month on YYYY-MM-01
             synth_date = f"{month_str}-01"
             tracks = data.get("tracks", 0)
             minutes = data.get("minutes", 0.0)
@@ -87,27 +133,23 @@ def migrate():
                 "track_play_count": tracks,
                 "artist_minutes": artists,
                 "artist_track_counts": artist_tracks,
-                "track_play_counts": {}
+                "track_play_counts": {},
+                "genre_minutes": {},
+                "longest_session_minutes": 0.0
             }
 
-    # 3. Calculate legacy offsets (totals minus what was migrated in daily/monthly detail)
     legacy_tracks = max(0, legacy_tracks - migrated_days_tracks)
     legacy_minutes = max(0.0, legacy_minutes - migrated_days_minutes)
 
-    # Compile all-time artist totals from the pickle file to determine legacy artist counts
-    # (Since all-time leaderboard artist tracking isn't saved directly in the session, 
-    # we can aggregate the monthly artist history as legacy artist totals)
     legacy_artist_minutes = {}
     legacy_artist_tracks = {}
     
-    # Sum up all months
     for month_str, data in monthly_hist.items():
         for artist, mins in data.get("artists", {}).items():
             legacy_artist_minutes[artist] = legacy_artist_minutes.get(artist, 0.0) + mins
         for artist, counts in data.get("artist_tracks", {}).items():
             legacy_artist_tracks[artist] = legacy_artist_tracks.get(artist, 0) + counts
 
-    # Subtract the daily history parts we migrated to avoid double counting
     for date_str, data in daily_hist.items():
         for artist, mins in data.get("artists", {}).items():
             if artist in legacy_artist_minutes:
@@ -116,7 +158,6 @@ def migrate():
             if artist in legacy_artist_tracks:
                 legacy_artist_tracks[artist] = max(0, legacy_artist_tracks[artist] - counts)
 
-    # Prune tiny artist values
     legacy_artist_minutes = {k: v for k, v in legacy_artist_minutes.items() if v > 0.01}
     legacy_artist_tracks = {k: v for k, v in legacy_artist_tracks.items() if v > 0}
 
@@ -125,10 +166,11 @@ def migrate():
         "legacy_tracks": int(legacy_tracks),
         "legacy_minutes": float(legacy_minutes),
         "legacy_artist_minutes": legacy_artist_minutes,
-        "legacy_artist_tracks": legacy_artist_tracks
+        "legacy_artist_tracks": legacy_artist_tracks,
+        "last_active_timestamp": None,
+        "current_session_accum_secs": 0
     }
 
-    # Ensure parent directory exists
     json_path.parent.mkdir(parents=True, exist_ok=True)
     
     with open(json_path, "w") as f:
@@ -137,7 +179,6 @@ def migrate():
     print(f"Migration completed successfully! Saved to: {json_path}")
     print(f"Migrated daily buckets: {len(daily_buckets)}")
     print(f"Legacy Offset - Tracks: {legacy_tracks}, Minutes: {legacy_minutes:.2f}")
-    print("[Streak Warning] Historical months merged on the 1st of each month will count as a single active day for streak calculation.")
 
 if __name__ == "__main__":
     migrate()
