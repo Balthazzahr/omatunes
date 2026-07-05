@@ -682,7 +682,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     .width(Length::Fill)
                     .padding(12)
                     .center_x(Length::Fill)
-            ]                 .style(|_| iced::widget::container::Style {
+                    .style(|_| iced::widget::container::Style {
                         background: Some(iced::Background::Color(theme::mantle())),
                         ..Default::default()
                     })
