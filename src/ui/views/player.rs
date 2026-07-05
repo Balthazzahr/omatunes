@@ -518,22 +518,22 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     let headers = row![
                         make_cell(Space::new(0, 0).into(), Length::FillPortion(80), iced::alignment::Horizontal::Left),
                         make_cell(
-                            header_col("Songs", iced::alignment::Horizontal::Right),
+                            header_col("Songs", iced::alignment::Horizontal::Right).into(),
                             Length::FillPortion(50),
                             iced::alignment::Horizontal::Right
                         ),
                         make_cell(
-                            header_col("Hours", iced::alignment::Horizontal::Right),
+                            header_col("Hours", iced::alignment::Horizontal::Right).into(),
                             Length::FillPortion(50),
                             iced::alignment::Horizontal::Right
                         ),
                         make_cell(
-                            header_col("Genre", iced::alignment::Horizontal::Left),
+                            header_col("Genre", iced::alignment::Horizontal::Left).into(),
                             Length::FillPortion(110),
                             iced::alignment::Horizontal::Left
                         ),
                         make_cell(
-                            header_col("Artist", iced::alignment::Horizontal::Left),
+                            header_col("Artist", iced::alignment::Horizontal::Left).into(),
                             Length::FillPortion(110),
                             iced::alignment::Horizontal::Left
                         ),
