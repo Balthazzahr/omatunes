@@ -734,7 +734,7 @@ impl AppState {
             show_queue_popover: false,
             queue_scroll_id: scrollable::Id::unique(),
             last_accumulated_position: Duration::ZERO,
-            stats_sub_tab: StatsSubTab::Daily,
+            stats_sub_tab: StatsSubTab::ListeningStats,
             active_notifications: Vec::new(),
             last_checked_hour: {
                 use chrono::Timelike;
