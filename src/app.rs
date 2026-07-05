@@ -554,6 +554,9 @@ pub struct AppState {
     pub animation_tick: u32,
     pub show_queue_popover: bool,
     pub queue_scroll_id: scrollable::Id,
+    pub last_accumulated_position: Duration,
+    pub stats_sub_tab: StatsSubTab,
+    pub active_notifications: Vec<StatsNotification>,
 }
 
 impl AppState {
