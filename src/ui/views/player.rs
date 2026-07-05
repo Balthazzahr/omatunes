@@ -448,11 +448,6 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
             let active_view: Element<'_, Message> = match state.stats_sub_tab {
                 crate::app::StatsSubTab::ListeningStats => {
                     let r_stats = crate::stats::get_restructured_stats(&state.tracks);
-                    println!("DEBUG STATS: loaded {} rows", r_stats.len());
-                    for (i, row) in r_stats.iter().enumerate() {
-                        println!("  row {}: period='{}', songs={}, minutes={}, genre='{}', artist='{}', longest_session={}", 
-                                 i, row.period_label, row.songs, row.minutes, row.top_genre, row.top_artist, row.longest_session);
-                    }
                     
                     fn make_cell<'a>(content: Element<'a, Message>, width: Length) -> Element<'a, Message> {
                         container(content)
