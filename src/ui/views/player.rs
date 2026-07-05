@@ -596,7 +596,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             
                             iced::widget::tooltip(
                                 btn,
-                                artist_name.clone(),
+                                text(artist_name.clone()),
                                 iced::widget::tooltip::Position::Top
                             )
                             .style(|_theme: &iced::Theme| iced::widget::container::Style {
@@ -639,7 +639,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             
                             iced::widget::tooltip(
                                 btn,
-                                genre_name.clone(),
+                                text(genre_name.clone()),
                                 iced::widget::tooltip::Position::Top
                             )
                             .style(|_theme: &iced::Theme| iced::widget::container::Style {
