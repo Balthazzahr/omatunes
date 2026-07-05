@@ -734,6 +734,9 @@ impl AppState {
             animation_tick: 0,
             show_queue_popover: false,
             queue_scroll_id: scrollable::Id::unique(),
+            last_accumulated_position: Duration::ZERO,
+            stats_sub_tab: StatsSubTab::Daily,
+            active_notifications: Vec::new(),
         };
 
         (state, scan_task)
