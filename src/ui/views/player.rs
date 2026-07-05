@@ -299,15 +299,124 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
             .into()
         }
         crate::app::RightPanelTab::Statistics => {
-            container(
-                text("Statistics coming soon!")
-                    .color(theme::overlay0())
-                    .size(16)
-            )
+            let switcher_btn = |sub_tab: crate::app::StatsSubTab, icon_str: &'static str| {
+                let is_active = state.stats_sub_tab == sub_tab;
+                button(
+                    text(icon_str)
+                        .size(20)
+                        .font(crate::ui::icons::NERD_FONT_MONO)
+                )
+                .on_press(Message::SelectStatsSubTab(sub_tab))
+                .padding(6)
+                .style(move |_theme, status| {
+                    let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                    iced::widget::button::Style {
+                        background: if is_hovered { Some(iced::Background::Color(theme::surface0())) } else { None },
+                        text_color: if is_active {
+                            theme::accent()
+                        } else if is_hovered {
+                            theme::text()
+                        } else {
+                            theme::subtext()
+                        },
+                        border: iced::Border {
+                            radius: 4.0.into(),
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    }
+                })
+            };
+
+            let switcher_row = row![
+                switcher_btn(crate::app::StatsSubTab::Daily, crate::ui::icons::ICON_CALENDAR_TODAY),
+                Space::with_width(16),
+                switcher_btn(crate::app::StatsSubTab::Monthly, crate::ui::icons::ICON_CALENDAR_MONTH),
+                Space::with_width(16),
+                switcher_btn(crate::app::StatsSubTab::AllTime, crate::ui::icons::ICON_TROPHY),
+                Space::with_width(16),
+                switcher_btn(crate::app::StatsSubTab::Library, crate::ui::icons::ICON_LIBRARY),
+            ]
+            .spacing(0)
+            .align_y(Alignment::Center);
+
+            let active_view: Element<'_, Message> = match state.stats_sub_tab {
+                crate::app::StatsSubTab::Daily => {
+                    container(
+                        text("Daily Stats Content")
+                            .color(theme::text())
+                            .size(16)
+                    )
+                    .width(Length::Fill)
+                    .height(Length::Fill)
+                    .center_x(Length::Fill)
+                    .center_y(Length::Fill)
+                    .into()
+                }
+                crate::app::StatsSubTab::Monthly => {
+                    container(
+                        text("Monthly Stats Content")
+                            .color(theme::text())
+                            .size(16)
+                    )
+                    .width(Length::Fill)
+                    .height(Length::Fill)
+                    .center_x(Length::Fill)
+                    .center_y(Length::Fill)
+                    .into()
+                }
+                crate::app::StatsSubTab::AllTime => {
+                    container(
+                        text("All-Time Stats Content")
+                            .color(theme::text())
+                            .size(16)
+                    )
+                    .width(Length::Fill)
+                    .height(Length::Fill)
+                    .center_x(Length::Fill)
+                    .center_y(Length::Fill)
+                    .into()
+                }
+                crate::app::StatsSubTab::Library => {
+                    container(
+                        text("Library Composition Content")
+                            .color(theme::text())
+                            .size(16)
+                    )
+                    .width(Length::Fill)
+                    .height(Length::Fill)
+                    .center_x(Length::Fill)
+                    .center_y(Length::Fill)
+                    .into()
+                }
+            };
+
+            let title_row = row![
+                text("Statistics")
+                    .size(20)
+                    .font(crate::ui::icons::UI_FONT_BOLD)
+                    .color(theme::text()),
+            ]
+            .padding([16, 16, 8, 16])
+            .align_y(Alignment::Center);
+
+            column![
+                title_row,
+                container(active_view)
+                    .width(Length::Fill)
+                    .height(Length::Fill),
+                container(switcher_row)
+                    .width(Length::Fill)
+                    .padding(12)
+                    .center_x(Length::Fill)
+                    .style(|_| iced::widget::container::Style {
+                        background: Some(iced::Background::Color(theme::mantle())),
+                        ..Default::default()
+                    })
+            ]
             .width(Length::Fill)
             .height(Length::Fill)
-            .center_x(Length::Fill)
-            .center_y(Length::Fill)
+            .spacing(0)
             .into()
         }
         crate::app::RightPanelTab::Lyrics => {
