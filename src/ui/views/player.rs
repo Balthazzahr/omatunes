@@ -211,7 +211,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .style(|_| iced::widget::container::Style {
             background: Some(iced::Background::Color(theme::surface0())),
             border: iced::Border {
-                color: theme::surface1(),
+                color: theme::overlay0(),
                 width: 1.0,
                 radius: 4.0.into(),
             },
@@ -427,7 +427,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                 .style(|_| iced::widget::container::Style {
                     background: Some(iced::Background::Color(theme::surface0())),
                     border: iced::Border {
-                        color: theme::surface1(),
+                        color: theme::overlay0(),
                         width: 1.0,
                         radius: 4.0.into(),
                     },
@@ -458,7 +458,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             .center_y(Length::Fill)
                             .style(|_| iced::widget::container::Style {
                                 border: iced::Border {
-                                    color: theme::surface1(),
+                                    color: theme::overlay0(),
                                     width: 1.0,
                                     ..Default::default()
                                 },
