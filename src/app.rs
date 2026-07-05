@@ -2622,6 +2622,7 @@ impl AppState {
                 }
                 self.last_click_artist = Some((artist.clone(), now));
                 self.selected_artist = Some(artist);
+                self.view_mode = ViewMode::Artists;
                 self.selected_playlist = None;
                 self.selected_folder = None;
                 self.selected_album = None;
