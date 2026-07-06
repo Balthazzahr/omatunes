@@ -449,10 +449,10 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                 crate::app::StatsSubTab::ListeningStats => {
                     let r_stats = crate::stats::get_restructured_stats(&state.all_tracks);
                     
-                    fn make_cell<'a>(content: Element<'a, Message>, width: Length, align_x: iced::alignment::Horizontal) -> Element<'a, Message> {
+                    fn make_cell<'a>(content: Element<'a, Message>, width: Length, height: Length, align_x: iced::alignment::Horizontal) -> Element<'a, Message> {
                         container(content)
                             .width(width)
-                            .height(Length::Fill)
+                            .height(height)
                             .padding([12, 10])
                             .align_x(align_x)
                             .align_y(iced::alignment::Vertical::Center)
@@ -499,30 +499,35 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     });
 
                     let headers = row![
-                        make_cell(Space::new(0, 0).into(), Length::FillPortion(80), iced::alignment::Horizontal::Left),
+                        make_cell(Space::new(0, 0).into(), Length::FillPortion(80), Length::Shrink, iced::alignment::Horizontal::Left),
                         make_cell(
                             header_col("Songs", iced::alignment::Horizontal::Right).into(),
                             Length::FillPortion(50),
+                            Length::Shrink,
                             iced::alignment::Horizontal::Right
                         ),
                         make_cell(
                             header_col("Hours", iced::alignment::Horizontal::Right).into(),
                             Length::FillPortion(50),
+                            Length::Shrink,
                             iced::alignment::Horizontal::Right
                         ),
                         make_cell(
                             header_col("Top Genre", iced::alignment::Horizontal::Left).into(),
                             Length::FillPortion(110),
+                            Length::Shrink,
                             iced::alignment::Horizontal::Left
                         ),
                         make_cell(
                             header_col("Top Artist", iced::alignment::Horizontal::Left).into(),
                             Length::FillPortion(110),
+                            Length::Shrink,
                             iced::alignment::Horizontal::Left
                         ),
                         make_cell(
                             peak_hdr.into(),
                             Length::FillPortion(60),
+                            Length::Shrink,
                             iced::alignment::Horizontal::Right
                         ),
                     ]
@@ -535,7 +540,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             ..Default::default()
                         });
 
-                    let mut table_col = column![Space::with_height(10), headers, divider].spacing(0).width(Length::Fill);
+                    let mut table_col = column![Space::with_height(32), headers, divider].spacing(0).width(Length::Fill);
 
                     for (idx, row_data) in r_stats.iter().enumerate() {
                         let row_header_el = match idx {
