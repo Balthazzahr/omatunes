@@ -645,12 +645,12 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                         };
 
                         let table_row = row![
-                            make_cell(row_header_el.align_y(Alignment::Center).into(), Length::FillPortion(80), iced::alignment::Horizontal::Left),
-                            make_cell(text(format!("{}", row_data.songs)).size(12).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Right).into(), Length::FillPortion(50), iced::alignment::Horizontal::Right),
-                            make_cell(text(format!("{:.1}", row_data.minutes / 60.0)).size(12).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Right).into(), Length::FillPortion(50), iced::alignment::Horizontal::Right),
-                            make_cell(genre_btn, Length::FillPortion(110), iced::alignment::Horizontal::Left),
-                            make_cell(artist_btn, Length::FillPortion(110), iced::alignment::Horizontal::Left),
-                            make_cell(text(format!("{:.1}", row_data.longest_session / 60.0)).size(12).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Right).into(), Length::FillPortion(60), iced::alignment::Horizontal::Right),
+                            make_cell(row_header_el.align_y(Alignment::Center).into(), Length::FillPortion(80), Length::Fill, iced::alignment::Horizontal::Left),
+                            make_cell(text(format!("{}", row_data.songs)).size(12).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Right).into(), Length::FillPortion(50), Length::Fill, iced::alignment::Horizontal::Right),
+                            make_cell(text(format!("{:.1}", row_data.minutes / 60.0)).size(12).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Right).into(), Length::FillPortion(50), Length::Fill, iced::alignment::Horizontal::Right),
+                            make_cell(genre_btn, Length::FillPortion(110), Length::Fill, iced::alignment::Horizontal::Left),
+                            make_cell(artist_btn, Length::FillPortion(110), Length::Fill, iced::alignment::Horizontal::Left),
+                            make_cell(text(format!("{:.1}", row_data.longest_session / 60.0)).size(12).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Right).into(), Length::FillPortion(60), Length::Fill, iced::alignment::Horizontal::Right),
                         ]
                         .width(Length::Fill)
                         .height(Length::Fill);
@@ -663,7 +663,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     )
                     .width(Length::Fill)
                     .height(Length::Fill)
-                    .padding(5)
+                    .padding(16)
                     .into()
                 }
                 crate::app::StatsSubTab::Leaderboard => {

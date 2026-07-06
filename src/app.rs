@@ -653,7 +653,7 @@ impl AppState {
 
             sidebar_width: db_sidebar_width.unwrap_or(200.0).clamp(MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH),
             dragging_sidebar: false,
-            player_height: db_player_height.unwrap_or(298.0).clamp(298.0, 458.0),
+            player_height: db_player_height.unwrap_or(330.0).clamp(330.0, 458.0),
             dragging_player_split: false,
             is_hovering_player_resizer: false,
             right_panel_width: db_right_panel_width.unwrap_or(960.0f32 * 0.33).clamp(450.0, 960.0),
@@ -1364,7 +1364,7 @@ impl AppState {
             }
 
             Message::PlayerDragMove(y) => {
-                self.player_height = y.clamp(298.0, 458.0);
+                self.player_height = y.clamp(330.0, 458.0);
                 Task::none()
             }
 
