@@ -452,7 +452,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     fn make_cell<'a>(content: Element<'a, Message>, width: Length, align_x: iced::alignment::Horizontal) -> Element<'a, Message> {
                         container(content)
                             .width(width)
-                            .height(Length::Shrink)
+                            .height(Length::Fill)
                             .padding([12, 10])
                             .align_x(align_x)
                             .align_y(iced::alignment::Vertical::Center)
@@ -648,26 +648,17 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             make_cell(text(format!("{:.1}", row_data.longest_session / 60.0)).size(12).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fill).align_x(iced::alignment::Horizontal::Right).into(), Length::FillPortion(60), iced::alignment::Horizontal::Right),
                         ]
                         .width(Length::Fill)
-                        .height(Length::Shrink);
+                        .height(Length::Fill);
                         table_col = table_col.push(table_row);
                     }
 
-                    scrollable(
-                        container(
-                            column![
-                                table_col,
-                            ]
-                            .spacing(0)
-                            .align_x(Alignment::Start)
-                            .width(Length::Fill)
+                    container(
+                        table_col
                             .height(Length::Fill)
-                        )
-                        .width(Length::Fill)
-                        .height(Length::Fill)
-                        .padding(5)
                     )
                     .width(Length::Fill)
                     .height(Length::Fill)
+                    .padding(5)
                     .into()
                 }
                 crate::app::StatsSubTab::Leaderboard => {
