@@ -652,41 +652,19 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                         table_col = table_col.push(table_row);
                     }
 
-                    let history_hours = crate::stats::get_last_14_days_hours();
-                    let bar_color = theme::accent();
-                    let bars: Vec<crate::ui::views::charts::BarItem> = history_hours.into_iter()
-                        .enumerate()
-                        .map(|(i, h)| crate::ui::views::charts::BarItem {
-                            label: format!("Day {}", i),
-                            value: h,
-                            color: bar_color,
-                        })
-                        .collect();
-
-                    let chart_title = text("Hours listened — last 14 days")
-                        .size(12)
-                        .font(crate::ui::icons::UI_FONT_BOLD)
-                        .color(theme::subtext());
-
-                    let chart_element = crate::ui::views::charts::view_bar_chart(bars);
-
                     scrollable(
                         container(
                             column![
                                 table_col,
-                                Space::with_height(24),
-                                chart_title,
-                                Space::with_height(12),
-                                chart_element,
                             ]
                             .spacing(0)
                             .align_x(Alignment::Start)
                             .width(Length::Fill)
-                            .height(Length::Shrink)
+                            .height(Length::Fill)
                         )
                         .width(Length::Fill)
-                        .height(Length::Shrink)
-                        .padding([5, 5])
+                        .height(Length::Fill)
+                        .padding(5)
                     )
                     .width(Length::Fill)
                     .height(Length::Fill)
