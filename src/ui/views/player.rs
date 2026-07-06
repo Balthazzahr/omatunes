@@ -450,16 +450,13 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     let r_stats = crate::stats::get_restructured_stats(&state.all_tracks);
                     
                     fn make_cell<'a>(content: Element<'a, Message>, width: Length, height: Length, align_x: iced::alignment::Horizontal) -> Element<'a, Message> {
-                        let mut c = container(content)
+                        container(content)
                             .width(width)
                             .height(height)
                             .padding([12, 10])
                             .align_x(align_x)
-                            .align_y(iced::alignment::Vertical::Center);
-                        if height == Length::Fill {
-                            c = c.min_height(32.0);
-                        }
-                        c.into()
+                            .align_y(iced::alignment::Vertical::Center)
+                            .into()
                     }
 
                     let truncate = |s: &str, max_chars: usize| -> String {
