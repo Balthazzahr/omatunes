@@ -450,13 +450,16 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     let r_stats = crate::stats::get_restructured_stats(&state.all_tracks);
                     
                     fn make_cell<'a>(content: Element<'a, Message>, width: Length, height: Length, align_x: iced::alignment::Horizontal) -> Element<'a, Message> {
-                        container(content)
+                        let mut c = container(content)
                             .width(width)
                             .height(height)
                             .padding([12, 10])
                             .align_x(align_x)
-                            .align_y(iced::alignment::Vertical::Center)
-                            .into()
+                            .align_y(iced::alignment::Vertical::Center);
+                        if height == Length::Fill {
+                            c = c.min_height(32.0);
+                        }
+                        c.into()
                     }
 
                     let truncate = |s: &str, max_chars: usize| -> String {
@@ -477,38 +480,17 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                         .width(Length::Fill)
                     };
 
-                    let peak_hdr = iced::widget::tooltip(
-                        text("Peak")
-                            .size(12)
-                            .font(crate::ui::icons::UI_FONT_BOLD)
-                            .color(theme::subtext())
-                            .align_x(iced::alignment::Horizontal::Right)
-                            .width(Length::Fill),
-                        text("Longest session length"),
-                        iced::widget::tooltip::Position::Top
-                    )
-                    .style(|_theme: &iced::Theme| iced::widget::container::Style {
-                        background: Some(iced::Background::Color(theme::mantle())),
-                        text_color: Some(theme::text()),
-                        border: iced::Border {
-                            color: theme::overlay0(),
-                            width: 1.0,
-                            ..Default::default()
-                        },
-                        ..Default::default()
-                    });
-
                     let headers = row![
                         make_cell(Space::new(0, 0).into(), Length::FillPortion(80), Length::Shrink, iced::alignment::Horizontal::Left),
                         make_cell(
                             header_col("Songs", iced::alignment::Horizontal::Right).into(),
-                            Length::FillPortion(50),
+                            Length::FillPortion(70),
                             Length::Shrink,
                             iced::alignment::Horizontal::Right
                         ),
                         make_cell(
                             header_col("Hours", iced::alignment::Horizontal::Right).into(),
-                            Length::FillPortion(50),
+                            Length::FillPortion(70),
                             Length::Shrink,
                             iced::alignment::Horizontal::Right
                         ),
@@ -523,12 +505,6 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             Length::FillPortion(110),
                             Length::Shrink,
                             iced::alignment::Horizontal::Left
-                        ),
-                        make_cell(
-                            peak_hdr.into(),
-                            Length::FillPortion(60),
-                            Length::Shrink,
-                            iced::alignment::Horizontal::Right
                         ),
                     ]
                     .width(Length::Fill)
