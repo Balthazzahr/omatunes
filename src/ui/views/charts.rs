@@ -67,90 +67,11 @@ impl<Message> canvas::Program<Message> for PieChartProgram {
     }
 }
 
-// ── Bar Chart ─────────────────────────────────────────────────────────────────
-
-#[derive(Clone, Debug)]
-pub struct BarItem {
-    pub label: String,
-    pub value: f32,
-    pub color: Color,
-}
-
-pub struct BarChartProgram {
-    pub bars: Vec<BarItem>,
-}
-
-impl<Message> canvas::Program<Message> for BarChartProgram {
-    type State = ();
-
-    fn draw(
-        &self,
-        _state: &(),
-        renderer: &iced::Renderer,
-        _theme: &iced::Theme,
-        bounds: Rectangle,
-        _cursor: iced::mouse::Cursor,
-    ) -> Vec<canvas::Geometry> {
-        let mut frame = Frame::new(renderer, bounds.size());
-
-        frame.fill_rectangle(
-            Point::ORIGIN,
-            bounds.size(),
-            Color::TRANSPARENT,
-        );
-
-        if self.bars.is_empty() {
-            return vec![frame.into_geometry()];
-        }
-
-        let pad_left = 10.0f32;
-        let pad_bottom = 5.0f32;
-        let chart_w = bounds.width - pad_left * 2.0;
-        let chart_h = bounds.height - pad_bottom * 2.0;
-
-        let max_val = self.bars.iter()
-            .map(|b| b.value)
-            .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
-            .unwrap_or(0.0)
-            .max(1.0f32);
-        let num_bars = self.bars.len();
-
-        let bar_w = (chart_w / num_bars as f32) * 0.7;
-        let gap_w = (chart_w / num_bars as f32) * 0.3;
-
-        for (i, bar) in self.bars.iter().enumerate() {
-            let x = pad_left + i as f32 * (bar_w + gap_w) + gap_w / 2.0;
-
-            // Draw a subtle placeholder base bar for all slots
-            let base_h = 2.0f32;
-            let base_path = Path::rectangle(Point::new(x, chart_h - base_h + pad_bottom), Size::new(bar_w, base_h));
-            let mut base_color = bar.color;
-            base_color.a = 0.15; // 15% opacity for muted look
-            frame.fill(&base_path, base_color);
-
-            let h = (bar.value / max_val) * chart_h;
-            if h > 2.0 {
-                let rect_path = Path::rectangle(Point::new(x, chart_h - h + pad_bottom), Size::new(bar_w, h));
-                frame.fill(&rect_path, bar.color);
-            }
-        }
-
-        vec![frame.into_geometry()]
-    }
-}
-
 // ── Chart Helper Views ────────────────────────────────────────────────────────
 
 pub fn view_pie_chart(slices: Vec<PieSlice>) -> Element<'static, Message> {
     Canvas::new(PieChartProgram { slices })
         .width(Length::Fixed(120.0))
         .height(Length::Fixed(120.0))
-        .into()
-}
-
-pub fn view_bar_chart(bars: Vec<BarItem>) -> Element<'static, Message> {
-    Canvas::new(BarChartProgram { bars })
-        .width(Length::Fill)
-        .height(Length::Fixed(100.0))
         .into()
 }
