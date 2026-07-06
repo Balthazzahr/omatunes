@@ -135,25 +135,7 @@ pub fn add_track_play(artist: &str, track_path: PathBuf) {
         let artist_count = day.artist_track_counts.entry(artist.to_string()).or_default();
         *artist_count += 1;
         
-        let track_count = day.track_play_counts.entry(track_path).or_default();
-        *track_count += 1;
     });
-}
-
-pub fn get_last_14_days_hours() -> Vec<f32> {
-    get(|db| {
-        let now = chrono::Local::now().naive_local().date();
-        let mut hours = Vec::new();
-        for i in (0..14).rev() {
-            let day = now - chrono::Duration::days(i);
-            let date_str = day.format("%Y-%m-%d").to_string();
-            let mins = db.daily_buckets.get(&date_str)
-                .map(|b| b.total_minutes)
-                .unwrap_or(0.0);
-            hours.push((mins / 60.0) as f32);
-        }
-        hours
-    })
 }
 
 // ── Aggregation & Query Functions ─────────────────────────────────────────────
