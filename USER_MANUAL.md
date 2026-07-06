@@ -9,17 +9,18 @@ If you just want to get playing, the short version is: point `music_dir` in your
 2. [Resizing the Player Section](#resizing-the-player-section)
 3. [Visualizer](#visualizer)
 4. [Live Lyrics](#live-lyrics)
-5. [Sidebar & Search](#sidebar--search)
-6. [Library View & Track Table](#library-view--track-table)
-7. [The Song Menu](#the-song-menu)
-8. [Now Playing / Up Next Queue](#now-playing--up-next-queue)
-9. [ID3 Tag Editor](#id3-tag-editor)
-10. [Lyrics Tab in the Tag Editor](#lyrics-tab-in-the-tag-editor)
-11. [Online Lookup Helpers](#online-lookup-helpers)
-12. [Playlists & Smart Playlists](#playlists--smart-playlists)
-13. [Theming](#theming)
-14. [Waybar Integration](#waybar-integration)
-15. [Keybinding Reference](#keybinding-reference)
+5. [Listening Statistics & Leaderboards](#listening-statistics--leaderboards)
+6. [Sidebar & Search](#sidebar--search)
+7. [Library View & Track Table](#library-view--track-table)
+8. [The Song Menu](#the-song-menu)
+9. [Now Playing / Up Next Queue](#now-playing--up-next-queue)
+10. [ID3 Tag Editor](#id3-tag-editor)
+11. [Lyrics Tab in the Tag Editor](#lyrics-tab-in-the-tag-editor)
+12. [Online Lookup Helpers](#online-lookup-helpers)
+13. [Playlists & Smart Playlists](#playlists--smart-playlists)
+14. [Theming](#theming)
+15. [Waybar Integration](#waybar-integration)
+16. [Keybinding Reference](#keybinding-reference)
 
 ---
 
@@ -76,6 +77,22 @@ The same drawer also shows lyrics, synced or plain:
 - **Plain lyrics** (no timestamps) just show up as scrollable text.
 - **Click any synced line** to jump playback straight to that moment.
 - Scroll around freely to read ahead — the view snaps back to center on the active line the next time the song reaches a new timestamp.
+
+---
+
+## Listening Statistics & Leaderboards
+
+OmaTUNES tracks your detailed listening history and provides aggregates and leaderboards within the right-side slide-out drawer tab (represented by the bar chart icon).
+
+**Listening Statistics**
+- **Slices of Time**: View stats aggregated dynamically across five columns: **Songs** played, **Hours** listened, **Top Genre**, and **Top Artist** — segmented chronologically by **Today**, **This Week**, **This Month**, and **All-Time**.
+- **Interactive Browsing**: The Top Genre and Top Artist values render as clickable links. Clicking a genre or artist instantly takes you to your main Library view pre-filtered by that specific criteria.
+- **Sizing Bounds**: The statistics table scales dynamically to fill the available drawer height and width, maintaining a clean 16px margin on all sides. The player split height is locked to a minimum floor of 330px to guarantee the table rows always have room to render cleanly.
+
+**Leaderboards**
+- Click the podium tab at the bottom of the statistics drawer to toggle the Leaderboards panel.
+- Shows your **Monthly Top 5** and **All-Time Top 10** artists sorted by total minutes played, formatted as: `Artist Name — Xh Ym (N tracks)`.
+- Features Gold, Silver, and Bronze highlighting for the top 3 spots to represent rankings.
 
 ---
 
