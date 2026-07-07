@@ -112,7 +112,7 @@ Right-click any artist or album row for a quick menu: hide it from your browsing
 
 This is where you actually see your tracks. A few things worth knowing:
 
-**Group by Album** — toggle it on to cluster tracks under album headers instead of one flat list. Remembered between sessions.
+**Group by Tray** — Hover the grouping capsule in the bottom-right corner of the track list to expand the tray, allowing you to cluster tracks dynamically by **Album**, **Artist**, **Genre**, or **Year** under row headers. Clear the grouping by clicking the base icon or the active grouping option to collapse back to a flat view. Your grouping preference is remembered automatically between sessions.
 
 **Columns** — click and drag a column header to reorder it, right where you want it. Right-click a header for the column menu, which now handles show/hide toggles only (reordering moved to drag-and-drop, since dragging is faster than hunting through a menu). Your column order and visibility choices are saved automatically.
 
