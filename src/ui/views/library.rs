@@ -938,7 +938,7 @@ pub fn get_responsive_columns(state: &AppState) -> Vec<crate::db::TableColumn> {
 
 fn track_list_view(state: &AppState) -> Element<'_, Message> {
     let is_recently_played = state.selected_playlist.as_deref() == Some("Recently Played");
-    let group_by_album = state.group_by_album && !is_recently_played;
+    let group_by = if is_recently_played { crate::db::GroupBy::None } else { state.group_by };
 
     let table_columns = get_responsive_columns(state);
     let mut header_widgets: Vec<Element<'_, Message>> = Vec::new();
