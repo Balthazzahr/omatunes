@@ -1510,7 +1510,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
             .on_press(Message::SelectViewMode(mode))
             .width(width)
-            .height(28.0)
+            .height(27.0)
             .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
                 let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
                 iced::widget::button::Style {
@@ -1563,7 +1563,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     let left_tabs_container = container(left_tabs)
         .width(state.sidebar_width.round())
         .padding([0, 8])
-        .height(28.0);
+        .height(27.0);
 
     let is_now_playing_active = state.show_queue_popover;
 
@@ -1670,7 +1670,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
 
     let now_playing_tab = button(container(now_playing_row).center_y(Length::Fill).padding([0, 12]))
         .on_press(Message::ToggleQueuePopover)
-        .height(28)
+        .height(27)
         .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
             let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
             iced::widget::button::Style {
@@ -1718,7 +1718,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         text_input(search_placeholder, &state.search_query)
             .id(iced::widget::text_input::Id::new("song_search_input"))
             .on_input(Message::SearchChanged)
-            .padding(4)
+            .padding(6)
             .size(11)
             .width(Length::Fill),
         song_clear_btn
@@ -1756,7 +1756,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         clear_queue_spacer
     ]
     .align_y(Alignment::Center)
-    .padding([0, 8])
+    .padding(iced::Padding { top: 0.0, right: 8.0, bottom: 0.0, left: 28.0 })
     .width(Length::Fill);
 
     let right_bar = row![
@@ -1767,23 +1767,33 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     ]
     .spacing(0)
     .align_y(Alignment::End)
-    .height(28.0)
+    .height(27.0)
     .width(Length::Fill);
 
-    container(
-        row![
-            left_tabs_container,
-            Space::with_width(6.0),
-            right_bar
-        ]
-        .spacing(0)
+    column![
+        container(
+            row![
+                left_tabs_container,
+                Space::with_width(6.0),
+                right_bar
+            ]
+            .spacing(0)
+            .width(Length::Fill)
+            .align_y(Alignment::End)
+        )
+        .style(|_| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::mantle())),
+            ..Default::default()
+        })
         .width(Length::Fill)
-        .align_y(Alignment::End)
-    )
-    .style(|_| iced::widget::container::Style {
-        background: Some(iced::Background::Color(theme::mantle())),
-        ..Default::default()
-    })
+        .height(27.0),
+        container(Space::new(Length::Fill, Length::Fixed(1.0)))
+            .style(|_| iced::widget::container::Style {
+                background: Some(iced::Background::Color(theme::surface0())),
+                ..Default::default()
+            })
+            .height(1.0)
+    ]
     .width(Length::Fill)
     .height(28.0)
     .into()
