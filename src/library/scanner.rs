@@ -190,102 +190,56 @@ pub fn write_tags(
     lyrics: Option<&str>,
 ) -> Result<()> {
     let mut tagged_file = Probe::open(path)?.read()?;
-    
-    let tag_type = tagged_file.primary_tag_type();
-    
-    if tagged_file.primary_tag_mut().is_some() {
-        let tag = tagged_file.primary_tag_mut().unwrap();
-        tag.set_title(title.to_string());
-        tag.set_artist(artist.to_string());
-        tag.set_album(album.to_string());
-        tag.set_genre(genre.to_string());
-        if let Some(num) = track_number {
-            tag.set_track(num);
-        } else {
-            tag.remove_track();
-        }
-        if let Some(num) = disc_number {
-            tag.set_disk(num);
-        } else {
-            tag.remove_disk();
-        }
-        if let Some(yr) = year {
-            tag.set_year(yr);
-        } else {
-            tag.remove_year();
-        }
-        
-        if let Some(lyr) = lyrics {
-            tag.insert_text(lofty::tag::ItemKey::Lyrics, lyr.to_string());
-        }
-        
-        if let Some(cp) = cover_path {
-            if let Ok(cover_data) = std::fs::read(cp) {
-                let mime = if cp.to_lowercase().ends_with(".png") {
-                    "image/png".to_string()
-                } else {
-                    "image/jpeg".to_string()
-                };
-                let picture = lofty::picture::Picture::new_unchecked(
-                    lofty::picture::PictureType::CoverFront,
-                    Some(lofty::picture::MimeType::Unknown(mime)),
-                    None,
-                    cover_data,
-                );
-                while !tag.pictures().is_empty() {
-                    tag.remove_picture(0);
-                }
-                tag.push_picture(picture);
-            }
-        }
-    } else {
-        let mut tag = lofty::tag::Tag::new(tag_type);
-        tag.set_title(title.to_string());
-        tag.set_artist(artist.to_string());
-        tag.set_album(album.to_string());
-        tag.set_genre(genre.to_string());
-        if let Some(num) = track_number {
-            tag.set_track(num);
-        } else {
-            tag.remove_track();
-        }
-        if let Some(num) = disc_number {
-            tag.set_disk(num);
-        } else {
-            tag.remove_disk();
-        }
-        if let Some(yr) = year {
-            tag.set_year(yr);
-        } else {
-            tag.remove_year();
-        }
-        
-        if let Some(lyr) = lyrics {
-            tag.insert_text(lofty::tag::ItemKey::Lyrics, lyr.to_string());
-        }
-        
-        if let Some(cp) = cover_path {
-            if let Ok(cover_data) = std::fs::read(cp) {
-                let mime = if cp.to_lowercase().ends_with(".png") {
-                    "image/png".to_string()
-                } else {
-                    "image/jpeg".to_string()
-                };
-                let picture = lofty::picture::Picture::new_unchecked(
-                    lofty::picture::PictureType::CoverFront,
-                    Some(lofty::picture::MimeType::Unknown(mime)),
-                    None,
-                    cover_data,
-                );
-                while !tag.pictures().is_empty() {
-                    tag.remove_picture(0);
-                }
-                tag.push_picture(picture);
-            }
-        }
-        tagged_file.insert_tag(tag);
+
+    if tagged_file.primary_tag_mut().is_none() {
+        tagged_file.insert_tag(lofty::tag::Tag::new(tagged_file.primary_tag_type()));
     }
-    
+    let tag = tagged_file.primary_tag_mut().unwrap();
+
+    tag.set_title(title.to_string());
+    tag.set_artist(artist.to_string());
+    tag.set_album(album.to_string());
+    tag.set_genre(genre.to_string());
+    if let Some(num) = track_number {
+        tag.set_track(num);
+    } else {
+        tag.remove_track();
+    }
+    if let Some(num) = disc_number {
+        tag.set_disk(num);
+    } else {
+        tag.remove_disk();
+    }
+    if let Some(yr) = year {
+        tag.set_year(yr);
+    } else {
+        tag.remove_year();
+    }
+
+    if let Some(lyr) = lyrics {
+        tag.insert_text(lofty::tag::ItemKey::Lyrics, lyr.to_string());
+    }
+
+    if let Some(cp) = cover_path {
+        if let Ok(cover_data) = std::fs::read(cp) {
+            let mime = if cp.to_lowercase().ends_with(".png") {
+                "image/png".to_string()
+            } else {
+                "image/jpeg".to_string()
+            };
+            let picture = lofty::picture::Picture::new_unchecked(
+                lofty::picture::PictureType::CoverFront,
+                Some(lofty::picture::MimeType::Unknown(mime)),
+                None,
+                cover_data,
+            );
+            while !tag.pictures().is_empty() {
+                tag.remove_picture(0);
+            }
+            tag.push_picture(picture);
+        }
+    }
+
     tagged_file.remove(lofty::tag::TagType::Id3v1);
     tagged_file.save_to_path(path, Default::default())?;
     Ok(())
