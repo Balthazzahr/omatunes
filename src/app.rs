@@ -755,6 +755,7 @@ impl AppState {
             queue_scroll_id: scrollable::Id::unique(),
             last_accumulated_position: Duration::ZERO,
             stats_sub_tab: StatsSubTab::ListeningStats,
+            show_period_breakdown: None,
             active_notifications: Vec::new(),
             last_checked_hour: {
                 use chrono::Timelike;
@@ -3636,6 +3637,17 @@ impl AppState {
 
             Message::SelectStatsSubTab(sub_tab) => {
                 self.stats_sub_tab = sub_tab;
+                Task::none()
+            }
+
+            Message::ShowPeriodBreakdown(period_idx) => {
+                let breakdown = crate::stats::get_period_breakdown(period_idx, &self.all_tracks);
+                self.show_period_breakdown = Some(breakdown);
+                Task::none()
+            }
+
+            Message::ClosePeriodBreakdown => {
+                self.show_period_breakdown = None;
                 Task::none()
             }
 
