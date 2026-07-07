@@ -3006,7 +3006,7 @@ impl AppState {
                     if self.selected_tracks.iter().any(|t| t.id == track.id) {
                         Arc::make_mut(&mut self.selected_tracks).retain(|t| t.id != track.id);
                     } else {
-                        self.selected_tracks.push(track.clone());
+                        Arc::make_mut(&mut self.selected_tracks).push(track.clone());
                     }
                     self.last_clicked_track = Some(track.clone());
                 } else if shift_held {
@@ -3923,7 +3923,7 @@ impl AppState {
                     if self.selected_tracks.iter().any(|t| t.id == track.id) {
                         Arc::make_mut(&mut self.selected_tracks).retain(|t| t.id != track.id);
                     } else {
-                        self.selected_tracks.push(track.clone());
+                        Arc::make_mut(&mut self.selected_tracks).push(track.clone());
                     }
                     self.last_clicked_track = Some(track.clone());
                 } else if shift_held {
@@ -5258,7 +5258,7 @@ impl AppState {
         if self.group_by_album {
             let mut y = 0.0;
             let mut groups: Vec<(String, Vec<&crate::library::models::Track>)> = Vec::new();
-            for track in &self.tracks {
+            for track in self.tracks.iter() {
                 if let Some(last) = groups.last_mut() {
                     if last.0 == track.album {
                         last.1.push(track);
