@@ -1469,10 +1469,10 @@ impl AppState {
                                         });
                                     }
 
-                                    if let Some(t) = self.all_tracks.iter_mut().find(|t| t.path == track.path) {
+                                    if let Some(t) = Arc::make_mut(&mut self.all_tracks).iter_mut().find(|t| t.path == track.path) {
                                         t.play_count = count;
                                     }
-                                    if let Some(t) = self.tracks.iter_mut().find(|t| t.path == track.path) {
+                                    if let Some(t) = Arc::make_mut(&mut self.tracks).iter_mut().find(|t| t.path == track.path) {
                                         t.play_count = count;
                                     }
                                 }
@@ -1680,10 +1680,10 @@ impl AppState {
             Message::ToggleLikeTrack(track) => {
                 self.show_context_menu = None;
                 let liked = crate::db::toggle_favorite(track.path.clone());
-                if let Some(t) = self.all_tracks.iter_mut().find(|t| t.path == track.path) {
+                if let Some(t) = Arc::make_mut(&mut self.all_tracks).iter_mut().find(|t| t.path == track.path) {
                     t.liked = liked;
                 }
-                if let Some(t) = self.tracks.iter_mut().find(|t| t.path == track.path) {
+                if let Some(t) = Arc::make_mut(&mut self.tracks).iter_mut().find(|t| t.path == track.path) {
                     t.liked = liked;
                 }
                 if let Some(ref mut ct) = self.current_track {
@@ -1857,10 +1857,10 @@ impl AppState {
                         if let Err(e) = res {
                             eprintln!("Error restoring tags for {}: {e}", original_track.path.display());
                         } else {
-                            if let Some(t) = self.all_tracks.iter_mut().find(|t| t.path == original_track.path) {
+                            if let Some(t) = Arc::make_mut(&mut self.all_tracks).iter_mut().find(|t| t.path == original_track.path) {
                                 *t = original_track.clone();
                             }
-                            if let Some(t) = self.tracks.iter_mut().find(|t| t.path == original_track.path) {
+                            if let Some(t) = Arc::make_mut(&mut self.tracks).iter_mut().find(|t| t.path == original_track.path) {
                                 *t = original_track.clone();
                             }
                             if let Some(ref mut ct) = self.current_track {
@@ -2098,7 +2098,7 @@ impl AppState {
                         if let Err(e) = res {
                             eprintln!("Error saving tags for {}: {e}", track.path.display());
                         } else {
-                            if let Some(t) = self.all_tracks.iter_mut().find(|t| t.path == track.path) {
+                            if let Some(t) = Arc::make_mut(&mut self.all_tracks).iter_mut().find(|t| t.path == track.path) {
                                 t.title = title.clone();
                                 t.artist = artist.clone();
                                 t.album = album.clone();
@@ -2113,7 +2113,7 @@ impl AppState {
                                     t.cover_data = load_cover(&t.path);
                                 }
                             }
-                            if let Some(t) = self.tracks.iter_mut().find(|t| t.path == track.path) {
+                            if let Some(t) = Arc::make_mut(&mut self.tracks).iter_mut().find(|t| t.path == track.path) {
                                 t.title = title.clone();
                                 t.artist = artist.clone();
                                 t.album = album.clone();
