@@ -1746,20 +1746,9 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
 
     let clear_queue_btn: Element<'_, Message> = Space::with_width(0.0).into();
 
-    let group_by_album_checkbox = Element::from(
-        row![
-            checkbox("Group by Album", state.group_by_album)
-                .on_toggle(|_| Message::ToggleGroupByAlbum)
-                .size(14),
-            Space::with_width(12),
-        ]
-        .align_y(Alignment::Center)
-    );
-
     let clear_queue_spacer: Element<'_, Message> = Space::with_width(0.0).into();
 
     let right_controls = row![
-        group_by_album_checkbox,
         song_search_input,
         clear_queue_spacer
     ]
