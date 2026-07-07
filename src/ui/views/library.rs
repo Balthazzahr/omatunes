@@ -1177,6 +1177,39 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             .into()
     };
 
+    // Floating Group by Album checkbox overlay
+    let group_by_checkbox = container(
+        checkbox("Group by Album", state.group_by_album)
+            .on_toggle(|_| Message::ToggleGroupByAlbum)
+            .size(14)
+    )
+    .padding([4, 8])
+    .style(|theme: &iced::Theme| iced::widget::container::Style {
+        background: Some(iced::Background::Color(theme::mantle())),
+        border: iced::Border {
+            color: theme::surface0(),
+            width: 1.0,
+            radius: 8.0.into(),
+        },
+        shadow: iced::Shadow {
+            color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.3),
+            offset: [0.0, 2.0].into(),
+            blur_radius: 6.0,
+        },
+        ..Default::default()
+    });
+
+    let content_area = stack![
+        content_area,
+        container(group_by_checkbox)
+            .align_x(iced::alignment::Horizontal::Right)
+            .align_y(iced::alignment::Vertical::Bottom)
+            .padding([0, 12, 12, 0]),
+    ]
+    .width(Length::Fill)
+    .height(Length::Fill)
+    .into();
+
     column![
         filter_options,
         headers,
