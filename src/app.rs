@@ -1436,9 +1436,7 @@ impl AppState {
                                 } else {
                                     duration / 2
                                 };
-                                if position < threshold {
-                                    break;
-                                }
+                                if position >= threshold {
                                 if let Some(ref mut track) = self.current_track {
                                     let count = crate::db::increment_play_count(track.path.clone());
                                     track.play_count = count;
