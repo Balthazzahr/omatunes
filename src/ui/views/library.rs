@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use iced::widget::{button, column, container, mouse_area, row, scrollable, text, Space, checkbox, text_input, stack, tooltip};
 use iced::{Alignment, Element, Length};
 
@@ -740,13 +742,13 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
 }
 
 struct TrackListDependency {
-    tracks: Vec<crate::library::models::Track>,
+    tracks: Arc<Vec<crate::library::models::Track>>,
     current_track_id: Option<i64>,
     current_track_album: Option<String>,
     pulse_tick: u32,
     is_playing: bool,
     is_paused: bool,
-    selected_tracks: Vec<crate::library::models::Track>,
+    selected_tracks: Arc<Vec<crate::library::models::Track>>,
     group_by_album: bool,
     sort_column: Option<SortColumn>,
     sort_ascending: bool,
