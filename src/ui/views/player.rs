@@ -205,11 +205,6 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                     } else {
                         theme::subtext()
                     },
-                    border: iced::Border {
-                        color: theme::surface0(),
-                        width: 1.0,
-                        radius: 0.0.into(),
-                    },
                     ..Default::default()
                 }
             })
@@ -236,6 +231,10 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             .width(Length::Fill)
             .height(Length::Fill)
             .center_y(Length::Fill)
+            .style(|_| iced::widget::container::Style {
+                background: None,
+                ..Default::default()
+            })
     };
 
     let left_sep = container(Space::new(Length::Fixed(1.0), Length::Fill))
