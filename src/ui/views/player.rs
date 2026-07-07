@@ -1093,66 +1093,43 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown) -> Eleme
     ]
     .align_y(Alignment::Center);
 
-    let mut artist_col = column![
-        text("Artist")
-            .font(crate::ui::icons::UI_FONT_BOLD)
-            .size(13)
-            .color(theme::subtext()),
-        Space::with_height(4),
-    ]
-    .spacing(2)
-    .width(Length::FillPortion(1));
-
-    for (name, mins) in &breakdown.artist_minutes {
-        let row_item = row![
-            text(name.clone())
-                .font(crate::ui::icons::UI_FONT)
-                .size(13)
-                .color(theme::text())
-                .width(Length::Fill),
-            text(format_hours(*mins))
+    let build_col = |title: &str, items: &[(String, f64)]| -> Element<'_, Message> {
+        let mut col = column![
+            text(title)
                 .font(crate::ui::icons::UI_FONT_BOLD)
                 .size(13)
-                .color(theme::text())
-                .align_x(iced::alignment::Horizontal::Right),
+                .color(theme::subtext()),
+            Space::with_height(4),
         ]
-        .spacing(8)
-        .align_y(Alignment::Center);
-        artist_col = artist_col.push(row_item);
-    }
+        .spacing(2)
+        .width(Length::FillPortion(1));
 
-    let mut genre_col = column![
-        text("Genre")
-            .font(crate::ui::icons::UI_FONT_BOLD)
-            .size(13)
-            .color(theme::subtext()),
-        Space::with_height(4),
-    ]
-    .spacing(2)
-    .width(Length::FillPortion(1));
-
-    for (name, mins) in &breakdown.genre_minutes {
-        let row_item = row![
-            text(name.clone())
-                .font(crate::ui::icons::UI_FONT)
-                .size(13)
-                .color(theme::text())
-                .width(Length::Fill),
-            text(format_hours(*mins))
-                .font(crate::ui::icons::UI_FONT_BOLD)
-                .size(13)
-                .color(theme::text())
-                .align_x(iced::alignment::Horizontal::Right),
-        ]
-        .spacing(8)
-        .align_y(Alignment::Center);
-        genre_col = genre_col.push(row_item);
-    }
+        for (name, mins) in items {
+            let row_item = row![
+                text(name.as_str())
+                    .font(crate::ui::icons::UI_FONT)
+                    .size(13)
+                    .color(theme::text())
+                    .width(Length::Fill),
+                text(format_hours(*mins))
+                    .font(crate::ui::icons::UI_FONT_BOLD)
+                    .size(13)
+                    .color(theme::text())
+                    .align_x(iced::alignment::Horizontal::Right),
+            ]
+            .spacing(8)
+            .align_y(Alignment::Center);
+            col = col.push(row_item);
+        }
+        col.into()
+    };
 
     let tables = row![
-        artist_col,
-        Space::with_width(24),
-        genre_col,
+        build_col("Artist", &breakdown.artist_minutes),
+        Space::with_width(12),
+        build_col("Genre", &breakdown.genre_minutes),
+        Space::with_width(12),
+        build_col("Album", &breakdown.album_minutes),
     ]
     .spacing(0);
 
@@ -1183,14 +1160,17 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown) -> Eleme
             close_btn,
         ]
         .align_y(Alignment::Center),
-        Space::with_height(16),
-        tables,
+        Space::with_height(12),
+        scrollable(tables)
+            .width(Length::Fill)
+            .height(Length::Fill),
     ];
 
     container(
         container(content)
             .padding(24)
-            .max_width(700)
+            .max_width(900)
+            .max_height(600)
             .style(|_| iced::widget::container::Style {
                 background: Some(iced::Background::Color(theme::mantle())),
                 border: iced::Border {
