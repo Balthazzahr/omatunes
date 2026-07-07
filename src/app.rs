@@ -950,14 +950,14 @@ impl AppState {
                     }
                 });
                 
-                self.tracks = temp_tracks;
+                self.tracks = Arc::new(temp_tracks);
             } else if let Some(sp) = crate::db::get(|db| db.smart_playlists.get(playlist_name).cloned()) {
-                self.tracks = self.evaluate_smart_playlist(&sp);
+                self.tracks = Arc::new(self.evaluate_smart_playlist(&sp));
             } else {
                 let paths = crate::db::get(|db| db.playlists.get(playlist_name).cloned().unwrap_or_default());
                 let track_map: std::collections::HashMap<std::path::PathBuf, Track> =
                     self.all_tracks.iter().map(|t| (t.path.clone(), t.clone())).collect();
-                self.tracks = paths.iter().filter_map(|p| track_map.get(p).cloned()).collect();
+                self.tracks = Arc::new(paths.iter().filter_map(|p| track_map.get(p).cloned()).collect::<Vec<_>>());
             }
             
             if playlist_name == "Liked Songs" || playlist_name == "New Music" {
