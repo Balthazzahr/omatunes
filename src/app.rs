@@ -220,7 +220,11 @@ pub enum Message {
     KeyboardArrowDown,
     DeletePlaylist(String),
     RenamePlaylist(String, String),
-    ToggleGroupByAlbum,
+    GroupByHoverEnter,
+    GroupByHoverExit,
+    GroupBySelected(crate::db::GroupBy),
+    GroupByCleared,
+    GroupByAnimationTick(std::time::Instant),
     SelectTrack(Track),
     SidebarSearchChanged(String),
     OpenShortcuts,
@@ -525,7 +529,8 @@ pub struct AppState {
     pub is_hovering_sidebar_list: bool,
     pub is_hovering_sidebar_resizer: bool,
     pub is_hovering_playlist_resizer: bool,
-    pub group_by_album: bool,
+    pub group_by: crate::db::GroupBy,
+    pub group_by_state: GroupByControlState,
     pub sidebar_search: String,
     pub show_shortcuts: bool,
 
@@ -573,6 +578,28 @@ pub struct AppState {
     pub show_period_breakdown: Option<crate::stats::PeriodBreakdown>,
     pub active_notifications: Vec<StatsNotification>,
     pub last_checked_hour: Option<u32>,
+}
+
+pub struct GroupByControlState {
+    pub active: crate::db::GroupBy,
+    pub hover_progress: f32,
+    pub is_cluster_hovered: bool,
+    pub force_collapsing: bool,
+    pub collapse_deadline: Option<std::time::Instant>,
+}
+
+impl GroupByControlState {
+    pub fn target(&self) -> f32 {
+        let should_be_expanded = self.is_cluster_hovered
+            || matches!(self.collapse_deadline, Some(d) if std::time::Instant::now() < d);
+        if self.force_collapsing {
+            0.0
+        } else if should_be_expanded {
+            1.0
+        } else {
+            0.0
+        }
+    }
 }
 
 impl AppState {
@@ -656,6 +683,8 @@ impl AppState {
             Message::LibraryScanned,
         );
 
+        let db_group_by = crate::db::get(|db| db.group_by.unwrap_or(crate::db::GroupBy::None));
+
         let state = AppState {
             playback_state: PlaybackState::Stopped,
             current_track: None,
@@ -716,7 +745,14 @@ impl AppState {
             is_hovering_sidebar_list: false,
             is_hovering_sidebar_resizer: false,
             is_hovering_playlist_resizer: false,
-            group_by_album: crate::db::get(|db| db.group_by_album),
+            group_by: db_group_by,
+            group_by_state: GroupByControlState {
+                active: db_group_by,
+                hover_progress: 0.0,
+                is_cluster_hovered: false,
+                force_collapsing: false,
+                collapse_deadline: None,
+            },
             sidebar_search: String::new(),
             show_shortcuts: false,
             last_click_track: None,
@@ -3006,10 +3042,61 @@ impl AppState {
                 Task::none()
             }
 
-            Message::ToggleGroupByAlbum => {
-                self.group_by_album = !self.group_by_album;
-                crate::db::write(|db| db.group_by_album = self.group_by_album);
+            Message::GroupByHoverEnter => {
+                self.group_by_state.is_cluster_hovered = true;
+                self.group_by_state.collapse_deadline = None;
+                Task::none()
+            }
+
+            Message::GroupByHoverExit => {
+                self.group_by_state.is_cluster_hovered = false;
+                if self.group_by_state.hover_progress > 0.0 {
+                    self.group_by_state.collapse_deadline = Some(std::time::Instant::now() + std::time::Duration::from_millis(1500));
+                }
+                Task::none()
+            }
+
+            Message::GroupBySelected(grouping) => {
+                self.group_by = grouping;
+                self.group_by_state.active = grouping;
+                crate::db::write(|db| {
+                    db.group_by = Some(grouping);
+                    db.group_by_album = grouping == crate::db::GroupBy::Album;
+                });
+                self.group_by_state.force_collapsing = true;
+                self.group_by_state.is_cluster_hovered = false;
+                self.group_by_state.collapse_deadline = None;
                 self.update_filtered_tracks();
+                Task::none()
+            }
+
+            Message::GroupByCleared => {
+                let grouping = crate::db::GroupBy::None;
+                self.group_by = grouping;
+                self.group_by_state.active = grouping;
+                crate::db::write(|db| {
+                    db.group_by = Some(grouping);
+                    db.group_by_album = false;
+                });
+                self.group_by_state.force_collapsing = true;
+                self.group_by_state.is_cluster_hovered = false;
+                self.group_by_state.collapse_deadline = None;
+                self.update_filtered_tracks();
+                Task::none()
+            }
+
+            Message::GroupByAnimationTick(_instant) => {
+                let target = self.group_by_state.target();
+                let diff = target - self.group_by_state.hover_progress;
+                if diff.abs() < 0.01 {
+                    self.group_by_state.hover_progress = target;
+                    if target == 0.0 {
+                        self.group_by_state.force_collapsing = false;
+                        self.group_by_state.collapse_deadline = None;
+                    }
+                } else {
+                    self.group_by_state.hover_progress += diff * 0.15;
+                }
                 Task::none()
             }
 
@@ -5415,6 +5502,13 @@ impl AppState {
             })
         ));
 
+        let target = self.group_by_state.target();
+        let is_animating = (self.group_by_state.hover_progress - target).abs() > 0.001
+            || self.group_by_state.collapse_deadline.is_some();
+        if is_animating {
+            subs.push(iced::time::every(Duration::from_millis(16)).map(|_| Message::GroupByAnimationTick(std::time::Instant::now())));
+        }
+
         Subscription::batch(subs)
     }
 
@@ -5464,19 +5558,26 @@ impl AppState {
     pub fn calculate_scroll_offset(&self, track_id: i64) -> Option<f32> {
         let track_height = 34.0;
         let spacing = 1.0;
-        if self.group_by_album {
+        if self.group_by != crate::db::GroupBy::None {
             let mut y = 0.0;
             let mut groups: Vec<(String, Vec<&crate::library::models::Track>)> = Vec::new();
             for track in self.tracks.iter() {
+                let group_key = match self.group_by {
+                    crate::db::GroupBy::Album => track.album.clone(),
+                    crate::db::GroupBy::Artist => track.artist.clone(),
+                    crate::db::GroupBy::Genre => track.genre.clone(),
+                    crate::db::GroupBy::Year => track.year.to_string(),
+                    crate::db::GroupBy::None => unreachable!(),
+                };
                 if let Some(last) = groups.last_mut() {
-                    if last.0 == track.album {
+                    if last.0 == group_key {
                         last.1.push(track);
                         continue;
                     }
                 }
-                groups.push((track.album.clone(), vec![track]));
+                groups.push((group_key, vec![track]));
             }
-            for (_album_name, tracks) in groups {
+            for (_group_name, tracks) in groups {
                 let header_height = 28.0;
                 if let Some(index_in_album) = tracks.iter().position(|t| t.id == track_id) {
                     y += header_height + spacing;
