@@ -3598,22 +3598,6 @@ impl AppState {
                     }
                 }
 
-                if self.show_sidebar_search {
-                    let sidebar_right = self.sidebar_width;
-                    let sidebar_left = 0.0;
-                    let sidebar_top = self.player_height + 28.0;
-                    let sidebar_bottom = sidebar_top + 28.0;
-
-                    let px = self.cursor_position.x;
-                    let py = self.cursor_position.y;
-                    let clicked_inside_sidebar_search = px >= sidebar_left && px <= sidebar_right && py >= sidebar_top && py <= sidebar_bottom;
-                    if !clicked_inside_sidebar_search {
-                        self.show_sidebar_search = false;
-                        self.sidebar_search.clear();
-                        self.update_filtered_tracks();
-                    }
-                }
-
                 Task::none()
             }
 
