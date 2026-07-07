@@ -123,6 +123,11 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             ViewMode::Albums => "All Albums",
             ViewMode::Genres => "All Genres",
         };
+        let label_icon = match state.view_mode {
+            ViewMode::Artists | ViewMode::NowPlaying => crate::ui::icons::ICON_PERSON,
+            ViewMode::Albums => crate::ui::icons::ICON_CD,
+            ViewMode::Genres => crate::ui::icons::ICON_TAG,
+        };
         let is_selected = match state.view_mode {
             ViewMode::Artists | ViewMode::NowPlaying => state.selected_artist.is_none() && state.selected_playlist.is_none(),
             ViewMode::Albums => state.selected_album.is_none() && state.selected_playlist.is_none(),
@@ -147,11 +152,10 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                 ]
                 .align_y(Alignment::Center)
             )
-            .align_x(iced::alignment::Horizontal::Left)
+            .align_x(iced::alignment::Horizontal::Center)
             .align_y(iced::alignment::Vertical::Center)
             .width(Length::Fill)
             .height(Length::Fill)
-            .padding([0, 12])
         )
         .on_press(Message::ToggleSidebarSearch)
         .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
@@ -180,15 +184,21 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
 
         let label_btn = button(
             container(
-                text(label_text)
-                    .font(crate::ui::icons::UI_FONT_BOLD)
-                    .size(13)
+                row![
+                    text(label_icon)
+                        .size(14)
+                        .font(crate::ui::icons::NERD_FONT_MONO),
+                    Space::with_width(6.0),
+                    text(label_text)
+                        .size(13)
+                        .font(crate::ui::icons::UI_FONT_BOLD)
+                ]
+                .align_y(Alignment::Center)
             )
-            .align_x(iced::alignment::Horizontal::Right)
+            .align_x(iced::alignment::Horizontal::Center)
             .align_y(iced::alignment::Vertical::Center)
             .width(Length::Fill)
             .height(Length::Fill)
-            .padding([0, 12])
         )
         .on_press(label_action)
         .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
