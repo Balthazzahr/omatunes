@@ -14,10 +14,20 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     // ── DEBUG: layout dimensions ──────────────────────────────────────────────
     let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 450.0);
     let tab_strip_height = state.player_height - 28.0;
-    let btn_height = if is_allowed { tab_strip_height / 3.0 } else { 0.0 };
+    let btn_slot_height = if is_allowed { tab_strip_height / 3.0 } else { 0.0 };
+    // button = icon(28) + padding([4,8]) vertical = 28 + 8 = 36px
+    let btn_content_height = 28.0 + 8.0; // icon_size + vertical_padding
+    let centering_space = if is_allowed { (btn_slot_height - btn_content_height) / 2.0 } else { 0.0 };
     eprintln!(
-        "DEBUG [player::view] player_height={:.0} window_width={:.0} is_allowed={} tab_strip_height={:.0} btn_height={:.1} right_panel_tab={:?}",
-        state.player_height, state.window_width, is_allowed, tab_strip_height, btn_height, state.right_panel_tab
+        "DEBUG [player::view] player_height={:.0} window_width={:.0} is_allowed={} \
+         tab_strip(row)_height(Fixed)={:.0} column(slot)_height(Fill)={:.0} \
+         btn(Shrink)_height={:.1} centering_each_side={:.1} \
+         column_spacing=0 outer_container_bg=None btn_border_width=0 \
+         right_panel_tab={:?}",
+        state.player_height, state.window_width, is_allowed,
+        tab_strip_height, btn_slot_height,
+        btn_content_height, centering_space,
+        state.right_panel_tab
     );
     // ──────────────────────────────────────────────────────────────────────────
 
@@ -181,7 +191,8 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             .font(crate::ui::icons::NERD_FONT_MONO);
         
         eprintln!(
-            "DEBUG [tab_btn] tab={:?} is_active={} icon_size=28 container_width=Fill container_height=Shrink padding=0",
+            "DEBUG [tab_btn] tab={:?} is_active={} btn(height=Shrink, padding=[4,8]=36px) \
+             outer_container(height=Fill, center_y=Fill, bg=transparent)",
             tab, is_active
         );
         let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Shrink))
