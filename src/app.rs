@@ -876,7 +876,7 @@ impl AppState {
                 let match_album = self.filter_album && t.album.to_lowercase().contains(&query);
                 let match_genre = self.filter_genre && t.genre.to_lowercase().contains(&query);
                 match_title || match_artist || match_album || match_genre
-            }).cloned().collect();
+            }).cloned().collect::<Vec<_>>());
         } else if let Some(playlist_name) = &self.selected_playlist {
             if playlist_name == "Liked Songs" {
                 self.tracks = self.all_tracks.iter().filter(|t| t.liked).cloned().collect();
