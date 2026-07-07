@@ -76,9 +76,15 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             Space::with_width(0.0).into()
         };
 
+        let placeholder = match state.view_mode {
+            ViewMode::Artists | ViewMode::NowPlaying => "Search artists...",
+            ViewMode::Albums => "Search albums...",
+            ViewMode::Genres => "Search genres...",
+        };
+
         container(
             row![
-                text_input("Search...", &state.sidebar_search)
+                text_input(placeholder, &state.sidebar_search)
                     .id(iced::widget::text_input::Id::new("sidebar_search_input"))
                     .on_input(Message::SidebarSearchChanged)
                     .padding(5)
