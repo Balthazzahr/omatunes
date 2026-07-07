@@ -1068,7 +1068,7 @@ fn wrap_text(text: &str, max_chars: usize) -> Vec<String> {
     sub_lines
 }
 
-pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown) -> Element<'static, Message> {
+pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown) -> Element<'_, Message> {
     let format_hours = |mins: f64| -> String {
         let total_secs = (mins * 60.0) as u64;
         let h = total_secs / 3600;
