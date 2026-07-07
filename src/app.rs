@@ -2817,7 +2817,7 @@ impl AppState {
                         let cover_data = load_cover(&track.path);
                         let track = Track { cover_data, ..track };
                         self.selected_track = Some(track.clone());
-                        self.selected_tracks = vec![track.clone()];
+                        self.selected_tracks = Arc::new(vec![track.clone()]);
                         self.last_clicked_track = Some(track.clone());
                         if let Some(y) = self.calculate_scroll_offset(track.id) {
                             let target_y = (y - 120.0).max(0.0);
@@ -2892,7 +2892,7 @@ impl AppState {
                         let cover_data = load_cover(&track.path);
                         let track = Track { cover_data, ..track };
                         self.selected_track = Some(track.clone());
-                        self.selected_tracks = vec![track.clone()];
+                        self.selected_tracks = Arc::new(vec![track.clone()]);
                         self.last_clicked_track = Some(track.clone());
                         if let Some(y) = self.calculate_scroll_offset(track.id) {
                             let target_y = (y - 120.0).max(0.0);
@@ -3018,11 +3018,11 @@ impl AppState {
                             self.selected_tracks = self.tracks[min..=max].to_vec();
                         }
                     } else {
-                        self.selected_tracks = vec![track.clone()];
+                        self.selected_tracks = Arc::new(vec![track.clone()]);
                         self.last_clicked_track = Some(track.clone());
                     }
                 } else {
-                    self.selected_tracks = vec![track.clone()];
+                    self.selected_tracks = Arc::new(vec![track.clone()]);
                     self.last_clicked_track = Some(track.clone());
                 }
 
@@ -3141,7 +3141,7 @@ impl AppState {
                                         let cover_data = load_cover(&track.path);
                                         let track = Track { cover_data, ..track };
                                         self.selected_track = Some(track.clone());
-                                        self.selected_tracks = vec![track.clone()];
+                                        self.selected_tracks = Arc::new(vec![track.clone()]);
                                         self.last_clicked_track = Some(track.clone());
                                     }
                                 }
@@ -3153,7 +3153,7 @@ impl AppState {
                                         let cover_data = load_cover(&track.path);
                                         let track = Track { cover_data, ..track };
                                         self.selected_track = Some(track.clone());
-                                        self.selected_tracks = vec![track.clone()];
+                                        self.selected_tracks = Arc::new(vec![track.clone()]);
                                         self.last_clicked_track = Some(track.clone());
                                     }
                                 }
@@ -3935,11 +3935,11 @@ impl AppState {
                             self.selected_tracks = self.tracks[min..=max].to_vec();
                         }
                     } else {
-                        self.selected_tracks = vec![track.clone()];
+                        self.selected_tracks = Arc::new(vec![track.clone()]);
                         self.last_clicked_track = Some(track.clone());
                     }
                 } else {
-                    self.selected_tracks = vec![track.clone()];
+                    self.selected_tracks = Arc::new(vec![track.clone()]);
                     self.last_clicked_track = Some(track.clone());
                 }
 
