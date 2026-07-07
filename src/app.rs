@@ -2196,6 +2196,7 @@ impl AppState {
                     state.apply_lyrics = false;
                     state.is_saved = true;
                 }
+                self.cover_cache_version = self.cover_cache_version.wrapping_add(1);
                 self.update_filtered_tracks();
                 Task::none()
             }
@@ -4129,9 +4130,7 @@ impl AppState {
                         } else {
                             self.sort_column = Some(sort_col);
                             self.sort_ascending = true;
-                }
-                self.cover_cache_version = self.cover_cache_version.wrapping_add(1);
-                self.update_filtered_tracks();
+                        }
                     }
                 }
                 self.dragging_column_header = None;
