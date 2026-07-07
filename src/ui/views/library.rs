@@ -1317,7 +1317,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             .into()
     };
 
-    let option_tray = if hover_progress > 0.0 {
+    let option_tray: Element<'_, Message> = if hover_progress > 0.0 {
         let mut row = row![
             make_option_btn(crate::db::GroupBy::Album, crate::ui::icons::ICON_CD, "Album"),
             make_option_btn(crate::db::GroupBy::Artist, crate::ui::icons::ICON_PERSON, "Artist"),
