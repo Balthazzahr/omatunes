@@ -426,7 +426,10 @@ pub struct PeriodBreakdown {
     pub total_plays: u32,
     pub artist_minutes: Vec<(String, f64)>,
     pub genre_minutes: Vec<(String, f64)>,
+    pub album_minutes: Vec<(String, f64)>,
 }
+
+const TOP_N_BREAKDOWN: usize = 25;
 
 pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models::Track]) -> PeriodBreakdown {
     get(|db| {
@@ -452,6 +455,7 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
         let mut total_plays = 0;
         let mut artist_minutes: HashMap<String, f64> = HashMap::new();
         let mut genre_minutes: HashMap<String, f64> = HashMap::new();
+        let mut album_minutes: HashMap<String, f64> = HashMap::new();
 
         if *label == "All-Time" {
             total_plays += db.legacy_tracks;
@@ -469,7 +473,6 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
                     *artist_minutes.entry(a.clone()).or_default() += m;
                 }
                 if day.genre_minutes.is_empty() {
-                    // Build artist_to_genre mapping as fallback
                     let mut artist_genre_counts: HashMap<String, HashMap<String, usize>> = HashMap::new();
                     for track in tracks {
                         if !track.artist.is_empty() && !track.genre.is_empty() {
@@ -492,13 +495,21 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
                         *genre_minutes.entry(g.clone()).or_default() += m;
                     }
                 }
+                for (al, m) in &day.album_minutes {
+                    *album_minutes.entry(al.clone()).or_default() += m;
+                }
             }
         }
 
         let mut artist_list: Vec<(String, f64)> = artist_minutes.into_iter().collect();
         artist_list.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        artist_list.truncate(TOP_N_BREAKDOWN);
         let mut genre_list: Vec<(String, f64)> = genre_minutes.into_iter().collect();
         genre_list.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        genre_list.truncate(TOP_N_BREAKDOWN);
+        let mut album_list: Vec<(String, f64)> = album_minutes.into_iter().collect();
+        album_list.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        album_list.truncate(TOP_N_BREAKDOWN);
 
         PeriodBreakdown {
             period_label: label.to_string(),
@@ -506,6 +517,7 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
             total_plays,
             artist_minutes: artist_list,
             genre_minutes: genre_list,
+            album_minutes: album_list,
         }
     })
 }
