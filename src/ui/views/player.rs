@@ -282,24 +282,34 @@ pub fn tab_strip(state: &AppState) -> Element<'_, Message> {
         .width(1.0)
         .height(Length::Fill);
 
-    row![
-        left_sep,
-        container(
-            column![
-                tab_btn(crate::app::RightPanelTab::Visualizer, crate::ui::icons::ICON_VISUALIZER, "Visualizer"),
-                tab_btn(crate::app::RightPanelTab::Statistics, crate::ui::icons::ICON_STATS, "Listening Statistics"),
-                tab_btn(crate::app::RightPanelTab::Lyrics, crate::ui::icons::ICON_LYRICS, "Lyrics"),
-            ]
-            .width(Length::Fill)
+    column![
+        row![
+            left_sep,
+            container(
+                column![
+                    tab_btn(crate::app::RightPanelTab::Visualizer, crate::ui::icons::ICON_VISUALIZER, "Visualizer"),
+                    tab_btn(crate::app::RightPanelTab::Statistics, crate::ui::icons::ICON_STATS, "Listening Statistics"),
+                    tab_btn(crate::app::RightPanelTab::Lyrics, crate::ui::icons::ICON_LYRICS, "Lyrics"),
+                ]
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .spacing(0)
+            )
+            .width(55.0)
             .height(Length::Fill)
-            .spacing(0)
-        )
-        .width(55.0)
-        .height(Length::Fill)
-        .style(|_| iced::widget::container::Style {
-            background: None,
-            ..Default::default()
-        })
+            .style(|_| iced::widget::container::Style {
+                background: None,
+                ..Default::default()
+            })
+        ]
+        .width(56.0)
+        .height(Length::Fill),
+        container(Space::new(Length::Fill, Length::Fixed(1.0)))
+            .style(|_| iced::widget::container::Style {
+                background: Some(iced::Background::Color(theme::surface0())),
+                ..Default::default()
+            })
+            .height(1.0)
     ]
     .width(56.0)
     .height(Length::Fill)
