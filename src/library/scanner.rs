@@ -121,6 +121,11 @@ fn read_tags(path: &Path) -> Result<TrackInfo> {
         .and_then(|p| p.parent())
         .and_then(|p| p.file_name())
         .and_then(|n| n.to_str())
+        .or_else(|| {
+            path.parent()
+                .and_then(|p| p.file_name())
+                .and_then(|n| n.to_str())
+        })
         .unwrap_or(unknown)
         .to_string();
 
