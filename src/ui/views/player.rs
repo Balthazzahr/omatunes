@@ -1,4 +1,4 @@
-use iced::widget::{column, container, image, row, text, Space, button, slider, mouse_area, stack, scrollable, tooltip};
+use iced::widget::{column, container, image, row, text, Space, button, slider, mouse_area, stack, scrollable, tooltip, vertical_rule};
 use iced::{Alignment, Element, Length, Color};
 use std::collections::HashMap;
 
@@ -1095,46 +1095,70 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown) -> Eleme
     let header = row![
         text(&breakdown.period_label)
             .font(crate::ui::icons::UI_FONT_BOLD)
-            .size(18)
+            .size(20)
             .color(theme::accent()),
         Space::with_width(Length::Fill),
         text(format!("{} tracks · {}", breakdown.total_plays, format_hours(breakdown.total_minutes)))
             .font(crate::ui::icons::UI_FONT)
-            .size(13)
+            .size(15)
             .color(theme::subtext()),
     ]
     .align_y(Alignment::Center);
 
-    fn build_col<'a>(title: &'a str, items: &'a [(String, f64)], format_hours: &impl Fn(f64) -> String) -> Element<'a, Message> {
+    let text_size = 15;
+    let small_size = 14;
+
+    fn build_col<'a>(
+        title: &'a str,
+        items: &'a [(String, f64)],
+        format_hours: &impl Fn(f64) -> String,
+        text_size: u16,
+        make_on_press: impl Fn(String) -> Message + 'a,
+    ) -> Element<'a, Message> {
         let mut col = column![
             text(title)
                 .font(crate::ui::icons::UI_FONT_BOLD)
-                .size(13)
+                .size(text_size)
                 .color(theme::subtext()),
-            Space::with_height(4),
+            Space::with_height(6),
         ]
-        .spacing(2)
+        .spacing(3)
         .width(Length::FillPortion(1));
 
         if items.is_empty() {
             col = col.push(
                 text("No data yet")
                     .font(crate::ui::icons::UI_FONT)
-                    .size(12)
+                    .size(small_size)
                     .color(theme::overlay0())
             );
         } else {
             for (name, mins) in items {
-                let row_item = row![
+                let name_btn = button(
                     text(name.as_str())
                         .font(crate::ui::icons::UI_FONT)
-                        .size(13)
+                        .size(text_size)
                         .color(theme::text())
                         .width(Length::Fill),
+                )
+                .on_press(make_on_press(name.clone()))
+                .padding(0)
+                .style(|_theme: &iced::Theme, status: iced::widget::button::Status| {
+                    let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                    iced::widget::button::Style {
+                        background: None,
+                        text_color: if is_hovered { theme::accent() } else { theme::text() },
+                        border: iced::Border::default(),
+                        ..Default::default()
+                    }
+                });
+
+                let row_item = row![
+                    name_btn.width(Length::Fill),
                     text(format_hours(*mins))
                         .font(crate::ui::icons::UI_FONT_BOLD)
-                        .size(13)
-                        .color(theme::text())
+                        .size(text_size)
+                        .color(theme::overlay2())
                         .align_x(iced::alignment::Horizontal::Right),
                 ]
                 .spacing(8)
@@ -1145,19 +1169,33 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown) -> Eleme
         col.into()
     }
 
+    let sep = || -> Element<'_, Message> {
+        vertical_rule(1)
+            .style(|_, _| iced::widget::rule::Style {
+                color: theme::surface0(),
+                width: 1,
+                ..Default::default()
+                // note: `fill` is the default
+            })
+            .into()
+    };
+
     let tables = row![
-        build_col("Artist", &breakdown.artist_minutes, &format_hours),
-        Space::with_width(12),
-        build_col("Genre", &breakdown.genre_minutes, &format_hours),
-        Space::with_width(12),
-        build_col("Album", &breakdown.album_minutes, &format_hours),
+        build_col("Artist", &breakdown.artist_minutes, &format_hours, text_size, |name| Message::SelectArtistFromBreakdown(name)),
+        sep(),
+        Space::with_width(16),
+        build_col("Genre", &breakdown.genre_minutes, &format_hours, text_size, |name| Message::SelectGenreFromBreakdown(name)),
+        sep(),
+        Space::with_width(16),
+        build_col("Album", &breakdown.album_minutes, &format_hours, text_size, |name| Message::SelectAlbumFromBreakdown(name)),
     ]
-    .spacing(0);
+    .spacing(0)
+    .width(Length::Fill);
 
     let close_btn = button(
         text("\u{f00d}")
             .font(crate::ui::icons::NERD_FONT_MONO)
-            .size(16)
+            .size(18)
     )
     .on_press(Message::ClosePeriodBreakdown)
     .padding(6)
@@ -1181,7 +1219,7 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown) -> Eleme
             close_btn,
         ]
         .align_y(Alignment::Center),
-        Space::with_height(12),
+        Space::with_height(16),
         scrollable(tables)
             .width(Length::Fill)
             .height(Length::Fill),
@@ -1189,9 +1227,9 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown) -> Eleme
 
     container(
         container(content)
-            .padding(24)
-            .max_width(1000)
-            .max_height(750)
+            .padding(28)
+            .max_width(1200)
+            .max_height(800)
             .style(|_| iced::widget::container::Style {
                 background: Some(iced::Background::Color(theme::mantle())),
                 border: iced::Border {
