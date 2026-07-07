@@ -1017,7 +1017,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         is_playing,
         is_paused,
         selected_tracks: state.selected_tracks.clone(),
-        group_by_album,
+        group_by,
         sort_column: state.sort_column,
         sort_ascending: state.sort_ascending,
         strings: state.strings,
@@ -1040,51 +1040,78 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             .collect();
         let mut rows: Vec<Element<Message>> = Vec::new();
 
-        if dep.group_by_album {
-            // Group tracks in the visible window by album keeping insertion order
+        if dep.group_by != crate::db::GroupBy::None {
             let start = dep.visible_start;
             let end = dep.visible_end.min(dep.tracks.len());
             let tracks_in_window = &dep.tracks[start..end];
 
             let mut groups: Vec<(String, Vec<&crate::library::models::Track>)> = Vec::new();
             for track in tracks_in_window {
+                let group_key = match dep.group_by {
+                    crate::db::GroupBy::Album => track.album.clone(),
+                    crate::db::GroupBy::Artist => track.artist.clone(),
+                    crate::db::GroupBy::Genre => track.genre.clone(),
+                    crate::db::GroupBy::Year => track.year.to_string(),
+                    crate::db::GroupBy::None => unreachable!(),
+                };
                 if let Some(last) = groups.last_mut() {
-                    if last.0 == track.album {
+                    if last.0 == group_key {
                         last.1.push(track);
                         continue;
                     }
                 }
-                groups.push((track.album.clone(), vec![track]));
+                groups.push((group_key, vec![track]));
             }
 
-            for (album_name, tracks) in groups.into_iter() {
+            for (group_name, tracks) in groups.into_iter() {
                 let n = tracks.len();
-                let is_hovered = dep.hovered_album_header.as_ref() == Some(&album_name);
-                let is_current_album_playing = dep.current_track_album.as_deref() == Some(&album_name);
+                let is_hovered = dep.hovered_album_header.as_ref() == Some(&group_name);
+                let is_current_album_playing = match dep.group_by {
+                    crate::db::GroupBy::Album => dep.current_track_album.as_deref() == Some(&group_name),
+                    _ => false,
+                };
 
-                let album_display_name = if album_name.trim().is_empty() {
-                    "Unknown Album".to_string()
+                let display_name = if group_name.trim().is_empty() {
+                    match dep.group_by {
+                        crate::db::GroupBy::Album => "Unknown Album".to_string(),
+                        crate::db::GroupBy::Artist => "Unknown Artist".to_string(),
+                        crate::db::GroupBy::Genre => "Unknown Genre".to_string(),
+                        crate::db::GroupBy::Year => "Unknown Year".to_string(),
+                        _ => "Unknown".to_string(),
+                    }
                 } else {
-                    album_name.clone()
+                    group_name.clone()
                 };
 
                 let is_active_playing = is_current_album_playing && dep.is_playing;
 
-                let album_name_btn = button(
-                    text(album_display_name)
-                        .color(if is_active_playing {
-                            theme::accent()
-                        } else {
-                            theme::text()
-                        })
-                        .size(13)
-                        .font(crate::ui::icons::UI_FONT_BOLD)
-                )
-                .on_press(Message::ToggleAlbumPlayPause(album_name.clone()))
-                .style(iced::widget::button::text)
-                .padding(0);
+                let album_name_btn: Element<'static, Message> = if dep.group_by == crate::db::GroupBy::Album {
+                    button(
+                        text(display_name)
+                            .color(if is_active_playing {
+                                theme::accent()
+                            } else {
+                                theme::text()
+                            })
+                            .size(13)
+                            .font(crate::ui::icons::UI_FONT_BOLD)
+                    )
+                    .on_press(Message::ToggleAlbumPlayPause(group_name.clone()))
+                    .style(iced::widget::button::text)
+                    .padding(0)
+                    .into()
+                } else {
+                    container(
+                        text(display_name)
+                            .color(theme::text())
+                            .size(13)
+                            .font(crate::ui::icons::UI_FONT_BOLD)
+                    )
+                    .padding(0)
+                    .into()
+                };
 
-                let play_btn: Element<'static, Message> = if is_current_album_playing || is_hovered {
+                let play_btn: Element<'static, Message> = if (dep.group_by == crate::db::GroupBy::Album) && (is_current_album_playing || is_hovered) {
                     let btn_color = if is_active_playing {
                         theme::accent()
                     } else {
@@ -1121,7 +1148,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                         .spacing(4)
                         .align_y(Alignment::Center)
                     )
-                    .on_press(Message::ToggleAlbumPlayPause(album_name.clone()))
+                    .on_press(Message::ToggleAlbumPlayPause(group_name.clone()))
                     .style(move |_, _| iced::widget::button::Style {
                         text_color: btn_color,
                         background: Some(iced::Background::Color(iced::Color::TRANSPARENT)),
@@ -1154,7 +1181,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                     })
                     .width(Length::Fill)
                 )
-                .on_enter(Message::HoverAlbumHeader(Some(album_name.clone())))
+                .on_enter(Message::HoverAlbumHeader(Some(group_name.clone())))
                 .on_exit(Message::HoverAlbumHeader(None));
 
                 rows.push(header.into());
