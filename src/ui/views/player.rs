@@ -11,6 +11,16 @@ use crate::ui::{icons, theme};
 pub const LYRICS_OFFSET: std::time::Duration = std::time::Duration::from_millis(500);
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
+    // ── DEBUG: layout dimensions ──────────────────────────────────────────────
+    let is_allowed = state.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 450.0);
+    let tab_strip_height = state.player_height - 28.0;
+    let btn_height = if is_allowed { tab_strip_height / 3.0 } else { 0.0 };
+    eprintln!(
+        "DEBUG [player::view] player_height={:.0} window_width={:.0} is_allowed={} tab_strip_height={:.0} btn_height={:.1} right_panel_tab={:?}",
+        state.player_height, state.window_width, is_allowed, tab_strip_height, btn_height, state.right_panel_tab
+    );
+    // ──────────────────────────────────────────────────────────────────────────
+
     // 1. Determine which track to display (active track or selected track as queue fallback)
     let is_playing_or_paused = !matches!(state.playback_state, PlaybackState::Stopped);
     let (display_track, is_queued) = if is_playing_or_paused {
@@ -170,6 +180,10 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             .size(28)
             .font(crate::ui::icons::NERD_FONT_MONO);
         
+        eprintln!(
+            "DEBUG [tab_btn] tab={:?} is_active={} icon_size=28 container_width=Fill container_height=Fill padding=0",
+            tab, is_active
+        );
         let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
             .on_press(Message::ToggleRightPanelTab(tab))
             .width(Length::Fill)
