@@ -1873,7 +1873,7 @@ impl AppState {
                                     *st = original_track.clone();
                                 }
                             }
-                            if let Some(t) = self.selected_tracks.iter_mut().find(|t| t.path == original_track.path) {
+                            if let Some(t) = Arc::make_mut(&mut self.selected_tracks).iter_mut().find(|t| t.path == original_track.path) {
                                 *t = original_track.clone();
                             }
                         }
@@ -2162,7 +2162,7 @@ impl AppState {
                                     }
                                 }
                             }
-                            if let Some(t) = self.selected_tracks.iter_mut().find(|t| t.path == track.path) {
+                            if let Some(t) = Arc::make_mut(&mut self.selected_tracks).iter_mut().find(|t| t.path == track.path) {
                                 t.title = title.clone();
                                 t.artist = artist.clone();
                                 t.album = album.clone();
@@ -2563,7 +2563,7 @@ impl AppState {
                     self.selected_artist = None;
                     self.selected_album = None;
                     self.selected_genre = None;
-                    self.selected_tracks.clear();
+                    Arc::make_mut(&mut self.selected_tracks).clear();
                     self.search_query.clear();
                     self.update_filtered_tracks();
                 }
@@ -3004,7 +3004,7 @@ impl AppState {
 
                 if ctrl_held {
                     if self.selected_tracks.iter().any(|t| t.id == track.id) {
-                        self.selected_tracks.retain(|t| t.id != track.id);
+                        Arc::make_mut(&mut self.selected_tracks).retain(|t| t.id != track.id);
                     } else {
                         self.selected_tracks.push(track.clone());
                     }
@@ -3921,7 +3921,7 @@ impl AppState {
 
                 if ctrl_held {
                     if self.selected_tracks.iter().any(|t| t.id == track.id) {
-                        self.selected_tracks.retain(|t| t.id != track.id);
+                        Arc::make_mut(&mut self.selected_tracks).retain(|t| t.id != track.id);
                     } else {
                         self.selected_tracks.push(track.clone());
                     }
