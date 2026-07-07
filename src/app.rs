@@ -542,6 +542,8 @@ pub struct AppState {
     pub right_panel_tab: Option<RightPanelTab>,
     pub right_panel_tab_user_scrolled: bool,
     pub show_song_search: bool,
+    pub show_sidebar_search: bool,
+    pub cursor_position: iced::Point,
     pub lyrics_scroll_id: scrollable::Id,
     pub last_active_lyric_idx: Option<usize>,
     pub spectrum_bands: [f32; crate::audio::spectrum::NUM_BANDS],
