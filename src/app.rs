@@ -5135,6 +5135,12 @@ impl AppState {
                     iced::Event::Window(iced::window::Event::Resized(size)) => {
                         Some(Message::WindowResized(size.width as f32, size.height as f32))
                     }
+                    iced::Event::Mouse(iced::mouse::Event::CursorMoved { position }) => {
+                        Some(Message::GlobalCursorMoved(position))
+                    }
+                    iced::Event::Mouse(iced::mouse::Event::ButtonPressed(iced::mouse::Button::Left)) => {
+                        Some(Message::GlobalClick)
+                    }
                     _ => None,
                 }
             }),
