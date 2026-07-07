@@ -1747,21 +1747,46 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     })
     .padding([2, 8]);
 
+    let search_toggle_btn = button(
+        text("\u{f002}")
+            .size(18)
+            .font(crate::ui::icons::NERD_FONT_MONO)
+    )
+    .on_press(Message::ToggleSongSearch)
+    .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+        let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+        iced::widget::button::Style {
+            text_color: if is_hovered {
+                theme::accent()
+            } else if state.show_song_search {
+                theme::accent()
+            } else {
+                theme::subtext()
+            },
+            ..Default::default()
+        }
+    })
+    .padding([2, 8]);
+
     let clear_queue_btn: Element<'_, Message> = Space::with_width(0.0).into();
 
     let clear_queue_spacer: Element<'_, Message> = Space::with_width(0.0).into();
 
-    let right_controls = row![
-        song_search_input,
-        clear_queue_spacer
-    ]
-    .align_y(Alignment::Center)
-    .padding(iced::Padding { top: 0.0, right: 8.0, bottom: 0.0, left: 28.0 })
-    .width(Length::Fill);
+    let mut right_controls = row![].align_y(Alignment::Center).width(Length::Fill);
+    right_controls = right_controls.push(Space::with_width(Length::Fill));
+    if state.show_song_search {
+        right_controls = right_controls
+            .push(container(song_search_input).width(Length::Fixed(220.0)))
+            .push(Space::with_width(8.0));
+    }
+    right_controls = right_controls.push(search_toggle_btn);
+    let right_controls_el: Element<'_, Message> = right_controls
+        .padding(iced::Padding { top: 0.0, right: 8.0, bottom: 0.0, left: 16.0 })
+        .into();
 
     let right_bar = row![
         now_playing_tab,
-        right_controls,
+        right_controls_el,
         settings_btn,
         Space::with_width(12.0)
     ]
