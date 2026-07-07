@@ -1252,6 +1252,7 @@ impl AppState {
             Message::Seek(dur) => {
                 self.audio.send(AudioCommand::Seek(dur));
                 self.position = dur;
+                self.last_accumulated_position = dur;
                 Task::none()
             }
 
@@ -1466,7 +1467,6 @@ impl AppState {
 
                         AudioEvent::Paused => {
                             self.playback_state = PlaybackState::Paused;
-                            self.last_accumulated_position = Duration::ZERO;
                         }
                         AudioEvent::Stopped => {
                             self.playback_state = PlaybackState::Stopped;
