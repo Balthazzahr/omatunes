@@ -1742,7 +1742,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
         iced::widget::button::Style {
             text_color: if is_hovered {
-                theme::accent()
+                theme::text()
             } else {
                 theme::subtext()
             },
@@ -1753,7 +1753,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
 
     let search_toggle_btn = button(
         text("\u{f002}")
-            .size(18)
+            .size(20)
             .font(crate::ui::icons::NERD_FONT_MONO)
     )
     .on_press(Message::ToggleSongSearch)
@@ -1761,7 +1761,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
         iced::widget::button::Style {
             text_color: if is_hovered {
-                theme::accent()
+                theme::text()
             } else if state.show_song_search {
                 theme::accent()
             } else {
