@@ -1036,7 +1036,7 @@ impl AppState {
         }
 
         if let Some(col) = self.sort_column {
-            self.tracks.sort_by(|a, b| {
+            Arc::make_mut(&mut self.tracks).sort_by(|a, b| {
                 let cmp = match col {
                     SortColumn::TrackNumber => {
                         let a_dc = a.disc_number.unwrap_or(0);
@@ -1214,7 +1214,7 @@ impl AppState {
                     PlaybackState::Playing => {
                         if let Some(ref sel) = self.selected_track {
                             if self.current_track.as_ref().map(|ct| ct.id) != Some(sel.id) {
-                                self.queue = self.tracks.clone();
+                                self.queue = (*self.tracks).clone();
                                 return self.play_track_internal(sel.clone());
                             }
                         }
@@ -1226,7 +1226,7 @@ impl AppState {
                     PlaybackState::Paused => {
                         if let Some(ref sel) = self.selected_track {
                             if self.current_track.as_ref().map(|ct| ct.id) != Some(sel.id) {
-                                self.queue = self.tracks.clone();
+                                self.queue = (*self.tracks).clone();
                                 return self.play_track_internal(sel.clone());
                             }
                         }
@@ -1237,11 +1237,11 @@ impl AppState {
                     }
                     PlaybackState::Stopped => {
                         if let Some(sel) = self.selected_track.clone() {
-                            self.queue = self.tracks.clone();
+                            self.queue = (*self.tracks).clone();
                             self.set_playing_context_from_current_view();
                             self.play_track_internal(sel)
                         } else if let Some(first) = self.tracks.first().cloned() {
-                            self.queue = self.tracks.clone();
+                            self.queue = (*self.tracks).clone();
                             self.set_playing_context_from_current_view();
                             self.play_track_internal(first)
                         } else {
@@ -2060,7 +2060,7 @@ impl AppState {
                     let mut tracks_to_update = Vec::new();
                     if state.apply_to_album {
                         let albums: Vec<String> = state.tracks.iter().map(|t| t.album.clone()).collect();
-                        for t in &self.all_tracks {
+                        for t in self.all_tracks.iter() {
                             if albums.contains(&t.album) {
                                 tracks_to_update.push(t.clone());
                             }
@@ -2462,7 +2462,7 @@ impl AppState {
                     if !restored_queue.is_empty() {
                         self.queue = restored_queue;
                     } else {
-                        self.queue = self.tracks.clone();
+                        self.queue = (*self.tracks).clone();
                     }
 
                     if let Some(track_path) = last_track {
@@ -3206,7 +3206,7 @@ impl AppState {
 
             Message::DoubleClickTrack(track) => {
                 self.selected_track = Some(track.clone());
-                self.queue = self.tracks.clone();
+                self.queue = (*self.tracks).clone();
                 self.set_playing_context_from_current_view();
                 self.play_track_internal(track)
             }
@@ -3246,7 +3246,7 @@ impl AppState {
                 
                 // Sort by track number ascending
                 self.tracks.sort_by_key(|t| t.track_number.unwrap_or(u32::MAX));
-                self.queue = self.tracks.clone();
+                self.queue = (*self.tracks).clone();
                 if let Some(first) = self.tracks.first().cloned() {
                     self.play_track_internal(first)
                 } else {
@@ -3268,7 +3268,7 @@ impl AppState {
                 } else {
                     self.playing_context = Some(PlayingContext::Playlist(playlist_name.clone()));
                 }
-                self.queue = self.tracks.clone();
+                self.queue = (*self.tracks).clone();
                 if let Some(first) = self.tracks.first().cloned() {
                     self.play_track_internal(first)
                 } else {
@@ -3382,7 +3382,7 @@ impl AppState {
                 self.search_query.clear();
                 self.update_filtered_tracks();
                 self.playing_context = Some(PlayingContext::Genre(genre_name));
-                self.queue = self.tracks.clone();
+                self.queue = (*self.tracks).clone();
                 if let Some(first) = self.tracks.first().cloned() {
                     self.play_track_internal(first)
                 } else {
