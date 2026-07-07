@@ -265,6 +265,9 @@ pub enum Message {
     SelectStatsSubTab(StatsSubTab),
     ShowPeriodBreakdown(usize),
     ClosePeriodBreakdown,
+    SelectArtistFromBreakdown(String),
+    SelectAlbumFromBreakdown(String),
+    SelectGenreFromBreakdown(String),
 
     OpenSettings,
     CloseSettings,
