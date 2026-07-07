@@ -135,9 +135,16 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
         };
 
         let search_icon_btn = button(
-            text("\u{f002}")
-                .size(18)
-                .font(crate::ui::icons::NERD_FONT_MONO)
+            row![
+                text("\u{f002}")
+                    .size(14)
+                    .font(crate::ui::icons::NERD_FONT_MONO),
+                Space::with_width(4.0),
+                text("Search")
+                    .size(12)
+                    .font(crate::ui::icons::UI_FONT_BOLD)
+            ]
+            .align_y(Alignment::Center)
         )
         .on_press(Message::ToggleSidebarSearch)
         .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
@@ -145,15 +152,13 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             iced::widget::button::Style {
                 text_color: if is_hovered {
                     theme::text()
-                } else if is_selected {
-                    theme::accent()
                 } else {
                     theme::subtext()
                 },
                 ..Default::default()
             }
         })
-        .padding([4, 6]);
+        .padding([4, 8]);
 
         let separator = container(Space::new(Length::Fixed(1.0), Length::Fixed(12.0)))
             .style(|_| iced::widget::container::Style {
