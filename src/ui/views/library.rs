@@ -1103,8 +1103,8 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 rows.push(header.into());
 
                 for track in tracks.into_iter() {
-                    let idx = dep.tracks.iter().position(|t| t.id == track.id).unwrap_or(0);
-                    rows.push(render_track_row(dep, track, idx, true, current_id));
+                    let idx = id_to_idx.get(&track.id).copied().unwrap_or(0);
+                    rows.push(render_track_row(dep, track, idx, true, current_id, &id_to_idx, &selected_ids));
                 }
                 rows.push(Space::with_height(8).into());
             }
