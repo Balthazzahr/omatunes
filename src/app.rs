@@ -589,6 +589,7 @@ impl AppState {
         let mut cache = self.cover_cache.lock().unwrap();
         if cache_key != (cache.id, cache.version) {
             cache.id = track_id;
+            cache.version = self.cover_cache_version;
             cache.handle = display_track
                 .and_then(|t| t.cover_data.as_ref())
                 .map(|data| iced::widget::image::Handle::from_bytes(data.clone()));
