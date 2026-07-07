@@ -870,7 +870,7 @@ impl AppState {
         self.track_list_end = 500;
         if !self.search_query.is_empty() {
             let query = self.search_query.to_lowercase();
-            self.tracks = self.all_tracks.iter().filter(|t| {
+            self.tracks = Arc::new(self.all_tracks.iter().filter(|t| {
                 let match_title = self.filter_title && t.title.to_lowercase().contains(&query);
                 let match_artist = self.filter_artist && t.artist.to_lowercase().contains(&query);
                 let match_album = self.filter_album && t.album.to_lowercase().contains(&query);
@@ -879,7 +879,7 @@ impl AppState {
             }).cloned().collect::<Vec<_>>());
         } else if let Some(playlist_name) = &self.selected_playlist {
             if playlist_name == "Liked Songs" {
-                self.tracks = self.all_tracks.iter().filter(|t| t.liked).cloned().collect();
+                self.tracks = Arc::new(self.all_tracks.iter().filter(|t| t.liked).cloned().collect::<Vec<_>>());
             } else if playlist_name == "Most Played" {
                 let mut temp = self.all_tracks.clone();
                 temp.sort_by(|a, b| b.play_count.cmp(&a.play_count));
