@@ -305,6 +305,7 @@ pub enum Message {
     HoverPlayerResizer(bool),
     ToggleQueuePopover,
     CloseQueuePopover,
+    FlushBuffers,
 }
 
 #[derive(Debug, Clone)]
