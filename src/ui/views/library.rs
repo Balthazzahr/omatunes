@@ -1199,7 +1199,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         ..Default::default()
     });
 
-    let content_area = stack![
+    let content_area: Element<'_, Message> = stack![
         content_area,
         container(group_by_checkbox)
             .align_x(iced::alignment::Horizontal::Right)
