@@ -1756,12 +1756,14 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         clear_queue_spacer
     ]
     .align_y(Alignment::Center)
-    .padding([0, 8]);
+    .padding([0, 8])
+    .width(Length::Fill);
 
     let right_bar = row![
         now_playing_tab,
         right_controls,
-        settings_btn
+        settings_btn,
+        Space::with_width(12.0)
     ]
     .spacing(0)
     .align_y(Alignment::End)
