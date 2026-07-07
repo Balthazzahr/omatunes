@@ -1105,14 +1105,15 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown) -> Eleme
     ]
     .align_y(Alignment::Center);
 
-    let text_size = 15;
-    let small_size = 14;
+    let text_size: u16 = 15;
+    let small_size: u16 = 14;
 
     fn build_col<'a>(
         title: &'a str,
         items: &'a [(String, f64)],
         format_hours: &impl Fn(f64) -> String,
         text_size: u16,
+        small_size: u16,
         make_on_press: impl Fn(String) -> Message + 'a,
     ) -> Element<'a, Message> {
         let mut col = column![
@@ -1158,7 +1159,7 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown) -> Eleme
                     text(format_hours(*mins))
                         .font(crate::ui::icons::UI_FONT_BOLD)
                         .size(text_size)
-                        .color(theme::overlay2())
+                        .color(theme::overlay0())
                         .align_x(iced::alignment::Horizontal::Right),
                 ]
                 .spacing(8)
