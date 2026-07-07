@@ -181,10 +181,10 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             .font(crate::ui::icons::NERD_FONT_MONO);
         
         eprintln!(
-            "DEBUG [tab_btn] tab={:?} is_active={} icon_size=28 container_width=Fill container_height=Fill padding=0",
+            "DEBUG [tab_btn] tab={:?} is_active={} icon_size=28 container_width=Fill container_height=Shrink padding=0",
             tab, is_active
         );
-        let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
+        let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Shrink))
             .on_press(Message::ToggleRightPanelTab(tab))
             .width(Length::Fill)
             .height(Length::Fill)
