@@ -76,13 +76,13 @@ impl Config {
     pub fn font_scale(&self) -> f32 {
         self.font_scale.unwrap_or(1.0)
     }
-    /// Retorna `music_dir` com `~` expandido para `$HOME`.
+    /// Returns `music_dir` with `~` expanded to `$HOME`.
     pub fn music_path(&self) -> PathBuf {
         expand_tilde(&self.music_dir)
     }
 }
 
-// ── Inicialização ─────────────────────────────────────────────────────────────
+// ── Initialization ─────────────────────────────────────────────────────────────
 
 pub fn load() {
     CONFIG.get_or_init(|| Mutex::new(read_or_default()));
@@ -150,7 +150,7 @@ fn expand_tilde(path: &str) -> PathBuf {
     }
 }
 
-// ── Config padrão gerada na primeira execução ─────────────────────────────────
+// ── Default config generated on first run ─────────────────────────────────────
 
 const DEFAULT_CONFIG: &str = r#"# omatunes — configuration file
 # ~/.config/omatunes/config.toml
