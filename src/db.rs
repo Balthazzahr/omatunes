@@ -1,10 +1,12 @@
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use serde::{Deserialize, Serialize};
 
 static DB: std::sync::OnceLock<Mutex<OmatunesDb>> = std::sync::OnceLock::new();
+static DB_DIRTY: AtomicBool = AtomicBool::new(false);
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TableColumn {
@@ -200,8 +202,16 @@ where
 {
     let mut guard = DB.get_or_init(|| Mutex::new(OmatunesDb::load())).lock().unwrap();
     let res = f(&mut guard);
-    guard.save();
+    DB_DIRTY.store(true, Ordering::Release);
     res
+}
+
+pub fn flush() {
+    if DB_DIRTY.swap(false, Ordering::Acquire) {
+        if let Ok(guard) = DB.get_or_init(|| Mutex::new(OmatunesDb::load())).lock() {
+            guard.save();
+        }
+    }
 }
 
 pub fn increment_play_count(path: PathBuf) -> u32 {
