@@ -3556,8 +3556,10 @@ impl AppState {
                 if !self.show_song_search {
                     self.search_query.clear();
                     self.update_filtered_tracks();
+                    Task::none()
+                } else {
+                    iced::widget::text_input::focus(iced::widget::text_input::Id::new("song_search_input"))
                 }
-                Task::none()
             }
 
             Message::ToggleSidebarSearch => {
@@ -3565,8 +3567,10 @@ impl AppState {
                 if !self.show_sidebar_search {
                     self.sidebar_search.clear();
                     self.update_filtered_tracks();
+                    Task::none()
+                } else {
+                    iced::widget::text_input::focus(iced::widget::text_input::Id::new("sidebar_search_input"))
                 }
-                Task::none()
             }
 
             Message::GlobalCursorMoved(pos) => {
