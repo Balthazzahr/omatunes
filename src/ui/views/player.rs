@@ -305,7 +305,6 @@ pub fn tab_strip(state: &AppState) -> Element<'_, Message> {
     .height(Length::Fill)
     .into()
 }
-}
 
 fn render_stat_row(label: String, value: String) -> Element<'static, Message> {
     row![
