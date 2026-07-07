@@ -2511,7 +2511,7 @@ impl AppState {
 
             Message::KeyboardEdit => {
                 let tracks_to_edit = if !self.selected_tracks.is_empty() {
-                    self.selected_tracks.clone()
+                    Arc::new((*self.selected_tracks).clone())
                 } else if let Some(ref track) = self.current_track {
                     vec![track.clone()]
                 } else {
