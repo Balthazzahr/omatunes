@@ -4052,8 +4052,9 @@ impl AppState {
             Message::TrackListDragOver(target_idx) => {
                 if let Some(source_idx) = self.dragging_track_index {
                     if source_idx != target_idx && source_idx < self.tracks.len() && target_idx < self.tracks.len() {
-                        let track = self.tracks.remove(source_idx);
-                        self.tracks.insert(target_idx, track);
+                        let tracks = Arc::make_mut(&mut self.tracks);
+                        let track = tracks.remove(source_idx);
+                        tracks.insert(target_idx, track);
                         self.dragging_track_index = Some(target_idx);
 
                         let new_paths: Vec<PathBuf> = self.tracks.iter().map(|t| t.path.clone()).collect();

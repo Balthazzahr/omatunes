@@ -779,7 +779,7 @@ impl std::hash::Hash for TrackListDependency {
         self.responsive_columns.hash(state);
         self.dragging_track_index.hash(state);
         self.is_draggable.hash(state);
-        for t in &self.selected_tracks {
+        for t in self.selected_tracks.iter() {
             t.id.hash(state);
             t.title.hash(state);
             t.artist.hash(state);
