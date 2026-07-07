@@ -542,6 +542,7 @@ pub struct AppState {
     mpris_cmd_rx: tokio::sync::mpsc::UnboundedReceiver<MprisCommand>,
     mpris_update_tx: tokio::sync::mpsc::UnboundedSender<MprisUpdate>,
     pub cover_cache: std::sync::Mutex<CoverCache>,
+    pub cover_cache_version: u64,
     pub font_scale: f32,
     pub hovered_album_header: Option<String>,
     pub track_list_start: usize,
@@ -582,9 +583,10 @@ impl AppState {
             self.selected_track.as_ref()
         };
         let track_id = display_track.map(|t| t.id);
+        let cache_key = (track_id, self.cover_cache_version);
         
         let mut cache = self.cover_cache.lock().unwrap();
-        if track_id != cache.id {
+        if cache_key != (cache.id, cache.version) {
             cache.id = track_id;
             cache.handle = display_track
                 .and_then(|t| t.cover_data.as_ref())
