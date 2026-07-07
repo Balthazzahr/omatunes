@@ -531,14 +531,26 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     let mut table_col = column![Space::with_height(32), headers, divider].spacing(0).width(Length::Fill);
 
                     for (idx, row_data) in r_stats.iter().enumerate() {
-                        let period_label = match idx {
-                            0 => "Today",
-                            1 => "Week",
-                            2 => "Month",
-                            _ => "All-time",
+                        let (period_label, icon_str) = match idx {
+                            0 => ("Today", crate::ui::icons::ICON_CALENDAR_DAY),
+                            1 => ("Week", crate::ui::icons::ICON_CALENDAR_WEEK),
+                            2 => ("Month", crate::ui::icons::ICON_CALENDAR_MONTH_FA),
+                            _ => ("All-time", crate::ui::icons::ICON_TROPHY_FA),
                         };
                         let row_header_btn = button(
-                            text(period_label).size(12).font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent())
+                            row![
+                                text(icon_str)
+                                    .font(crate::ui::icons::NERD_FONT_MONO)
+                                    .size(14)
+                                    .color(theme::green()),
+                                Space::with_width(4),
+                                text(period_label)
+                                    .size(14)
+                                    .font(crate::ui::icons::UI_FONT_BOLD)
+                                    .color(theme::green()),
+                            ]
+                            .spacing(0)
+                            .align_y(Alignment::Center)
                         )
                         .on_press(Message::ShowPeriodBreakdown(idx))
                         .padding(0)
@@ -546,7 +558,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                             let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
                             iced::widget::button::Style {
                                 background: None,
-                                text_color: if is_hovered { theme::text() } else { theme::accent() },
+                                text_color: if is_hovered { theme::text() } else { theme::green() },
                                 border: iced::Border::default(),
                                 ..Default::default()
                             }
