@@ -39,8 +39,7 @@ pub struct StatsDb {
 }
 
 fn stats_path() -> PathBuf {
-    let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".into());
-    PathBuf::from(home).join(".config/omatunes/stats.json")
+    crate::paths::stats()
 }
 
 impl StatsDb {

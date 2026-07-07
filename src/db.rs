@@ -155,14 +155,9 @@ impl Default for OmatunesDb {
     }
 }
 
-fn db_path() -> PathBuf {
-    let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".into());
-    PathBuf::from(home).join(".config/omatunes/db.json")
-}
-
 impl OmatunesDb {
     pub fn load() -> Self {
-        let path = db_path();
+        let path = crate::paths::db();
         if !path.exists() {
             return OmatunesDb::default();
         }
@@ -173,7 +168,7 @@ impl OmatunesDb {
     }
 
     pub fn save(&self) {
-        let path = db_path();
+        let path = crate::paths::db();
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent).ok();
         }
