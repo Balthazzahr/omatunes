@@ -807,7 +807,7 @@ struct TrackListDependency {
     is_playing: bool,
     is_paused: bool,
     selected_tracks: Arc<Vec<crate::library::models::Track>>,
-    group_by_album: bool,
+    group_by: crate::db::GroupBy,
     sort_column: Option<SortColumn>,
     sort_ascending: bool,
     strings: &'static crate::locale::Strings,
@@ -821,7 +821,7 @@ struct TrackListDependency {
 
 impl std::hash::Hash for TrackListDependency {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.group_by_album.hash(state);
+        self.group_by.hash(state);
         self.sort_column.hash(state);
         self.sort_ascending.hash(state);
         self.current_track_id.hash(state);
