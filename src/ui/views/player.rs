@@ -1060,3 +1060,147 @@ fn wrap_text(text: &str, max_chars: usize) -> Vec<String> {
     }
     sub_lines
 }
+
+pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown) -> Element<'static, Message> {
+    let format_hours = |mins: f64| -> String {
+        let total_secs = (mins * 60.0) as u64;
+        let h = total_secs / 3600;
+        let m = (total_secs % 3600) / 60;
+        if h > 0 {
+            format!("{h}h {m}m")
+        } else {
+            format!("{m}m")
+        }
+    };
+
+    let header = row![
+        text(&breakdown.period_label)
+            .font(crate::ui::icons::UI_FONT_BOLD)
+            .size(18)
+            .color(theme::accent()),
+        Space::with_width(Length::Fill),
+        text(format!("{} tracks · {}", breakdown.total_plays, format_hours(breakdown.total_minutes)))
+            .font(crate::ui::icons::UI_FONT)
+            .size(13)
+            .color(theme::subtext()),
+    ]
+    .align_y(Alignment::Center);
+
+    let mut artist_col = column![
+        text("Artist")
+            .font(crate::ui::icons::UI_FONT_BOLD)
+            .size(13)
+            .color(theme::subtext()),
+        Space::with_height(4),
+    ]
+    .spacing(2)
+    .width(Length::FillPortion(1));
+
+    for (name, mins) in &breakdown.artist_minutes {
+        let row_item = row![
+            text(name.clone())
+                .font(crate::ui::icons::UI_FONT)
+                .size(13)
+                .color(theme::text())
+                .width(Length::Fill),
+            text(format_hours(*mins))
+                .font(crate::ui::icons::UI_FONT_BOLD)
+                .size(13)
+                .color(theme::text())
+                .align_x(iced::alignment::Horizontal::Right),
+        ]
+        .spacing(8)
+        .align_y(Alignment::Center);
+        artist_col = artist_col.push(row_item);
+    }
+
+    let mut genre_col = column![
+        text("Genre")
+            .font(crate::ui::icons::UI_FONT_BOLD)
+            .size(13)
+            .color(theme::subtext()),
+        Space::with_height(4),
+    ]
+    .spacing(2)
+    .width(Length::FillPortion(1));
+
+    for (name, mins) in &breakdown.genre_minutes {
+        let row_item = row![
+            text(name.clone())
+                .font(crate::ui::icons::UI_FONT)
+                .size(13)
+                .color(theme::text())
+                .width(Length::Fill),
+            text(format_hours(*mins))
+                .font(crate::ui::icons::UI_FONT_BOLD)
+                .size(13)
+                .color(theme::text())
+                .align_x(iced::alignment::Horizontal::Right),
+        ]
+        .spacing(8)
+        .align_y(Alignment::Center);
+        genre_col = genre_col.push(row_item);
+    }
+
+    let tables = row![
+        artist_col,
+        Space::with_width(24),
+        genre_col,
+    ]
+    .spacing(0);
+
+    let close_btn = button(
+        text("\u{f00d}")
+            .font(crate::ui::icons::NERD_FONT_MONO)
+            .size(16)
+    )
+    .on_press(Message::ClosePeriodBreakdown)
+    .padding(6)
+    .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+        let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+        iced::widget::button::Style {
+            background: if is_hovered { Some(iced::Background::Color(theme::surface0())) } else { None },
+            text_color: if is_hovered { theme::accent() } else { theme::subtext() },
+            border: iced::Border {
+                radius: 4.0.into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        }
+    });
+
+    let content = column![
+        row![
+            header,
+            Space::with_width(Length::Fill),
+            close_btn,
+        ]
+        .align_y(Alignment::Center),
+        Space::with_height(16),
+        tables,
+    ];
+
+    container(
+        container(content)
+            .padding(24)
+            .max_width(700)
+            .style(|_| iced::widget::container::Style {
+                background: Some(iced::Background::Color(theme::mantle())),
+                border: iced::Border {
+                    color: theme::surface0(),
+                    width: 1.0,
+                    radius: 8.0.into(),
+                },
+                ..Default::default()
+            })
+    )
+    .width(Length::Fill)
+    .height(Length::Fill)
+    .center_x(Length::Fill)
+    .center_y(Length::Fill)
+    .style(|_| iced::widget::container::Style {
+        background: Some(iced::Background::Color(theme::with_alpha(theme::base(), 0.8))),
+        ..Default::default()
+    })
+    .into()
+}
