@@ -1725,59 +1725,26 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     ]
     .align_y(Alignment::Center)
     .spacing(4)
-    .width(Length::Fixed(200.0));
+    .width(Length::Fill);
 
-    let is_settings_active = state.show_settings.is_some();
-    let settings_icon = text("\u{f013}")
-        .size(16)
-        .font(crate::ui::icons::NERD_FONT_MONO);
-
-    let settings_top_sep = container(Space::new(Length::Fill, Length::Fixed(1.0)))
-        .style(|_| iced::widget::container::Style {
-            background: Some(iced::Background::Color(theme::surface0())),
+    let settings_btn = button(
+        text("\u{f013}")
+            .size(20)
+            .font(crate::ui::icons::NERD_FONT_MONO)
+    )
+    .on_press(Message::OpenSettings)
+    .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+        let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+        iced::widget::button::Style {
+            text_color: if is_hovered {
+                theme::accent()
+            } else {
+                theme::subtext()
+            },
             ..Default::default()
-        })
-        .width(Length::Fill)
-        .height(1.0);
-
-    let settings_btn_content = column![
-        settings_top_sep,
-        container(settings_icon)
-            .center_x(Length::Fill)
-            .center_y(Length::Fill)
-            .height(Length::Fixed(27.0))
-    ]
-    .spacing(0);
-
-    let settings_btn = button(settings_btn_content)
-        .on_press(Message::OpenSettings)
-        .width(56.0)
-        .height(28.0)
-        .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
-            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-            iced::widget::button::Style {
-                background: Some(iced::Background::Color(if is_settings_active {
-                    theme::surface0()
-                } else if is_hovered {
-                    theme::surface0()
-                } else {
-                    iced::Color::TRANSPARENT
-                })),
-                text_color: if is_settings_active {
-                    theme::accent()
-                } else if is_hovered {
-                    theme::text()
-                } else {
-                    theme::subtext()
-                },
-                border: iced::Border {
-                    radius: 0.0.into(),
-                    ..Default::default()
-                },
-                ..Default::default()
-            }
-        })
-        .padding(0);
+        }
+    })
+    .padding(8);
 
     let clear_queue_btn: Element<'_, Message> = Space::with_width(0.0).into();
 
@@ -1790,19 +1757,10 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     .align_y(Alignment::Center)
     .padding(iced::Padding { top: 0.0, right: 12.0, bottom: 0.0, left: 0.0 });
 
-    let settings_separator = container(Space::new(Length::Fixed(1.0), Length::Fill))
-        .style(|_| iced::widget::container::Style {
-            background: Some(iced::Background::Color(theme::surface0())),
-            ..Default::default()
-        })
-        .width(1.0)
-        .height(Length::Fixed(28.0));
-
     let right_bar = row![
         now_playing_tab,
         Space::with_width(Length::Fill),
         right_controls,
-        settings_separator,
         settings_btn
     ]
     .spacing(0)
