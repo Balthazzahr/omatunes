@@ -1105,7 +1105,7 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown) -> Eleme
     ]
     .align_y(Alignment::Center);
 
-    fn build_col<'a>(title: &str, items: &'a [(String, f64)], format_hours: &impl Fn(f64) -> String) -> Element<'a, Message> {
+    fn build_col<'a>(title: &'a str, items: &'a [(String, f64)], format_hours: &impl Fn(f64) -> String) -> Element<'a, Message> {
         let mut col = column![
             text(title)
                 .font(crate::ui::icons::UI_FONT_BOLD)
