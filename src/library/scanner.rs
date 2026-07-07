@@ -19,8 +19,8 @@ const COVER_FILENAMES: &[&str] = &[
     "folder.png", "Folder.png",
 ];
 
-/// Escaneia `dir` recursivamente e retorna as faixas ordenadas por álbum/número/título.
-/// `cover_data` é sempre `None` — carregado sob demanda via `load_cover`.
+/// Scan `dir` recursively and return tracks sorted by album/number/title.
+/// `cover_data` is always `None` — loaded on demand via `load_cover`.
 pub fn scan_folder(dir: &Path) -> Vec<Track> {
     let mut pairs: Vec<(PathBuf, TrackInfo)> = WalkDir::new(dir)
         .follow_links(true)
@@ -76,7 +76,7 @@ pub fn scan_folder(dir: &Path) -> Vec<Track> {
     }).collect()
 }
 
-/// Carrega a capa de uma faixa: tag embutida primeiro, depois cover.jpg na pasta.
+/// Load cover art for a track: embedded tag first, then cover.jpg in the folder.
 pub fn load_cover(path: &Path) -> Option<Vec<u8>> {
     let tagged = Probe::open(path).ok()?.read().ok()?;
     let embedded = tagged.primary_tag().and_then(|t| {
@@ -91,7 +91,7 @@ pub fn load_cover(path: &Path) -> Option<Vec<u8>> {
     embedded.or_else(|| cover_from_folder(path))
 }
 
-// ── Internos ───────────────────────────────────────────────────────────────────
+// ── Internal ───────────────────────────────────────────────────────────────────
 
 struct TrackInfo {
     title: String,

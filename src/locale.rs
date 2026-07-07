@@ -22,7 +22,7 @@ impl Strings {
     }
 }
 
-// ── Traduções ─────────────────────────────────────────────────────────────────
+// ── Translations ───────────────────────────────────────────────────────────────
 
 static EN: Strings = Strings {
     sidebar_folders:  "Folders",
@@ -54,7 +54,7 @@ static ES: Strings = Strings {
     track_plural:     "pistas",
 };
 
-// ── Inicialização ─────────────────────────────────────────────────────────────
+// ── Initialization ─────────────────────────────────────────────────────────────
 
 pub fn load() {
     LOCALE.get_or_init(detect);

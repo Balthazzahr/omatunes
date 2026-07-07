@@ -194,7 +194,7 @@ pub fn load_palette_from_config() -> Palette {
     }
 }
 
-/// Inicializa a paleta na primeira execução.
+/// Initialize palette on first run.
 pub fn load_system_theme() {
     let _ = palette_mutex();
 }
@@ -203,7 +203,7 @@ pub fn apply_palette(new_palette: Palette) {
     *palette_mutex().lock().unwrap() = new_palette;
 }
 
-/// Relê o tema do Omarchy em disco e atualiza a paleta sem reiniciar.
+/// Re-read the Omarchy theme from disk and update the palette without restarting.
 pub fn reload_system_theme() {
     *palette_mutex().lock().unwrap() = load_palette_from_config();
 }
