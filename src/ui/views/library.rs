@@ -1410,7 +1410,7 @@ fn render_track_row(
         .width(Length::Fill)
         .padding(0);
 
-    let row_target = if dep.selected_tracks.len() > 1 && dep.selected_tracks.iter().any(|t| t.id == track.id) {
+    let row_target = if dep.selected_tracks.len() > 1 && selected_ids.contains(&track.id) {
         crate::app::ContextMenuTarget::MultipleTracks((*dep.selected_tracks).clone())
     } else {
         crate::app::ContextMenuTarget::Track(track_no_cover)
