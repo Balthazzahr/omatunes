@@ -1114,7 +1114,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             let tracks_to_render = &dep.tracks[start..end];
             for (offset, track) in tracks_to_render.iter().enumerate() {
                 let idx = start + offset;
-                rows.push(render_track_row(dep, track, idx, false, current_id));
+                rows.push(render_track_row(dep, track, idx, false, current_id, &id_to_idx, &selected_ids));
             }
         }
 
