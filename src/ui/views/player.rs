@@ -184,100 +184,6 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     .align_y(Alignment::Center)
     .padding(16);
 
-    let tab_btn = |tab: crate::app::RightPanelTab, icon_str: &'static str, tooltip_text: &'static str| {
-        let is_active = state.right_panel_tab == Some(tab);
-        let btn_icon = text(icon_str)
-            .size(28)
-            .font(crate::ui::icons::NERD_FONT_MONO);
-        
-        eprintln!(
-            "DEBUG [tab_btn] tab={:?} is_active={} btn(height=Shrink, padding=[4,8]=36px) \
-             outer_container(height=Fill, center_y=Fill, bg=transparent)",
-            tab, is_active
-        );
-        let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Shrink))
-            .on_press(Message::ToggleRightPanelTab(tab))
-            .width(Length::Fill)
-            .height(Length::Shrink)
-            .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
-                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-                iced::widget::button::Style {
-                    background: Some(iced::Background::Color(if is_active {
-                        theme::surface0()
-                    } else if is_hovered {
-                        theme::surface0()
-                    } else {
-                        iced::Color::TRANSPARENT
-                    })),
-                    text_color: if is_active {
-                        theme::accent()
-                    } else if is_hovered {
-                        theme::text()
-                    } else {
-                        theme::subtext()
-                    },
-                    ..Default::default()
-                }
-            })
-            .padding([4, 8]);
-
-        let tooltip_content = container(
-            text(tooltip_text)
-                .size(13)
-                .font(crate::ui::icons::UI_FONT)
-                .color(theme::text())
-        )
-        .padding(8)
-        .style(|_| iced::widget::container::Style {
-            background: Some(iced::Background::Color(theme::surface0())),
-            border: iced::Border {
-                color: theme::overlay0(),
-                width: 1.0,
-                radius: 4.0.into(),
-            },
-            ..Default::default()
-        });
-
-        container(tooltip(btn, tooltip_content, iced::widget::tooltip::Position::Left))
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .center_y(Length::Fill)
-            .style(|_| iced::widget::container::Style {
-                background: None,
-                ..Default::default()
-            })
-    };
-
-    let left_sep = container(Space::new(Length::Fixed(1.0), Length::Fill))
-        .style(|_| iced::widget::container::Style {
-            background: Some(iced::Background::Color(theme::surface0())),
-            ..Default::default()
-        })
-        .width(1.0)
-        .height(Length::Fill);
-
-    let tab_strip = row![
-        left_sep,
-        container(
-            column![
-                tab_btn(crate::app::RightPanelTab::Visualizer, crate::ui::icons::ICON_VISUALIZER, "Visualizer"),
-                tab_btn(crate::app::RightPanelTab::Statistics, crate::ui::icons::ICON_STATS, "Listening Statistics"),
-                tab_btn(crate::app::RightPanelTab::Lyrics, crate::ui::icons::ICON_LYRICS, "Lyrics"),
-            ]
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .spacing(0)
-        )
-        .width(55.0)
-        .height(Length::Fill)
-        .style(|_| iced::widget::container::Style {
-            background: None,
-            ..Default::default()
-        })
-    ]
-    .width(56.0)
-    .height(Length::Fill);
-
     let left_side_width = if state.right_panel_tab.is_some() {
         Length::Fill
     } else {
@@ -306,26 +212,99 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             }
         });
 
-    if is_allowed {
-        row![
-            player_with_scroll,
-            tab_strip,
-        ]
-        .spacing(0)
-        .align_y(Alignment::Center)
-        .width(Length::Fill)
-        .height(Length::Fixed(state.player_height - 28.0))
-        .into()
-    } else {
-        row![
-            player_with_scroll,
-        ]
-        .spacing(0)
-        .align_y(Alignment::Center)
-        .width(Length::Fill)
-        .height(Length::Fixed(state.player_height - 28.0))
-        .into()
-    }
+    player_with_scroll.into()
+}
+
+pub fn tab_strip(state: &AppState) -> Element<'_, Message> {
+    let tab_btn = |tab: crate::app::RightPanelTab, icon_str: &'static str, tooltip_text: &'static str| {
+        let is_active = state.right_panel_tab == Some(tab);
+        let btn_icon = text(icon_str)
+            .size(28)
+            .font(crate::ui::icons::NERD_FONT_MONO);
+
+        let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
+            .on_press(Message::ToggleRightPanelTab(tab))
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                iced::widget::button::Style {
+                    background: Some(iced::Background::Color(if is_active {
+                        theme::surface0()
+                    } else if is_hovered {
+                        theme::surface0()
+                    } else {
+                        iced::Color::TRANSPARENT
+                    })),
+                    text_color: if is_active {
+                        theme::accent()
+                    } else if is_hovered {
+                        theme::text()
+                    } else {
+                        theme::subtext()
+                    },
+                    ..Default::default()
+                }
+            })
+            .padding(0);
+
+        let tooltip_content = container(
+            text(tooltip_text)
+                .size(13)
+                .font(crate::ui::icons::UI_FONT)
+                .color(theme::text())
+        )
+        .padding(8)
+        .style(|_| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::surface0())),
+            border: iced::Border {
+                color: theme::overlay0(),
+                width: 1.0,
+                radius: 4.0.into(),
+            },
+            ..Default::default()
+        });
+
+        container(tooltip(btn, tooltip_content, iced::widget::tooltip::Position::Left))
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .style(|_| iced::widget::container::Style {
+                background: None,
+                ..Default::default()
+            })
+    };
+
+    let left_sep = container(Space::new(Length::Fixed(1.0), Length::Fill))
+        .style(|_| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::surface0())),
+            ..Default::default()
+        })
+        .width(1.0)
+        .height(Length::Fill);
+
+    row![
+        left_sep,
+        container(
+            column![
+                tab_btn(crate::app::RightPanelTab::Visualizer, crate::ui::icons::ICON_VISUALIZER, "Visualizer"),
+                tab_btn(crate::app::RightPanelTab::Statistics, crate::ui::icons::ICON_STATS, "Listening Statistics"),
+                tab_btn(crate::app::RightPanelTab::Lyrics, crate::ui::icons::ICON_LYRICS, "Lyrics"),
+            ]
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .spacing(0)
+        )
+        .width(55.0)
+        .height(Length::Fill)
+        .style(|_| iced::widget::container::Style {
+            background: None,
+            ..Default::default()
+        })
+    ]
+    .width(56.0)
+    .height(Length::Fill)
+    .into()
+}
 }
 
 fn render_stat_row(label: String, value: String) -> Element<'static, Message> {
