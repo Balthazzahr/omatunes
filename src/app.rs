@@ -1122,7 +1122,7 @@ impl AppState {
                 self.search_query.clear();
                 self.update_filtered_tracks();
                 self.playing_context = Some(PlayingContext::Album(album_name));
-                let tracks_to_play = self.tracks.clone();
+                let tracks_to_play = self.tracks.to_vec();
                 if let Some(first) = tracks_to_play.first().cloned() {
                     self.queue = tracks_to_play;
                     self.play_track_internal(first)
@@ -1153,7 +1153,7 @@ impl AppState {
                             self.selected_artist = None;
                             self.search_query.clear();
                             self.update_filtered_tracks();
-                            let tracks_to_play = self.tracks.clone();
+                            let tracks_to_play = self.tracks.to_vec();
                             if let Some(first) = tracks_to_play.first().cloned() {
                                 self.queue = tracks_to_play;
                                 return self.play_track_internal(first);
@@ -1168,7 +1168,7 @@ impl AppState {
                     self.selected_artist = None;
                     self.search_query.clear();
                     self.update_filtered_tracks();
-                    let tracks_to_play = self.tracks.clone();
+                    let tracks_to_play = self.tracks.to_vec();
                     if let Some(first) = tracks_to_play.first().cloned() {
                         self.queue = tracks_to_play;
                         return self.play_track_internal(first);
