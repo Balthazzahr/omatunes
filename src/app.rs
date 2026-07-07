@@ -1471,6 +1471,7 @@ impl AppState {
                                     }
                                 }
                                 self.current_track_play_counted = true;
+                                }
                             }
                         }
 
