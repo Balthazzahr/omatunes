@@ -529,7 +529,7 @@ pub struct AppState {
     pub show_context_menu: Option<ContextMenuTarget>,
     pub playlist_menu_expanded: bool,
     pub modifiers: iced::keyboard::Modifiers,
-    pub selected_tracks: Vec<Track>,
+    pub selected_tracks: Arc<Vec<Track>>,
     pub last_clicked_track: Option<Track>,
     pub hidden_artists_albums: Vec<(String, bool)>,       // (Name, IsArtistOrAlbum)
 
