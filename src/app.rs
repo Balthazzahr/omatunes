@@ -3582,7 +3582,7 @@ impl AppState {
                 let tab_strip_visible = self.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 450.0);
                 let tab_strip_offset = if tab_strip_visible { 56.0 } else { 0.0 };
 
-                if self.show_song_search {
+                if self.show_song_search && self.search_query.is_empty() {
                     let search_right = self.window_width - tab_strip_offset - 12.0;
                     let search_left = search_right - 220.0 - 40.0;
                     let search_top = self.player_height - 28.0;
@@ -3594,6 +3594,22 @@ impl AppState {
                     if !clicked_inside_search {
                         self.show_song_search = false;
                         self.search_query.clear();
+                        self.update_filtered_tracks();
+                    }
+                }
+
+                if self.show_sidebar_search && self.sidebar_search.is_empty() {
+                    let sidebar_right = self.sidebar_width;
+                    let sidebar_left = 0.0;
+                    let sidebar_top = self.player_height + 28.0;
+                    let sidebar_bottom = sidebar_top + 28.0;
+
+                    let px = self.cursor_position.x;
+                    let py = self.cursor_position.y;
+                    let clicked_inside_sidebar_search = px >= sidebar_left && px <= sidebar_right && py >= sidebar_top && py <= sidebar_bottom;
+                    if !clicked_inside_sidebar_search {
+                        self.show_sidebar_search = false;
+                        self.sidebar_search.clear();
                         self.update_filtered_tracks();
                     }
                 }
