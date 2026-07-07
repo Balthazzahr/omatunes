@@ -1182,13 +1182,17 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown) -> Eleme
     };
 
     let tables = row![
+        Space::with_width(12),
         build_col("Artist", &breakdown.artist_minutes, &format_hours, text_size, small_size, |name| Message::SelectArtistFromBreakdown(name)),
+        Space::with_width(12),
         sep(),
-        Space::with_width(16),
+        Space::with_width(12),
         build_col("Genre", &breakdown.genre_minutes, &format_hours, text_size, small_size, |name| Message::SelectGenreFromBreakdown(name)),
+        Space::with_width(12),
         sep(),
-        Space::with_width(16),
+        Space::with_width(12),
         build_col("Album", &breakdown.album_minutes, &format_hours, text_size, small_size, |name| Message::SelectAlbumFromBreakdown(name)),
+        Space::with_width(12),
     ]
     .spacing(0)
     .width(Length::Fill);
