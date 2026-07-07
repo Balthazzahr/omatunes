@@ -4,6 +4,7 @@ mod config;
 mod db;
 mod library;
 mod locale;
+mod paths;
 mod stats;
 mod ui;
 
