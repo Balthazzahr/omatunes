@@ -187,7 +187,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Shrink))
             .on_press(Message::ToggleRightPanelTab(tab))
             .width(Length::Fill)
-            .height(Length::Fill)
+            .height(Length::Shrink)
             .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
                 let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
                 iced::widget::button::Style {
@@ -213,7 +213,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                     ..Default::default()
                 }
             })
-            .padding(0);
+            .padding([4, 8]);
 
         let tooltip_content = container(
             text(tooltip_text)
@@ -232,7 +232,10 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             ..Default::default()
         });
 
-        tooltip(btn, tooltip_content, iced::widget::tooltip::Position::Left)
+        container(tooltip(btn, tooltip_content, iced::widget::tooltip::Position::Left))
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .center_y(Length::Fill)
     };
 
     let left_sep = container(Space::new(Length::Fixed(1.0), Length::Fill))
