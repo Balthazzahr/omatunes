@@ -61,25 +61,29 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
 
 fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
     let sidebar_search_input: Element<'_, Message> = if state.show_sidebar_search {
-        let sidebar_clear_btn: Element<'_, Message> = button(
-            text("\u{f00d}")
-                .font(crate::ui::icons::NERD_FONT_MONO)
-                .size(12)
-        )
-        .on_press(Message::ToggleSidebarSearch)
-        .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
-            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-            iced::widget::button::Style {
-                text_color: if is_hovered {
-                    theme::text()
-                } else {
-                    theme::subtext()
-                },
-                ..Default::default()
-            }
-        })
-        .padding(4)
-        .into();
+        let sidebar_clear_btn: Element<'_, Message> = if !state.sidebar_search.is_empty() {
+            button(
+                text("\u{f00d}")
+                    .font(crate::ui::icons::NERD_FONT_MONO)
+                    .size(12)
+            )
+            .on_press(Message::ToggleSidebarSearch)
+            .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                iced::widget::button::Style {
+                    text_color: if is_hovered {
+                        theme::text()
+                    } else {
+                        theme::subtext()
+                    },
+                    ..Default::default()
+                }
+            })
+            .padding(4)
+            .into()
+        } else {
+            Space::with_width(0.0).into()
+        };
 
         let placeholder = match state.view_mode {
             ViewMode::Artists | ViewMode::NowPlaying => "Search artists...",
@@ -132,7 +136,7 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
 
         let search_icon_btn = button(
             text("\u{f002}")
-                .size(13)
+                .size(18)
                 .font(crate::ui::icons::NERD_FONT_MONO)
         )
         .on_press(Message::ToggleSidebarSearch)
@@ -149,7 +153,7 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                 ..Default::default()
             }
         })
-        .padding([4, 8]);
+        .padding([4, 6]);
 
         let separator = container(Space::new(Length::Fixed(1.0), Length::Fixed(12.0)))
             .style(|_| iced::widget::container::Style {
@@ -1716,11 +1720,20 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         button(
             text("\u{f00d}")
                 .font(crate::ui::icons::NERD_FONT_MONO)
-                .color(theme::red())
                 .size(12)
         )
-        .on_press(Message::SearchChanged(String::new()))
-        .style(iced::widget::button::text)
+        .on_press(Message::ToggleSongSearch)
+        .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+            iced::widget::button::Style {
+                text_color: if is_hovered {
+                    theme::text()
+                } else {
+                    theme::subtext()
+                },
+                ..Default::default()
+            }
+        })
         .padding(4)
         .into()
     } else {
