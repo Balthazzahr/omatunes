@@ -148,34 +148,27 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                 .align_y(Alignment::Center)
             )
             .align_x(iced::alignment::Horizontal::Left)
+            .align_y(iced::alignment::Vertical::Center)
             .width(Length::Fill)
+            .height(Length::Fill)
             .padding([0, 12])
         )
         .on_press(Message::ToggleSidebarSearch)
         .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
             let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
             iced::widget::button::Style {
-                background: if is_hovered {
-                    Some(iced::Background::Color(if is_selected {
-                        theme::with_alpha(theme::accent(), 0.1)
-                    } else {
-                        theme::with_alpha(theme::text(), 0.05)
-                    }))
+                background: Some(iced::Background::Color(if is_hovered {
+                    theme::surface1()
                 } else {
-                    None
-                },
+                    theme::surface0()
+                })),
                 text_color: if is_hovered {
                     theme::text()
                 } else {
                     theme::subtext()
                 },
                 border: iced::Border {
-                    radius: iced::border::Radius {
-                        top_left: 4.0,
-                        bottom_left: 4.0,
-                        top_right: 0.0,
-                        bottom_right: 0.0,
-                    },
+                    radius: 4.0.into(),
                     ..Default::default()
                 },
                 shadow: Default::default(),
@@ -185,14 +178,6 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
         .height(Length::Fill)
         .padding(0);
 
-        let separator = container(Space::new(Length::Fixed(1.0), Length::Fixed(12.0)))
-            .style(|_| iced::widget::container::Style {
-                background: Some(iced::Background::Color(theme::overlay0())),
-                ..Default::default()
-            })
-            .width(1.0)
-            .height(12.0);
-
         let label_btn = button(
             container(
                 text(label_text)
@@ -200,22 +185,22 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                     .size(13)
             )
             .align_x(iced::alignment::Horizontal::Right)
+            .align_y(iced::alignment::Vertical::Center)
             .width(Length::Fill)
+            .height(Length::Fill)
             .padding([0, 12])
         )
         .on_press(label_action)
         .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
             let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
             iced::widget::button::Style {
-                background: if is_hovered {
-                    Some(iced::Background::Color(if is_selected {
-                        theme::with_alpha(theme::accent(), 0.1)
-                    } else {
-                        theme::with_alpha(theme::text(), 0.05)
-                    }))
+                background: Some(iced::Background::Color(if is_selected {
+                    theme::with_alpha(theme::accent(), 0.15)
+                } else if is_hovered {
+                    theme::surface1()
                 } else {
-                    None
-                },
+                    theme::surface0()
+                })),
                 text_color: if is_hovered {
                     theme::text()
                 } else if is_selected {
@@ -224,13 +209,13 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                     theme::subtext()
                 },
                 border: iced::Border {
-                    radius: iced::border::Radius {
-                        top_left: 0.0,
-                        bottom_left: 0.0,
-                        top_right: 4.0,
-                        bottom_right: 4.0,
+                    color: if is_selected {
+                        theme::with_alpha(theme::accent(), 0.4)
+                    } else {
+                        iced::Color::TRANSPARENT
                     },
-                    ..Default::default()
+                    width: if is_selected { 1.0 } else { 0.0 },
+                    radius: 4.0.into(),
                 },
                 shadow: Default::default(),
             }
@@ -242,35 +227,20 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
         container(
             row![
                 search_icon_btn,
-                separator,
                 label_btn
             ]
-            .spacing(0)
+            .spacing(8)
             .align_y(Alignment::Center)
             .width(Length::Fill)
         )
-        .style(move |_| {
-            if is_selected {
-                iced::widget::container::Style {
-                    background: Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.15))),
-                    border: iced::Border {
-                        color: theme::with_alpha(theme::accent(), 0.4),
-                        width: 1.0,
-                        radius: 4.0.into(),
-                    },
-                    ..Default::default()
-                }
-            } else {
-                iced::widget::container::Style {
-                    background: Some(iced::Background::Color(theme::surface0())),
-                    border: iced::Border {
-                        color: iced::Color::TRANSPARENT,
-                        width: 0.0,
-                        radius: 4.0.into(),
-                    },
-                    ..Default::default()
-                }
-            }
+        .style(|_| iced::widget::container::Style {
+            background: None,
+            border: iced::Border {
+                color: iced::Color::TRANSPARENT,
+                width: 0.0,
+                radius: 0.0.into(),
+            },
+            ..Default::default()
         })
         .width(Length::Fill)
         .height(28.0)
