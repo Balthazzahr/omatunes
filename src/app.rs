@@ -1444,7 +1444,7 @@ impl AppState {
                                 let diff = position.saturating_sub(self.last_accumulated_position);
                                 if diff > Duration::ZERO && diff <= Duration::from_secs(1) {
                                     if let Some(ref track) = self.current_track {
-                                        crate::stats::add_playback_time(&track.artist, &track.genre, diff.as_secs_f64());
+                                        crate::stats::add_playback_time(&track.artist, &track.album, &track.genre, diff.as_secs_f64());
                                     }
                                 }
                             }
