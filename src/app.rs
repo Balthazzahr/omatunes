@@ -5566,7 +5566,7 @@ impl AppState {
                     crate::db::GroupBy::Album => track.album.clone(),
                     crate::db::GroupBy::Artist => track.artist.clone(),
                     crate::db::GroupBy::Genre => track.genre.clone(),
-                    crate::db::GroupBy::Year => track.year.to_string(),
+                    crate::db::GroupBy::Year => track.year.map(|y| y.to_string()).unwrap_or_default(),
                     crate::db::GroupBy::None => unreachable!(),
                 };
                 if let Some(last) = groups.last_mut() {
