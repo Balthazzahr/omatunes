@@ -258,6 +258,7 @@ pub enum Message {
     MoveColumnRight(crate::db::TableColumn),
     SelectPlaylistTab(PlaylistTab),
     ToggleRightPanelTab(RightPanelTab),
+    ToggleSongSearch,
     SelectStatsSubTab(StatsSubTab),
 
     OpenSettings,
@@ -537,6 +538,7 @@ pub struct AppState {
     pub playlist_tab: PlaylistTab,
     pub right_panel_tab: Option<RightPanelTab>,
     pub right_panel_tab_user_scrolled: bool,
+    pub show_song_search: bool,
     pub lyrics_scroll_id: scrollable::Id,
     pub last_active_lyric_idx: Option<usize>,
     pub spectrum_bands: [f32; crate::audio::spectrum::NUM_BANDS],
@@ -721,6 +723,7 @@ impl AppState {
             playlist_tab: PlaylistTab::Playlists,
             right_panel_tab: db_right_panel_tab,
             right_panel_tab_user_scrolled: false,
+            show_song_search: false,
             lyrics_scroll_id: scrollable::Id::unique(),
             last_active_lyric_idx: None,
             spectrum_bands: [0.0; crate::audio::spectrum::NUM_BANDS],
@@ -3538,6 +3541,15 @@ impl AppState {
                     self.right_panel_tab = Some(tab);
                 }
                 crate::db::write(|db| db.right_panel_tab = self.right_panel_tab);
+                Task::none()
+            }
+
+            Message::ToggleSongSearch => {
+                self.show_song_search = !self.show_song_search;
+                if !self.show_song_search {
+                    self.search_query.clear();
+                    self.update_filtered_tracks();
+                }
                 Task::none()
             }
 
