@@ -107,7 +107,7 @@ impl AudioPlayer {
     }
 }
 
-// ── Thread de áudio ──────────────────────────────────────────────────────────
+// ── Audio thread ───────────────────────────────────────────────────────────────
 
 fn audio_thread(
     mut cmd_rx: mpsc::UnboundedReceiver<AudioCommand>,
@@ -137,7 +137,7 @@ fn audio_thread(
     let pcm: Arc<Mutex<VecDeque<f32>>> =
         Arc::new(Mutex::new(VecDeque::with_capacity(OUTPUT_RATE as usize * 2)));
 
-    // Compartilhados entre fill_output e o loop de comandos
+    // Shared between fill_output and the command loop
     let paused: Arc<AtomicBool> = Arc::new(AtomicBool::new(false));
     let shared_vol: Arc<Mutex<f32>> = Arc::new(Mutex::new(0.8));
 
@@ -308,7 +308,7 @@ fn fill_output(
 
 // ── Decode ───────────────────────────────────────────────────────────────────
 
-/// Retorna Ok(true) se a faixa terminou normalmente, Ok(false) se foi cancelada.
+/// Returns Ok(true) if the track ended normally, Ok(false) if cancelled.
 fn decode_file(
     path: &PathBuf,
     pcm: Arc<Mutex<VecDeque<f32>>>,
