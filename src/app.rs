@@ -967,9 +967,9 @@ impl AppState {
                     let merged_paths = merge_song_order(&manual_order, &live_paths);
                     let track_map: std::collections::HashMap<PathBuf, Track> =
                         self.tracks.iter().map(|t| (t.path.clone(), t.clone())).collect();
-                    self.tracks = merged_paths.iter()
+                    self.tracks = Arc::new(merged_paths.iter()
                         .filter_map(|p| track_map.get(p).cloned())
-                        .collect();
+                        .collect::<Vec<_>>());
                     crate::db::write(|db| {
                         db.auto_playlist_song_order.insert(playlist_name.clone(), merged_paths);
                     });
@@ -981,9 +981,9 @@ impl AppState {
                     let merged_paths = merge_song_order(&manual_order, &live_paths);
                     let track_map: std::collections::HashMap<PathBuf, Track> =
                         self.tracks.iter().map(|t| (t.path.clone(), t.clone())).collect();
-                    self.tracks = merged_paths.iter()
+                    self.tracks = Arc::new(merged_paths.iter()
                         .filter_map(|p| track_map.get(p).cloned())
-                        .collect();
+                        .collect::<Vec<_>>());
                     crate::db::write(|db| {
                         db.smart_playlist_song_order.insert(playlist_name.clone(), merged_paths);
                     });
