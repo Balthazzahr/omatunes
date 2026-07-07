@@ -4370,6 +4370,11 @@ impl AppState {
             view_stack = view_stack.push(self.shortcuts_modal_view());
         }
 
+        // Period breakdown popup overlay
+        if let Some(ref breakdown) = self.show_period_breakdown {
+            view_stack = view_stack.push(crate::ui::views::player::period_breakdown_view(breakdown));
+        }
+
         // Queue popover overlay
         if self.show_queue_popover
             && self.show_tag_editor.is_none()

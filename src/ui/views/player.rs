@@ -531,20 +531,27 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     let mut table_col = column![Space::with_height(32), headers, divider].spacing(0).width(Length::Fill);
 
                     for (idx, row_data) in r_stats.iter().enumerate() {
-                        let row_header_el = match idx {
-                            0 => row![
-                                text("Today").size(12).font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent())
-                            ],
-                            1 => row![
-                                text("Week").size(12).font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent())
-                            ],
-                            2 => row![
-                                text("Month").size(12).font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent())
-                            ],
-                            _ => row![
-                                text("All-time").size(12).font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent())
-                            ],
+                        let period_label = match idx {
+                            0 => "Today",
+                            1 => "Week",
+                            2 => "Month",
+                            _ => "All-time",
                         };
+                        let row_header_btn = button(
+                            text(period_label).size(12).font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent())
+                        )
+                        .on_press(Message::ShowPeriodBreakdown(idx))
+                        .padding(0)
+                        .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+                            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                            iced::widget::button::Style {
+                                background: None,
+                                text_color: if is_hovered { theme::text() } else { theme::accent() },
+                                border: iced::Border::default(),
+                                ..Default::default()
+                            }
+                        });
+                        let row_header_el = row![row_header_btn];
 
                         let artist_name = &row_data.top_artist;
                         let artist_btn = if artist_name != "-" {
