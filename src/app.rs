@@ -881,9 +881,9 @@ impl AppState {
             if playlist_name == "Liked Songs" {
                 self.tracks = Arc::new(self.all_tracks.iter().filter(|t| t.liked).cloned().collect::<Vec<_>>());
             } else if playlist_name == "Most Played" {
-                let mut temp = self.all_tracks.clone();
+                let mut temp = (*self.all_tracks).clone();
                 temp.sort_by(|a, b| b.play_count.cmp(&a.play_count));
-                self.tracks = temp.into_iter().filter(|t| t.play_count > 0).collect();
+                self.tracks = Arc::new(temp.into_iter().filter(|t| t.play_count > 0).collect::<Vec<_>>());
             } else if playlist_name == "Recently Played" {
                 let rp = crate::db::get(|db| db.recently_played.clone());
                 let mut temp_tracks = Vec::new();
