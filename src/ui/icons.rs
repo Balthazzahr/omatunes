@@ -58,5 +58,9 @@ pub const ICON_PERSON:     &str = "\u{f4ff}";  // artist/person icon (nf-oct-per
 pub const ICON_CD:         &str = "\u{e271}";  // compact disc (nf-md-disc)
 pub const ICON_TAG:        &str = "\u{f02b}";  // tag
 pub const ICON_CLOCK:      &str = "\u{f017}";  // clock (nf-fa-clock_o)
+pub const ICON_CALENDAR_DAY:  &str = "\u{f00ed}"; // nf-md-calendar
+pub const ICON_CALENDAR_WEEK: &str = "\u{f272}";  // nf-fa-calendar_minus_o
+pub const ICON_CALENDAR_MONTH_FA: &str = "\u{f073}"; // nf-fa-calendar
+pub const ICON_TROPHY_FA:     &str = "\u{f091}"; // nf-fa-trophy
 
 

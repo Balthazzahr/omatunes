@@ -17,6 +17,8 @@ pub struct DayStats {
     #[serde(default)]
     pub genre_minutes: HashMap<String, f64>,
     #[serde(default)]
+    pub album_minutes: HashMap<String, f64>,
+    #[serde(default)]
     pub longest_session_minutes: f64,
 }
 
