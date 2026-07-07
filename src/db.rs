@@ -144,6 +144,7 @@ impl Default for OmatunesDb {
             hidden_artists_albums: Vec::default(),
             table_columns: default_table_columns(),
             group_by_album: false,
+            group_by: Some(GroupBy::None),
             sidebar_width: None,
             playlist_height: None,
             right_panel_width: None,
