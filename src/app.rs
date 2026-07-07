@@ -951,7 +951,7 @@ impl AppState {
                 });
                 
                 self.tracks = Arc::new(temp_tracks);
-            } else if let Some(sp) = crate::db::get(|db| db.smart_playlists.get(playlist_name).cloned()) {
+        } else if let Some(sp) = crate::db::get(|db| db.smart_playlists.get(playlist_name).cloned()) {
                 self.tracks = Arc::new(self.evaluate_smart_playlist(&sp));
             } else {
                 let paths = crate::db::get(|db| db.playlists.get(playlist_name).cloned().unwrap_or_default());
