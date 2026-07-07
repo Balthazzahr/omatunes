@@ -38,13 +38,9 @@ pub struct StatsDb {
     pub current_session_accum_secs: f64,
 }
 
-fn stats_path() -> PathBuf {
-    crate::paths::stats()
-}
-
 impl StatsDb {
     pub fn load() -> Self {
-        let path = stats_path();
+        let path = crate::paths::stats();
         if !path.exists() {
             return StatsDb::default();
         }
@@ -55,7 +51,7 @@ impl StatsDb {
     }
 
     pub fn save(&self) {
-        let path = stats_path();
+        let path = crate::paths::stats();
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent).ok();
         }

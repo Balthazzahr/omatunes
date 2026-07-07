@@ -138,7 +138,7 @@ fn read_or_default() -> Config {
 }
 
 fn config_path() -> PathBuf {
-    expand_tilde("~/.config/omatunes/config.toml")
+    crate::paths::config_toml()
 }
 
 fn expand_tilde(path: &str) -> PathBuf {
