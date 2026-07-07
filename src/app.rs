@@ -5268,8 +5268,7 @@ impl AppState {
             }
             for (_album_name, tracks) in groups {
                 let header_height = 28.0;
-                if tracks.iter().any(|t| t.id == track_id) {
-                    let index_in_album = tracks.iter().position(|t| t.id == track_id).unwrap();
+                if let Some(index_in_album) = tracks.iter().position(|t| t.id == track_id) {
                     y += header_height + spacing;
                     y += index_in_album as f32 * (track_height + spacing);
                     return Some(y);
