@@ -1,7 +1,7 @@
 use iced::{Font, font::Weight};
 
-/// Fonte Nerd Font carregada do sistema.
-/// Qualquer Nerd Font instalada (JetBrainsMono, FiraCode, Hack, etc.) funciona.
+/// Nerd Font loaded from the system.
+/// Any installed Nerd Font (JetBrainsMono, FiraCode, Hack, etc.) works.
 pub const NERD_FONT: Font = Font {
     family: iced::font::Family::Name("JetBrainsMono Nerd Font"),
     weight: Weight::Normal,
@@ -14,7 +14,7 @@ pub const NERD_FONT_MONO: Font = Font {
     ..NERD_FONT
 };
 
-/// Fonte base da UI — mesma família do Waybar/Omarchy.
+/// Base UI font — same family as Waybar/Omarchy.
 pub const UI_FONT: Font = Font {
     family: iced::font::Family::Name("JetBrainsMono Nerd Font Mono"),
     weight: Weight::Normal,
@@ -27,7 +27,7 @@ pub const UI_FONT_BOLD: Font = Font {
     ..UI_FONT
 };
 
-// Codepoints Font Awesome (Nerd Fonts tier 1 — universais em qualquer Nerd Font)
+// Font Awesome codepoints (Nerd Fonts tier 1 — universal across any Nerd Font)
 pub const ICON_PLAY:     &str = "\u{f04b}";  //
 pub const ICON_PAUSE:    &str = "\u{f04c}";  //
 pub const ICON_PREV:     &str = "\u{f048}";  //

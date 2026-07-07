@@ -38,8 +38,8 @@ pub fn launch(
             .build()
             .unwrap();
 
-        // LocalSet é obrigatório: Player usa Rc internamente (não-Send),
-        // e o zbus usa spawn_local para suas tasks D-Bus.
+        // LocalSet is required: Player uses Rc internally (non-Send),
+        // and zbus uses spawn_local for its D-Bus tasks.
         let local = tokio::task::LocalSet::new();
         local.block_on(&rt, async move {
             let player = match Player::builder("omatunes")
@@ -80,8 +80,8 @@ pub fn launch(
             let tx = cmd_tx.clone();
             player.connect_set_volume(move |_, v| { let _ = tx.send(MprisCommand::SetVolume(v)); });
 
-            // Executa o loop D-Bus do player em paralelo com o loop de updates.
-            // Sem isso, o player registra no D-Bus mas não processa nenhum comando.
+            // Run the player's D-Bus loop in parallel with the update loop.
+            // Without this, the player registers on D-Bus but doesn't process any commands.
             tokio::task::spawn_local(player.run());
 
             while let Some(update) = update_rx.recv().await {

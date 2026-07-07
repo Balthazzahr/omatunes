@@ -208,7 +208,7 @@ pub fn reload_system_theme() {
     *palette_mutex().lock().unwrap() = load_palette_from_config();
 }
 
-/// Retorna o nome do tema atualmente configurado no Omarchy (para detecção de mudanças).
+/// Return the name of the currently configured Omarchy theme (for change detection).
 pub fn read_current_theme_name() -> String {
     let home = match home_dir() {
         Some(h) => h,
@@ -428,7 +428,7 @@ color_fn!(red,      red);
 color_fn!(yellow,   yellow);
 color_fn!(blue,     blue);
 
-// ── Utilitários ──────────────────────────────────────────────────────────────
+// ── Utilities ──────────────────────────────────────────────────────────────────
 
 pub fn with_alpha(c: Color, a: f32) -> Color {
     Color { a, ..c }
@@ -512,7 +512,7 @@ pub fn spectrum_bar_color(amplitude: f32) -> Color {
     }
 }
 
-// ── Estilos de Botão ──────────────────────────────────────────────────────────
+// ── Button Styles ──────────────────────────────────────────────────────────────
 
 pub fn primary_button(_: &iced::Theme, status: iced::widget::button::Status) -> iced::widget::button::Style {
     let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
