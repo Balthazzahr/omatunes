@@ -1731,6 +1731,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         text("\u{f013}")
             .size(20)
             .font(crate::ui::icons::NERD_FONT_MONO)
+            .color(theme::subtext())
     )
     .on_press(Message::OpenSettings)
     .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
@@ -1744,7 +1745,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
             ..Default::default()
         }
     })
-    .padding(8);
+    .padding([4, 8]);
 
     let clear_queue_btn: Element<'_, Message> = Space::with_width(0.0).into();
 
@@ -1755,11 +1756,10 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         clear_queue_spacer
     ]
     .align_y(Alignment::Center)
-    .padding(iced::Padding { top: 0.0, right: 12.0, bottom: 0.0, left: 0.0 });
+    .padding([0, 8]);
 
     let right_bar = row![
         now_playing_tab,
-        Space::with_width(Length::Fill),
         right_controls,
         settings_btn
     ]
