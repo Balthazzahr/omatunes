@@ -1193,9 +1193,11 @@ fn render_track_row(
     idx: usize,
     grouped: bool,
     current_id: Option<i64>,
+    id_to_idx: &HashMap<i64, usize>,
+    selected_ids: &HashSet<i64>,
 ) -> Element<'static, Message> {
     let is_current = current_id == Some(track.id);
-    let is_selected_track = dep.selected_tracks.iter().any(|t| t.id == track.id);
+    let is_selected_track = selected_ids.contains(&track.id);
     let row_color = if is_current { theme::accent() } else { theme::text() };
 
 
@@ -1284,19 +1286,19 @@ fn render_track_row(
         .align_y(Alignment::Center)
         .padding([5, 12]);
 
-    let current_idx = dep.tracks.iter().position(|t| t.id == track.id);
+    let current_idx = id_to_idx.get(&track.id).copied();
     let prev_selected = current_idx
         .and_then(|idx| if idx > 0 { dep.tracks.get(idx - 1) } else { None })
         .map(|prev_t| {
             let same_album = !grouped || prev_t.album == track.album;
-            same_album && dep.selected_tracks.iter().any(|t| t.id == prev_t.id)
+            same_album && selected_ids.contains(&prev_t.id)
         })
         .unwrap_or(false);
     let next_selected = current_idx
         .and_then(|idx| dep.tracks.get(idx + 1))
         .map(|next_t| {
             let same_album = !grouped || next_t.album == track.album;
-            same_album && dep.selected_tracks.iter().any(|t| t.id == next_t.id)
+            same_album && selected_ids.contains(&next_t.id)
         })
         .unwrap_or(false);
 
