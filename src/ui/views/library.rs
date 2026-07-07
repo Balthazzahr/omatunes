@@ -1745,7 +1745,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
             ..Default::default()
         }
     })
-    .padding([4, 8]);
+    .padding([2, 8]);
 
     let clear_queue_btn: Element<'_, Message> = Space::with_width(0.0).into();
 
