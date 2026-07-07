@@ -96,7 +96,7 @@ pub fn flush() {
 
 // ── Accumulation Helper ───────────────────────────────────────────────────────
 
-pub fn add_playback_time(artist: &str, genre: &str, secs: f64) {
+pub fn add_playback_time(artist: &str, album: &str, genre: &str, secs: f64) {
     let now_dt = chrono::Local::now();
     let date_str = now_dt.format("%Y-%m-%d").to_string();
     let now_ts = now_dt.timestamp();
@@ -124,7 +124,11 @@ pub fn add_playback_time(artist: &str, genre: &str, secs: f64) {
         let clean_genre = if genre.trim().is_empty() { "Unknown" } else { genre };
         let genre_entry = day.genre_minutes.entry(clean_genre.to_string()).or_default();
         *genre_entry += minutes;
-        
+
+        let clean_album = if album.trim().is_empty() { "Unknown" } else { album };
+        let album_entry = day.album_minutes.entry(clean_album.to_string()).or_default();
+        *album_entry += minutes;
+
         let session_mins = db.current_session_accum_secs / 60.0;
         if session_mins > day.longest_session_minutes {
             day.longest_session_minutes = session_mins;
