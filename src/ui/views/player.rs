@@ -170,7 +170,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             .size(28)
             .font(crate::ui::icons::NERD_FONT_MONO);
         
-        let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill).padding(12))
+        let btn = button(container(btn_icon).center_x(Length::Fill))
             .on_press(Message::ToggleRightPanelTab(tab))
             .width(Length::Fill)
             .height(Length::Fill)
