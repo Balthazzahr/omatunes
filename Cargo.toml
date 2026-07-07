@@ -1,6 +1,6 @@
 [package]
 name = "omatunes"
-version = "0.8.0-beta"
+version = "0.8.5-beta"
 edition = "2021"
 
 [dependencies]
