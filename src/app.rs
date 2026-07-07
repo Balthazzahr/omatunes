@@ -4156,6 +4156,10 @@ impl AppState {
 
         let tab_strip_visible = self.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 450.0);
         let tab_strip_offset = if tab_strip_visible { 56.0 } else { 0.0 };
+        eprintln!(
+            "DEBUG [app::view] player_height={:.0} window_width={:.0} tab_strip_visible={} tab_strip_offset={:.0} right_panel_tab={:?}",
+            self.player_height, self.window_width, tab_strip_visible, tab_strip_offset, self.right_panel_tab
+        );
 
         let left_top = stack![
             container(player_controls)
