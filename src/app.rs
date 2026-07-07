@@ -1640,6 +1640,12 @@ impl AppState {
                 Task::none()
             }
 
+            Message::FlushBuffers => {
+                crate::db::flush();
+                crate::stats::flush();
+                Task::none()
+            }
+
             Message::SearchChanged(val) => {
                 self.search_query = val;
                 self.active_focus = Some(ActiveFocus::SongSearch);
@@ -5082,6 +5088,7 @@ impl AppState {
             iced::time::every(Duration::from_millis(100)).map(|_| Message::PollAudio),
             iced::time::every(Duration::from_millis(33)).map(|_| Message::PollSpectrum),
             iced::time::every(Duration::from_secs(3)).map(|_| Message::CheckTheme),
+            iced::time::every(Duration::from_secs(5)).map(|_| Message::FlushBuffers),
             iced::keyboard::on_key_press(|key, _mods| {
                 Some(Message::KeyPressed(key))
             }),
