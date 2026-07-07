@@ -143,7 +143,7 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             container(
                 row![
                     text("\u{f002}")
-                        .size(14)
+                        .size(17)
                         .font(crate::ui::icons::NERD_FONT_MONO),
                     Space::with_width(6.0),
                     text("Search")
