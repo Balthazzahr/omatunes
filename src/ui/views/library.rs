@@ -1,3 +1,4 @@
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
 use iced::widget::{button, column, container, mouse_area, row, scrollable, text, Space, checkbox, text_input, stack, tooltip};
@@ -973,6 +974,13 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
 
     let tracklist_scroll = iced::widget::lazy(track_list_dep, move |dep| -> Element<'static, Message> {
         let current_id = dep.current_track_id;
+        let id_to_idx: HashMap<i64, usize> = dep.tracks.iter()
+            .enumerate()
+            .map(|(i, t)| (t.id, i))
+            .collect();
+        let selected_ids: HashSet<i64> = dep.selected_tracks.iter()
+            .map(|t| t.id)
+            .collect();
         let mut rows: Vec<Element<Message>> = Vec::new();
 
         if dep.group_by_album {
@@ -1401,7 +1409,7 @@ fn render_track_row(
         .padding(0);
 
     let row_target = if dep.selected_tracks.len() > 1 && dep.selected_tracks.iter().any(|t| t.id == track.id) {
-        crate::app::ContextMenuTarget::MultipleTracks(dep.selected_tracks.clone())
+        crate::app::ContextMenuTarget::MultipleTracks((*dep.selected_tracks).clone())
     } else {
         crate::app::ContextMenuTarget::Track(track_no_cover)
     };
