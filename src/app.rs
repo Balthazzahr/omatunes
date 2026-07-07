@@ -3560,6 +3560,59 @@ impl AppState {
                 Task::none()
             }
 
+            Message::ToggleSidebarSearch => {
+                self.show_sidebar_search = !self.show_sidebar_search;
+                if !self.show_sidebar_search {
+                    self.sidebar_search.clear();
+                    self.update_filtered_tracks();
+                }
+                Task::none()
+            }
+
+            Message::GlobalCursorMoved(pos) => {
+                self.cursor_position = pos;
+                Task::none()
+            }
+
+            Message::GlobalClick => {
+                let tab_strip_visible = self.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 450.0);
+                let tab_strip_offset = if tab_strip_visible { 56.0 } else { 0.0 };
+
+                if self.show_song_search {
+                    let search_right = self.window_width - tab_strip_offset - 12.0;
+                    let search_left = search_right - 220.0 - 40.0;
+                    let search_top = self.player_height - 28.0;
+                    let search_bottom = self.player_height;
+
+                    let px = self.cursor_position.x;
+                    let py = self.cursor_position.y;
+                    let clicked_inside_search = px >= search_left && px <= search_right && py >= search_top && py <= search_bottom;
+                    if !clicked_inside_search {
+                        self.show_song_search = false;
+                        self.search_query.clear();
+                        self.update_filtered_tracks();
+                    }
+                }
+
+                if self.show_sidebar_search {
+                    let sidebar_right = self.sidebar_width;
+                    let sidebar_left = 0.0;
+                    let sidebar_top = self.player_height + 28.0;
+                    let sidebar_bottom = sidebar_top + 28.0;
+
+                    let px = self.cursor_position.x;
+                    let py = self.cursor_position.y;
+                    let clicked_inside_sidebar_search = px >= sidebar_left && px <= sidebar_right && py >= sidebar_top && py <= sidebar_bottom;
+                    if !clicked_inside_sidebar_search {
+                        self.show_sidebar_search = false;
+                        self.sidebar_search.clear();
+                        self.update_filtered_tracks();
+                    }
+                }
+
+                Task::none()
+            }
+
             Message::SelectStatsSubTab(sub_tab) => {
                 self.stats_sub_tab = sub_tab;
                 Task::none()
