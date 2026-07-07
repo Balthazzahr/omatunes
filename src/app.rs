@@ -440,6 +440,7 @@ impl Clone for TagEditorState {
 
 pub struct CoverCache {
     pub id: Option<i64>,
+    pub version: u64,
     pub handle: Option<iced::widget::image::Handle>,
 }
 
@@ -724,7 +725,8 @@ impl AppState {
             audio,
             mpris_cmd_rx,
             mpris_update_tx,
-            cover_cache: std::sync::Mutex::new(CoverCache { id: None, handle: None }),
+            cover_cache_version: 0,
+            cover_cache: std::sync::Mutex::new(CoverCache { id: None, version: 0, handle: None }),
             font_scale: cfg.font_scale(),
             hovered_album_header: None,
             track_list_start: 0,
