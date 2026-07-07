@@ -1221,15 +1221,13 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown) -> Eleme
         ]
         .align_y(Alignment::Center),
         Space::with_height(16),
-        scrollable(tables)
-            .width(Length::Fill)
-            .height(Length::Fill),
+        tables,
     ];
 
     container(
         container(content)
             .padding(28)
-            .max_width(1200)
+            .max_width(1400)
             .max_height(800)
             .style(|_| iced::widget::container::Style {
                 background: Some(iced::Background::Color(theme::mantle())),
