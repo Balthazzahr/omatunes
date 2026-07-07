@@ -158,7 +158,7 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
             iced::widget::button::Style {
                 background: Some(iced::Background::Color(if is_hovered {
-                    theme::surface1()
+                    theme::lerp_color(theme::surface0(), theme::text(), 0.05)
                 } else {
                     theme::surface0()
                 })),
@@ -195,9 +195,13 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
             iced::widget::button::Style {
                 background: Some(iced::Background::Color(if is_selected {
-                    theme::with_alpha(theme::accent(), 0.15)
+                    if is_hovered {
+                        theme::with_alpha(theme::accent(), 0.25)
+                    } else {
+                        theme::with_alpha(theme::accent(), 0.15)
+                    }
                 } else if is_hovered {
-                    theme::surface1()
+                    theme::lerp_color(theme::surface0(), theme::text(), 0.05)
                 } else {
                     theme::surface0()
                 })),
