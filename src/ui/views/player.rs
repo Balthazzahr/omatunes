@@ -1116,22 +1116,31 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown) -> Eleme
         .spacing(2)
         .width(Length::FillPortion(1));
 
-        for (name, mins) in items {
-            let row_item = row![
-                text(name.as_str())
+        if items.is_empty() {
+            col = col.push(
+                text("No data yet")
                     .font(crate::ui::icons::UI_FONT)
-                    .size(13)
-                    .color(theme::text())
-                    .width(Length::Fill),
-                text(format_hours(*mins))
-                    .font(crate::ui::icons::UI_FONT_BOLD)
-                    .size(13)
-                    .color(theme::text())
-                    .align_x(iced::alignment::Horizontal::Right),
-            ]
-            .spacing(8)
-            .align_y(Alignment::Center);
-            col = col.push(row_item);
+                    .size(12)
+                    .color(theme::overlay0())
+            );
+        } else {
+            for (name, mins) in items {
+                let row_item = row![
+                    text(name.as_str())
+                        .font(crate::ui::icons::UI_FONT)
+                        .size(13)
+                        .color(theme::text())
+                        .width(Length::Fill),
+                    text(format_hours(*mins))
+                        .font(crate::ui::icons::UI_FONT_BOLD)
+                        .size(13)
+                        .color(theme::text())
+                        .align_x(iced::alignment::Horizontal::Right),
+                ]
+                .spacing(8)
+                .align_y(Alignment::Center);
+                col = col.push(row_item);
+            }
         }
         col.into()
     }
