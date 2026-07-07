@@ -259,6 +259,9 @@ pub enum Message {
     SelectPlaylistTab(PlaylistTab),
     ToggleRightPanelTab(RightPanelTab),
     ToggleSongSearch,
+    ToggleSidebarSearch,
+    GlobalCursorMoved(iced::Point),
+    GlobalClick,
     SelectStatsSubTab(StatsSubTab),
 
     OpenSettings,
