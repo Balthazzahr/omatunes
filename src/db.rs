@@ -8,6 +8,16 @@ use serde::{Deserialize, Serialize};
 static DB: std::sync::OnceLock<Mutex<OmatunesDb>> = std::sync::OnceLock::new();
 static DB_DIRTY: AtomicBool = AtomicBool::new(false);
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum GroupBy {
+    None,
+    Album,
+    Artist,
+    Genre,
+    Year,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TableColumn {
     TrackNumber,
@@ -82,6 +92,8 @@ pub struct OmatunesDb {
     pub table_columns: Vec<TableColumn>,
     #[serde(default)]
     pub group_by_album: bool,
+    #[serde(default)]
+    pub group_by: Option<GroupBy>,
     #[serde(default)]
     pub sidebar_width: Option<f32>,
     #[serde(default)]
@@ -161,10 +173,18 @@ impl OmatunesDb {
         if !path.exists() {
             return OmatunesDb::default();
         }
-        std::fs::read_to_string(path)
+        let mut db: OmatunesDb = std::fs::read_to_string(path)
             .ok()
             .and_then(|s| serde_json::from_str(&s).ok())
-            .unwrap_or_default()
+            .unwrap_or_default();
+        if db.group_by.is_none() {
+            if db.group_by_album {
+                db.group_by = Some(GroupBy::Album);
+            } else {
+                db.group_by = Some(GroupBy::None);
+            }
+        }
+        db
     }
 
     pub fn save(&self) {
