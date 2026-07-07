@@ -893,11 +893,11 @@ impl AppState {
                         temp_tracks.push(t);
                     }
                 }
-                self.tracks = temp_tracks;
+                self.tracks = Arc::new(temp_tracks);
             } else if playlist_name == "New Music" {
                 use std::time::SystemTime;
                 let mut album_times: std::collections::HashMap<String, SystemTime> = std::collections::HashMap::new();
-                for t in &self.all_tracks {
+                for t in self.all_tracks.iter() {
                     let mtime = std::fs::metadata(&t.path)
                         .and_then(|meta| meta.modified())
                         .unwrap_or(SystemTime::UNIX_EPOCH);
