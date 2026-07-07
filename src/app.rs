@@ -3104,6 +3104,12 @@ impl AppState {
                             return Task::done(Message::CloseTagEditor);
                         } else if has_context_menu {
                             return Task::done(Message::ToggleContextMenu(None));
+                        } else if self.show_settings.is_some() {
+                            return Task::done(Message::CloseSettings);
+                        } else if self.show_song_search {
+                            return Task::done(Message::ToggleSongSearch);
+                        } else if self.show_sidebar_search {
+                            return Task::done(Message::ToggleSidebarSearch);
                         }
                     }
                     Key::Named(Named::Tab) => {
