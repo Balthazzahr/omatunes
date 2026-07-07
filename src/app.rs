@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::time::Duration;
 
 use iced::widget::{button, container, column, row, text, Space, stack, scrollable, mouse_area};

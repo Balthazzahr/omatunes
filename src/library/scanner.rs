@@ -45,7 +45,7 @@ pub fn scan_folder(dir: &Path) -> Vec<Track> {
             .then(a.title.cmp(&b.title))
     });
 
-    pairs.into_iter().enumerate().map(|(i, (path, info))| {
+    pairs.into_iter().enumerate().map(|(_i, (path, info))| {
         let (play_count, liked) = crate::db::get(|db| {
             let pc = db.play_counts.get(&path).copied().unwrap_or(0);
             let l = db.favorites.contains(&path);
