@@ -3100,7 +3100,9 @@ impl AppState {
                         }
                     }
                     Key::Named(Named::Escape) => {
-                        if has_shortcuts {
+                        if self.show_period_breakdown.is_some() {
+                            return Task::done(Message::ClosePeriodBreakdown);
+                        } else if has_shortcuts {
                             return Task::done(Message::CloseShortcuts);
                         } else if has_playlist_dialog {
                             return Task::done(Message::ClosePlaylistDialog);
