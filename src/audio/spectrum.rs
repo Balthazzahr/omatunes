@@ -8,7 +8,7 @@ const FFT_SIZE: usize = 2048;
 
 const FREQ_MIN: f32 = 80.0;
 const FREQ_MAX: f32 = 20000.0;
-const SAMPLE_RATE: f32 = 44100.0;
+const SAMPLE_RATE: f32 = 48000.0;
 
 pub struct SpectrumAnalyzer {
     planner: FftPlanner<f32>,
