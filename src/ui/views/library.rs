@@ -789,7 +789,7 @@ impl std::hash::Hash for TrackListDependency {
             t.track_number.hash(state);
             t.disc_number.hash(state);
         }
-        for t in &self.tracks {
+        for t in self.tracks.iter() {
             t.id.hash(state);
             t.liked.hash(state);
             t.play_count.hash(state);
