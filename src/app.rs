@@ -1259,6 +1259,7 @@ impl AppState {
             Message::SeekToLyric(dur) => {
                 self.audio.send(AudioCommand::Seek(dur));
                 self.position = dur;
+                self.last_accumulated_position = dur;
                 self.right_panel_tab_user_scrolled = false;
                 Task::none()
             }
@@ -1271,6 +1272,7 @@ impl AppState {
                 };
                 self.audio.send(AudioCommand::Seek(new_pos));
                 self.position = new_pos;
+                self.last_accumulated_position = new_pos;
                 Task::none()
             }
 
@@ -1427,7 +1429,16 @@ impl AppState {
                             }
                             self.last_accumulated_position = position;
 
-                            if !self.current_track_play_counted && duration > Duration::ZERO && position >= duration / 2 {
+                            if !self.current_track_play_counted && duration > Duration::ZERO {
+                                let is_estimated = duration == position;
+                                let threshold = if is_estimated {
+                                    Duration::from_secs(60)
+                                } else {
+                                    duration / 2
+                                };
+                                if position < threshold {
+                                    break;
+                                }
                                 if let Some(ref mut track) = self.current_track {
                                     let count = crate::db::increment_play_count(track.path.clone());
                                     track.play_count = count;
