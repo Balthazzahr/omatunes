@@ -4172,7 +4172,7 @@ impl AppState {
             let tab_strip = views::player::tab_strip(self);
             row![
                 main_left_content,
-                tab_strip.height(iced::Length::Fixed(self.player_height))
+                tab_strip
             ]
             .spacing(0)
             .width(Length::Fill)
