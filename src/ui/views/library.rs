@@ -1204,7 +1204,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         container(group_by_checkbox)
             .align_x(iced::alignment::Horizontal::Right)
             .align_y(iced::alignment::Vertical::Bottom)
-            .padding([0, 12, 12, 0]),
+            .padding(iced::Padding { top: 0.0, right: 12.0, bottom: 12.0, left: 0.0 }),
     ]
     .width(Length::Fill)
     .height(Length::Fill)
