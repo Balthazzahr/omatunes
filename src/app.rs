@@ -2468,6 +2468,14 @@ impl AppState {
                     self.selected_artist = sel_artist;
                     self.selected_album = sel_album;
                     self.selected_genre = sel_genre;
+
+                    if self.selected_artist.is_none() {
+                        let artists_list = self.artists();
+                        if !artists_list.is_empty() {
+                            self.selected_artist = Some(artists_list[0].clone());
+                        }
+                    }
+
                     self.update_filtered_tracks();
 
                     let mut restored_queue = Vec::new();
