@@ -61,20 +61,25 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
 
 fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
     let sidebar_search_input: Element<'_, Message> = if state.show_sidebar_search {
-        let sidebar_clear_btn: Element<'_, Message> = if !state.sidebar_search.is_empty() {
-            button(
-                text("\u{f00d}")
-                    .font(crate::ui::icons::NERD_FONT_MONO)
-                    .color(theme::red())
-                    .size(12)
-            )
-            .on_press(Message::SidebarSearchChanged(String::new()))
-            .style(iced::widget::button::text)
-            .padding(4)
-            .into()
-        } else {
-            Space::with_width(0.0).into()
-        };
+        let sidebar_clear_btn: Element<'_, Message> = button(
+            text("\u{f00d}")
+                .font(crate::ui::icons::NERD_FONT_MONO)
+                .size(12)
+        )
+        .on_press(Message::ToggleSidebarSearch)
+        .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+            iced::widget::button::Style {
+                text_color: if is_hovered {
+                    theme::text()
+                } else {
+                    theme::subtext()
+                },
+                ..Default::default()
+            }
+        })
+        .padding(4)
+        .into();
 
         let placeholder = match state.view_mode {
             ViewMode::Artists | ViewMode::NowPlaying => "Search artists...",
