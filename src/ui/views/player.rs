@@ -1,4 +1,4 @@
-use iced::widget::{column, container, image, row, text, Space, button, slider, mouse_area, stack, scrollable, tooltip, vertical_rule};
+use iced::widget::{column, container, image, row, text, Space, button, slider, mouse_area, stack, scrollable, tooltip};
 use iced::{Alignment, Element, Length, Color};
 use std::collections::HashMap;
 
@@ -1171,24 +1171,24 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown) -> Eleme
     }
 
     let sep = || -> Element<'_, Message> {
-        vertical_rule(1)
-            .style(|_, _| iced::widget::rule::Style {
-                color: theme::surface0(),
-                width: 1,
+        container(Space::with_width(0))
+            .width(1)
+            .height(Length::Fill)
+            .style(|_| iced::widget::container::Style {
+                background: Some(iced::Background::Color(theme::surface0())),
                 ..Default::default()
-                // note: `fill` is the default
             })
             .into()
     };
 
     let tables = row![
-        build_col("Artist", &breakdown.artist_minutes, &format_hours, text_size, |name| Message::SelectArtistFromBreakdown(name)),
+        build_col("Artist", &breakdown.artist_minutes, &format_hours, text_size, small_size, |name| Message::SelectArtistFromBreakdown(name)),
         sep(),
         Space::with_width(16),
-        build_col("Genre", &breakdown.genre_minutes, &format_hours, text_size, |name| Message::SelectGenreFromBreakdown(name)),
+        build_col("Genre", &breakdown.genre_minutes, &format_hours, text_size, small_size, |name| Message::SelectGenreFromBreakdown(name)),
         sep(),
         Space::with_width(16),
-        build_col("Album", &breakdown.album_minutes, &format_hours, text_size, |name| Message::SelectAlbumFromBreakdown(name)),
+        build_col("Album", &breakdown.album_minutes, &format_hours, text_size, small_size, |name| Message::SelectAlbumFromBreakdown(name)),
     ]
     .spacing(0)
     .width(Length::Fill);
