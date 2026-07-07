@@ -1263,22 +1263,35 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
 
     // Animated Group By Control Overlay
     let hover_progress = state.group_by_state.hover_progress;
+    let has_active_grouping = state.group_by != crate::db::GroupBy::None;
     
     // GroupBy option button rendering function
     let make_option_btn = |grouping: crate::db::GroupBy, icon: &'static str, name: &'static str| -> Element<'_, Message> {
         let is_selected = state.group_by == grouping;
         let btn = button(
-            text(icon)
-                .font(crate::ui::icons::NERD_FONT_MONO)
-                .size(13)
+            container(
+                text(icon)
+                    .font(crate::ui::icons::NERD_FONT_MONO)
+                    .size(26)
+            )
+            .center_x(Length::Fill)
+            .center_y(Length::Fill)
         )
         .on_press(Message::GroupBySelected(grouping))
         .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
             let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-            let base_color = if is_selected {
-                theme::accent()
+            let base_color = if has_active_grouping {
+                if is_selected {
+                    theme::mantle()
+                } else {
+                    theme::with_alpha(theme::mantle(), 0.6)
+                }
             } else {
-                theme::subtext()
+                if is_selected {
+                    theme::accent()
+                } else {
+                    theme::subtext()
+                }
             };
             let text_color = if is_hovered {
                 theme::text()
@@ -1288,7 +1301,11 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             iced::widget::button::Style {
                 text_color: theme::with_alpha(text_color, hover_progress),
                 background: Some(iced::Background::Color(if is_hovered {
-                    theme::with_alpha(theme::text(), 0.05)
+                    if has_active_grouping {
+                        theme::with_alpha(theme::text(), 0.1)
+                    } else {
+                        theme::with_alpha(theme::text(), 0.05)
+                    }
                 } else {
                     iced::Color::TRANSPARENT
                 })),
@@ -1299,9 +1316,9 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 ..Default::default()
             }
         })
-        .padding(6)
-        .width(28.0)
-        .height(28.0);
+        .padding(0)
+        .width(44.0)
+        .height(44.0);
 
         tooltip(btn, name, iced::widget::tooltip::Position::Top)
             .gap(4.0)
@@ -1327,25 +1344,29 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         .spacing(8.0 * hover_progress)
         .align_y(Alignment::Center);
 
-        let separator = container(Space::new(Length::Fixed(1.0), Length::Fixed(12.0)))
-            .style(|_| iced::widget::container::Style {
-                background: Some(iced::Background::Color(theme::overlay0())),
+        let separator = container(Space::new(Length::Fixed(1.0), Length::Fixed(20.0)))
+            .style(move |_| iced::widget::container::Style {
+                background: Some(iced::Background::Color(if has_active_grouping {
+                    theme::with_alpha(theme::mantle(), 0.5)
+                } else {
+                    theme::overlay0()
+                })),
                 ..Default::default()
             })
             .width(1.0)
-            .height(12.0);
+            .height(20.0);
 
         row = row.push(separator);
         
         container(row)
             .align_y(iced::alignment::Vertical::Center)
-            .width(Length::Fixed(136.0 * hover_progress))
+            .width(Length::Fixed(208.0 * hover_progress))
             .into()
     } else {
         Space::with_width(0.0).into()
     };
 
-    let (base_icon, base_color_normal, base_tooltip, base_action) = if state.group_by != crate::db::GroupBy::None {
+    let (base_icon, base_color_normal, base_tooltip, base_action) = if has_active_grouping {
         if state.group_by_state.is_cluster_hovered {
             ("\u{f00d}", theme::red(), "Remove grouping", Message::GroupByCleared)
         } else {
@@ -1363,22 +1384,26 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 crate::db::GroupBy::Year => "Year",
                 crate::db::GroupBy::None => unreachable!(),
             };
-            (icon, theme::accent(), label, Message::GroupByCleared)
+            (icon, theme::mantle(), label, Message::GroupByCleared)
         }
     } else {
         ("\u{eea8}", theme::subtext(), "Group by...", Message::GroupByHoverEnter)
     };
 
     let base_btn = button(
-        text(base_icon)
-            .font(crate::ui::icons::NERD_FONT_MONO)
-            .size(14)
+        container(
+            text(base_icon)
+                .font(crate::ui::icons::NERD_FONT_MONO)
+                .size(28)
+        )
+        .center_x(Length::Fill)
+        .center_y(Length::Fill)
     )
     .on_press(base_action)
     .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
         let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
         let final_color = if is_hovered {
-            if state.group_by != crate::db::GroupBy::None {
+            if has_active_grouping {
                 theme::red()
             } else {
                 theme::text()
@@ -1389,20 +1414,24 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         iced::widget::button::Style {
             text_color: final_color,
             background: Some(iced::Background::Color(if is_hovered {
-                theme::with_alpha(theme::text(), 0.05)
+                if has_active_grouping {
+                    theme::with_alpha(theme::text(), 0.1)
+                } else {
+                    theme::with_alpha(theme::text(), 0.05)
+                }
             } else {
                 iced::Color::TRANSPARENT
             })),
             border: iced::Border {
-                radius: 4.0.into(),
+                radius: 6.0.into(),
                 ..Default::default()
             },
             ..Default::default()
         }
     })
-    .padding(6)
-    .width(28.0)
-    .height(28.0);
+    .padding(0)
+    .width(44.0)
+    .height(44.0);
 
     let base_tooltip_widget = tooltip(base_btn, base_tooltip, iced::widget::tooltip::Position::Top)
         .gap(4.0)
@@ -1425,11 +1454,19 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             .align_y(Alignment::Center)
             .spacing(0)
         )
-        .padding([4, 8])
-        .style(|theme: &iced::Theme| iced::widget::container::Style {
-            background: Some(iced::Background::Color(theme::mantle())),
+        .padding(6)
+        .style(move |theme: &iced::Theme| iced::widget::container::Style {
+            background: Some(iced::Background::Color(if has_active_grouping {
+                theme::accent()
+            } else {
+                theme::mantle()
+            })),
             border: iced::Border {
-                color: theme::surface0(),
+                color: if has_active_grouping {
+                    theme::accent()
+                } else {
+                    theme::surface0()
+                },
                 width: 1.0,
                 radius: 8.0.into(),
             },
