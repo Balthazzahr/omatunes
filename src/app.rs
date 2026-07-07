@@ -263,6 +263,8 @@ pub enum Message {
     GlobalCursorMoved(iced::Point),
     GlobalClick,
     SelectStatsSubTab(StatsSubTab),
+    ShowPeriodBreakdown(usize),
+    ClosePeriodBreakdown,
 
     OpenSettings,
     CloseSettings,
@@ -565,6 +567,7 @@ pub struct AppState {
     pub queue_scroll_id: scrollable::Id,
     pub last_accumulated_position: Duration,
     pub stats_sub_tab: StatsSubTab,
+    pub show_period_breakdown: Option<crate::stats::PeriodBreakdown>,
     pub active_notifications: Vec<StatsNotification>,
     pub last_checked_hour: Option<u32>,
 }
