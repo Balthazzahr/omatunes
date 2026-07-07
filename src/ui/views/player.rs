@@ -1190,8 +1190,8 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown) -> Eleme
     container(
         container(content)
             .padding(24)
-            .max_width(900)
-            .max_height(600)
+            .max_width(1000)
+            .max_height(750)
             .style(|_| iced::widget::container::Style {
                 background: Some(iced::Background::Color(theme::mantle())),
                 border: iced::Border {
