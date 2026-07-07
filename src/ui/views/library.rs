@@ -1272,7 +1272,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             container(
                 text(icon)
                     .font(crate::ui::icons::NERD_FONT_MONO)
-                    .size(26)
+                    .size(30)
             )
             .center_x(Length::Fill)
             .center_y(Length::Fill)
@@ -1280,18 +1280,10 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         .on_press(Message::GroupBySelected(grouping))
         .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
             let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-            let base_color = if has_active_grouping {
-                if is_selected {
-                    theme::mantle()
-                } else {
-                    theme::with_alpha(theme::mantle(), 0.6)
-                }
+            let base_color = if is_selected {
+                theme::accent()
             } else {
-                if is_selected {
-                    theme::accent()
-                } else {
-                    theme::subtext()
-                }
+                theme::subtext()
             };
             let text_color = if is_hovered {
                 theme::text()
@@ -1301,11 +1293,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             iced::widget::button::Style {
                 text_color: theme::with_alpha(text_color, hover_progress),
                 background: Some(iced::Background::Color(if is_hovered {
-                    if has_active_grouping {
-                        theme::with_alpha(theme::text(), 0.1)
-                    } else {
-                        theme::with_alpha(theme::text(), 0.05)
-                    }
+                    theme::with_alpha(theme::text(), 0.05)
                 } else {
                     iced::Color::TRANSPARENT
                 })),
@@ -1345,12 +1333,8 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         .align_y(Alignment::Center);
 
         let separator = container(Space::new(Length::Fixed(1.0), Length::Fixed(20.0)))
-            .style(move |_| iced::widget::container::Style {
-                background: Some(iced::Background::Color(if has_active_grouping {
-                    theme::with_alpha(theme::mantle(), 0.5)
-                } else {
-                    theme::overlay0()
-                })),
+            .style(|_| iced::widget::container::Style {
+                background: Some(iced::Background::Color(theme::overlay0())),
                 ..Default::default()
             })
             .width(1.0)
@@ -1384,7 +1368,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 crate::db::GroupBy::Year => "Year",
                 crate::db::GroupBy::None => unreachable!(),
             };
-            (icon, theme::mantle(), label, Message::GroupByCleared)
+            (icon, theme::accent(), label, Message::GroupByCleared)
         }
     } else {
         ("\u{eea8}", theme::subtext(), "Group by...", Message::GroupByHoverEnter)
@@ -1394,7 +1378,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         container(
             text(base_icon)
                 .font(crate::ui::icons::NERD_FONT_MONO)
-                .size(28)
+                .size(32)
         )
         .center_x(Length::Fill)
         .center_y(Length::Fill)
@@ -1414,11 +1398,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         iced::widget::button::Style {
             text_color: final_color,
             background: Some(iced::Background::Color(if is_hovered {
-                if has_active_grouping {
-                    theme::with_alpha(theme::text(), 0.1)
-                } else {
-                    theme::with_alpha(theme::text(), 0.05)
-                }
+                theme::with_alpha(theme::text(), 0.05)
             } else {
                 iced::Color::TRANSPARENT
             })),
@@ -1457,7 +1437,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         .padding(6)
         .style(move |theme: &iced::Theme| iced::widget::container::Style {
             background: Some(iced::Background::Color(if has_active_grouping {
-                theme::accent()
+                theme::with_alpha(theme::accent(), 0.18)
             } else {
                 theme::mantle()
             })),
