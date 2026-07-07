@@ -729,6 +729,8 @@ impl AppState {
             right_panel_tab: db_right_panel_tab,
             right_panel_tab_user_scrolled: false,
             show_song_search: false,
+            show_sidebar_search: false,
+            cursor_position: iced::Point::ORIGIN,
             lyrics_scroll_id: scrollable::Id::unique(),
             last_active_lyric_idx: None,
             spectrum_bands: [0.0; crate::audio::spectrum::NUM_BANDS],
