@@ -3656,6 +3656,69 @@ impl AppState {
                 Task::none()
             }
 
+            Message::SelectArtistFromBreakdown(artist) => {
+                self.show_period_breakdown = None;
+                let now = std::time::Instant::now();
+                if let Some((ref prev_artist, last_time)) = self.last_click_artist {
+                    if prev_artist == &artist && now.duration_since(last_time) < std::time::Duration::from_millis(350) {
+                        self.last_click_artist = None;
+                        return Task::done(Message::DoubleClickArtist(artist));
+                    }
+                }
+                self.last_click_artist = Some((artist.clone(), now));
+                self.selected_artist = Some(artist);
+                self.view_mode = ViewMode::Artists;
+                self.selected_playlist = None;
+                self.selected_folder = None;
+                self.selected_album = None;
+                self.active_focus = Some(ActiveFocus::SidebarList);
+                self.search_query.clear();
+                self.update_filtered_tracks();
+                Task::none()
+            }
+
+            Message::SelectAlbumFromBreakdown(album) => {
+                self.show_period_breakdown = None;
+                let now = std::time::Instant::now();
+                if let Some((ref prev_album, last_time)) = self.last_click_album {
+                    if prev_album == &album && now.duration_since(last_time) < std::time::Duration::from_millis(350) {
+                        self.last_click_album = None;
+                        return Task::done(Message::DoubleClickAlbum(album));
+                    }
+                }
+                self.last_click_album = Some((album.clone(), now));
+                self.selected_album = Some(album);
+                self.selected_playlist = None;
+                self.selected_folder = None;
+                self.selected_artist = None;
+                self.active_focus = Some(ActiveFocus::SidebarList);
+                self.search_query.clear();
+                self.update_filtered_tracks();
+                Task::none()
+            }
+
+            Message::SelectGenreFromBreakdown(genre) => {
+                self.show_period_breakdown = None;
+                let now = std::time::Instant::now();
+                if let Some((ref prev_genre, last_time)) = self.last_click_genre {
+                    if prev_genre == &genre && now.duration_since(last_time) < std::time::Duration::from_millis(350) {
+                        self.last_click_genre = None;
+                        return Task::done(Message::DoubleClickGenre(genre));
+                    }
+                }
+                self.last_click_genre = Some((genre.clone(), now));
+                self.selected_genre = Some(genre);
+                self.view_mode = ViewMode::Genres;
+                self.selected_playlist = None;
+                self.selected_folder = None;
+                self.selected_artist = None;
+                self.selected_album = None;
+                self.active_focus = Some(ActiveFocus::SidebarList);
+                self.search_query.clear();
+                self.update_filtered_tracks();
+                Task::none()
+            }
+
             Message::SelectTagEditorTab(tab) => {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.active_tab = tab;
