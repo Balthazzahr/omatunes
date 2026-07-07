@@ -994,36 +994,36 @@ impl AppState {
 
                 ViewMode::Artists => {
                     if let Some(artist_name) = &self.selected_artist {
-                        self.tracks = self.all_tracks.iter().filter(|t| {
+                        self.tracks = Arc::new(self.all_tracks.iter().filter(|t| {
                             let a = if t.artist.trim().is_empty() { "Unknown Artist" } else { &t.artist };
                             a == artist_name
-                        }).cloned().collect();
+                        }).cloned().collect::<Vec<_>>());
                     } else {
                         self.tracks = self.all_tracks.clone();
                     }
                 }
                 ViewMode::Albums => {
                     if let Some(album_name) = &self.selected_album {
-                        self.tracks = self.all_tracks.iter().filter(|t| {
+                        self.tracks = Arc::new(self.all_tracks.iter().filter(|t| {
                             let al = if t.album.trim().is_empty() { "Unknown Album" } else { &t.album };
                             al == album_name
-                        }).cloned().collect();
+                        }).cloned().collect::<Vec<_>>());
                     } else {
                         self.tracks = self.all_tracks.clone();
                     }
                 }
                 ViewMode::Genres => {
                     if let Some(genre_name) = &self.selected_genre {
-                        self.tracks = self.all_tracks.iter().filter(|t| {
+                        self.tracks = Arc::new(self.all_tracks.iter().filter(|t| {
                             let g = if t.genre.trim().is_empty() { "Unknown Genre" } else { &t.genre };
                             g == genre_name
-                        }).cloned().collect();
+                        }).cloned().collect::<Vec<_>>());
                     } else {
                         self.tracks = self.all_tracks.clone();
                     }
                 }
                 ViewMode::NowPlaying => {
-                    self.tracks = self.queue.clone();
+                    self.tracks = Arc::new(self.queue.clone());
                 }
             }
         }
