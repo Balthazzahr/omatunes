@@ -1,9 +1,11 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
 use serde::{Serialize, Deserialize};
 
 static STATS: std::sync::OnceLock<Mutex<StatsDb>> = std::sync::OnceLock::new();
+static STATS_DIRTY: AtomicBool = AtomicBool::new(false);
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct DayStats {
@@ -83,8 +85,16 @@ where
 {
     let mut guard = STATS.get_or_init(|| Mutex::new(StatsDb::load())).lock().unwrap();
     let res = f(&mut guard);
-    guard.save();
+    STATS_DIRTY.store(true, Ordering::Release);
     res
+}
+
+pub fn flush() {
+    if STATS_DIRTY.swap(false, Ordering::Acquire) {
+        if let Ok(guard) = STATS.get_or_init(|| Mutex::new(StatsDb::load())).lock() {
+            guard.save();
+        }
+    }
 }
 
 // ── Accumulation Helper ───────────────────────────────────────────────────────
