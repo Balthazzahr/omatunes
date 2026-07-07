@@ -1,3 +1,4 @@
+use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
@@ -51,7 +52,11 @@ pub fn scan_folder(dir: &Path) -> Vec<Track> {
             (pc, l)
         });
         Track {
-            id: (i + 1) as i64,
+            id: {
+                let mut hasher = std::collections::hash_map::DefaultHasher::new();
+                path.hash(&mut hasher);
+                hasher.finish() as i64
+            },
             path,
             title: info.title,
             artist: info.artist,
