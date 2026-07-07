@@ -1202,6 +1202,8 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
     let content_area: Element<'_, Message> = stack![
         content_area,
         container(group_by_checkbox)
+            .width(Length::Fill)
+            .height(Length::Fill)
             .align_x(iced::alignment::Horizontal::Right)
             .align_y(iced::alignment::Vertical::Bottom)
             .padding(iced::Padding { top: 0.0, right: 12.0, bottom: 12.0, left: 0.0 }),
