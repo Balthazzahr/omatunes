@@ -135,30 +135,55 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
         };
 
         let search_icon_btn = button(
-            row![
-                text("\u{f002}")
-                    .size(14)
-                    .font(crate::ui::icons::NERD_FONT_MONO),
-                Space::with_width(4.0),
-                text("Search")
-                    .size(12)
-                    .font(crate::ui::icons::UI_FONT_BOLD)
-            ]
-            .align_y(Alignment::Center)
+            container(
+                row![
+                    text("\u{f002}")
+                        .size(14)
+                        .font(crate::ui::icons::NERD_FONT_MONO),
+                    Space::with_width(6.0),
+                    text("Search")
+                        .size(13)
+                        .font(crate::ui::icons::UI_FONT_BOLD)
+                ]
+                .align_y(Alignment::Center)
+            )
+            .align_x(iced::alignment::Horizontal::Left)
+            .width(Length::Fill)
+            .padding([0, 12])
         )
         .on_press(Message::ToggleSidebarSearch)
         .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
             let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
             iced::widget::button::Style {
+                background: if is_hovered {
+                    Some(iced::Background::Color(if is_selected {
+                        theme::with_alpha(theme::accent(), 0.1)
+                    } else {
+                        theme::with_alpha(theme::text(), 0.05)
+                    }))
+                } else {
+                    None
+                },
                 text_color: if is_hovered {
                     theme::text()
                 } else {
                     theme::subtext()
                 },
-                ..Default::default()
+                border: iced::Border {
+                    radius: iced::border::Radius {
+                        top_left: 4.0,
+                        bottom_left: 4.0,
+                        top_right: 0.0,
+                        bottom_right: 0.0,
+                    },
+                    ..Default::default()
+                },
+                shadow: Default::default(),
             }
         })
-        .padding([4, 8]);
+        .width(Length::FillPortion(1))
+        .height(Length::Fill)
+        .padding(0);
 
         let separator = container(Space::new(Length::Fixed(1.0), Length::Fixed(12.0)))
             .style(|_| iced::widget::container::Style {
@@ -169,14 +194,28 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             .height(12.0);
 
         let label_btn = button(
-            text(label_text)
-                .font(crate::ui::icons::UI_FONT_BOLD)
-                .size(13)
+            container(
+                text(label_text)
+                    .font(crate::ui::icons::UI_FONT_BOLD)
+                    .size(13)
+            )
+            .align_x(iced::alignment::Horizontal::Right)
+            .width(Length::Fill)
+            .padding([0, 12])
         )
         .on_press(label_action)
         .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
             let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
             iced::widget::button::Style {
+                background: if is_hovered {
+                    Some(iced::Background::Color(if is_selected {
+                        theme::with_alpha(theme::accent(), 0.1)
+                    } else {
+                        theme::with_alpha(theme::text(), 0.05)
+                    }))
+                } else {
+                    None
+                },
                 text_color: if is_hovered {
                     theme::text()
                 } else if is_selected {
@@ -184,11 +223,21 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                 } else {
                     theme::subtext()
                 },
-                ..Default::default()
+                border: iced::Border {
+                    radius: iced::border::Radius {
+                        top_left: 0.0,
+                        bottom_left: 0.0,
+                        top_right: 4.0,
+                        bottom_right: 4.0,
+                    },
+                    ..Default::default()
+                },
+                shadow: Default::default(),
             }
         })
-        .width(Length::Fill)
-        .padding([4, 8]);
+        .width(Length::FillPortion(1))
+        .height(Length::Fill)
+        .padding(0);
 
         container(
             row![
