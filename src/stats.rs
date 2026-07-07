@@ -413,6 +413,97 @@ pub struct RowStats {
     pub longest_session: f64,
 }
 
+#[derive(Debug, Clone)]
+pub struct PeriodBreakdown {
+    pub period_label: String,
+    pub total_minutes: f64,
+    pub total_plays: u32,
+    pub artist_minutes: Vec<(String, f64)>,
+    pub genre_minutes: Vec<(String, f64)>,
+}
+
+pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models::Track]) -> PeriodBreakdown {
+    get(|db| {
+        let now = chrono::Local::now().naive_local().date();
+        let today_str = now.format("%Y-%m-%d").to_string();
+        let days_from_monday = now.weekday().num_days_from_monday();
+        let monday = now - chrono::Duration::days(days_from_monday as i64);
+        let this_month_prefix = now.format("%Y-%m").to_string();
+
+        let periods: Vec<(&str, Box<dyn Fn(&str) -> bool>)> = vec![
+            ("Today", Box::new(move |d: &str| d == today_str)),
+            ("This Week", Box::new(move |d: &str| {
+                if let Some(date) = parse_date(d) {
+                    date >= monday && date <= now
+                } else { false }
+            })),
+            ("This Month", Box::new(move |d: &str| d.starts_with(&this_month_prefix))),
+            ("All-Time", Box::new(move |_d: &str| true)),
+        ];
+
+        let (label, filter) = &periods[period_idx];
+        let mut total_minutes = 0.0;
+        let mut total_plays = 0;
+        let mut artist_minutes: HashMap<String, f64> = HashMap::new();
+        let mut genre_minutes: HashMap<String, f64> = HashMap::new();
+
+        if *label == "All-Time" {
+            total_plays += db.legacy_tracks;
+            total_minutes += db.legacy_minutes;
+            for (a, m) in &db.legacy_artist_minutes {
+                *artist_minutes.entry(a.clone()).or_default() += m;
+            }
+        }
+
+        for (date_str, day) in &db.daily_buckets {
+            if filter(date_str) {
+                total_plays += day.track_play_count;
+                total_minutes += day.total_minutes;
+                for (a, m) in &day.artist_minutes {
+                    *artist_minutes.entry(a.clone()).or_default() += m;
+                }
+                if day.genre_minutes.is_empty() {
+                    // Build artist_to_genre mapping as fallback
+                    let mut artist_genre_counts: HashMap<String, HashMap<String, usize>> = HashMap::new();
+                    for track in tracks {
+                        if !track.artist.is_empty() && !track.genre.is_empty() {
+                            *artist_genre_counts
+                                .entry(track.artist.clone())
+                                .or_default()
+                                .entry(track.genre.clone())
+                                .or_default() += 1;
+                        }
+                    }
+                    for (a, m) in &day.artist_minutes {
+                        if let Some(best_genre) = artist_genre_counts.get(a)
+                            .and_then(|gmap| gmap.iter().max_by_key(|(_, count)| **count).map(|(g, _)| g))
+                        {
+                            *genre_minutes.entry(best_genre.clone()).or_default() += m;
+                        }
+                    }
+                } else {
+                    for (g, m) in &day.genre_minutes {
+                        *genre_minutes.entry(g.clone()).or_default() += m;
+                    }
+                }
+            }
+        }
+
+        let mut artist_list: Vec<(String, f64)> = artist_minutes.into_iter().collect();
+        artist_list.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        let mut genre_list: Vec<(String, f64)> = genre_minutes.into_iter().collect();
+        genre_list.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+
+        PeriodBreakdown {
+            period_label: label.to_string(),
+            total_minutes,
+            total_plays,
+            artist_minutes: artist_list,
+            genre_minutes: genre_list,
+        }
+    })
+}
+
 pub fn get_restructured_stats(tracks: &[crate::library::models::Track]) -> Vec<RowStats> {
     get(|db| {
         let now = chrono::Local::now().naive_local().date();
