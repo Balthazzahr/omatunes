@@ -3015,7 +3015,7 @@ impl AppState {
                         let end_idx = self.tracks.iter().position(|t| t.id == track.id);
                         if let (Some(s), Some(e)) = (start_idx, end_idx) {
                             let (min, max) = if s < e { (s, e) } else { (e, s) };
-                            self.selected_tracks = self.tracks[min..=max].to_vec();
+                            self.selected_tracks = Arc::new(self.tracks[min..=max].to_vec());
                         }
                     } else {
                         self.selected_tracks = Arc::new(vec![track.clone()]);
@@ -3932,7 +3932,7 @@ impl AppState {
                         let end_idx = self.tracks.iter().position(|t| t.id == track.id);
                         if let (Some(s), Some(e)) = (start_idx, end_idx) {
                             let (min, max) = if s < e { (s, e) } else { (e, s) };
-                            self.selected_tracks = self.tracks[min..=max].to_vec();
+                            self.selected_tracks = Arc::new(self.tracks[min..=max].to_vec());
                         }
                     } else {
                         self.selected_tracks = Arc::new(vec![track.clone()]);
