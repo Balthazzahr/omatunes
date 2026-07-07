@@ -457,7 +457,7 @@ pub struct AppState {
 
     pub folders: Vec<PathBuf>,
     pub selected_folder: Option<PathBuf>,
-    pub tracks: Vec<Track>,
+    pub tracks: Arc<Vec<Track>>,
     folder_cache: HashMap<PathBuf, Vec<Track>>,
 
     pub sidebar_width: f32,
@@ -479,7 +479,7 @@ pub struct AppState {
     pub strings: &'static crate::locale::Strings,
 
     // Omatunes feature additions
-    pub all_tracks: Vec<Track>,
+    pub all_tracks: Arc<Vec<Track>>,
     pub search_query: String,
     pub filter_title: bool,
     pub filter_artist: bool,
