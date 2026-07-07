@@ -1105,7 +1105,7 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown) -> Eleme
     ]
     .align_y(Alignment::Center);
 
-    let build_col = |title: &str, items: &[(String, f64)]| -> Element<'_, Message> {
+    fn build_col<'a>(title: &str, items: &'a [(String, f64)], format_hours: &impl Fn(f64) -> String) -> Element<'a, Message> {
         let mut col = column![
             text(title)
                 .font(crate::ui::icons::UI_FONT_BOLD)
@@ -1134,14 +1134,14 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown) -> Eleme
             col = col.push(row_item);
         }
         col.into()
-    };
+    }
 
     let tables = row![
-        build_col("Artist", &breakdown.artist_minutes),
+        build_col("Artist", &breakdown.artist_minutes, &format_hours),
         Space::with_width(12),
-        build_col("Genre", &breakdown.genre_minutes),
+        build_col("Genre", &breakdown.genre_minutes, &format_hours),
         Space::with_width(12),
-        build_col("Album", &breakdown.album_minutes),
+        build_col("Album", &breakdown.album_minutes, &format_hours),
     ]
     .spacing(0);
 
