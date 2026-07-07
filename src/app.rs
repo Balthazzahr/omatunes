@@ -3222,7 +3222,7 @@ impl AppState {
                 self.playing_context = Some(PlayingContext::Artist(artist_name.clone()));
                 self.shuffle = true;
                 // Shuffle tracks of this artist
-                let mut artist_tracks = self.tracks.clone();
+                let mut artist_tracks = (*self.tracks).clone();
                 use rand::seq::SliceRandom;
                 let mut rng = rand::thread_rng();
                 artist_tracks.shuffle(&mut rng);
@@ -3245,7 +3245,7 @@ impl AppState {
                 self.playing_context = Some(PlayingContext::Album(album_name.clone()));
                 
                 // Sort by track number ascending
-                self.tracks.sort_by_key(|t| t.track_number.unwrap_or(u32::MAX));
+                Arc::make_mut(&mut self.tracks).sort_by_key(|t| t.track_number.unwrap_or(u32::MAX));
                 self.queue = (*self.tracks).clone();
                 if let Some(first) = self.tracks.first().cloned() {
                     self.play_track_internal(first)
