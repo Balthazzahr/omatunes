@@ -1101,7 +1101,7 @@ impl AppState {
             }
 
             Message::PlayTrack(track) => {
-                self.queue = self.tracks.clone();
+                self.queue = self.tracks.to_vec();
                 self.set_playing_context_from_current_view();
                 self.play_track_internal(track)
             }
