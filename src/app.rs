@@ -222,6 +222,7 @@ pub enum Message {
     RenamePlaylist(String, String),
     GroupByHoverEnter,
     GroupByHoverExit,
+    GroupByCollapseTimeout(u32),
     GroupBySelected(crate::db::GroupBy),
     GroupByCleared,
     GroupByAnimationTick(std::time::Instant),
@@ -580,6 +581,10 @@ pub struct AppState {
     pub show_period_breakdown: Option<crate::stats::PeriodBreakdown>,
     pub active_notifications: Vec<StatsNotification>,
     pub last_checked_hour: Option<u32>,
+    pub cached_listening_stats: Vec<crate::stats::RowStats>,
+    pub cached_monthly_leaderboard: Vec<(String, f64, u32)>,
+    pub cached_all_time_leaderboard: Vec<(String, f64, u32)>,
+    pub last_stats_update: std::time::Instant,
 }
 
 pub struct GroupByControlState {
@@ -588,6 +593,7 @@ pub struct GroupByControlState {
     pub is_cluster_hovered: bool,
     pub force_collapsing: bool,
     pub collapse_deadline: Option<std::time::Instant>,
+    pub collapse_token: u32,
 }
 
 impl GroupByControlState {
