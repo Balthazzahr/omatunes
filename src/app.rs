@@ -3221,8 +3221,6 @@ impl AppState {
                 }
                 self.last_click_track = Some((track.id, now));
                 self.active_focus = Some(ActiveFocus::Tracklist);
-                let cover_data = load_cover(&track.path);
-                let track = Track { cover_data, ..track };
 
                 let shift_held = self.modifiers.shift();
                 let ctrl_held = self.modifiers.control() || self.modifiers.command();
@@ -3251,8 +3249,20 @@ impl AppState {
                     self.last_clicked_track = Some(track.clone());
                 }
 
-                self.selected_track = Some(track);
-                Task::none()
+                self.selected_track = Some(track.clone());
+
+                let path = track.path.clone();
+                let track_id = track.id;
+                Task::perform(
+                    async move {
+                        tokio::task::spawn_blocking(move || {
+                            crate::library::scanner::load_cover(&path)
+                        })
+                        .await
+                        .unwrap_or(None)
+                    },
+                    move |cover| Message::CoverLoaded(track_id, cover),
+                )
             }
 
             Message::SidebarSearchChanged(query) => {
