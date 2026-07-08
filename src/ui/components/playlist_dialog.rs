@@ -1,4 +1,4 @@
-use iced::widget::{button, column, container, row, text, text_input, Space, checkbox, pick_list};
+use iced::widget::{button, column, container, row, text, text_input, Space, pick_list};
 use iced::{Alignment, Element, Length};
 
 use crate::app::{Message, PlaylistDialogState, PlaylistDialogMode};
@@ -135,7 +135,7 @@ pub fn view(state: &PlaylistDialogState) -> Element<'static, Message> {
     buttons = buttons.push(Space::with_width(12));
     buttons = buttons.push(submit_btn);
 
-    let main_col = content.push(buttons_row)
+    let main_col = content.push(buttons)
         .spacing(4)
         .padding(24)
         .width(450);
