@@ -320,6 +320,7 @@ pub enum Message {
     ToggleQueuePopover,
     CloseQueuePopover,
     FlushBuffers,
+    CoverLoaded(i64, Option<Vec<u8>>),
 }
 
 #[derive(Debug, Clone)]
