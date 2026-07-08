@@ -1855,22 +1855,20 @@ impl AppState {
                     original_tracks.insert(t.path.clone(), t.clone());
                 }
 
-                let max_genres = tracks.iter().map(|t| t.genres().len()).max().unwrap_or(0);
-                let mut genres = Vec::with_capacity(max_genres);
-                let mut apply_genres = Vec::with_capacity(max_genres);
-                for i in 0..max_genres {
-                    let slot_values: Vec<&str> = tracks.iter()
-                        .filter_map(|t| t.genres().get(i).copied())
-                        .collect();
-                    let all_same = slot_values.iter().all(|v| *v == slot_values[0]);
-                    if all_same && !slot_values.is_empty() && !slot_values[0].is_empty() {
-                        genres.push(slot_values[0].to_string());
-                        apply_genres.push(true);
-                    } else {
-                        genres.push(String::new());
-                        apply_genres.push(false);
+                // Find genres that appear in EVERY selected track (value-based, not position-based)
+                let all_genre_values: Vec<Vec<&str>> = tracks.iter().map(|t| t.genres()).collect();
+                let mut unique_common: Vec<&str> = Vec::new();
+                for val in all_genre_values.iter().flat_map(|v| v.iter()).copied() {
+                    if !val.is_empty()
+                        && !unique_common.contains(&val)
+                        && all_genre_values.iter().all(|track_vals| track_vals.contains(&val))
+                    {
+                        unique_common.push(val);
                     }
                 }
+                let genres: Vec<String> = unique_common.iter().map(|s| s.to_string()).collect();
+                let genres_original: Vec<String> = genres.clone();
+                let apply_genres: Vec<bool> = vec![true; genres.len()];
 
                 self.show_tag_editor = Some(TagEditorState {
                     tracks: tracks.clone(),
