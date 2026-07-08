@@ -63,4 +63,16 @@ pub const ICON_CALENDAR_WEEK: &str = "\u{f272}";  // nf-fa-calendar_minus_o
 pub const ICON_CALENDAR_MONTH_FA: &str = "\u{f073}"; // nf-fa-calendar
 pub const ICON_TROPHY_FA:     &str = "\u{f091}"; // nf-fa-trophy
 
+// Settings nav icons
+pub const ICON_KEYBOARD:      &str = "\u{f11c}";  // nf-fa-keyboard
+pub const ICON_PALETTE:       &str = "\u{f03e5}"; // nf-md-palette
+pub const ICON_MONITOR:       &str = "\u{f0990}"; // nf-md-monitor
+pub const ICON_SLIDERS:       &str = "\u{f0de6}"; // nf-md-tune — for Playback settings
+pub const ICON_FOLDER:        &str = "\u{f024b}"; // nf-md-folder
+pub const ICON_AUTO_SCAN:     &str = "\u{f0498}"; // nf-md-sync — auto-scan
+pub const ICON_VOLUME_HIGH:   &str = "\u{f028}";  // nf-fa-volume-up
+pub const ICON_CHECK:         &str = "\u{f00c}";  // nf-fa-check
+pub const ICON_TIMES:         &str = "\u{f00d}";  // nf-fa-times
+pub const ICON_GLOBE:         &str = "\u{f0ac}";  // nf-fa-globe
+
 
