@@ -3536,7 +3536,7 @@ impl AppState {
                 self.search_query.clear();
                 self.update_filtered_tracks();
                 self.playing_context = Some(PlayingContext::Artist(artist_name.clone()));
-                self.shuffle = true;
+                self.shuffle = crate::config::get().playback_defaults.artist.shuffle;
                 // Shuffle tracks of this artist
                 let mut artist_tracks = (*self.tracks).clone();
                 use rand::seq::SliceRandom;
@@ -4319,6 +4319,55 @@ impl AppState {
                         };
                         crate::ui::theme::apply_palette(preview_palette);
                         self.iced_theme = build_iced_theme();
+                    }
+                }
+                Task::none()
+            }
+
+            Message::SettingsTabChanged(tab) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.selected_tab = tab;
+                }
+                Task::none()
+            }
+
+            Message::SettingsInitialVolumeChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.initial_volume = val.clamp(0.0, 1.0);
+                }
+                Task::none()
+            }
+
+            Message::SettingsPlaybackDefaultChanged(context, field, value) => {
+                if let Some(ref mut state) = self.show_settings {
+                    let entry = match context.as_str() {
+                        "album" => &mut state.playback_defaults.album,
+                        "artist" => &mut state.playback_defaults.artist,
+                        "genre" => &mut state.playback_defaults.genre,
+                        "user_playlist" => &mut state.playback_defaults.user_playlist,
+                        "smart_playlist" => &mut state.playback_defaults.smart_playlist,
+                        _ => return Task::none(),
+                    };
+                    match field.as_str() {
+                        "shuffle" => entry.shuffle = value,
+                        "repeat" => entry.repeat = value,
+                        _ => {}
+                    }
+                }
+                Task::none()
+            }
+
+            Message::SettingsAutoScanModeChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.auto_scan.mode = val;
+                }
+                Task::none()
+            }
+
+            Message::SettingsAutoScanIntervalChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    if let Ok(interval) = val.trim().parse::<u64>() {
+                        state.auto_scan.interval_minutes = interval.max(1);
                     }
                 }
                 Task::none()
