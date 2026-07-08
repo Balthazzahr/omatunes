@@ -484,11 +484,14 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
                     let mut artist_genre_counts: HashMap<String, HashMap<String, usize>> = HashMap::new();
                     for track in tracks {
                         if !track.artist.is_empty() && !track.genre.is_empty() {
-                            *artist_genre_counts
-                                .entry(track.artist.clone())
-                                .or_default()
-                                .entry(track.genre.clone())
-                                .or_default() += 1;
+                            for g in track.genres() {
+                                let clean = if g.trim().is_empty() { "Unknown" } else { g.trim() };
+                                *artist_genre_counts
+                                    .entry(track.artist.clone())
+                                    .or_default()
+                                    .entry(clean.to_string())
+                                    .or_default() += 1;
+                            }
                         }
                     }
                     for (a, m) in &day.artist_minutes {
