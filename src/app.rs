@@ -611,6 +611,13 @@ impl GroupByControlState {
 }
 
 impl AppState {
+    pub fn update_cached_stats(&mut self) {
+        self.cached_listening_stats = crate::stats::get_restructured_stats(&self.all_tracks);
+        self.cached_monthly_leaderboard = crate::stats::get_combined_monthly_leaderboard();
+        self.cached_all_time_leaderboard = crate::stats::get_combined_all_time_leaderboard();
+        self.last_stats_update = std::time::Instant::now();
+    }
+
     pub fn is_draggable_playlist_view(&self) -> bool {
         match &self.selected_playlist {
             Some(name) => {
@@ -760,6 +767,7 @@ impl AppState {
                 is_cluster_hovered: false,
                 force_collapsing: false,
                 collapse_deadline: None,
+                collapse_token: 0,
             },
             sidebar_search: String::new(),
             show_shortcuts: false,
@@ -808,6 +816,10 @@ impl AppState {
                 use chrono::Timelike;
                 Some(chrono::Local::now().hour())
             },
+            cached_listening_stats: Vec::new(),
+            cached_monthly_leaderboard: Vec::new(),
+            cached_all_time_leaderboard: Vec::new(),
+            last_stats_update: std::time::Instant::now(),
         };
 
         (state, scan_task)
