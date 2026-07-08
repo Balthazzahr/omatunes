@@ -196,21 +196,31 @@ pub fn view<'a>(
                 } else {
                     state.genres_original[i].clone()
                 };
+                let slot_suggestions = get_suggestions(genre_val, unique_genres);
                 let slot_input = container(
                     text_input(&placeholder, genre_val)
                         .on_input(move |v| Message::UpdateTagFieldGenre(i, v))
                         .padding(8)
                 )
                 .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 2.0, left: 0.0 });
+                let mut slot_column = column![
+                    text(hint).size(12).color(theme::subtext()),
+                    slot_input,
+                ];
+                if !slot_suggestions.is_empty() {
+                    slot_column = slot_column.push(
+                        iced::Element::from(column![
+                            Space::with_height(4),
+                            render_suggestions(&slot_suggestions, move |v| Message::UpdateTagFieldGenre(i, v))
+                        ])
+                    );
+                }
                 body = body.push(
                     row![
                         checkbox("", *apply_val)
                             .on_toggle(move |v| Message::ToggleTagFieldApplyGenre(i, v))
                             .size(16),
-                        column![
-                            text(hint).size(12).color(theme::subtext()),
-                            slot_input
-                        ].width(Length::Fill)
+                        slot_column.width(Length::Fill)
                     ].align_y(Alignment::Center).spacing(8)
                 );
             }
