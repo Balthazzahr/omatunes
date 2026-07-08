@@ -1842,7 +1842,7 @@ impl AppState {
                 let all_same_title = tracks.iter().all(|t| t.title == first.title);
                 let all_same_artist = tracks.iter().all(|t| t.artist == first.artist);
                 let all_same_album = tracks.iter().all(|t| t.album == first.album);
-                let all_same_genre = tracks.iter().all(|t| t.genre == first.genre);
+                let _all_same_genre = tracks.iter().all(|t| t.genre == first.genre);
                 let all_same_track_num = tracks.iter().all(|t| t.track_number == first.track_number);
                 let all_same_disc_num = tracks.iter().all(|t| t.disc_number == first.disc_number);
                 let all_same_year = tracks.iter().all(|t| t.year == first.year);
