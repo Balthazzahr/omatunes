@@ -1,4 +1,4 @@
-use iced::widget::{button, column, container, pick_list, row, scrollable, slider, text, text_input, Space, toggler};
+use iced::widget::{button, column, container, pick_list, row, scrollable, slider, text, text_input, Space};
 use iced::{Alignment, Element, Length};
 
 use crate::app::{Message, SettingsState, SettingsTab};
