@@ -462,7 +462,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
 
             let active_view: Element<'_, Message> = match state.stats_sub_tab {
                 crate::app::StatsSubTab::ListeningStats => {
-                    let r_stats = crate::stats::get_restructured_stats(&state.all_tracks);
+                    let r_stats = &state.cached_listening_stats;
                     
                     fn make_cell<'a>(content: Element<'a, Message>, width: Length, height: Length, align_x: iced::alignment::Horizontal) -> Element<'a, Message> {
                         container(content)
@@ -673,8 +673,8 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     .into()
                 }
                 crate::app::StatsSubTab::Leaderboard => {
-                    let monthly = crate::stats::get_combined_monthly_leaderboard();
-                    let all_time = crate::stats::get_combined_all_time_leaderboard();
+                    let monthly = &state.cached_monthly_leaderboard;
+                    let all_time = &state.cached_all_time_leaderboard;
 
                     let truncate = |s: &str, max_chars: usize| -> String {
                         if s.chars().count() > max_chars {
