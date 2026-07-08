@@ -750,7 +750,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     .width(Length::Fill)
                     .spacing(4);
 
-                    for (idx, (name, mins, tracks)) in monthly.into_iter().enumerate() {
+                    for (idx, (name, &mins, &tracks)) in monthly.iter().enumerate() {
                         monthly_col = monthly_col.push(render_leaderboard_row(idx + 1, &name, mins, tracks));
                     }
 
@@ -765,7 +765,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     .width(Length::Fill)
                     .spacing(4);
 
-                    for (idx, (name, mins, tracks)) in all_time.into_iter().enumerate() {
+                    for (idx, (name, &mins, &tracks)) in all_time.iter().enumerate() {
                         all_time_col = all_time_col.push(render_leaderboard_row(idx + 1, &name, mins, tracks));
                     }
 
