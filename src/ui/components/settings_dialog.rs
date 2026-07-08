@@ -46,11 +46,11 @@ fn tab_button<'a>(
     .into()
 }
 
-fn field_label(label: &str) -> Element<'static, Message> {
+fn field_label(label: &'static str) -> Element<'static, Message> {
     text(label).size(12).font(UI_FONT_BOLD).color(theme::subtext()).into()
 }
 
-fn section_header(label: &str) -> Element<'static, Message> {
+fn section_header(label: &'static str) -> Element<'static, Message> {
     text(label).size(15).font(UI_FONT_BOLD).color(theme::accent()).into()
 }
 
