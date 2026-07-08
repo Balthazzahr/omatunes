@@ -49,15 +49,13 @@ pub fn view(state: &PlaylistDialogState) -> Element<'static, Message> {
                     .push(Space::with_height(12));
             } else {
                 let current_selection = state.selected_playlist.clone().unwrap_or_else(|| custom_playlists[0].clone());
-                let select_dropdown = container(
-                    pick_list(
-                        custom_playlists.clone(),
-                        Some(current_selection),
-                        Message::PlaylistDialogSelect,
-                    )
-                    .padding(8),
+                let select_dropdown = pick_list(
+                    custom_playlists.clone(),
+                    Some(current_selection),
+                    Message::PlaylistDialogSelect,
                 )
-                .width(Length::Fill);
+                .padding(8)
+                .width(380);
 
                 content = content.push(text("Select Playlist").size(12).color(theme::subtext()))
                     .push(select_dropdown)
@@ -108,37 +106,49 @@ pub fn view(state: &PlaylistDialogState) -> Element<'static, Message> {
             })
     };
 
-    let create_with_song_btn = match &state.mode {
+    let cancel_btn = button(text("Cancel").color(theme::text()))
+        .on_press(Message::ClosePlaylistDialog)
+        .padding([8, 16])
+        .style(theme::secondary_button);
+
+    let half_btn = 184.0;
+
+    let button_block: Element<'static, Message> = match &state.mode {
         PlaylistDialogMode::AddTrack(track) => {
-            let btn: Element<'static, Message> = button(
+            let create_btn = button(
                 text("Create new playlist with song")
                     .size(12)
-                    .color(theme::accent())
+                    .color(theme::accent()),
             )
             .on_press(Message::PlaylistCreateWithTrack(track.clone()))
             .padding([8, 12])
             .style(theme::secondary_button)
-            .into();
-            Some(btn)
+            .width(380);
+
+            column![
+                create_btn,
+                Space::with_height(8),
+                row![
+                    cancel_btn.width(half_btn),
+                    Space::with_width(12),
+                    submit_btn.width(half_btn),
+                ]
+                .align_y(Alignment::Center),
+            ]
+            .into()
         }
-        _ => None,
+        _ => {
+            row![
+                cancel_btn.width(half_btn),
+                Space::with_width(12),
+                submit_btn.width(half_btn),
+            ]
+            .align_y(Alignment::Center)
+            .into()
+        }
     };
 
-    let cancel_btn: Element<'static, Message> = button(text("Cancel").color(theme::text()))
-        .on_press(Message::ClosePlaylistDialog)
-        .padding([8, 16])
-        .style(theme::secondary_button)
-        .into();
-
-    let mut buttons = row![cancel_btn].spacing(8).align_y(Alignment::Center);
-    if let Some(btn) = create_with_song_btn {
-        buttons = buttons.push(Space::with_width(Length::Fill));
-        buttons = buttons.push(btn);
-    }
-    buttons = buttons.push(Space::with_width(12));
-    buttons = buttons.push(submit_btn);
-
-    let main_col = content.push(buttons)
+    let main_col = content.push(button_block)
         .spacing(4)
         .padding(24)
         .width(450);
