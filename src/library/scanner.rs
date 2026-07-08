@@ -254,6 +254,7 @@ fn test_talking_heads_tag() {
             match probe.read() {
                 Ok(mut tagged_file) => {
                     println!("Probe read succeeded. Primary tag type: {:?}", tagged_file.primary_tag_type());
+                    println!("File type: {:?}", tagged_file.file_type());
                     if let Some(tag) = tagged_file.primary_tag() {
                         println!("Title: {:?}", tag.title());
                         println!("Artist: {:?}", tag.artist());
