@@ -137,11 +137,11 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                 ].align_y(Alignment::Center),
                 Space::with_height(8),
                 column![
-                    radio("Manual (F5 to scan)", "manual", Some(state.auto_scan.mode.clone()), Message::SettingsAutoScanModeChanged)
+                    radio("Manual (F5 to scan)", "manual", Some(state.auto_scan.mode.as_str()), |_| Message::SettingsAutoScanModeChanged("manual".to_string()))
                         .spacing(8),
-                    radio("On Startup", "startup", Some(state.auto_scan.mode.clone()), Message::SettingsAutoScanModeChanged)
+                    radio("On Startup", "startup", Some(state.auto_scan.mode.as_str()), |_| Message::SettingsAutoScanModeChanged("startup".to_string()))
                         .spacing(8),
-                    radio("Periodic", "periodic", Some(state.auto_scan.mode.clone()), Message::SettingsAutoScanModeChanged)
+                    radio("Periodic", "periodic", Some(state.auto_scan.mode.as_str()), |_| Message::SettingsAutoScanModeChanged("periodic".to_string()))
                         .spacing(8),
                 ].spacing(4),
             ].spacing(0);
@@ -424,7 +424,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                                     .width(Length::Fill),
                                 text(format!("{}", picker_b.round() as u8)).size(11).width(24).color(theme::text()),
                             ].spacing(6).align_y(Alignment::Center),
-                        ].spacing(2).padding(iced::Padding::from([2, 0, 0, 0])).into()
+                        ].spacing(2).padding(iced::Padding { top: 2.0, right: 0.0, bottom: 0.0, left: 0.0 }).into()
                     } else {
                         Space::with_height(0).into()
                     };
