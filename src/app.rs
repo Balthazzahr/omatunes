@@ -3370,6 +3370,10 @@ impl AppState {
                     custom_validation_errors: std::collections::HashMap::new(),
                     confirm_save_anyway: false,
                     selected_tab: SettingsTab::Shortcuts,
+                    color_picker_token: None,
+                    color_picker_r: 0.0,
+                    color_picker_g: 0.0,
+                    color_picker_b: 0.0,
                 });
                 self.show_shortcuts = false;
                 Task::none()
