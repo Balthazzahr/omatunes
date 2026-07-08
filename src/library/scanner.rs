@@ -247,7 +247,7 @@ pub fn write_tags(
 
 #[test]
 fn test_talking_heads_tag() {
-    let path = std::path::Path::new("/home/user/Music/Talking Heads/Remain In Light/01 - Born Under Punches (The Heat Goes On).mp3");
+    let path = std::path::Path::new("/home/user/Music/The Beatles/Rubber Soul/02 Norwegian Wood (The Bird Has Flown).mp3");
     match lofty::probe::Probe::open(path) {
         Ok(probe) => {
             println!("Probe open succeeded");
