@@ -611,14 +611,17 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
     .align_y(Alignment::Center);
 
     // ── Assemble dialog ───────────────────────────────────────────────────────
-    let body = row![
-        nav,
-        divider,
-        Space::with_width(12),
-        content,
-    ]
-    .spacing(0)
-    .height(Length::Fill);
+    let body = container(
+        row![
+            nav,
+            divider,
+            Space::with_width(12),
+            content,
+        ]
+        .spacing(0)
+        .height(Length::Fill),
+    )
+    .height(Length::Fixed(420.0));
 
     let dialog_content = column![
         text("App Settings")
