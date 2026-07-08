@@ -2202,7 +2202,7 @@ impl AppState {
                             title,
                             artist,
                             album,
-                            genre,
+                             &genre,
                             track_number,
                             disc_number,
                             cover_path,
