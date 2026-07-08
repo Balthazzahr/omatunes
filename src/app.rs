@@ -98,6 +98,7 @@ pub enum SortColumn {
 pub enum PlaylistDialogMode {
     Create,
     AddTrack(Track),
+    CreateWithTrack(Track),
     Rename(String),
 }
 
