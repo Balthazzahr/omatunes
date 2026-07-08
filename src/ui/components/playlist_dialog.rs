@@ -2,7 +2,7 @@ use iced::widget::{button, column, container, row, text, text_input, Space, pick
 use iced::{Alignment, Element, Length};
 
 use crate::app::{Message, PlaylistDialogState, PlaylistDialogMode};
-use crate::ui::theme;
+use crate::ui::{icons, theme};
 
 pub fn view(state: &PlaylistDialogState) -> Element<'static, Message> {
     let custom_playlists = crate::db::get(|db| db.playlists.keys().cloned().collect::<Vec<String>>());
@@ -55,7 +55,7 @@ pub fn view(state: &PlaylistDialogState) -> Element<'static, Message> {
                     Message::PlaylistDialogSelect,
                 )
                 .padding(8)
-                .width(380);
+                .width(402);
 
                 content = content.push(text("Select Playlist").size(12).color(theme::subtext()))
                     .push(select_dropdown)
@@ -111,7 +111,7 @@ pub fn view(state: &PlaylistDialogState) -> Element<'static, Message> {
         .padding([8, 16])
         .style(theme::secondary_button);
 
-    let half_btn = 184.0;
+    let half_btn = 195.0;
 
     let button_block: Element<'static, Message> = match &state.mode {
         PlaylistDialogMode::AddTrack(track) => {
