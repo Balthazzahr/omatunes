@@ -285,6 +285,11 @@ pub enum Message {
     SettingsThemeSourceChanged(String),
     SettingsThemePresetChanged(String),
     SettingsCustomColorChanged(String, String),
+    SettingsTabChanged(SettingsTab),
+    SettingsInitialVolumeChanged(f32),
+    SettingsPlaybackDefaultChanged(String, String, bool),
+    SettingsAutoScanModeChanged(String),
+    SettingsAutoScanIntervalChanged(String),
 
     PlayNext(Vec<Track>),
     AddToQueue(Vec<Track>),
@@ -323,6 +328,15 @@ pub enum Message {
     CoverLoaded(i64, Option<Vec<u8>>),
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum SettingsTab {
+    Library,
+    Playback,
+    Display,
+    Theme,
+    Shortcuts,
+}
+
 #[derive(Debug, Clone)]
 pub struct SettingsState {
     pub music_dir: String,
@@ -330,11 +344,15 @@ pub struct SettingsState {
     pub seek_step: String,
     pub volume_step: f32,
     pub font_scale: f32,
+    pub initial_volume: f32,
+    pub playback_defaults: crate::config::PlaybackDefaults,
+    pub auto_scan: crate::config::AutoScanConfig,
     pub theme_source: String,
     pub theme_preset: String,
     pub custom_theme: crate::config::CustomThemeConfig,
     pub custom_validation_errors: std::collections::HashMap<String, String>,
     pub confirm_save_anyway: bool,
+    pub selected_tab: SettingsTab,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
