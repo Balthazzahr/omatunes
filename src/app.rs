@@ -3559,6 +3559,9 @@ impl AppState {
                 self.search_query.clear();
                 self.update_filtered_tracks();
                 self.playing_context = Some(PlayingContext::Album(album_name.clone()));
+                let album_defaults = &crate::config::get().playback_defaults.album;
+                self.shuffle = album_defaults.shuffle;
+                self.repeat = album_defaults.repeat;
                 
                 // Sort by track number ascending
                 Arc::make_mut(&mut self.tracks).sort_by_key(|t| t.track_number.unwrap_or(u32::MAX));
@@ -3577,12 +3580,19 @@ impl AppState {
                 self.selected_album = None;
                 self.search_query.clear();
                 self.update_filtered_tracks();
+                let pd = &crate::config::get().playback_defaults;
                 if playlist_name == "Liked Songs" || playlist_name == "Recently Played" || playlist_name == "Most Played" || playlist_name == "New Music" {
                     self.playing_context = Some(PlayingContext::Autoplaylist(playlist_name.clone()));
+                    self.shuffle = pd.artist.shuffle;
+                    self.repeat = pd.artist.repeat;
                 } else if crate::db::get(|db| db.smart_playlists.contains_key(&playlist_name)) {
                     self.playing_context = Some(PlayingContext::SmartPlaylist(playlist_name.clone()));
+                    self.shuffle = pd.smart_playlist.shuffle;
+                    self.repeat = pd.smart_playlist.repeat;
                 } else {
                     self.playing_context = Some(PlayingContext::Playlist(playlist_name.clone()));
+                    self.shuffle = pd.user_playlist.shuffle;
+                    self.repeat = pd.user_playlist.repeat;
                 }
                 self.queue = (*self.tracks).clone();
                 if let Some(first) = self.tracks.first().cloned() {
