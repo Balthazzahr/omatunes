@@ -276,9 +276,17 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                 state.artists().into_iter().map(|artist| {
                     let is_selected = state.selected_artist.as_ref() == Some(&artist) && state.selected_playlist.is_none();
 
-                    let label = text(artist.clone())
-                        .color(if is_selected { theme::accent() } else { theme::text() })
-                        .size(13);
+                    let label_color = if is_selected { theme::accent() } else { theme::text() };
+                    let label: Element<Message> = row![
+                        text(crate::ui::icons::ICON_PERSON)
+                            .font(crate::ui::icons::NERD_FONT_MONO)
+                            .size(13)
+                            .color(label_color),
+                        Space::with_width(6),
+                        text(artist.clone())
+                            .color(label_color)
+                            .size(13),
+                    ].align_y(Alignment::Center).into();
 
                     let context_btn = button(
                         text("\u{f142}") // vertical ellipsis Nerd Font
@@ -319,9 +327,17 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                 state.albums().into_iter().map(|album| {
                     let is_selected = state.selected_album.as_ref() == Some(&album) && state.selected_playlist.is_none();
 
-                    let label = text(album.clone())
-                        .color(if is_selected { theme::accent() } else { theme::text() })
-                        .size(13);
+                    let label_color = if is_selected { theme::accent() } else { theme::text() };
+                    let label: Element<Message> = row![
+                        text(crate::ui::icons::ICON_CD)
+                            .font(crate::ui::icons::NERD_FONT_MONO)
+                            .size(13)
+                            .color(label_color),
+                        Space::with_width(6),
+                        text(album.clone())
+                            .color(label_color)
+                            .size(13),
+                    ].align_y(Alignment::Center).into();
 
                     let context_btn = button(
                         text("\u{f142}")
