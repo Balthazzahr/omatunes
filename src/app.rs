@@ -919,7 +919,6 @@ impl AppState {
             apply_artist: false,
             apply_album: false,
             apply_year: false,
-            apply_genre: false,
             apply_track_num: false,
             apply_disc_num: false,
             apply_cover: false,
@@ -2026,11 +2025,13 @@ impl AppState {
                 Task::none()
             }
 
-            Message::UpdateTagFieldGenre(val) => {
+            Message::UpdateTagFieldGenre(slot, val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
-                    state.genre = val;
-                    state.apply_genre = true;
-                    state.is_saved = false;
+                    if slot < state.genres.len() {
+                        state.genres[slot] = val;
+                        state.apply_genres[slot] = true;
+                        state.is_saved = false;
+                    }
                 }
                 Task::none()
             }
