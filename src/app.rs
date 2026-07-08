@@ -3131,6 +3131,7 @@ impl AppState {
             Message::GroupByHoverEnter => {
                 self.group_by_state.is_cluster_hovered = true;
                 self.group_by_state.collapse_deadline = None;
+                self.group_by_state.collapse_token = self.group_by_state.collapse_token.wrapping_add(1);
                 Task::none()
             }
 
@@ -3138,6 +3139,22 @@ impl AppState {
                 self.group_by_state.is_cluster_hovered = false;
                 if self.group_by_state.hover_progress > 0.0 {
                     self.group_by_state.collapse_deadline = Some(std::time::Instant::now() + std::time::Duration::from_millis(1500));
+                    self.group_by_state.collapse_token = self.group_by_state.collapse_token.wrapping_add(1);
+                    let token = self.group_by_state.collapse_token;
+                    Task::perform(
+                        async move {
+                            tokio::time::sleep(std::time::Duration::from_millis(1500)).await;
+                        },
+                        move |_| Message::GroupByCollapseTimeout(token)
+                    )
+                } else {
+                    Task::none()
+                }
+            }
+
+            Message::GroupByCollapseTimeout(token) => {
+                if token == self.group_by_state.collapse_token && !self.group_by_state.is_cluster_hovered {
+                    self.group_by_state.collapse_deadline = None;
                 }
                 Task::none()
             }
@@ -3152,6 +3169,7 @@ impl AppState {
                 self.group_by_state.force_collapsing = true;
                 self.group_by_state.is_cluster_hovered = false;
                 self.group_by_state.collapse_deadline = None;
+                self.group_by_state.collapse_token = self.group_by_state.collapse_token.wrapping_add(1);
                 self.update_filtered_tracks();
                 Task::none()
             }
@@ -3167,6 +3185,7 @@ impl AppState {
                 self.group_by_state.force_collapsing = true;
                 self.group_by_state.is_cluster_hovered = false;
                 self.group_by_state.collapse_deadline = None;
+                self.group_by_state.collapse_token = self.group_by_state.collapse_token.wrapping_add(1);
                 self.update_filtered_tracks();
                 Task::none()
             }
