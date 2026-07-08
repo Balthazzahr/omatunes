@@ -1176,7 +1176,6 @@ impl AppState {
 
 
     fn update(&mut self, message: Message) -> Task<Message> {
-        println!("update: {:?}", message);
         match message {
             Message::SelectFolder(path) => {
                 self.selected_folder = Some(path);
