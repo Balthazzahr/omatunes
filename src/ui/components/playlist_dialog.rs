@@ -116,14 +116,21 @@ pub fn view(state: &PlaylistDialogState) -> Element<'static, Message> {
     let button_block: Element<'static, Message> = match &state.mode {
         PlaylistDialogMode::AddTrack(track) => {
             let create_btn = button(
-                text("Create new playlist with song")
-                    .size(12)
-                    .color(theme::accent()),
+                row![
+                    text(icons::ICON_PLUS)
+                        .font(icons::NERD_FONT_MONO)
+                        .size(12)
+                        .color(theme::subtext()),
+                    text("  Create new playlist with song")
+                        .size(12)
+                        .color(theme::subtext()),
+                ]
+                .align_y(Alignment::Center),
             )
             .on_press(Message::PlaylistCreateWithTrack(track.clone()))
             .padding([8, 12])
             .style(theme::secondary_button)
-            .width(380);
+            .width(402);
 
             column![
                 create_btn,
