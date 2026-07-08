@@ -183,15 +183,18 @@ pub fn view<'a>(
             }
 
             for (i, (genre_val, apply_val)) in state.genres.iter().zip(state.apply_genres.iter()).enumerate() {
-                let was_str = if i < state.genres_original.len() && state.genres_original[i] != *genre_val {
-                    format!(" (was: {})", state.genres_original[i])
-                } else {
+                let is_new = i >= state.genres_original.len() || state.genres_original[i].is_empty();
+                let hint = if is_new {
                     String::new()
-                };
-                let placeholder = if i < state.genres_original.len() && !state.genres_original[i].is_empty() {
-                    state.genres_original[i].clone()
+                } else if state.genres_original[i] != *genre_val {
+                    format!("Replace \"{}\" →", state.genres_original[i])
                 } else {
+                    format!("\"{}\"", state.genres_original[i])
+                };
+                let placeholder = if is_new {
                     format!("New genre {}...", i + 1)
+                } else {
+                    state.genres_original[i].clone()
                 };
                 let slot_input = container(
                     text_input(&placeholder, genre_val)
@@ -205,8 +208,7 @@ pub fn view<'a>(
                             .on_toggle(move |v| Message::ToggleTagFieldApplyGenre(i, v))
                             .size(16),
                         column![
-                            text(was_str)
-                                .size(12).color(theme::subtext()),
+                            text(hint).size(12).color(theme::subtext()),
                             slot_input
                         ].width(Length::Fill)
                     ].align_y(Alignment::Center).spacing(8)
