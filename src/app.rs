@@ -3736,6 +3736,9 @@ impl AppState {
                     self.right_panel_tab = None;
                 } else {
                     self.right_panel_tab = Some(tab);
+                    if tab == RightPanelTab::Statistics {
+                        self.update_cached_stats();
+                    }
                 }
                 crate::db::write(|db| db.right_panel_tab = self.right_panel_tab);
                 Task::none()
@@ -3809,6 +3812,7 @@ impl AppState {
 
             Message::SelectStatsSubTab(sub_tab) => {
                 self.stats_sub_tab = sub_tab;
+                self.update_cached_stats();
                 Task::none()
             }
 
