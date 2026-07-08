@@ -4142,6 +4142,10 @@ impl AppState {
                     custom_validation_errors: std::collections::HashMap::new(),
                     confirm_save_anyway: false,
                     selected_tab: SettingsTab::Library,
+                    color_picker_token: None,
+                    color_picker_r: 0.0,
+                    color_picker_g: 0.0,
+                    color_picker_b: 0.0,
                 });
                 Task::none()
             }
@@ -4362,6 +4366,87 @@ impl AppState {
                     }
                 }
                 Task::none()
+            }
+
+            Message::SettingsColorPickerToggle(token) => {
+                if let Some(ref mut state) = self.show_settings {
+                    if state.color_picker_token.as_deref() == Some(&token) {
+                        state.color_picker_token = None;
+                    } else {
+                        let hex = match token.as_str() {
+                            "base" => &state.custom_theme.base,
+                            "text" => &state.custom_theme.text,
+                            "accent" => &state.custom_theme.accent,
+                            "green" => &state.custom_theme.green,
+                            "red" => &state.custom_theme.red,
+                            "yellow" => &state.custom_theme.yellow,
+                            "blue" => &state.custom_theme.blue,
+                            _ => "#000000",
+                        };
+                        let clean = hex.trim_start_matches('#');
+                        if clean.len() >= 6 {
+                            state.color_picker_r = u8::from_str_radix(&clean[0..2], 16).unwrap_or(0) as f32;
+                            state.color_picker_g = u8::from_str_radix(&clean[2..4], 16).unwrap_or(0) as f32;
+                            state.color_picker_b = u8::from_str_radix(&clean[4..6], 16).unwrap_or(0) as f32;
+                        }
+                        state.color_picker_token = Some(token);
+                    }
+                }
+                Task::none()
+            }
+
+            Message::SettingsColorPickerRChanged(val) => {
+                let result = self.show_settings.as_mut().map(|state| {
+                    state.color_picker_r = val;
+                    state.color_picker_token.clone().map(|t| {
+                        let hex = format!("#{:02x}{:02x}{:02x}",
+                            state.color_picker_r.round() as u8,
+                            state.color_picker_g.round() as u8,
+                            state.color_picker_b.round() as u8);
+                        (t, hex)
+                    })
+                }).flatten();
+                if let Some((token, hex)) = result {
+                    Task::perform(async move { (token, hex) }, |(t, h)| Message::SettingsCustomColorChanged(t, h))
+                } else {
+                    Task::none()
+                }
+            }
+
+            Message::SettingsColorPickerGChanged(val) => {
+                let result = self.show_settings.as_mut().map(|state| {
+                    state.color_picker_g = val;
+                    state.color_picker_token.clone().map(|t| {
+                        let hex = format!("#{:02x}{:02x}{:02x}",
+                            state.color_picker_r.round() as u8,
+                            state.color_picker_g.round() as u8,
+                            state.color_picker_b.round() as u8);
+                        (t, hex)
+                    })
+                }).flatten();
+                if let Some((token, hex)) = result {
+                    Task::perform(async move { (token, hex) }, |(t, h)| Message::SettingsCustomColorChanged(t, h))
+                } else {
+                    Task::none()
+                }
+            }
+
+            Message::SettingsColorPickerBChanged(val) => {
+                let result = self.show_settings.as_mut().map(|state| {
+                    state.color_picker_b = val;
+                    state.color_picker_token.clone().map(|t| {
+                        let hex = format!("#{:02x}{:02x}{:02x}",
+                            state.color_picker_r.round() as u8,
+                            state.color_picker_g.round() as u8,
+                            state.color_picker_b.round() as u8);
+                        (t, hex)
+                    })
+                }).flatten();
+                if let Some((token, hex)) = result {
+                    Task::perform(async move { (token, hex) }, |(t, h)| Message::SettingsCustomColorChanged(t, h))
+                } else {
+                    Task::none()
+                }
             }
 
             Message::SettingsTabChanged(tab) => {
