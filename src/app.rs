@@ -726,8 +726,8 @@ impl AppState {
             position: Duration::ZERO,
             duration: Duration::ZERO,
             volume: cfg.volume.clamp(0.0, 1.0),
-            shuffle: cfg.shuffle,
-            repeat: cfg.repeat,
+            shuffle: cfg.playback_defaults.album.shuffle,
+            repeat: cfg.playback_defaults.album.repeat,
             folders,
             selected_folder: None,
             tracks: Arc::new(Vec::new()),
@@ -4093,11 +4093,15 @@ impl AppState {
                     seek_step: cfg.seek_step.to_string(),
                     volume_step: cfg.volume_step,
                     font_scale: self.font_scale,
+                    initial_volume: cfg.volume,
+                    playback_defaults: cfg.playback_defaults.clone(),
+                    auto_scan: cfg.auto_scan.clone(),
                     theme_source: cfg.theme_source,
                     theme_preset: cfg.theme_preset,
                     custom_theme: cfg.custom_theme.unwrap_or_default(),
                     custom_validation_errors: std::collections::HashMap::new(),
                     confirm_save_anyway: false,
+                    selected_tab: SettingsTab::Library,
                 });
                 Task::none()
             }
@@ -4172,6 +4176,9 @@ impl AppState {
                     }
                     cfg.volume_step = state.volume_step;
                     cfg.font_scale = Some(state.font_scale);
+                    cfg.volume = state.initial_volume;
+                    cfg.playback_defaults = state.playback_defaults.clone();
+                    cfg.auto_scan = state.auto_scan.clone();
                     
                     cfg.theme_source = state.theme_source.clone();
                     cfg.theme_preset = state.theme_preset.clone();
