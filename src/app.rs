@@ -168,7 +168,7 @@ pub enum Message {
     UpdateTagFieldTitle(String),
     UpdateTagFieldArtist(String),
     UpdateTagFieldAlbum(String),
-    UpdateTagFieldGenre(String),
+    UpdateTagFieldGenre(usize, String),
     UpdateTagFieldTrackNumber(String),
     UpdateTagFieldDiscNumber(String),
     UpdateTagFieldCoverPath(String),
@@ -178,7 +178,7 @@ pub enum Message {
     ToggleTagFieldApplyArtist(bool),
     ToggleTagFieldApplyAlbum(bool),
     ToggleTagFieldApplyYear(bool),
-    ToggleTagFieldApplyGenre(bool),
+    ToggleTagFieldApplyGenre(usize, bool),
     ToggleTagFieldApplyTrackNum(bool),
     ToggleTagFieldApplyDiscNum(bool),
     ToggleTagFieldApplyCover(bool),
@@ -900,6 +900,7 @@ impl AppState {
 
         let tracks = vec![track.clone()];
         let first = &tracks[0];
+        let genre_vec: Vec<String> = first.genres().into_iter().map(|s| s.to_string()).collect();
         self.show_tag_editor = Some(TagEditorState {
             tracks: tracks.clone(),
             original_tracks,
@@ -907,7 +908,8 @@ impl AppState {
             title: first.title.clone(),
             artist: first.artist.clone(),
             album: first.album.clone(),
-            genre: first.genre.clone(),
+            genres: genre_vec.clone(),
+            apply_genres: vec![false; genre_vec.len()],
             track_number: first.track_number.map(|n| n.to_string()).unwrap_or_default(),
             disc_number: first.disc_number.map(|n| n.to_string()).unwrap_or_default(),
             cover_path: None,
@@ -1852,6 +1854,23 @@ impl AppState {
                     original_tracks.insert(t.path.clone(), t.clone());
                 }
 
+                let max_genres = tracks.iter().map(|t| t.genres().len()).max().unwrap_or(0);
+                let mut genres = Vec::with_capacity(max_genres);
+                let mut apply_genres = Vec::with_capacity(max_genres);
+                for i in 0..max_genres {
+                    let slot_values: Vec<&str> = tracks.iter()
+                        .filter_map(|t| t.genres().get(i).copied())
+                        .collect();
+                    let all_same = slot_values.iter().all(|v| *v == slot_values[0]);
+                    if all_same && !slot_values.is_empty() && !slot_values[0].is_empty() {
+                        genres.push(slot_values[0].to_string());
+                        apply_genres.push(true);
+                    } else {
+                        genres.push(String::new());
+                        apply_genres.push(false);
+                    }
+                }
+
                 self.show_tag_editor = Some(TagEditorState {
                     tracks: tracks.clone(),
                     original_tracks,
@@ -1859,7 +1878,8 @@ impl AppState {
                     title: if all_same_title { first.title.clone() } else { String::new() },
                     artist: if all_same_artist { first.artist.clone() } else { String::new() },
                     album: if all_same_album { first.album.clone() } else { String::new() },
-                    genre: if all_same_genre { first.genre.clone() } else { String::new() },
+                    genres,
+                    apply_genres,
                     track_number: if all_same_track_num { first.track_number.map(|n| n.to_string()).unwrap_or_default() } else { String::new() },
                     disc_number: if all_same_disc_num { first.disc_number.map(|n| n.to_string()).unwrap_or_default() } else { String::new() },
                     cover_path: None,
