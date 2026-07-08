@@ -169,21 +169,32 @@ pub fn view<'a>(
                     ].width(Length::Fill)
                 ].align_y(Alignment::Center).spacing(8)
             )
-            .push(Space::with_height(4))
-            .push(
-                text("Genres").size(12).color(theme::subtext())
-            );
+            .push(Space::with_height(4));
+
+            if state.tracks.len() > 1 {
+                body = body.push(
+                    text(format!("Common genres across {} tracks:", state.tracks.len()))
+                        .size(12).color(theme::subtext())
+                );
+            } else {
+                body = body.push(
+                    text("Genres").size(12).color(theme::subtext())
+                );
+            }
 
             for (i, (genre_val, apply_val)) in state.genres.iter().zip(state.apply_genres.iter()).enumerate() {
-                let slot_label = if state.tracks.len() > 1 && *apply_val && !genre_val.is_empty() {
-                    format!("Genre {} (common)", i + 1)
-                } else if state.tracks.len() > 1 {
-                    format!("Genre {}", i + 1)
+                let was_str = if i < state.genres_original.len() && state.genres_original[i] != *genre_val {
+                    format!(" (was: {})", state.genres_original[i])
                 } else {
-                    format!("Genre {}", i + 1)
+                    String::new()
+                };
+                let placeholder = if i < state.genres_original.len() && !state.genres_original[i].is_empty() {
+                    state.genres_original[i].clone()
+                } else {
+                    format!("New genre {}...", i + 1)
                 };
                 let slot_input = container(
-                    text_input(&format!("Genre {}...", i + 1), genre_val)
+                    text_input(&placeholder, genre_val)
                         .on_input(move |v| Message::UpdateTagFieldGenre(i, v))
                         .padding(8)
                 )
@@ -194,7 +205,8 @@ pub fn view<'a>(
                             .on_toggle(move |v| Message::ToggleTagFieldApplyGenre(i, v))
                             .size(16),
                         column![
-                            text(slot_label).size(12).color(theme::subtext()),
+                            text(format!("{}:{}", state.genres_original.get(i).map(|s| s.as_str()).unwrap_or(""), was_str))
+                                .size(12).color(theme::subtext()),
                             slot_input
                         ].width(Length::Fill)
                     ].align_y(Alignment::Center).spacing(8)
