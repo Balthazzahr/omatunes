@@ -251,8 +251,11 @@ fn test_talking_heads_tag() {
     match lofty::probe::Probe::open(path) {
         Ok(probe) => {
             println!("Probe open succeeded");
-            match probe.read() {
-                Ok(mut tagged_file) => {
+            match probe.guess_file_type() {
+                Ok(guessed) => {
+                    println!("Guess file type succeeded: {:?}", guessed.file_type());
+                    match guessed.read() {
+                        Ok(mut tagged_file) => {
                     println!("Probe read succeeded. Primary tag type: {:?}", tagged_file.primary_tag_type());
                     println!("File type: {:?}", tagged_file.file_type());
                     if let Some(tag) = tagged_file.primary_tag() {
