@@ -4534,6 +4534,7 @@ impl AppState {
                             self.sort_column = Some(sort_col);
                             self.sort_ascending = true;
                         }
+                        self.update_filtered_tracks();
                     }
                 }
                 self.dragging_column_header = None;
