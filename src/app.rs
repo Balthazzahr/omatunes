@@ -2172,7 +2172,25 @@ impl AppState {
                         let title = if state.apply_title { &state.title } else { &track.title };
                         let artist = if state.apply_artist { &state.artist } else { &track.artist };
                         let album = if state.apply_album { &state.album } else { &track.album };
-                        let genre = if state.apply_genre { &state.genre } else { &track.genre };
+                        let genre: String = if state.apply_genres.iter().any(|a| *a) {
+                            let original_parts: Vec<&str> = track.genres();
+                            let mut parts: Vec<String> = Vec::new();
+                            for i in 0..state.genres.len() {
+                                let checked = i < state.apply_genres.len() && state.apply_genres[i];
+                                if checked {
+                                    parts.push(state.genres[i].clone());
+                                } else if i < original_parts.len() {
+                                    parts.push(original_parts[i].to_string());
+                                }
+                            }
+                            for i in state.genres.len()..original_parts.len() {
+                                parts.push(original_parts[i].to_string());
+                            }
+                            parts.retain(|p| !p.is_empty());
+                            parts.join("; ")
+                        } else {
+                            track.genre.clone()
+                        };
                         let track_number = if state.apply_track_num { track_num } else { track.track_number };
                         let disc_number = if state.apply_disc_num { disc_num } else { track.disc_number };
                         let year = if state.apply_year { year_num } else { track.year };
