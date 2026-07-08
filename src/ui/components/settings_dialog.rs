@@ -1,4 +1,4 @@
-use iced::widget::{button, column, container, pick_list, row, scrollable, slider, text, text_input, Space};
+use iced::widget::{button, column, container, pick_list, radio, row, scrollable, slider, text, text_input, Space};
 use iced::{Alignment, Element, Length};
 
 use crate::app::{Message, SettingsState, SettingsTab};
@@ -79,12 +79,6 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
         "Monokai".to_string(),
     ];
 
-    let auto_scan_modes = vec![
-        "manual".to_string(),
-        "startup".to_string(),
-        "periodic".to_string(),
-    ];
-
     let playback_contexts: Vec<(&str, &str, &str)> = vec![
         ("album", "Album", "\u{f001}"),
         ("artist", "Artist", "\u{f4ff}"),
@@ -147,10 +141,17 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                 row![
                     text(ICON_AUTO_SCAN).font(NERD_FONT_MONO).size(14).color(theme::overlay0()),
                     Space::with_width(6),
-                    field_label("Auto-Scan Mode"),
+                    field_label("Library Scan Mode"),
                 ].align_y(Alignment::Center),
-                Space::with_height(6),
-                mode_pick,
+                Space::with_height(8),
+                column![
+                    radio("Manual (F5 to scan)", "manual", Some(state.auto_scan.mode.clone()), Message::SettingsAutoScanModeChanged)
+                        .spacing(8),
+                    radio("On Startup", "startup", Some(state.auto_scan.mode.clone()), Message::SettingsAutoScanModeChanged)
+                        .spacing(8),
+                    radio("Periodic", "periodic", Some(state.auto_scan.mode.clone()), Message::SettingsAutoScanModeChanged)
+                        .spacing(8),
+                ].spacing(4),
             ].spacing(0);
 
             if state.auto_scan.mode == "periodic" {
