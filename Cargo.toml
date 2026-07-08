@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 # GUI
-iced = { version = "0.13", features = ["image", "canvas", "tokio", "lazy", "file_dialog"] }
+iced = { version = "0.13", features = ["image", "canvas", "tokio", "lazy"] }
 
 # Áudio — decode
 symphonia = { version = "0.5", features = ["all"] }
