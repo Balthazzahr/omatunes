@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{OnceLock, Mutex};
 
@@ -38,13 +39,58 @@ impl Default for CustomThemeConfig {
     }
 }
 
+#[derive(Deserialize, Serialize, Clone, Debug)]
+pub struct PlaybackDefault {
+    pub shuffle: bool,
+    pub repeat: bool,
+}
+
+impl Default for PlaybackDefault {
+    fn default() -> Self {
+        Self { shuffle: false, repeat: false }
+    }
+}
+
+#[derive(Deserialize, Serialize, Clone, Debug)]
+pub struct PlaybackDefaults {
+    pub album: PlaybackDefault,
+    pub artist: PlaybackDefault,
+    pub genre: PlaybackDefault,
+    pub user_playlist: PlaybackDefault,
+    pub smart_playlist: PlaybackDefault,
+}
+
+impl Default for PlaybackDefaults {
+    fn default() -> Self {
+        Self {
+            album: PlaybackDefault { shuffle: false, repeat: false },
+            artist: PlaybackDefault { shuffle: true, repeat: false },
+            genre: PlaybackDefault { shuffle: true, repeat: false },
+            user_playlist: PlaybackDefault { shuffle: false, repeat: false },
+            smart_playlist: PlaybackDefault { shuffle: false, repeat: false },
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize, Clone, Debug)]
+pub struct AutoScanConfig {
+    #[serde(default)]
+    pub mode: String,
+    #[serde(default)]
+    pub interval_minutes: u64,
+}
+
+impl Default for AutoScanConfig {
+    fn default() -> Self {
+        Self { mode: "manual".into(), interval_minutes: 15 }
+    }
+}
+
 #[derive(Deserialize, Serialize, Clone)]
 #[serde(default)]
 pub struct Config {
-    pub music_dir:   String,   // String para suportar "~" antes de expandir
+    pub music_dir:   String,
     pub volume:      f32,
-    pub shuffle:     bool,
-    pub repeat:      bool,
     pub language:    String,
     pub seek_step:   u64,
     pub volume_step: f32,
@@ -52,6 +98,10 @@ pub struct Config {
     pub theme_source: String,
     pub theme_preset: String,
     pub custom_theme: Option<CustomThemeConfig>,
+    #[serde(default)]
+    pub playback_defaults: PlaybackDefaults,
+    #[serde(default)]
+    pub auto_scan: AutoScanConfig,
 }
 
 impl Default for Config {
@@ -59,8 +109,6 @@ impl Default for Config {
         Config {
             music_dir:   "~/Music".into(),
             volume:      0.8,
-            shuffle:     false,
-            repeat:      false,
             language:    "auto".into(),
             seek_step:   5,
             volume_step: 0.05,
@@ -68,6 +116,8 @@ impl Default for Config {
             theme_source: "System".into(),
             theme_preset: "Nord".into(),
             custom_theme: None,
+            playback_defaults: PlaybackDefaults::default(),
+            auto_scan: AutoScanConfig::default(),
         }
     }
 }
