@@ -256,35 +256,40 @@ fn test_talking_heads_tag() {
                     println!("Guess file type succeeded: {:?}", guessed.file_type());
                     match guessed.read() {
                         Ok(mut tagged_file) => {
-                    println!("Probe read succeeded. Primary tag type: {:?}", tagged_file.primary_tag_type());
-                    println!("File type: {:?}", tagged_file.file_type());
-                    if let Some(tag) = tagged_file.primary_tag() {
-                        println!("Title: {:?}", tag.title());
-                        println!("Artist: {:?}", tag.artist());
-                        println!("Album: {:?}", tag.album());
-                        println!("Genre: {:?}", tag.genre());
-                    } else {
-                        println!("No primary tag found!");
-                    }
-                    
-                    // Try to write tags
-                    println!("Attempting fresh tag write...");
-                    tagged_file.remove(lofty::tag::TagType::Id3v1);
-                    tagged_file.remove(lofty::tag::TagType::Id3v2);
-                    
-                    let mut new_tag = lofty::tag::Tag::new(lofty::tag::TagType::Id3v2);
-                    new_tag.set_title("Born Under Punches (The Heat Goes On)".to_string());
-                    new_tag.set_artist("Talking Heads".to_string());
-                    new_tag.set_album("Remain in Light".to_string());
-                    tagged_file.insert_tag(new_tag);
-                    
-                    match tagged_file.save_to_path(path, Default::default()) {
-                        Ok(_) => println!("Fresh tag save succeeded!"),
-                        Err(e) => println!("Fresh tag save failed: {:?}", e),
+                            println!("Probe read succeeded. Primary tag type: {:?}", tagged_file.primary_tag_type());
+                            println!("File type: {:?}", tagged_file.file_type());
+                            if let Some(tag) = tagged_file.primary_tag() {
+                                println!("Title: {:?}", tag.title());
+                                println!("Artist: {:?}", tag.artist());
+                                println!("Album: {:?}", tag.album());
+                                println!("Genre: {:?}", tag.genre());
+                            } else {
+                                println!("No primary tag found!");
+                            }
+                            
+                            // Try to write tags
+                            println!("Attempting fresh tag write...");
+                            tagged_file.remove(lofty::tag::TagType::Id3v1);
+                            tagged_file.remove(lofty::tag::TagType::Id3v2);
+                            
+                            let mut new_tag = lofty::tag::Tag::new(lofty::tag::TagType::Id3v2);
+                            new_tag.set_title("Born Under Punches (The Heat Goes On)".to_string());
+                            new_tag.set_artist("Talking Heads".to_string());
+                            new_tag.set_album("Remain in Light".to_string());
+                            tagged_file.insert_tag(new_tag);
+                            
+                            match tagged_file.save_to_path(path, Default::default()) {
+                                Ok(_) => println!("Fresh tag save succeeded!"),
+                                Err(e) => println!("Fresh tag save failed: {:?}", e),
+                            }
+                        }
+                        Err(e) => {
+                            println!("Probe read failed: {:?}", e);
+                        }
                     }
                 }
                 Err(e) => {
-                    println!("Probe read failed: {:?}", e);
+                    println!("Guess file type failed: {:?}", e);
                 }
             }
         }
