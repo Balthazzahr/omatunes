@@ -101,7 +101,7 @@ fn evaluate_single_rule(track: &Track, rule: &SmartPlaylistRule, recently_played
         RuleField::Title => match_text(&track.title, rule),
         RuleField::Artist => match_text(&track.artist, rule),
         RuleField::Album => match_text(&track.album, rule),
-        RuleField::Genre => match_text(&track.genre, rule),
+        RuleField::Genre => track.genres().iter().any(|g| match_text(g, rule)),
         RuleField::Year => match_numeric_option(track.year, rule),
         RuleField::DiscNumber => match_numeric_option(track.disc_number, rule),
         RuleField::PlayCount => match_numeric(track.play_count, rule),

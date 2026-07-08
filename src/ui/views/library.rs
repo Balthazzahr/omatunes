@@ -1050,7 +1050,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 let group_key = match dep.group_by {
                     crate::db::GroupBy::Album => track.album.clone(),
                     crate::db::GroupBy::Artist => track.artist.clone(),
-                    crate::db::GroupBy::Genre => track.genre.clone(),
+                    crate::db::GroupBy::Genre => track.primary_genre().to_string(),
                     crate::db::GroupBy::Year => track.year.map(|y| y.to_string()).unwrap_or_default(),
                     crate::db::GroupBy::None => unreachable!(),
                 };
@@ -1538,7 +1538,7 @@ fn render_track_row(
                 text(track.album.clone()).color(theme::subtext()).size(13).width(width).into()
             }
             crate::db::TableColumn::Genre => {
-                text(track.genre.clone()).color(theme::subtext()).size(13).width(width).into()
+                text(track.primary_genre().to_string()).color(theme::subtext()).size(13).width(width).into()
             }
             crate::db::TableColumn::Year => {
                 let yr_str = track.year.map(|y| y.to_string()).unwrap_or_else(|| "·".to_string());

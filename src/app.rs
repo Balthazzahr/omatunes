@@ -864,7 +864,18 @@ impl AppState {
     pub fn genres(&self) -> Vec<String> {
         let query = self.sidebar_search.to_lowercase();
         let mut genres: Vec<String> = self.all_tracks.iter()
-            .map(|t| if t.genre.trim().is_empty() { "Unknown Genre".to_string() } else { t.genre.clone() })
+            .flat_map(|t| {
+                if t.genre.trim().is_empty() {
+                    vec!["Unknown Genre".to_string()]
+                } else if t.genre.contains("; ") {
+                    t.genre.split("; ").map(|g| {
+                        let trimmed = g.trim();
+                        if trimmed.is_empty() { "Unknown Genre".to_string() } else { trimmed.to_string() }
+                    }).collect()
+                } else {
+                    vec![t.genre.clone()]
+                }
+            })
             .collect();
         genres.sort();
         genres.dedup();
@@ -928,7 +939,7 @@ impl AppState {
                 let match_title = self.filter_title && t.title.to_lowercase().contains(&query);
                 let match_artist = self.filter_artist && t.artist.to_lowercase().contains(&query);
                 let match_album = self.filter_album && t.album.to_lowercase().contains(&query);
-                let match_genre = self.filter_genre && t.genre.to_lowercase().contains(&query);
+                let match_genre = self.filter_genre && t.genres().iter().any(|g| g.to_lowercase().contains(&query));
                 match_title || match_artist || match_album || match_genre
             }).cloned().collect::<Vec<_>>());
         } else if let Some(playlist_name) = &self.selected_playlist {
@@ -1069,8 +1080,10 @@ impl AppState {
                 ViewMode::Genres => {
                     if let Some(genre_name) = &self.selected_genre {
                         self.tracks = Arc::new(self.all_tracks.iter().filter(|t| {
-                            let g = if t.genre.trim().is_empty() { "Unknown Genre" } else { &t.genre };
-                            g == genre_name
+                            t.genres().iter().any(|g| {
+                                let clean = if g.trim().is_empty() { "Unknown Genre" } else { g.trim() };
+                                clean == genre_name
+                            })
                         }).cloned().collect::<Vec<_>>());
                     } else {
                         self.tracks = self.all_tracks.clone();
