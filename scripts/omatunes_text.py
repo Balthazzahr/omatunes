@@ -5,8 +5,6 @@ import os
 import re
 import pathlib
 import pickle
-import urllib.request
-import urllib.parse
 import sys
 import time
 from datetime import datetime, timedelta
@@ -21,7 +19,7 @@ except ImportError:
 
 def get(cmd):
     try:
-        return subprocess.check_output(cmd, shell=True, stderr=subprocess.DEVNULL, text=True).strip()
+        return subprocess.check_output(cmd, stderr=subprocess.DEVNULL, text=True).strip()
     except:
         return ""
 
@@ -32,24 +30,6 @@ def escape(text):
 
 def truncate_text(text, max_length):
     return text[:max_length] + "…" if len(text) > max_length else text
-
-def wrap_text(text, width):
-    words = text.split()
-    lines = []
-    current_line = []
-    current_length = 0
-    for word in words:
-        if current_length + len(word) + 1 <= width:
-            current_line.append(word)
-            current_length += len(word) + 1
-        else:
-            if current_line:
-                lines.append(" ".join(current_line))
-            current_line = [word]
-            current_length = len(word)
-    if current_line:
-        lines.append(" ".join(current_line))
-    return lines
 
 def alacritty_color_to_hex(c):
     if isinstance(c, str):
@@ -81,6 +61,20 @@ def send_notify(title, message, icon="multimedia-audio-player", sound_file=None)
 CACHE_DIR = pathlib.Path.home() / ".cache"
 CACHE_DIR.mkdir(exist_ok=True)
 SESSION_FILE = CACHE_DIR / "waybar_omatunes_session.pkl"
+
+# ─── FORWARD-LOOKING NOTES — DO NOT MODIFY WITHOUT READING ─────────────────────
+# 1. STATISTICS FEATURE: The session data accumulated here (daily_history,
+#    weekly_history, monthly_history, total_tracks, total_minutes, artist data,
+#    records) is intentionally retained for a planned in-app Statistics feature
+#    inside the Rust omaTUNES application. Do NOT remove or restructure these
+#    fields without first verifying whether that feature depends on the current
+#    field layout.
+#
+# 2. PICKLE-TO-JSON MIGRATION: The storage format (Python pickle) is planned to
+#    migrate to JSON in a follow-up task, to allow the Rust app to read the file
+#    directly. Do NOT perform that migration here — this comment is a marker for
+#    future work only.
+# ────────────────────────────────────────────────────────────────────────────────
 
 def load_session():
     now = datetime.now()
@@ -151,7 +145,7 @@ def save_session(session):
         pass
 
 # -------------------
-# Load Theme & Colors
+# Load Theme & Colors (Cached)
 # -------------------
 def load_omarchy_colors():
     theme_path = pathlib.Path.home() / ".config/omarchy/current/theme/alacritty.toml"
@@ -173,32 +167,71 @@ def load_omarchy_colors():
     except:
         return {"green": "#00ff00", "yellow": "#ffff00", "cyan": "#00ffff", "white": "#ffffff", "red": "#ff0000", "blue": "#0000ff"}
 
-COLORS = load_omarchy_colors()
+# Note: get_theme_colors is defined here
+THEME_CACHE_FILE = pathlib.Path.home() / ".cache" / "waybar_omatunes_theme_cache.json"
 
-def get_css_color(var):
-    css_path = pathlib.Path.home() / ".config/waybar/style.css"
+def get_theme_colors():
+    alacritty_path = pathlib.Path.home() / ".config/omarchy/current/theme/alacritty.toml"
+    waybar_path = pathlib.Path.home() / ".config/waybar/style.css"
+    
+    alacritty_mtime = 0.0
+    waybar_mtime = 0.0
     try:
-        content = css_path.read_text()
-        m = re.search(rf"@define-color\s+{var}\s+([#\w]+);", content)
-        return m.group(1) if m else None
+        if alacritty_path.exists():
+            alacritty_mtime = os.path.getmtime(alacritty_path)
     except:
-        return None
+        pass
+    try:
+        if waybar_path.exists():
+            waybar_mtime = os.path.getmtime(waybar_path)
+    except:
+        pass
 
-theme_colors = {
-    "artist": COLORS.get("green"),
-    "song": COLORS.get("white"),
-    "album": COLORS.get("cyan"),
-    "time": COLORS.get("white"),
-    "volume": get_css_color("volume") or COLORS.get("cyan"),
-    "status_playing": COLORS.get("green"),
-    "status_stopped": COLORS.get("red"),
-    "omatunes_brand": COLORS.get("cyan"),
-    "progress": COLORS.get("blue"),
-}
+    cache_valid = False
+    cache_data = {}
+    if THEME_CACHE_FILE.exists():
+        try:
+            with open(THEME_CACHE_FILE, "r") as f:
+                cache_data = json.load(f)
+            if (cache_data.get("alacritty_mtime") == alacritty_mtime and 
+                cache_data.get("waybar_mtime") == waybar_mtime):
+                cache_valid = True
+        except:
+            pass
+
+    if cache_valid:
+        return cache_data["COLORS"], cache_data["theme_colors"]
+
+    # Compute and save
+    global tomllib
+    colors_dict = load_omarchy_colors()
+
+    theme_colors_dict = {
+        "artist": colors_dict.get("green"),
+        "song": colors_dict.get("white"),
+        "album": colors_dict.get("cyan"),
+        "omatunes_brand": colors_dict.get("cyan"),
+    }
+    
+    try:
+        with open(THEME_CACHE_FILE, "w") as f:
+            json.dump({
+                "alacritty_mtime": alacritty_mtime,
+                "waybar_mtime": waybar_mtime,
+                "COLORS": colors_dict,
+                "theme_colors": theme_colors_dict
+            }, f)
+    except:
+        pass
+
+    return colors_dict, theme_colors_dict
+
+COLORS, theme_colors = get_theme_colors()
 
 def is_track_liked(track_url):
     if not track_url:
         return False
+    import urllib.parse
     path_str = track_url
     if path_str.startswith("file://"):
         path_str = urllib.parse.unquote(path_str[7:])
@@ -233,82 +266,53 @@ if len(sys.argv) > 1:
             s.close()
         except:
             pass
-        sys.exit(0)
-    elif arg == "--button" and len(sys.argv) > 2:
-        button_name = sys.argv[2]
-        state = None
-        state_path = "/tmp/omatunes_waybar_state.json"
-        try:
-            if os.path.exists(state_path) and (time.time() - os.path.getmtime(state_path)) < 3.0:
-                with open(state_path, "r") as f:
-                    state = json.load(f)
-        except:
-            pass
-
-        if not state or state.get("status", "stopped") == "stopped":
-            print(json.dumps({}))
-            sys.exit(0)
-
-        status = state["status"]
-        liked = state["liked"]
-
-        red = COLORS.get("red", "#ff0000")
-        gray = "#565f89"
-        cyan = COLORS.get("cyan", "#00ffff")
-
-        if button_name == "play":
-            icon = "" if status == "playing" else ""
-            color = cyan
-            tooltip = "Pause" if status == "playing" else "Play"
-        elif button_name == "next":
-            icon = ""
-            color = cyan
-            tooltip = "Next Track"
-        elif button_name == "like":
-            icon = "" if liked else ""
-            color = red if liked else gray
-            tooltip = "Unlike" if liked else "Like"
-        else:
-            print(json.dumps({}))
-            sys.exit(0)
-
-        print(json.dumps({
-            "text": f"<span foreground='{color}'>{icon}</span>",
-            "tooltip": tooltip,
-            "markup": "pango",
-            "class": button_name
-        }))
+        # --click focus: focus the omaTUNES window via hyprctl.
+        # Not wired to any Waybar action currently (on-click-backward requires
+        # Waybar >= a later release). Kept here for potential future use.
+        if button == "focus":
+            try:
+                subprocess.Popen(
+                    ["hyprctl", "dispatch", "focuswindow", "class:^omatunes$"],
+                    stderr=subprocess.DEVNULL
+                )
+            except:
+                pass
         sys.exit(0)
 
 # -------------------
 # Main OmaTunes Logic
 # -------------------
-status = get("playerctl --player=omatunes status").lower()
+cmd = [
+    "playerctl",
+    "-f",
+    "{{status}}||{{title}}||{{artist}}||{{album}}||{{xesam:url}}",
+    "--player=omatunes",
+    "metadata"
+]
+
+raw_output = get(cmd)
+parts = raw_output.split("||")
+
+if len(parts) != 5:
+    print(json.dumps({}))
+    sys.exit(0)
+
+status = parts[0].lower().strip()
 
 if not status or status == "stopped":
-    try:
-        if os.path.exists("/tmp/omatunes_waybar_state.json"):
-            os.unlink("/tmp/omatunes_waybar_state.json")
-    except:
-        pass
     print(json.dumps({}))
-    exit()
+    sys.exit(0)
 
-title_raw = get("playerctl --player=omatunes metadata title")
-artist_raw = get("playerctl --player=omatunes metadata artist")
-
+title_raw = parts[1].strip()
 if not title_raw:
     print(json.dumps({}))
-    exit()
+    sys.exit(0)
 
 title = escape(title_raw)
+artist_raw = parts[2].strip()
 artist = escape(artist_raw)
-album = escape(get("playerctl --player=omatunes metadata album"))
-volume = float(get("playerctl --player=omatunes volume") or 0)
-position = int(float(get("playerctl --player=omatunes position") or 0))
-length = int(get("playerctl --player=omatunes metadata mpris:length") or 0) // 1_000_000
-shuffle = get("playerctl --player=omatunes shuffle").lower()
-loop = get("playerctl --player=omatunes loop")
+album = escape(parts[3].strip())
+track_url = parts[4].strip()
 
 # -------------------
 # Session & Notifications
@@ -368,13 +372,13 @@ elif t_count >= 100 and (t_count // 100 > last_t // 100):
     triggered_t = (t_count // 100) * 100
 
 if triggered_t > 0:
-    send_notify("Music Milestone!", f"You've listened to {t_count} tracks today! ", sound_file="message.oga")
+    send_notify("Music Milestone!", f"You've listened to {t_count} tracks today! ", sound_file="message.oga")
     session["last_track_milestone"] = triggered_t
 
 # Hourly Logic
 current_hours = int(session["daily_history"][today_str]["minutes"] // 60)
 if current_hours > session["last_hour_milestone"]:
-    send_notify("Time Flies!", f"You've been vibing for {current_hours} hour{'s' if current_hours > 1 else ''} today! ", icon="appointment-soon", sound_file="complete.oga")
+    send_notify("Time Flies!", f"You've been vibing for {current_hours} hour{'s' if current_hours > 1 else ''} today! ", icon="appointment-soon", sound_file="complete.oga")
     session["last_hour_milestone"] = current_hours
 
 session["last_update"] = now
@@ -383,199 +387,53 @@ save_session(session)
 # -------------------
 # Visuals & Tooltip
 # -------------------
-def track_bar(pos, total, width=32, color=None):
-    pos_t = f"{pos//60}:{pos%60:02d}"
-    len_t = f"{total//60}:{total%60:02d}"
-    avail = width - len(pos_t) - len(len_t) - 2
-    filled = int((pos / total) * avail) if total else 0
-    filled = min(max(0, filled), avail - 1)
-    bar = "━" * filled + "●" + "┄" * (avail - filled - 1)
-    return f"{pos_t} <span foreground='{color}'>{bar}</span> {len_t}"
+# Hint-list glyphs — all verified PRESENT in bundled font via cmap format-12 parse:
+#   U+F001  nf-fa-music       (bar text icon + header)
+#   U+F040A nf-md-play        (Play/Pause)
+#   U+F02D1 nf-md-heart       (Like)
+#   U+F04AD nf-md-skip-next   (Next Track)
+#   U+F057E nf-md-volume-high (Scroll/Volume)
 
-def format_time(minutes):
-    h, m = divmod(int(minutes), 60)
-    return f"{h}h {m:02d}m" if h else f"{m}m"
-
-tooltip_pre = [
-    f"<span font='Montserrat Bold' foreground='{theme_colors['omatunes_brand']}' size='27500'>  OmaTunes</span>",
-    f"<span font='Montserrat' size='10000'> </span>",  # vertical gap
-    f"<span font='Montserrat' foreground='{theme_colors['artist']}'>   {truncate_text(artist, 40)}</span>",
-    f"<span font='Montserrat' foreground='{theme_colors['song']}'>   {truncate_text(title, 40)}</span>",
-    f"<span font='Montserrat' foreground='{theme_colors['album']}'>󰀥   {truncate_text(album, 40)}</span>",
+tooltip_lines = [
+    f"<span font='Montserrat Bold' foreground='{theme_colors['omatunes_brand']}' size='27500'>\uf001  OmaTunes</span>",
+    f"<span font='Montserrat' size='10000'> </span>",
+    f"<span font='Montserrat' foreground='{theme_colors['artist']}'>\uf007   {truncate_text(artist, 40)}</span>",
+    f"<span font='Montserrat' foreground='{theme_colors['song']}'>\uf001   {truncate_text(title, 40)}</span>",
+    f"<span font='Montserrat' foreground='{theme_colors['album']}'>\U000f0025   {truncate_text(album, 40)}</span>",
     "",
+    "\U000f040a  Left Click \u2014 Play/Pause",
+    "\U000f02d1  Middle Click \u2014 Like Song",
+    "\U000f04ad  Right Click \u2014 Next Track",
+    "\U000f057e  Scroll \u2014 Volume Up/Down",
 ]
 
-# Statistics Section
-stats_lines = []
-stats_lines.append(f"<span foreground='{COLORS['white']}'> Listening History</span>:")
-stats_lines.append("<span size='5000'> </span>")
-
-# Helper for aligned stats
-def format_stat_line(glyph, label, minutes, tracks, color_time, color_tracks):
-    time_str = format_time(minutes)
-    return (f"<span font_family='monospace'> {glyph} {label:<11} "
-            f"<span foreground='{color_time}'>{time_str:>8}</span>  "
-            f"<span foreground='{color_tracks}'>{tracks:>4} tracks</span></span>")
-
-day_data = session["daily_history"].get(today_str, {"tracks": 0, "minutes": 0})
-stats_lines.append(format_stat_line("󰃭", "Today:", day_data['minutes'], day_data['tracks'], theme_colors['artist'], theme_colors['song']))
-
-week_data = session["weekly_history"].get(week_str, {"tracks": 0, "minutes": 0})
-if week_data["tracks"] < day_data["tracks"]: week_data = day_data
-stats_lines.append(format_stat_line("󰃮", "This Week:", week_data['minutes'], week_data['tracks'], theme_colors['artist'], theme_colors['song']))
-
-month_data = session["monthly_history"].get(month_str, {"tracks": 0, "minutes": 0})
-if month_data["tracks"] < day_data["tracks"]: month_data = day_data
-stats_lines.append(format_stat_line("󰸗", "This Month:", month_data['minutes'], month_data['tracks'], theme_colors['artist'], theme_colors['song']))
-
-# Last Month Logic
-last_month_dt = (now.replace(day=1) - timedelta(days=1))
-last_month_str = last_month_dt.strftime("%Y-%m")
-last_month_data = session["monthly_history"].get(last_month_str, {"tracks": 0, "minutes": 0})
-stats_lines.append(format_stat_line("", "Last Month:", last_month_data['minutes'], last_month_data['tracks'], theme_colors['artist'], theme_colors['song']))
-
-# All-Time Logic
-stats_lines.append(format_stat_line("󰓃", "All-Time:", session['total_minutes'], session['total_tracks'], COLORS['yellow'], COLORS['yellow']))
-
-# Leaderboards
-extra_lines = []
-
-# 1. Monthly Leaderboard (Top 5)
-month_history = session["monthly_history"].get(month_str, {})
-m_artists_time = month_history.get("artists", {})
-m_artists_tracks = month_history.get("artist_tracks", {})
-
-if m_artists_time:
-    extra_lines.append("")
-    extra_lines.append(f"<span foreground='{COLORS['white']}'> Monthly Leaderboard (Top 5)</span>:")
-    extra_lines.append("<span size='5000'> </span>")
-    m_top = sorted(m_artists_time.items(), key=lambda x: x[1], reverse=True)[:5]
-    for i, (name, mins) in enumerate(m_top):
-        rank = i + 1
-        t_count = m_artists_tracks.get(name, 0)
-        rank_str = f"{rank}."
-        name_trunc = truncate_text(name, 18)
-        name_esc = escape(name_trunc)
-        
-        name_padding = " " * (18 - len(name_trunc))
-        
-        extra_lines.append(f"<span font_family='monospace'> {rank_str:>3}  {name_esc}{name_padding} <span foreground='{theme_colors['artist']}'>{format_time(mins):>7}</span> <span foreground='#aaaaaa' size='x-small'>({t_count} tracks)</span></span>")
-
-# 2. All-Time Leaderboard (Top 10)
-all_time_time = {}
-all_time_tracks = {}
-for m_data in session.get("monthly_history", {}).values():
-    for name, mins in m_data.get("artists", {}).items():
-        all_time_time[name] = all_time_time.get(name, 0) + mins
-    for name, count in m_data.get("artist_tracks", {}).items():
-        all_time_tracks[name] = all_time_tracks.get(name, 0) + count
-
-if all_time_time:
-    extra_lines.append("")
-    extra_lines.append(f"<span foreground='{COLORS['white']}'>󰓃 All-Time Legends (Top 10)</span>:")
-    extra_lines.append("<span size='5000'> </span>")
-    a_top = sorted(all_time_time.items(), key=lambda x: x[1], reverse=True)[:10]
-    a_medal_colors = ["#FFD700", "#C0C0C0", "#CD7F32"]
-    for i, (name, mins) in enumerate(a_top):
-        rank = i + 1
-        t_count = all_time_tracks.get(name, 0)
-        rank_str = f"{rank}."
-        
-        name_trunc = truncate_text(name, 18)
-        name_esc = escape(name_trunc)
-        
-        if rank <= 3:
-            name_part = f"<span foreground='{a_medal_colors[i]}'>{name_esc}</span>"
-        else:
-            name_part = name_esc
-            
-        name_padding = " " * (18 - len(name_trunc))
-            
-        extra_lines.append(f"<span font_family='monospace'> {rank_str:>3}  {name_part}{name_padding} <span foreground='{COLORS['blue']}'>{format_time(mins):>7}</span> <span foreground='#aaaaaa' size='x-small'>({t_count} tracks)</span></span>")
-
-# Footer definitions
-footer_text = "󰍽 L: Play  󰍽 M: Prev  󰍽 R: Next  󰍽 Scrl: Vol"
-f_size = "9000"
-f_size_val = float(f_size)
-
-# Calculate natural max width from content
-all_pre_lines = tooltip_pre + stats_lines + extra_lines
-clean_lines = [re.sub(r'<.*?>', '', line) for line in all_pre_lines if line]
-max_w = max(len(line) for line in clean_lines) if clean_lines else 35
-max_w = min(max_w, 45)
-
-# Build final tooltip list
-tooltip = tooltip_pre
-tooltip.append(f"<span>{'▶' if status == 'playing' else '⏸'} {track_bar(position, length, width=max_w-2, color=theme_colors['progress'])}</span>")
-tooltip.append("<span size='10000'> </span>")
-
-# Shuffle/Repeat with centering
-shuffle_color = theme_colors["status_playing"] if shuffle == "on" else theme_colors["status_stopped"]
-loop_color = theme_colors["status_playing"] if loop.lower() != "none" else theme_colors["status_stopped"] 
-text_content_raw = f"  Repeat: {loop}    Shuffle: {shuffle.title()}"
-padding = max(0, (max_w - len(text_content_raw)) // 2)
-tooltip.append(f"<span font_family='monospace'>{' ' * padding}<span foreground='{loop_color}'>  Repeat: {loop}</span>  <span foreground='{shuffle_color}'>  Shuffle: {shuffle.title()}</span></span>")
-tooltip.append("<span size='10000'> </span>")
-
-vol_filled = int(volume * (max_w - 8))
-vol_filled = max(1, min(vol_filled, max_w - 8))
-vol_bar = "█" * vol_filled + "░" * (max_w - 8 - vol_filled)
-tooltip.append(f"<span>  <span foreground='{theme_colors['volume']}'>{vol_bar}</span> {int(volume * 100)}%</span>")
-
-tooltip.append("")
-tooltip.extend(stats_lines)
-tooltip.extend(extra_lines)
-
-tooltip.append("")
-tooltip.append(f"<span foreground='{COLORS['white']}'>{'┈' * max_w}</span>")
-
-ratio = 10000.0 / f_size_val
-def get_pad(text, target_w, r):
-    visible_len = len(text)
-    return int(max(0, (target_w * r - visible_len) / 2))
-
-pad = get_pad(footer_text, max_w, ratio)
-
-tooltip.append(f"<span font_family='monospace' size='{f_size}' foreground='{COLORS['white']}'>{' ' * pad}{footer_text}</span>")
-
-# Write state cache for button modules
-state_cache = {
-    "status": status,
-    "title": title_raw,
-    "artist": artist_raw,
-    "album": album,
-    "volume": volume,
-    "position": position,
-    "length": length,
-    "shuffle": shuffle,
-    "loop": loop,
-    "liked": is_track_liked(get("playerctl --player=omatunes metadata xesam:url")),
-    "timestamp": time.time()
-}
-try:
-    with open("/tmp/omatunes_waybar_state.json", "w") as f:
-        json.dump(state_cache, f)
-except:
-    pass
-
-icon_color = COLORS.get("cyan") if status == "playing" else theme_colors['artist']
-
+# Bar text: play (U+F04B) / pause (U+F04C) icon — same codepoints as the Rust app (icons.rs)
+# Liked heart: U+F004 nf-fa-heart in theme red — same codepoint and color as the Rust app
 if status == "playing":
+    icon_char = "\uf04b"  # ICON_PLAY
+    icon_color = COLORS.get("cyan", "#81c8be")
     artist_color = theme_colors['artist']
     song_color = theme_colors['song']
 else:
-    icon_color = "#565f89" 
+    icon_char = "\uf04c"  # ICON_PAUSE
+    icon_color = "#565f89"
     artist_color = "#565f89"
     song_color = "#565f89"
 
+liked = is_track_liked(track_url)
+red = COLORS.get("red", "#f28fad")
+heart_span = f" <span foreground='{red}'>\uf004</span>" if liked else ""
+
 display_text = (
+    f"<span foreground='{icon_color}'>{icon_char} </span>"
     f"<span foreground='{artist_color}'><b>{artist}</b></span> - "
     f"<span foreground='{song_color}'><i>{truncate_text(title, 24)}</i></span>"
+    f"{heart_span}"
 )
 
 print(json.dumps({
     "text": display_text,
-    "tooltip": "\n".join(tooltip),
+    "tooltip": "\n".join(tooltip_lines),
     "markup": "pango",
     "class": status,
 }))

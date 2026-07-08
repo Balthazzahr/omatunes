@@ -4,48 +4,7 @@ use iced::{Alignment, Element, Length};
 use crate::app::{Message, TagEditorState};
 use crate::ui::theme;
 
-fn get_suggestions(query: &str, items: &[String]) -> Vec<String> {
-    let query_lower = query.trim().to_lowercase();
-    if query_lower.is_empty() {
-        return Vec::new();
-    }
-    let mut matches = Vec::new();
-    for item in items {
-        let item_trimmed = item.trim();
-        let item_lower = item_trimmed.to_lowercase();
-        if item_lower.starts_with(&query_lower) && item_lower != query_lower {
-            matches.push(item_trimmed.to_string());
-        }
-    }
-    matches.sort();
-    matches.dedup();
-    matches.truncate(4);
-    matches
-}
-
-fn render_suggestions(
-    suggestions: &[String],
-    on_select: impl Fn(String) -> Message,
-) -> Element<'static, Message> {
-    let mut col = column![].spacing(4);
-    for chunk in suggestions.chunks(2) {
-        let mut row_el = row![].spacing(6);
-        for suggestion in chunk {
-            row_el = row_el.push(
-                button(
-                    text(suggestion.clone())
-                        .size(10)
-                        .color(theme::accent())
-                )
-                .on_press(on_select(suggestion.clone()))
-                .style(theme::secondary_button)
-                .padding([2, 6])
-            );
-        }
-        col = col.push(row_el);
-    }
-    col.into()
-}
+use crate::ui::components::autocomplete::{get_suggestions, render_suggestions};
 
 pub fn view<'a>(
     state: &'a TagEditorState,
@@ -73,14 +32,6 @@ pub fn view<'a>(
         text_input("Album", &state.album)
             .id(iced::widget::text_input::Id::new("id3_album"))
             .on_input(Message::UpdateTagFieldAlbum)
-            .padding(8)
-    )
-    .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 2.0, left: 0.0 });
-
-    let genre_input = container(
-        text_input("Genre", &state.genre)
-            .id(iced::widget::text_input::Id::new("id3_genre"))
-            .on_input(Message::UpdateTagFieldGenre)
             .padding(8)
     )
     .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 2.0, left: 0.0 });
@@ -127,7 +78,6 @@ pub fn view<'a>(
 
     let artist_suggestions = get_suggestions(&state.artist, unique_artists);
     let album_suggestions = get_suggestions(&state.album, unique_albums);
-    let genre_suggestions = get_suggestions(&state.genre, unique_genres);
 
     let tab_btn = |tab: crate::app::TagEditorTab, label: &'static str| {
         let is_active = state.active_tab == tab;
@@ -219,27 +169,63 @@ pub fn view<'a>(
                     ].width(Length::Fill)
                 ].align_y(Alignment::Center).spacing(8)
             )
-            .push(Space::with_height(2))
-            .push(
-                row![
-                    checkbox("", state.apply_genre)
-                        .on_toggle(Message::ToggleTagFieldApplyGenre)
-                        .size(16),
-                    column![
-                        text("Genre").size(12).color(theme::subtext()),
-                        genre_input,
-                        if !genre_suggestions.is_empty() {
-                            iced::Element::from(column![
-                                Space::with_height(4),
-                                render_suggestions(&genre_suggestions, Message::UpdateTagFieldGenre)
-                            ])
-                        } else {
-                            iced::Element::from(Space::with_height(0))
-                        }
-                    ].width(Length::Fill)
-                ].align_y(Alignment::Center).spacing(8)
-            )
-            .push(Space::with_height(2))
+            .push(Space::with_height(4));
+
+            if state.tracks.len() > 1 {
+                body = body.push(
+                    text(format!("Common genres across {} tracks:", state.tracks.len()))
+                        .size(12).color(theme::subtext())
+                );
+            } else {
+                body = body.push(
+                    text("Genres").size(12).color(theme::subtext())
+                );
+            }
+
+            for (i, (genre_val, apply_val)) in state.genres.iter().zip(state.apply_genres.iter()).enumerate() {
+                let is_new = i >= state.genres_original.len() || state.genres_original[i].is_empty();
+                let hint = if is_new {
+                    String::new()
+                } else if state.genres_original[i] != *genre_val {
+                    format!("Replace \"{}\" →", state.genres_original[i])
+                } else {
+                    format!("\"{}\"", state.genres_original[i])
+                };
+                let placeholder = if is_new {
+                    format!("New genre {}...", i + 1)
+                } else {
+                    state.genres_original[i].clone()
+                };
+                let slot_suggestions = get_suggestions(genre_val, unique_genres);
+                let slot_input = container(
+                    text_input(&placeholder, genre_val)
+                        .on_input(move |v| Message::UpdateTagFieldGenre(i, v))
+                        .padding(8)
+                )
+                .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 2.0, left: 0.0 });
+                let mut slot_column = column![
+                    text(hint).size(12).color(theme::subtext()),
+                    slot_input,
+                ];
+                if !slot_suggestions.is_empty() {
+                    slot_column = slot_column.push(
+                        iced::Element::from(column![
+                            Space::with_height(4),
+                            render_suggestions(&slot_suggestions, move |v| Message::UpdateTagFieldGenre(i, v))
+                        ])
+                    );
+                }
+                body = body.push(
+                    row![
+                        checkbox("", *apply_val)
+                            .on_toggle(move |v| Message::ToggleTagFieldApplyGenre(i, v))
+                            .size(16),
+                        slot_column.width(Length::Fill)
+                    ].align_y(Alignment::Center).spacing(8)
+                );
+            }
+
+            body = body.push(Space::with_height(2))
             .push(
                 row![
                     row![
@@ -293,6 +279,24 @@ pub fn view<'a>(
                 ].align_y(Alignment::Center).spacing(8)
             );
     } else {
+        if let Some(track) = state.tracks.first() {
+            let duration_str = track.duration_str();
+            let title = if track.title.trim().is_empty() {
+                "Unknown Title".to_string()
+            } else {
+                track.title.clone()
+            };
+            body = body.push(
+                row![
+                    Space::with_width(24),
+                    text(format!("{} ({})", title, duration_str))
+                        .size(13)
+                        .font(crate::ui::icons::UI_FONT_BOLD)
+                        .color(theme::accent())
+                ]
+            ).push(Space::with_height(6));
+        }
+
         body = body.push(
             row![
                 checkbox("", state.apply_lyrics)
@@ -367,11 +371,33 @@ pub fn view<'a>(
         );
     }
 
-    let mut content = column![
+    let header_row = row![
         text("Edit ID3 Tags")
             .size(18)
             .font(crate::ui::icons::UI_FONT_BOLD)
             .color(theme::accent()),
+        Space::with_width(Length::Fill),
+        button(text("X").size(14).font(crate::ui::icons::UI_FONT_BOLD).color(theme::subtext()))
+            .on_press(Message::CloseTagEditor)
+            .style(|_theme: &iced::Theme, status: iced::widget::button::Status| {
+                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                iced::widget::button::Style {
+                    background: Some(iced::Background::Color(if is_hovered { theme::surface0() } else { iced::Color::TRANSPARENT })),
+                    text_color: if is_hovered { theme::red() } else { theme::subtext() },
+                    border: iced::Border {
+                        radius: 4.0.into(),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                }
+            })
+            .padding([4, 8])
+    ]
+    .align_y(Alignment::Center)
+    .width(Length::Fill);
+
+    let mut content = column![
+        header_row,
         Space::with_height(8),
         tabs_header,
         Space::with_height(12),
@@ -389,16 +415,43 @@ pub fn view<'a>(
 
     content = content.push(
         row![
-            button(text("Cancel").color(theme::text()))
-                .on_press(Message::CloseTagEditor)
-                .padding([8, 16])
-                .style(theme::secondary_button),
-            Space::with_width(12),
-            button(text("Save").color(theme::base()))
-                .on_press(Message::SaveTags)
-                .padding([8, 16])
-                .style(theme::primary_button)
+            button(
+                text(crate::ui::icons::ICON_PREV)
+                    .font(crate::ui::icons::NERD_FONT)
+                    .color(theme::text())
+            )
+            .on_press(Message::TagEditorPrevTrack)
+            .padding([8, 12])
+            .style(theme::secondary_button),
+            Space::with_width(Length::Fill),
+            row![
+                button(text("Cancel").color(theme::text()))
+                    .on_press(Message::CancelTagEditor)
+                    .padding([8, 16])
+                    .style(theme::secondary_button),
+                Space::with_width(12),
+                button(text("Close").color(theme::text()))
+                    .on_press(Message::CloseTagEditor)
+                    .padding([8, 16])
+                    .style(theme::secondary_button),
+                Space::with_width(12),
+                button(text("Save"))
+                    .on_press(Message::SaveTags)
+                    .padding([8, 16])
+                    .style(if state.is_saved { theme::save_button_saved } else { theme::save_button })
+            ]
+            .align_y(Alignment::Center),
+            Space::with_width(Length::Fill),
+            button(
+                text(crate::ui::icons::ICON_NEXT)
+                    .font(crate::ui::icons::NERD_FONT)
+                    .color(theme::text())
+            )
+            .on_press(Message::TagEditorNextTrack)
+            .padding([8, 12])
+            .style(theme::secondary_button)
         ]
+        .width(Length::Fill)
         .align_y(Alignment::Center)
     );
 

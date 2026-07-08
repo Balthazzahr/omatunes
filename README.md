@@ -4,10 +4,9 @@
 
 # omaTUNES
 
-A native Wayland music player written in Rust, built for [Omarchy](https://omarchy.org/) / Hyprland rices. Follows the active Omarchy theme automatically — colors update live when you switch themes.
+omaTUNES is a native Wayland music player and library manager built in Rust for Hyprland and Omarchy systems. omaTUNES is built to be as lightweight as possible while matching Omarchy's opinionated UI style — it picks up your system theme automatically, so your player always matches the rest of your desktop. omaTUNES is 100% offline, has wide support for most popular music codecs, and is designed to manage very large libraries with robust playlist and library management tools.
 
 `omatunes` is a customized fork of [sheep-farm/lavanda](https://github.com/sheep-farm/lavanda) by [Balthazzahr](https://github.com/Balthazzahr).
-
 
 <p align="center">
   <img src="assets/Main UI.png" alt="OmaTUNES Main UI Screenshot" width="800">
@@ -17,55 +16,51 @@ A native Wayland music player written in Rust, built for [Omarchy](https://omarc
 
 ## Key Features
 
-- **Wide Audio Format Support**: Plays MP3, FLAC, OGG, Opus, WAV, AAC, M4A, AIFF, and more natively via the high-performance [Symphonia](https://github.com/pdeljanov/Symphonia) library.
-- **100% Offline & Privacy-First**: Zero tracking, zero background telemetry, and no network requirements. Logs and saves play counts, stats, and custom user playlists locally.
-- **JSON Database**: Stores favorites, play counts, recently played tracks, hidden artists/albums, column settings, and user playlists in a single portable JSON file (`~/.config/omatunes/db.json`).
-- **Synchronized LRC Lyrics & Interactivity**: Parses LRC metadata to highlight and auto-scroll the active lyric line, supporting interactive seek-on-click to any lyric's timestamp.
-- **Logarithmic Audio Spectrum Visualizer**: Computes real-time 2048-point Hann-windowed FFT to render 64 logarithmic bands colored with an amplitude gradient.
-- **Resizable Panel UI**: Toggle vertical tabs on the right side to open lyrics or spectrum views, adjustable with a click-and-drag handle and width state persistence.
-- **Live Omarchy Theme Switching**: Automatically maps your active system theme (`Catppuccin`, `Nord`, `Gruvbox`, etc.) to the UI palette live in under 3 seconds. No app restarts required.
-- **Native Wayland/X11 & Lightweight**: Built in native Rust using the Iced GUI toolkit. Runs on any Wayland compositor (Hyprland, GNOME, KDE) or traditional X11 window managers. Features extremely fast startup and low resource consumption.
-- **Rich Waybar Integration**: Pre-packaged with local Waybar status scripts (`scripts/omatunes_text.py`) and a control group mapping play, next, and like controls. Provides styled progress bars, listening history milestones, and interactive tooltip stats.
-- **Folder-Based Music Library**: No forced file re-organization. Respects and reads your existing music library subdirectories exactly as they are.
-- **Advanced Bulk Metadata (ID3) Editing**: Select multiple tracks, edit fields selectively using checkboxes, utilize predictive library-based autocomplete suggestions, and apply tag updates across entire albums.
-- **Customizable Columns**: Toggle visibilities or re-order columns (Track #, Title, Artist, Album, Genre, Year, Plays, Duration) via a right-click header menu, saving preferences to your local database.
-- **Playlists & Smart Autoplaylists**: Build custom playlists on the fly, or use automatic smart lists (`Liked Songs`, `Recently Played`, `Most Played`) that update live as you listen.
-- **MPRIS2 Server Support**: Integrates natively with `playerctl` and other system D-Bus audio widgets.
+- **Wide Format Support.** MP3, FLAC, OGG, Opus, WAV, AAC, M4A, AIFF — all decoded natively through [Symphonia](https://github.com/pdeljanov/Symphonia), no plugins or codecs to hunt down.
+- **Fully Offline & Private.** No telemetry, no accounts, no internet requirement to play a song. Your play counts, likes, and playlists live in one plain JSON file on disk, fully yours.
+- **Smart Playlists.** Build iTunes-style rule-based playlists — mix criteria like artist, genre, play count, liked status, or "last played within 2 weeks" — and let them keep themselves up to date as your library changes. No manual curation required.
+- **Customizable Library View.** Sort, filter, and browse by Artist, Album, or Genre. Drag columns into whatever order makes sense to you, group tracks dynamically by Album, Artist, Genre, or Year via a sleek fold-out capsule control, and let the table gracefully shrink its own columns as you resize the window instead of turning into a wall of wrapped text.
+- **Playlist Management.** Drag songs into the order you want, drag whole playlists around in the sidebar to prioritize your favorites, and add a song to any playlist right from the player controls — no need to dig through menus mid-listen.
+- **Synced Lyrics.** Synced LRC lyrics scroll and highlight in time with the track, and you can click any line to jump straight to that moment in the song.
+- **Listening Statistics & Leaderboards.** Track your listening history dynamically. View totals for songs played, hours listened, top genres, and top artists segmented by Today, This Week, This Month, and All-Time. Interactive podium-style leaderboards display your monthly and all-time top artists with Gold, Silver, and Bronze highlights. Click any top genre or artist link to instantly navigate to their filtered library view.
+- **Audio Visualizer.** Real-time FFT spectrum analysis rendered as 64 smoothly animated frequency bands, colored with a shifting gradient that reacts to the music.
+- **Theming System.** Follow your Omarchy system theme live, pick from built-in presets (Nord, Catppuccin, Dracula, Gruvbox, Everforest, Monokai), or build your own — omaTUNES derives the supporting shades automatically using proper WCAG contrast math, so your custom theme never ends up with unreadable text.
+- **Bulk Metadata Editing.** Select a stack of tracks, check only the fields you want to change, and apply edits across an entire album in one go — with autocomplete pulled straight from your existing library tags.
+- **Desktop Integration.** Full MPRIS2 support and a ready-to-go Waybar module with playback controls, live track info, and listening-history stats baked right into your bar.
+- **Non-Destructive Library Handling.** No forced re-organization, no renaming your folders, no importing into some walled-off library format. omaTUNES reads your music exactly where it already lives.
 
 ---
 
-## 📖 User Manual 
+## User Manual
 
-For an in-depth reference covering all application features, including playback controls, keybindings, live lyrics scroll-seeking, database details, bulk ID3 metadata editing, and advanced Waybar integration styling, please see the [USER_MANUAL.md](USER_MANUAL.md).
+The [USER_MANUAL.md](USER_MANUAL.md) covers everything in detail — every keybinding, every menu, how the database is structured, and how to get the Waybar integration looking sharp.
 
 ---
 
-## Requirements
+## System Requirements
 
 | Requirement | Notes |
 |---|---|
-| Rust &geq; 1.75 | `rustup` recommended |
-| A Nerd Font | `JetBrainsMono Nerd Font Mono` by default; any Nerd Font works |
-| PipeWire or PulseAudio | Audio output via cpal |
-| D-Bus session bus | For MPRIS2 (`DBUS_SESSION_BUS_ADDRESS` must be set) |
-| Wayland or X11 | Tested on Hyprland; works on GNOME, KDE, and any standard Wayland/X11 window manager |
+| Rust ≥ 1.75 | `rustup` is the easiest way to get it |
+| A Nerd Font | Ships configured for `JetBrainsMono Nerd Font Mono`, but any Nerd Font works |
+| PipeWire or PulseAudio | Audio output runs through cpal |
+| D-Bus session bus | Needed for MPRIS2 — make sure `DBUS_SESSION_BUS_ADDRESS` is set |
+| Wayland or X11 | Built and tested on Hyprland, but plays nicely on GNOME, KDE, and standard X11 window managers too |
 
 ---
 
-## Installation & Setup
+## Install Instructions
 
-### 1. Install the Player Binary
+### 1. Get the binary
 
-#### Option A: Download Pre-compiled Release (Recommended)
-Download the pre-compiled binary directly from the latest GitHub release:
+**Easiest: grab a pre-built release.**
 ```bash
 mkdir -p ~/.local/bin
 curl -L -o ~/.local/bin/omatunes https://github.com/Balthazzahr/omatunes/releases/latest/download/omatunes
 chmod +x ~/.local/bin/omatunes
 ```
 
-#### Option B: Compile from Source
-If you prefer to compile manually:
+**Prefer to build it yourself?**
 ```bash
 git clone https://github.com/Balthazzahr/omatunes
 cd omatunes
@@ -74,8 +69,10 @@ mkdir -p ~/.local/bin
 cp target/release/omatunes ~/.local/bin/omatunes
 ```
 
-### 2. Install Waybar Integration Scripts
-To set up the Waybar module and stats dashboard, copy the scripts to your scripts folder and make them executable:
+### 2. Wire up the Waybar module (optional, but worth it)
+
+If you want the Waybar integration — playback controls, track info, and listening stats right in your bar — copy the scripts over and make them executable:
+
 ```bash
 mkdir -p ~/.local/bin/omatunes_scripts
 cp scripts/omatunes_text.py ~/.local/bin/omatunes_scripts/omatunes_text.py
@@ -84,24 +81,13 @@ chmod +x ~/.local/bin/omatunes_scripts/omatunes_text.py
 chmod +x ~/.local/bin/omatunes_scripts/omatunes_volume.sh
 ```
 
-### 3. (Optional) Setup Auto-Sync Service
-If you want to push local code edits automatically to your GitHub fork:
-```bash
-mkdir -p ~/.local/bin/omatunes_scripts
-cp scripts/git_sync.sh ~/.local/bin/omatunes_scripts/git_sync.sh
-chmod +x ~/.local/bin/omatunes_scripts/git_sync.sh
-
-mkdir -p ~/.config/systemd/user
-cp scripts/omatunes-sync.service ~/.config/systemd/user/omatunes-sync.service
-systemctl --user daemon-reload
-systemctl --user enable --now omatunes-sync.service
-```
+Full Waybar config below, and CSS styling details in the [User Manual](USER_MANUAL.md#waybar-integration).
 
 ---
 
-## Configuration
+## Configuration and Settings
 
-omatunes generates `~/.config/omatunes/config.toml` on first run. Edit it to configure paths and behaviors:
+omaTUNES writes out `~/.config/omatunes/config.toml` the first time you run it. Open it up and point it at your music:
 
 ```toml
 # ~/.config/omatunes/config.toml
@@ -122,97 +108,84 @@ language = "auto"
 # Seek / Volume steps
 seek_step = 5
 volume_step = 0.05
+
+# Scale factor for UI text sizes (float)
+font_scale = 1.0
+
+# Theming source: "System", "Preset", or "Custom"
+theme_source = "Preset"
+
+# Selected built-in preset theme name
+theme_preset = "Nord"
+
+# Custom theme colors (used when theme_source = "Custom")
+[custom_theme]
+base = "#1e1e2e"       # Background
+text = "#cdd6f4"       # Primary Text
+accent = "#cba6f7"     # Accent
+green = "#a6e3a1"      # Green highlight
+red = "#f38ba8"        # Red highlight
+yellow = "#f9e2af"     # Yellow highlight
+blue = "#89b4fa"       # Blue highlight
+# mantle, surface0, overlay0, and subtext are derived automatically from
+# the colors above using WCAG contrast targets, and get written back to
+# this file when you save your theme in-app.
 ```
+
+Most of this is also editable straight from the in-app Settings panel — you don't need to touch this file by hand unless you want to.
 
 ---
 
 ## Waybar Integration
 
-The Waybar integration uses four discrete modules grouped together in `config.jsonc`. This provides specific button components for controlling playback while displaying active track details and listening history statistics.
+The Waybar setup uses a single `custom/omatunes` module that shows a music note icon, artist, and
+track name in the bar, with a tooltip summarising the track and your available mouse controls.
 
-Add the following to your `~/.config/waybar/config.jsonc` file:
+Add this to `~/.config/waybar/config.jsonc`:
 
 ```jsonc
   "modules-left": [
     ...
-    "group/omatunes-group"
+    "custom/omatunes"
   ],
 
-  "group/omatunes-group": {
-    "orientation": "horizontal",
-    "modules": [
-      "custom/omatunes-play",
-      "custom/omatunes-next",
-      "custom/omatunes-text",
-      "custom/omatunes-like"
-    ]
-  },
-
-  "custom/omatunes-play": {
-    "exec": "/home/davepople/.local/bin/omatunes_scripts/omatunes_text.py --button play",
-    "interval": 1,
-    "return-type": "json",
-    "format": "{}",
-    "on-click": "/home/davepople/.local/bin/omatunes_scripts/omatunes_text.py --click play"
-  },
-  "custom/omatunes-next": {
-    "exec": "/home/davepople/.local/bin/omatunes_scripts/omatunes_text.py --button next",
-    "interval": 1,
-    "return-type": "json",
-    "format": "{}",
-    "on-click": "/home/davepople/.local/bin/omatunes_scripts/omatunes_text.py --click next"
-  },
-  "custom/omatunes-like": {
-    "exec": "/home/davepople/.local/bin/omatunes_scripts/omatunes_text.py --button like",
-    "interval": 1,
-    "return-type": "json",
-    "format": "{}",
-    "on-click": "/home/davepople/.local/bin/omatunes_scripts/omatunes_text.py --click like"
-  },
-  "custom/omatunes-text": {
-    "exec": "/home/davepople/.local/bin/omatunes_scripts/omatunes_text.py",
+  "custom/omatunes": {
+    "exec": "/home/yourname/.local/bin/omatunes_scripts/omatunes_text.py",
     "interval": 1,
     "return-type": "json",
     "format": "{}",
     "markup": "pango",
-    "on-click": "hyprctl dispatch focuswindow class:^omatunes$ || hyprctl dispatch focuswindow title:^omatunes$",
-    "on-scroll-up": "/home/davepople/.local/bin/omatunes_scripts/omatunes_volume.sh up",
-    "on-scroll-down": "/home/davepople/.local/bin/omatunes_scripts/omatunes_volume.sh down",
-    "tooltip": true
+    "tooltip": true,
+    "on-click": "/home/yourname/.local/bin/omatunes_scripts/omatunes_text.py --click play",
+    "on-click-middle": "/home/yourname/.local/bin/omatunes_scripts/omatunes_text.py --click like",
+    "on-click-right": "/home/yourname/.local/bin/omatunes_scripts/omatunes_text.py --click next",
+    "on-scroll-up": "/home/yourname/.local/bin/omatunes_scripts/omatunes_volume.sh up",
+    "on-scroll-down": "/home/yourname/.local/bin/omatunes_scripts/omatunes_volume.sh down"
   }
 ```
 
-For the CSS styling details to combine these modules into a single pill layout that collapses cleanly when OmaTunes is closed, refer to the **Waybar Integration** section in the [USER_MANUAL.md](USER_MANUAL.md).
+> Replace `/home/yourname/` with your actual home path — Waybar requires fully expanded paths.
+
+For CSS styling, see the [Waybar Integration section](USER_MANUAL.md#waybar-integration) in the User Manual.
 
 ---
 
 ## Keybindings
 
-These work when the omatunes window is focused:
+These fire whenever the omaTUNES window has focus:
 
 | Key | Action |
 |---|---|
 | `Space` | Play / Pause |
-| `&rightarrow;` / `&leftarrow;` | Seek &plus;5s / &minus;5s |
+| `→` / `←` | Seek +5s / −5s |
 | `n` / `p` | Next / Previous track |
 | `s` | Toggle Shuffle |
 | `r` | Toggle Repeat |
-| `+` or `=` | Volume &plus;5% |
-| `-` | Volume &minus;5% |
-| `E` | Edit metadata for selected tracks |
+| `+` or `=` | Volume +5% |
+| `-` | Volume −5% |
+| `E` | Edit metadata for the selected track(s) |
 
-For the complete list of keyboard shortcuts (including focus navigation), see the **Full Keybinding Reference** in the [USER_MANUAL.md](USER_MANUAL.md).
-
----
-
-## Auto-Sync local changes to GitHub
-A script is provided at `scripts/git_sync.sh` which watches the local codebase and automatically pushes updates to your GitHub repository in the background.
-
-To activate, ensure your SSH key is added to GitHub, then run:
-```bash
-systemctl --user daemon-reload
-systemctl --user enable --now omatunes-sync.service
-```
+The full list — including focus navigation and dialog shortcuts — is in the [Keybinding Reference](USER_MANUAL.md#keybinding-reference) in the User Manual.
 
 ---
 

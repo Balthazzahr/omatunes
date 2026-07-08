@@ -29,6 +29,18 @@ impl Track {
         let s = secs % 60;
         format!("{m}:{s:02}")
     }
+
+    pub fn primary_genre(&self) -> &str {
+        self.genre.split("; ").next().unwrap_or(&self.genre)
+    }
+
+    pub fn genres(&self) -> Vec<&str> {
+        if self.genre.contains("; ") {
+            self.genre.split("; ").filter(|g| !g.is_empty()).collect()
+        } else {
+            vec![self.genre.as_str()]
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
