@@ -194,7 +194,7 @@ pub fn view<'a>(
                             .on_toggle(move |v| Message::ToggleTagFieldApplyGenre(i, v))
                             .size(16),
                         column![
-                            text(&slot_label).size(12).color(theme::subtext()),
+                            text(slot_label).size(12).color(theme::subtext()),
                             slot_input
                         ].width(Length::Fill)
                     ].align_y(Alignment::Center).spacing(8)
