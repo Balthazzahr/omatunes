@@ -2557,6 +2557,7 @@ impl AppState {
             Message::LibraryScanned(tracks) => {
                 self.all_tracks = Arc::new(tracks);
                 self.update_live_smart_playlists();
+                self.update_cached_stats();
                 let mut cache: HashMap<PathBuf, Vec<Track>> = HashMap::new();
                 for track in self.all_tracks.iter() {
                     if let Some(parent) = track.path.parent() {
