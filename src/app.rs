@@ -5483,9 +5483,8 @@ impl AppState {
     }
 
     fn subscription(&self) -> Subscription<Message> {
-        let base = Subscription::batch([
+        let mut base_subs = vec![
             iced::time::every(Duration::from_millis(100)).map(|_| Message::PollAudio),
-            iced::time::every(Duration::from_millis(33)).map(|_| Message::PollSpectrum),
             iced::time::every(Duration::from_secs(3)).map(|_| Message::CheckTheme),
             iced::time::every(Duration::from_secs(5)).map(|_| Message::FlushBuffers),
             iced::keyboard::on_key_press(|key, _mods| {
@@ -5508,9 +5507,13 @@ impl AppState {
                     _ => None,
                 }
             }),
-        ]);
+        ];
 
-        let mut subs = vec![base];
+        if matches!(self.playback_state, PlaybackState::Playing) {
+            base_subs.push(iced::time::every(Duration::from_millis(33)).map(|_| Message::PollSpectrum));
+        }
+
+        let mut subs = vec![Subscription::batch(base_subs)];
 
         if self.dragging_sidebar {
             subs.push(iced::event::listen_with(|event, _, _| {
