@@ -355,6 +355,10 @@ pub struct SettingsState {
     pub custom_validation_errors: std::collections::HashMap<String, String>,
     pub confirm_save_anyway: bool,
     pub selected_tab: SettingsTab,
+    pub color_picker_token: Option<String>,
+    pub color_picker_r: f32,
+    pub color_picker_g: f32,
+    pub color_picker_b: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
