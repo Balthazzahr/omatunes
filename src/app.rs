@@ -2174,21 +2174,26 @@ impl AppState {
                         let artist = if state.apply_artist { &state.artist } else { &track.artist };
                         let album = if state.apply_album { &state.album } else { &track.album };
                         let genre: String = if state.apply_genres.iter().any(|a| *a) {
-                            let original_parts: Vec<&str> = track.genres();
-                            let mut parts: Vec<String> = Vec::new();
+                            let mut original_parts: Vec<String> = track.genres().into_iter().map(|s| s.to_string()).collect();
                             for i in 0..state.genres.len() {
-                                let checked = i < state.apply_genres.len() && state.apply_genres[i];
-                                if checked {
-                                    parts.push(state.genres[i].clone());
-                                } else if i < original_parts.len() {
-                                    parts.push(original_parts[i].to_string());
+                                if i < state.apply_genres.len() && state.apply_genres[i] {
+                                    if i < state.genres_original.len() && !state.genres_original[i].is_empty() {
+                                        // Replace first occurrence of original value
+                                        if let Some(pos) = original_parts.iter().position(|p| *p == state.genres_original[i]) {
+                                            if state.genres[i].is_empty() {
+                                                original_parts.remove(pos);
+                                            } else {
+                                                original_parts[pos] = state.genres[i].clone();
+                                            }
+                                        }
+                                    } else if !state.genres[i].is_empty() {
+                                        // New genre: append
+                                        original_parts.push(state.genres[i].clone());
+                                    }
                                 }
                             }
-                            for i in state.genres.len()..original_parts.len() {
-                                parts.push(original_parts[i].to_string());
-                            }
-                            parts.retain(|p| !p.is_empty());
-                            parts.join("; ")
+                            original_parts.retain(|p| !p.is_empty());
+                            original_parts.join("; ")
                         } else {
                             track.genre.clone()
                         };
