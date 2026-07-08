@@ -2019,7 +2019,6 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         text("\u{f013}")
             .size(20)
             .font(crate::ui::icons::NERD_FONT_MONO)
-            .color(theme::subtext())
     )
     .on_press(Message::OpenSettings)
     .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
