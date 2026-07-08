@@ -10,7 +10,7 @@ pub fn view<'a>(
     state: &'a TagEditorState,
     unique_artists: &[String],
     unique_albums: &[String],
-    unique_genres: &[String],
+    _unique_genres: &[String],
 ) -> Element<'a, Message> {
     let title_input = container(
         text_input("Title", &state.title)
