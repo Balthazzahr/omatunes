@@ -2112,10 +2112,12 @@ impl AppState {
                 Task::none()
             }
 
-            Message::ToggleTagFieldApplyGenre(val) => {
+            Message::ToggleTagFieldApplyGenre(slot, val) => {
                 if let Some(ref mut state) = self.show_tag_editor {
-                    state.apply_genre = val;
-                    state.is_saved = false;
+                    if slot < state.apply_genres.len() {
+                        state.apply_genres[slot] = val;
+                        state.is_saved = false;
+                    }
                 }
                 Task::none()
             }
