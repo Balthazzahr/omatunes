@@ -265,17 +265,19 @@ fn test_talking_heads_tag() {
                     }
                     
                     // Try to write tags
-                    println!("Attempting tag write with tag.save_to...");
-                    if tagged_file.primary_tag_mut().is_none() {
-                        println!("Inserting new tag...");
-                        tagged_file.insert_tag(lofty::tag::Tag::new(tagged_file.primary_tag_type()));
-                    }
-                    let tag = tagged_file.primary_tag_mut().unwrap();
-                    tag.set_title("Born Under Punches (The Heat Goes On)".to_string());
-                    let mut file = std::fs::OpenOptions::new().read(true).write(true).open(path).unwrap();
-                    match tag.save_to(&mut file, Default::default()) {
-                        Ok(_) => println!("Tag::save_to succeeded!"),
-                        Err(e) => println!("Tag::save_to failed: {:?}", e),
+                    println!("Attempting fresh tag write...");
+                    tagged_file.remove(lofty::tag::TagType::Id3v1);
+                    tagged_file.remove(lofty::tag::TagType::Id3v2);
+                    
+                    let mut new_tag = lofty::tag::Tag::new(lofty::tag::TagType::Id3v2);
+                    new_tag.set_title("Born Under Punches (The Heat Goes On)".to_string());
+                    new_tag.set_artist("Talking Heads".to_string());
+                    new_tag.set_album("Remain in Light".to_string());
+                    tagged_file.insert_tag(new_tag);
+                    
+                    match tagged_file.save_to_path(path, Default::default()) {
+                        Ok(_) => println!("Fresh tag save succeeded!"),
+                        Err(e) => println!("Fresh tag save failed: {:?}", e),
                     }
                 }
                 Err(e) => {
