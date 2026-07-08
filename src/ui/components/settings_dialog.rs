@@ -630,7 +630,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
         .spacing(0)
         .height(Length::Fill),
     )
-    .height(Length::Fixed(420.0));
+    .height(Length::Fixed(500.0));
 
     let dialog_content = column![
         text("App Settings")
@@ -646,7 +646,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
 
     container(
         container(dialog_content)
-            .width(720)
+            .width(800)
             .max_height(600)
             .padding(24)
             .style(|_| iced::widget::container::Style {

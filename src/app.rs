@@ -4828,13 +4828,6 @@ impl AppState {
             view_stack = view_stack.push(crate::ui::components::playlist_dialog::view(playlist_dialog_state));
         } else if let Some(ref settings_state) = self.show_settings {
             view_stack = view_stack.push(crate::ui::components::settings_dialog::view(settings_state));
-            if self.show_folder_picker {
-                view_stack = view_stack.push(
-                    iced::widget::file_dialog::FileDialog::new()
-                        .pick_folder()
-                        .on_pick(|opt| Message::MusicFolderPicked(opt))
-                );
-            }
         } else if self.show_shortcuts {
             view_stack = view_stack.push(self.shortcuts_modal_view());
         }
