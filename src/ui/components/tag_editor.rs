@@ -169,27 +169,39 @@ pub fn view<'a>(
                     ].width(Length::Fill)
                 ].align_y(Alignment::Center).spacing(8)
             )
-            .push(Space::with_height(2))
+            .push(Space::with_height(4))
             .push(
-                row![
-                    checkbox("", state.apply_genre)
-                        .on_toggle(Message::ToggleTagFieldApplyGenre)
-                        .size(16),
-                    column![
-                        text("Genre").size(12).color(theme::subtext()),
-                        genre_input,
-                        if !genre_suggestions.is_empty() {
-                            iced::Element::from(column![
-                                Space::with_height(4),
-                                render_suggestions(&genre_suggestions, Message::UpdateTagFieldGenre)
-                            ])
-                        } else {
-                            iced::Element::from(Space::with_height(0))
-                        }
-                    ].width(Length::Fill)
-                ].align_y(Alignment::Center).spacing(8)
-            )
-            .push(Space::with_height(2))
+                text("Genres").size(12).color(theme::subtext())
+            );
+
+            for (i, (genre_val, apply_val)) in state.genres.iter().zip(state.apply_genres.iter()).enumerate() {
+                let slot_label = if state.tracks.len() > 1 && *apply_val && !genre_val.is_empty() {
+                    format!("Genre {} (common)", i + 1)
+                } else if state.tracks.len() > 1 {
+                    format!("Genre {}", i + 1)
+                } else {
+                    format!("Genre {}", i + 1)
+                };
+                let slot_input = container(
+                    text_input(&format!("Genre {}...", i + 1), genre_val)
+                        .on_input(move |v| Message::UpdateTagFieldGenre(i, v))
+                        .padding(8)
+                )
+                .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 2.0, left: 0.0 });
+                body = body.push(
+                    row![
+                        checkbox("", *apply_val)
+                            .on_toggle(move |v| Message::ToggleTagFieldApplyGenre(i, v))
+                            .size(16),
+                        column![
+                            text(&slot_label).size(12).color(theme::subtext()),
+                            slot_input
+                        ].width(Length::Fill)
+                    ].align_y(Alignment::Center).spacing(8)
+                );
+            }
+
+            body = body.push(Space::with_height(2))
             .push(
                 row![
                     row![
