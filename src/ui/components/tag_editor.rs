@@ -36,14 +36,6 @@ pub fn view<'a>(
     )
     .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 2.0, left: 0.0 });
 
-    let genre_input = container(
-        text_input("Genre", &state.genre)
-            .id(iced::widget::text_input::Id::new("id3_genre"))
-            .on_input(Message::UpdateTagFieldGenre)
-            .padding(8)
-    )
-    .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 2.0, left: 0.0 });
-
     let track_num_input = container(
         text_input("Track Number", &state.track_number)
             .id(iced::widget::text_input::Id::new("id3_track"))
@@ -86,7 +78,6 @@ pub fn view<'a>(
 
     let artist_suggestions = get_suggestions(&state.artist, unique_artists);
     let album_suggestions = get_suggestions(&state.album, unique_albums);
-    let genre_suggestions = get_suggestions(&state.genre, unique_genres);
 
     let tab_btn = |tab: crate::app::TagEditorTab, label: &'static str| {
         let is_active = state.active_tab == tab;

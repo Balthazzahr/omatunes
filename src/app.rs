@@ -2304,7 +2304,7 @@ impl AppState {
                     state.apply_artist = false;
                     state.apply_album = false;
                     state.apply_year = false;
-                    state.apply_genre = false;
+                    for a in &mut state.apply_genres { *a = false; }
                     state.apply_track_num = false;
                     state.apply_disc_num = false;
                     state.apply_cover = false;
