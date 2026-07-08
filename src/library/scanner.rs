@@ -273,7 +273,7 @@ fn test_talking_heads_tag() {
                     let tag = tagged_file.primary_tag_mut().unwrap();
                     tag.set_title("Born Under Punches (The Heat Goes On)".to_string());
                     let mut file = std::fs::OpenOptions::new().read(true).write(true).open(path).unwrap();
-                    match tag.save_to(&mut file) {
+                    match tag.save_to(&mut file, Default::default()) {
                         Ok(_) => println!("Tag::save_to succeeded!"),
                         Err(e) => println!("Tag::save_to failed: {:?}", e),
                     }
