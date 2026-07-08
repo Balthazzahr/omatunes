@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{OnceLock, Mutex};
 
@@ -213,12 +212,6 @@ music_dir = "~/Music"
 # Initial volume (0.0 = mute, 1.0 = 100%)
 volume = 0.8
 
-# Start the session with shuffle enabled
-shuffle = false
-
-# Start the session with repeat enabled
-repeat = false
-
 # Interface language. Options: "auto", "en", "pt_BR", "es"
 # "auto" detects from $LANG
 language = "auto"
@@ -231,4 +224,10 @@ volume_step = 0.05
 
 # UI font size scale multiplier (default: 1.0)
 # font_scale = 1.0
+
+# Theme source: "System", "Preset", or "Custom"
+theme_source = "System"
+
+# Theme preset (used when theme_source = "Preset")
+theme_preset = "Nord"
 "#;
