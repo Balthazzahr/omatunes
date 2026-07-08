@@ -227,16 +227,18 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                         ]
                         .align_y(Alignment::Center)
                         .width(Length::FillPortion(3)),
-                        toggle_btn(
+                        container(toggle_btn(
                             entry.shuffle,
                             Message::SettingsPlaybackDefaultChanged(key.to_string(), "shuffle".to_string(), !entry.shuffle),
-                        )
-                        .width(Length::FillPortion(1)),
-                        toggle_btn(
+                        ))
+                        .width(Length::FillPortion(1))
+                        .center_x(Length::Fill),
+                        container(toggle_btn(
                             entry.repeat,
                             Message::SettingsPlaybackDefaultChanged(key.to_string(), "repeat".to_string(), !entry.repeat),
-                        )
-                        .width(Length::FillPortion(1)),
+                        ))
+                        .width(Length::FillPortion(1))
+                        .center_x(Length::Fill),
                     ]
                     .align_y(Alignment::Center)
                     .spacing(8),
@@ -394,12 +396,14 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                         ]
                         .align_y(Alignment::Center),
                         if has_error {
-                            row![
+                            let err_row: Element<'a, Message> = row![
                                 Space::with_width(148),
                                 text("Invalid hex (#RRGGBB)").size(10).color(theme::red()),
-                            ].into()
+                            ].into();
+                            err_row
                         } else {
-                            Space::with_height(0).into()
+                            let empty: Element<'a, Message> = Space::with_height(0).into();
+                            empty
                         },
                     ]
                     .spacing(1)
