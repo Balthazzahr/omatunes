@@ -245,3 +245,45 @@ pub fn write_tags(
     Ok(())
 }
 
+#[test]
+fn test_talking_heads_tag() {
+    let path = std::path::Path::new("/home/user/Music/Talking Heads/Remain In Light/01 - Born Under Punches (The Heat Goes On).mp3");
+    match lofty::probe::Probe::open(path) {
+        Ok(probe) => {
+            println!("Probe open succeeded");
+            match probe.read() {
+                Ok(mut tagged_file) => {
+                    println!("Probe read succeeded. Primary tag type: {:?}", tagged_file.primary_tag_type());
+                    if let Some(tag) = tagged_file.primary_tag() {
+                        println!("Title: {:?}", tag.title());
+                        println!("Artist: {:?}", tag.artist());
+                        println!("Album: {:?}", tag.album());
+                        println!("Genre: {:?}", tag.genre());
+                    } else {
+                        println!("No primary tag found!");
+                    }
+                    
+                    // Try to write tags
+                    println!("Attempting tag write...");
+                    if tagged_file.primary_tag_mut().is_none() {
+                        println!("Inserting new tag...");
+                        tagged_file.insert_tag(lofty::tag::Tag::new(tagged_file.primary_tag_type()));
+                    }
+                    let tag = tagged_file.primary_tag_mut().unwrap();
+                    tag.set_title("Born Under Punches (The Heat Goes On)".to_string());
+                    match tagged_file.save_to_path(path, Default::default()) {
+                        Ok(_) => println!("Tag write succeeded!"),
+                        Err(e) => println!("Tag write failed: {:?}", e),
+                    }
+                }
+                Err(e) => {
+                    println!("Probe read failed: {:?}", e);
+                }
+            }
+        }
+        Err(e) => {
+            println!("Probe open failed: {:?}", e);
+        }
+    }
+}
+
