@@ -364,12 +364,16 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                 let render_field = |label: &'static str, token: &'static str, hex_val: &'a str| -> Element<'a, Message> {
                     let parsed_color = crate::ui::theme::hex_to_color(hex_val).unwrap_or(iced::Color::TRANSPARENT);
                     let has_error = state.custom_validation_errors.contains_key(token);
+                    let is_expanded = state.color_picker_token.as_deref() == Some(token);
+                    let picker_r = state.color_picker_r;
+                    let picker_g = state.color_picker_g;
+                    let picker_b = state.color_picker_b;
 
                     let swatch = container(Space::new(Length::Fixed(18.0), Length::Fixed(18.0)))
                         .style(move |_| iced::widget::container::Style {
                             background: Some(iced::Background::Color(parsed_color)),
                             border: iced::Border {
-                                color: if has_error { theme::red() } else { theme::surface0() },
+                                color: if has_error { theme::red() } else if is_expanded { theme::accent() } else { theme::surface0() },
                                 width: 1.0,
                                 radius: 4.0.into(),
                             },
@@ -377,6 +381,16 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                         })
                         .width(18.0)
                         .height(18.0);
+
+                    let swatch_btn = button(swatch)
+                        .on_press(Message::SettingsColorPickerToggle(token.to_string()))
+                        .padding(0)
+                        .style(|_, _| iced::widget::button::Style {
+                            background: None,
+                            border: iced::Border { width: 0.0, ..Default::default() },
+                            shadow: iced::Shadow::default(),
+                            text_color: iced::Color::TRANSPARENT,
+                        });
 
                     let input = text_input("#RRGGBB", hex_val)
                         .on_input(move |v| Message::SettingsCustomColorChanged(token.to_string(), v))
@@ -389,28 +403,52 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                         .width(140)
                         .color(if has_error { theme::red() } else { theme::text() });
 
-                    let field_col: Element<'a, Message> = column![
+                    let picker: Element<'a, Message> = if is_expanded {
+                        column![
+                            Space::with_height(4),
+                            row![
+                                text("R").size(11).width(14).color(theme::subtext()),
+                                slider(0.0..=255.0, picker_r, move |v| Message::SettingsColorPickerRChanged(v))
+                                    .width(Length::Fill),
+                                text(format!("{}", picker_r.round() as u8)).size(11).width(24).color(theme::text()),
+                            ].spacing(6).align_y(Alignment::Center),
+                            row![
+                                text("G").size(11).width(14).color(theme::subtext()),
+                                slider(0.0..=255.0, picker_g, move |v| Message::SettingsColorPickerGChanged(v))
+                                    .width(Length::Fill),
+                                text(format!("{}", picker_g.round() as u8)).size(11).width(24).color(theme::text()),
+                            ].spacing(6).align_y(Alignment::Center),
+                            row![
+                                text("B").size(11).width(14).color(theme::subtext()),
+                                slider(0.0..=255.0, picker_b, move |v| Message::SettingsColorPickerBChanged(v))
+                                    .width(Length::Fill),
+                                text(format!("{}", picker_b.round() as u8)).size(11).width(24).color(theme::text()),
+                            ].spacing(6).align_y(Alignment::Center),
+                        ].spacing(2).padding(iced::Padding::from([2, 0, 0, 0])).into()
+                    } else {
+                        Space::with_height(0).into()
+                    };
+
+                    column![
                         row![
                             label_col,
                             input,
                             Space::with_width(8),
-                            swatch,
+                            swatch_btn,
                         ]
                         .align_y(Alignment::Center),
                         if has_error {
-                            let err_row: Element<'a, Message> = row![
+                            row![
                                 Space::with_width(148),
                                 text("Invalid hex (#RRGGBB)").size(10).color(theme::red()),
-                            ].into();
-                            err_row
+                            ].into()
                         } else {
-                            let empty: Element<'a, Message> = Space::with_height(0).into();
-                            empty
+                            Space::with_height(0).into()
                         },
+                        picker,
                     ]
                     .spacing(1)
-                    .into();
-                    field_col
+                    .into()
                 };
 
                 let render_derived_swatch = |label: &'static str, hex_val: &'a str| -> Element<'a, Message> {
