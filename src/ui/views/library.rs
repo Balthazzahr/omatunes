@@ -18,7 +18,16 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         unique_albums.sort();
         unique_albums.dedup();
 
-        let mut unique_genres: Vec<String> = state.all_tracks.iter().map(|t| t.genre.clone()).collect();
+        let mut unique_genres: Vec<String> = state.all_tracks.iter()
+            .flat_map(|t| {
+                if t.genre.contains("; ") {
+                    t.genre.split("; ").map(|g| g.trim().to_string()).collect::<Vec<_>>()
+                } else {
+                    vec![t.genre.clone()]
+                }
+            })
+            .filter(|s| !s.trim().is_empty())
+            .collect();
         unique_genres.sort();
         unique_genres.dedup();
 

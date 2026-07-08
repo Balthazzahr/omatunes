@@ -4518,7 +4518,16 @@ impl AppState {
             unique_albums.sort();
             unique_albums.dedup();
 
-            let mut unique_genres: Vec<String> = self.all_tracks.iter().map(|t| t.genre.clone()).filter(|s| !s.trim().is_empty()).collect();
+            let mut unique_genres: Vec<String> = self.all_tracks.iter()
+                .flat_map(|t| {
+                    if t.genre.contains("; ") {
+                        t.genre.split("; ").map(|g| g.trim().to_string()).collect::<Vec<_>>()
+                    } else {
+                        vec![t.genre.clone()]
+                    }
+                })
+                .filter(|s| !s.trim().is_empty())
+                .collect();
             unique_genres.sort();
             unique_genres.dedup();
 
