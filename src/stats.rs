@@ -121,9 +121,17 @@ pub fn add_playback_time(artist: &str, album: &str, genre: &str, secs: f64) {
         let artist_entry = day.artist_minutes.entry(artist.to_string()).or_default();
         *artist_entry += minutes;
         
-        let clean_genre = if genre.trim().is_empty() { "Unknown" } else { genre };
-        let genre_entry = day.genre_minutes.entry(clean_genre.to_string()).or_default();
-        *genre_entry += minutes;
+        if genre.contains("; ") {
+            for g in genre.split("; ") {
+                let clean = if g.trim().is_empty() { "Unknown" } else { g.trim() };
+                let genre_entry = day.genre_minutes.entry(clean.to_string()).or_default();
+                *genre_entry += minutes;
+            }
+        } else {
+            let clean_genre = if genre.trim().is_empty() { "Unknown" } else { genre };
+            let genre_entry = day.genre_minutes.entry(clean_genre.to_string()).or_default();
+            *genre_entry += minutes;
+        }
 
         let clean_album = if album.trim().is_empty() { "Unknown" } else { album };
         let album_entry = day.album_minutes.entry(clean_album.to_string()).or_default();
