@@ -189,7 +189,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                 )
                 .on_press(on_press)
                 .padding([4, 8])
-                .style(|_t: &iced::Theme, status: iced::widget::button::Status| {
+                .style(move |_t: &iced::Theme, status: iced::widget::button::Status| {
                     let hovered = status == iced::widget::button::Status::Hovered
                         || status == iced::widget::button::Status::Pressed;
                     iced::widget::button::Style {
