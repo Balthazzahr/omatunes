@@ -1547,13 +1547,12 @@ fn render_track_row(
                 text(track.album.clone()).color(theme::subtext()).size(13).width(width).into()
             }
             crate::db::TableColumn::Genre => {
-                let genres_str = track.genres().join(", ");
-                let display = if genres_str.len() > 25 {
-                    format!("{}, …", track.primary_genre())
-                } else {
-                    genres_str
-                };
-                text(display).color(theme::subtext()).size(13).width(width).into()
+                text(track.genres().join(", "))
+                    .color(theme::subtext())
+                    .size(13)
+                    .width(width)
+                    .wrapping(text::Wrapping::None)
+                    .into()
             }
             crate::db::TableColumn::Year => {
                 let yr_str = track.year.map(|y| y.to_string()).unwrap_or_else(|| "·".to_string());
