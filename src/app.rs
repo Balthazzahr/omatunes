@@ -3344,8 +3344,24 @@ impl AppState {
             }
 
             Message::OpenShortcuts => {
-                self.show_shortcuts = true;
-                self.show_settings = None;
+                let cfg = crate::config::get();
+                self.show_settings = Some(SettingsState {
+                    music_dir: cfg.music_dir.clone(),
+                    language: cfg.language.clone(),
+                    seek_step: cfg.seek_step.to_string(),
+                    volume_step: cfg.volume_step,
+                    font_scale: self.font_scale,
+                    initial_volume: cfg.volume,
+                    playback_defaults: cfg.playback_defaults.clone(),
+                    auto_scan: cfg.auto_scan.clone(),
+                    theme_source: cfg.theme_source,
+                    theme_preset: cfg.theme_preset,
+                    custom_theme: cfg.custom_theme.unwrap_or_default(),
+                    custom_validation_errors: std::collections::HashMap::new(),
+                    confirm_save_anyway: false,
+                    selected_tab: SettingsTab::Shortcuts,
+                });
+                self.show_shortcuts = false;
                 Task::none()
             }
 
