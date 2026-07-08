@@ -1000,7 +1000,6 @@ impl AppState {
             pending_offset: 0.0,
         });
     }
-    }
 
     pub fn update_filtered_tracks(&mut self) {
         self.track_list_start = 0;
@@ -1163,10 +1162,10 @@ impl AppState {
                 }
                 ViewMode::Folders => {
                     if let Some(folder_path) = &self.selected_folder {
-                        self.tracks = self.all_tracks.iter()
+                        self.tracks = Arc::new(self.all_tracks.iter()
                             .filter(|t| t.path.starts_with(folder_path))
                             .cloned()
-                            .collect();
+                            .collect::<Vec<_>>());
                     } else {
                         self.tracks = self.all_tracks.clone();
                     }
@@ -1284,7 +1283,7 @@ impl AppState {
                 self.selected_artist = None;
                 self.selected_album = None;
                 self.selected_genre = None;
-                self.selected_tracks.clear();
+                Arc::make_mut(&mut self.selected_tracks).clear();
                 self.search_query.clear();
                 self.active_focus = Some(ActiveFocus::SidebarList);
                 self.update_filtered_tracks();

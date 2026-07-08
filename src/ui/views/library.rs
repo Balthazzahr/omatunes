@@ -98,6 +98,7 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             ViewMode::Artists | ViewMode::NowPlaying => "Search artists...",
             ViewMode::Albums => "Search albums...",
             ViewMode::Genres => "Search genres...",
+            ViewMode::Folders => "Search folders...",
         };
 
         container(
@@ -131,21 +132,25 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             ViewMode::Artists | ViewMode::NowPlaying => "All Artists",
             ViewMode::Albums => "All Albums",
             ViewMode::Genres => "All Genres",
+            ViewMode::Folders => "All Folders",
         };
         let label_icon = match state.view_mode {
             ViewMode::Artists | ViewMode::NowPlaying => crate::ui::icons::ICON_PERSON,
             ViewMode::Albums => crate::ui::icons::ICON_CD,
             ViewMode::Genres => crate::ui::icons::ICON_TAG,
+            ViewMode::Folders => crate::ui::icons::ICON_FOLDER,
         };
         let is_selected = match state.view_mode {
             ViewMode::Artists | ViewMode::NowPlaying => state.selected_artist.is_none() && state.selected_playlist.is_none(),
             ViewMode::Albums => state.selected_album.is_none() && state.selected_playlist.is_none(),
             ViewMode::Genres => state.selected_genre.is_none() && state.selected_playlist.is_none(),
+            ViewMode::Folders => state.selected_folder.is_none() && state.selected_playlist.is_none(),
         };
         let label_action = match state.view_mode {
             ViewMode::Artists | ViewMode::NowPlaying => Message::SelectAllArtists,
             ViewMode::Albums => Message::SelectAllAlbums,
             ViewMode::Genres => Message::SelectAllGenres,
+            ViewMode::Folders => Message::SelectAllFolders,
         };
 
         let search_icon_btn = button(
@@ -998,6 +1003,9 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                     .width(Length::Fill)
             };
             row_container.into()
+        }
+        ViewMode::NowPlaying => {
+            Space::with_width(0.0).into()
         }
     };
 
