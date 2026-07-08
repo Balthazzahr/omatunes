@@ -5624,8 +5624,7 @@ impl AppState {
         ));
 
         let target = self.group_by_state.target();
-        let is_animating = (self.group_by_state.hover_progress - target).abs() > 0.001
-            || self.group_by_state.collapse_deadline.is_some();
+        let is_animating = (self.group_by_state.hover_progress - target).abs() > 0.001;
         if is_animating {
             subs.push(iced::time::every(Duration::from_millis(16)).map(|_| Message::GroupByAnimationTick(std::time::Instant::now())));
         }
