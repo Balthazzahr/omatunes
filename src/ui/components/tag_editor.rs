@@ -205,7 +205,7 @@ pub fn view<'a>(
                             .on_toggle(move |v| Message::ToggleTagFieldApplyGenre(i, v))
                             .size(16),
                         column![
-                            text(format!("{}:{}", state.genres_original.get(i).map(|s| s.as_str()).unwrap_or(""), was_str))
+                            text(was_str)
                                 .size(12).color(theme::subtext()),
                             slot_input
                         ].width(Length::Fill)
