@@ -438,10 +438,11 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                         ]
                         .align_y(Alignment::Center),
                         if has_error {
-                            row![
+                            let err_row: Element<'a, Message> = row![
                                 Space::with_width(148),
                                 text("Invalid hex (#RRGGBB)").size(10).color(theme::red()),
-                            ].into()
+                            ].into();
+                            err_row
                         } else {
                             Space::with_height(0).into()
                         },
