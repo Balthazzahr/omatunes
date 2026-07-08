@@ -49,12 +49,15 @@ pub fn view(state: &PlaylistDialogState) -> Element<'static, Message> {
                     .push(Space::with_height(12));
             } else {
                 let current_selection = state.selected_playlist.clone().unwrap_or_else(|| custom_playlists[0].clone());
-                let select_dropdown = pick_list(
-                    custom_playlists.clone(),
-                    Some(current_selection),
-                    Message::PlaylistDialogSelect,
+                let select_dropdown = container(
+                    pick_list(
+                        custom_playlists.clone(),
+                        Some(current_selection),
+                        Message::PlaylistDialogSelect,
+                    )
+                    .padding(8),
                 )
-                .padding(8);
+                .width(Length::Fill);
 
                 content = content.push(text("Select Playlist").size(12).color(theme::subtext()))
                     .push(select_dropdown)
