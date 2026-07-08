@@ -595,7 +595,6 @@ pub struct AppState {
     pub previous_view_state: Option<SavedViewState>,
     pub playing_context: Option<PlayingContext>,
     pub animation_tick: u32,
-    pub show_folder_picker: bool,
     pub show_queue_popover: bool,
     pub queue_scroll_id: scrollable::Id,
     pub last_accumulated_position: Duration,
@@ -828,7 +827,6 @@ impl AppState {
             previous_view_state: None,
             playing_context: None,
             animation_tick: 0,
-            show_folder_picker: false,
             show_queue_popover: false,
             queue_scroll_id: scrollable::Id::unique(),
             last_accumulated_position: Duration::ZERO,
@@ -4404,12 +4402,19 @@ impl AppState {
             }
 
             Message::PickMusicFolder => {
-                self.show_folder_picker = true;
-                Task::none()
+                return Task::perform(
+                    async {
+                        rfd::AsyncFileDialog::new()
+                            .set_title("Choose Music Library Folder")
+                            .pick_folder()
+                            .await
+                            .map(|h| h.path().to_path_buf())
+                    },
+                    Message::MusicFolderPicked,
+                );
             }
 
             Message::MusicFolderPicked(opt) => {
-                self.show_folder_picker = false;
                 if let Some(path) = opt {
                     if let Some(ref mut state) = self.show_settings {
                         state.music_dir = path.to_string_lossy().to_string();
