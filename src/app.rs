@@ -2967,6 +2967,13 @@ impl AppState {
                                 crate::db::create_playlist(name);
                             }
                         }
+                        PlaylistDialogMode::CreateWithTrack(track) => {
+                            let name = dialog.name_input.trim().to_string();
+                            if !name.is_empty() {
+                                crate::db::create_playlist(name.clone());
+                                crate::db::add_to_playlist(name, track.path);
+                            }
+                        }
                         PlaylistDialogMode::AddTrack(track) => {
                             if let Some(playlist_name) = dialog.selected_playlist {
                                 if dialog.add_album {
