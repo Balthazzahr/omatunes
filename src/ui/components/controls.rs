@@ -1,5 +1,5 @@
-use iced::widget::{button, row, text};
-use iced::{Alignment, Element};
+use iced::widget::{button, container, row, text, tooltip};
+use iced::{Alignment, Border, Element, Length};
 
 use crate::app::Message;
 use crate::audio::PlaybackState;
@@ -17,6 +17,30 @@ pub fn playback_controls<'a>(
         _ => icons::ICON_PLAY,
     };
 
+    let tooltip_style =
+        |_theme: &iced::Theme| -> iced::widget::container::Style {
+            iced::widget::container::Style {
+                background: Some(iced::Background::Color(theme::surface0())),
+                border: Border {
+                    color: theme::overlay0(),
+                    width: 1.0,
+                    radius: 4.0.into(),
+                },
+                ..Default::default()
+            }
+        };
+
+    let tip = |label: &'static str| {
+        container(
+            text(label)
+                .size(12)
+                .font(icons::UI_FONT)
+                .color(theme::text()),
+        )
+        .padding([4, 8])
+        .style(tooltip_style)
+    };
+
     let icon_btn = |icon: &'static str, msg: Message| {
         button(
             text(icon)
@@ -30,64 +54,104 @@ pub fn playback_controls<'a>(
     };
 
     let shuffle_color = if shuffle { theme::accent() } else { theme::overlay0() };
-    let repeat_color  = if repeat { theme::accent() } else { theme::overlay0() };
+    let repeat_color = if repeat { theme::accent() } else { theme::overlay0() };
 
     let mut row_children = vec![
-        button(
-            text(icons::ICON_SHUFFLE)
-                .font(icons::NERD_FONT_MONO)
-                .color(shuffle_color)
-                .size(32),
+        // Previous
+        tooltip(
+            icon_btn(icons::ICON_PREV, Message::PreviousTrack),
+            tip("Previous"),
+            iced::widget::tooltip::Position::Bottom,
         )
-        .on_press(Message::ToggleShuffle)
-        .style(iced::widget::button::text)
-        .padding([8, 16])
         .into(),
-
-        icon_btn(icons::ICON_PREV, Message::PreviousTrack).into(),
-        icon_btn(play_icon, Message::PlayPause).into(),
-        icon_btn(icons::ICON_NEXT, Message::NextTrack).into(),
-
-        button(
-            text(icons::ICON_REPEAT)
-                .font(icons::NERD_FONT_MONO)
-                .color(repeat_color)
-                .size(32),
+        // Play / Pause
+        tooltip(
+            icon_btn(play_icon, Message::PlayPause),
+            tip(if *state == PlaybackState::Playing {
+                "Pause"
+            } else {
+                "Play"
+            }),
+            iced::widget::tooltip::Position::Bottom,
         )
-        .on_press(Message::ToggleRepeat)
-        .style(iced::widget::button::text)
-        .padding([8, 16])
+        .into(),
+        // Next
+        tooltip(
+            icon_btn(icons::ICON_NEXT, Message::NextTrack),
+            tip("Next"),
+            iced::widget::tooltip::Position::Bottom,
+        )
+        .into(),
+        // Shuffle
+        tooltip(
+            button(
+                text(icons::ICON_SHUFFLE)
+                    .font(icons::NERD_FONT_MONO)
+                    .color(shuffle_color)
+                    .size(32),
+            )
+            .on_press(Message::ToggleShuffle)
+            .style(iced::widget::button::text)
+            .padding([8, 16]),
+            tip("Shuffle"),
+            iced::widget::tooltip::Position::Bottom,
+        )
+        .into(),
+        // Repeat
+        tooltip(
+            button(
+                text(icons::ICON_REPEAT)
+                    .font(icons::NERD_FONT_MONO)
+                    .color(repeat_color)
+                    .size(32),
+            )
+            .on_press(Message::ToggleRepeat)
+            .style(iced::widget::button::text)
+            .padding([8, 16]),
+            tip("Repeat"),
+            iced::widget::tooltip::Position::Bottom,
+        )
         .into(),
     ];
 
     if let (Some(is_liked), Some(track)) = (liked, current_track) {
-        // Add playlist-plus button in Liked button's vacated position
+        // Add to Playlist
         row_children.push(
-            button(
-                text(icons::ICON_PLAYLIST_PLUS)
-                    .font(icons::NERD_FONT_MONO)
-                    .color(theme::overlay0())
-                    .size(32),
+            tooltip(
+                button(
+                    text(icons::ICON_PLAYLIST_PLUS)
+                        .font(icons::NERD_FONT_MONO)
+                        .color(theme::overlay0())
+                        .size(32),
+                )
+                .on_press(Message::OpenPlaylistDialog(
+                    crate::app::PlaylistDialogMode::AddTrack(track.clone()),
+                ))
+                .style(iced::widget::button::text)
+                .padding([8, 16]),
+                tip("Add to Playlist"),
+                iced::widget::tooltip::Position::Bottom,
             )
-            .on_press(Message::ToggleContextMenu(Some(crate::app::ContextMenuTarget::Track(track.clone()))))
-            .style(iced::widget::button::text)
-            .padding([8, 16])
-            .into()
+            .into(),
         );
 
-        // Like button shifted to the right
+        // Like / Unlike
         let like_color = if is_liked { theme::red() } else { theme::overlay0() };
         row_children.push(
-            button(
-                text(icons::ICON_HEART)
-                    .font(icons::NERD_FONT_MONO)
-                    .color(like_color)
-                    .size(32),
+            tooltip(
+                button(
+                    text(icons::ICON_HEART)
+                        .font(icons::NERD_FONT_MONO)
+                        .color(like_color)
+                        .size(32),
+                )
+                .on_press(Message::ToggleLikeTrack(track.clone()))
+                .style(iced::widget::button::text)
+                .padding([8, 16]),
+                tip(if is_liked { "Unlike" } else { "Like" }),
+                iced::widget::tooltip::Position::Bottom,
             )
-            .on_press(Message::ToggleLikeTrack(track.clone()))
-            .style(iced::widget::button::text)
-            .padding([8, 16])
-            .into()
+            .into(),
         );
     }
 
