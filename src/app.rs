@@ -3265,6 +3265,20 @@ impl AppState {
                 )
             }
 
+            Message::CoverLoaded(track_id, cover_data) => {
+                if let Some(ref mut track) = self.selected_track {
+                    if track.id == track_id {
+                        track.cover_data = cover_data.clone();
+                    }
+                }
+                if let Some(ref mut track) = self.current_track {
+                    if track.id == track_id {
+                        track.cover_data = cover_data;
+                    }
+                }
+                Task::none()
+            }
+
             Message::SidebarSearchChanged(query) => {
                 self.sidebar_search = query;
                 Task::none()
