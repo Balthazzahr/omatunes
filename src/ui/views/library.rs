@@ -378,9 +378,17 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                 state.genres().into_iter().map(|genre| {
                     let is_selected = state.selected_genre.as_ref() == Some(&genre) && state.selected_playlist.is_none();
 
-                    let label = text(genre.clone())
-                        .color(if is_selected { theme::accent() } else { theme::text() })
-                        .size(13);
+                    let label_color = if is_selected { theme::accent() } else { theme::text() };
+                    let label: Element<Message> = row![
+                        text(crate::ui::icons::ICON_TAG)
+                            .font(crate::ui::icons::NERD_FONT_MONO)
+                            .size(13)
+                            .color(label_color),
+                        Space::with_width(6),
+                        text(genre.clone())
+                            .color(label_color)
+                            .size(13),
+                    ].align_y(Alignment::Center).into();
 
                     let btn = button(label)
                         .on_press(Message::SelectGenre(genre.clone()))
