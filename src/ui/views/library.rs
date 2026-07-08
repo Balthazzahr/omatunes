@@ -846,29 +846,8 @@ impl std::hash::Hash for TrackListDependency {
         self.responsive_columns.hash(state);
         self.dragging_track_index.hash(state);
         self.is_draggable.hash(state);
-        for t in self.selected_tracks.iter() {
-            t.id.hash(state);
-            t.title.hash(state);
-            t.artist.hash(state);
-            t.album.hash(state);
-            t.genre.hash(state);
-            t.year.hash(state);
-            t.track_number.hash(state);
-            t.disc_number.hash(state);
-        }
-        for t in self.tracks.iter() {
-            t.id.hash(state);
-            t.liked.hash(state);
-            t.play_count.hash(state);
-            t.title.hash(state);
-            t.artist.hash(state);
-            t.album.hash(state);
-            t.genre.hash(state);
-            t.year.hash(state);
-            t.track_number.hash(state);
-            t.disc_number.hash(state);
-            t.lyrics.hash(state);
-        }
+        Arc::as_ptr(&self.tracks).hash(state);
+        Arc::as_ptr(&self.selected_tracks).hash(state);
     }
 }
 
