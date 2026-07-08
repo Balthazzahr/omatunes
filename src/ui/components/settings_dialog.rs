@@ -111,14 +111,6 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                 .padding([8, 14])
                 .style(theme::secondary_button);
 
-            let mode_pick = pick_list(
-                auto_scan_modes,
-                Some(state.auto_scan.mode.clone()),
-                Message::SettingsAutoScanModeChanged,
-            )
-            .padding(8)
-            .width(Length::Fill);
-
             let interval_input = text_input("e.g. 15", &state.auto_scan.interval_minutes.to_string())
                 .on_input(Message::SettingsAutoScanIntervalChanged)
                 .padding(8);
