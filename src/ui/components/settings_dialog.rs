@@ -646,7 +646,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
 
     container(
         container(dialog_content)
-            .width(650)
+            .width(720)
             .max_height(600)
             .padding(24)
             .style(|_| iced::widget::container::Style {
