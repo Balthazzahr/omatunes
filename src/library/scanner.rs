@@ -247,7 +247,7 @@ pub fn write_tags(
 
 #[test]
 fn test_talking_heads_tag() {
-    let path = std::path::Path::new("/home/user/Music/John Mayer/Continuum/08 Slow Dancing In A Burning Room.mp3");
+    let path = std::path::Path::new("/home/user/Music/Talking Heads/Remain In Light/01 - Born Under Punches (The Heat Goes On).mp3");
     match lofty::probe::Probe::open(path) {
         Ok(probe) => {
             println!("Probe open succeeded");
@@ -265,16 +265,17 @@ fn test_talking_heads_tag() {
                     }
                     
                     // Try to write tags
-                    println!("Attempting tag write...");
+                    println!("Attempting tag write with tag.save_to...");
                     if tagged_file.primary_tag_mut().is_none() {
                         println!("Inserting new tag...");
                         tagged_file.insert_tag(lofty::tag::Tag::new(tagged_file.primary_tag_type()));
                     }
                     let tag = tagged_file.primary_tag_mut().unwrap();
                     tag.set_title("Born Under Punches (The Heat Goes On)".to_string());
-                    match tagged_file.save_to_path(path, Default::default()) {
-                        Ok(_) => println!("Tag write succeeded!"),
-                        Err(e) => println!("Tag write failed: {:?}", e),
+                    let mut file = std::fs::OpenOptions::new().read(true).write(true).open(path).unwrap();
+                    match tag.save_to(&mut file) {
+                        Ok(_) => println!("Tag::save_to succeeded!"),
+                        Err(e) => println!("Tag::save_to failed: {:?}", e),
                     }
                 }
                 Err(e) => {
