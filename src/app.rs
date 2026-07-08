@@ -1524,6 +1524,12 @@ impl AppState {
                             }
                             self.last_accumulated_position = position;
 
+                            if self.right_panel_tab == Some(RightPanelTab::Statistics)
+                                && self.last_stats_update.elapsed() > std::time::Duration::from_secs(5)
+                            {
+                                self.update_cached_stats();
+                            }
+
                             if !self.current_track_play_counted && duration > Duration::ZERO {
                                 let is_estimated = duration == position;
                                 let threshold = if is_estimated {
