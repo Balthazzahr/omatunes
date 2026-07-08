@@ -2929,6 +2929,14 @@ impl AppState {
                 Task::none()
             }
 
+            Message::PlaylistCreateWithTrack(track) => {
+                if let Some(ref mut dialog) = self.playlist_dialog {
+                    dialog.mode = PlaylistDialogMode::CreateWithTrack(track.clone());
+                    dialog.name_input = format!("{} Playlist", track.title);
+                }
+                Task::none()
+            }
+
             Message::PlaylistInputChanged(val) => {
                 if let Some(ref mut dialog) = self.playlist_dialog {
                     dialog.name_input = val;
