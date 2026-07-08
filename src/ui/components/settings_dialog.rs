@@ -112,6 +112,11 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                 .on_input(Message::SettingsMusicDirChanged)
                 .padding(8);
 
+            let browse_btn = button(text("Browse").color(theme::text()))
+                .on_press(Message::PickMusicFolder)
+                .padding([8, 14])
+                .style(theme::secondary_button);
+
             let mode_pick = pick_list(
                 auto_scan_modes,
                 Some(state.auto_scan.mode.clone()),
@@ -133,7 +138,11 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                     field_label("Music Library Path"),
                 ].align_y(Alignment::Center),
                 Space::with_height(6),
-                music_input,
+                row![
+                    music_input.width(Length::Fill),
+                    Space::with_width(8),
+                    browse_btn,
+                ].align_y(Alignment::Center),
                 Space::with_height(16),
                 row![
                     text(ICON_AUTO_SCAN).font(NERD_FONT_MONO).size(14).color(theme::overlay0()),
