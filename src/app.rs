@@ -214,6 +214,7 @@ pub enum Message {
     PlaylistDialogSelect(String),
     PlaylistDialogToggleAddAlbum(bool),
     PlaylistDialogSubmit,
+    PlaylistCreateWithTrack(Track),
     WindowResized(f32, f32),
     HoverTracklist(bool),
     HoverSidebarList(bool),
@@ -2909,6 +2910,7 @@ impl AppState {
                 let initial_name = match &mode {
                     PlaylistDialogMode::Create => "My Playlist".to_string(),
                     PlaylistDialogMode::AddTrack(_) => String::new(),
+                    PlaylistDialogMode::CreateWithTrack(track) => format!("{} Playlist", track.title),
                     PlaylistDialogMode::Rename(old_name) => old_name.clone(),
                 };
                 let custom_playlists = crate::db::get(|db| db.playlists.keys().cloned().collect::<Vec<String>>());
