@@ -2337,6 +2337,7 @@ impl AppState {
                 }
                 self.cover_cache_version = self.cover_cache_version.wrapping_add(1);
                 self.update_filtered_tracks();
+                self.update_cached_stats();
                 Task::none()
             }
 
