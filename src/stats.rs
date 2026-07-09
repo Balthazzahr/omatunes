@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -38,6 +38,24 @@ pub struct StatsDb {
     pub last_active_timestamp: Option<i64>,
     #[serde(default)]
     pub current_session_accum_secs: f64,
+
+    // Running all-time artist/genre play counts (updated on every track play)
+    #[serde(default)]
+    pub all_time_artist_tracks: HashMap<String, u32>,
+    #[serde(default)]
+    pub all_time_genre_tracks: HashMap<String, u32>,
+
+    // Awarded milestones to avoid re-awarding
+    #[serde(default)]
+    pub artist_milestones_awarded: HashMap<String, HashSet<String>>,
+    #[serde(default)]
+    pub genre_milestones_awarded: HashMap<String, HashSet<String>>,
+    #[serde(default)]
+    pub daily_milestones_awarded: HashMap<String, HashSet<u32>>,
+
+    // Top-10 snapshot for ladder change detection
+    #[serde(default)]
+    pub previous_top_10_snapshot: Vec<(String, f64)>,
 }
 
 impl StatsDb {
