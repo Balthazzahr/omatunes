@@ -1565,7 +1565,7 @@ impl AppState {
                     if self.playback_state == PlaybackState::Playing {
                         self.active_notifications.push(StatsNotification {
                             title: "Time Flies".to_string(),
-                            message: "You've been listening for another hour! Take a break? ☕".to_string(),
+                            message: "You've been listening for another hour!".to_string(),
                             created_at: std::time::Instant::now(),
                         });
                     }
@@ -1623,9 +1623,9 @@ impl AppState {
                                         sdb.daily_buckets.get(&today_str).map(|d| d.track_play_count).unwrap_or(0)
                                     });
                                     let milestone_opt = match today_plays {
-                                        10 => Some(("Bronze Milestone", "You have listened to 10 songs today! 🎧")),
-                                        50 => Some(("Silver Milestone", "You have listened to 50 songs today! 🌟")),
-                                        100 => Some(("Gold Milestone", "You have listened to 100 songs today! 🎉")),
+                                        25 => Some(("Bronze Milestone", "You have listened to 25 songs today! \u{f025}")),
+                                        50 => Some(("Silver Milestone", "You have listened to 50 songs today! \u{f005}")),
+                                        100 => Some(("Gold Milestone", "You have listened to 100 songs today! \u{f091}")),
                                         _ => None,
                                     };
                                     if let Some((title, msg)) = milestone_opt {
