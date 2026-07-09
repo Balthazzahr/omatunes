@@ -1576,12 +1576,6 @@ impl AppState {
                             }
                             self.last_accumulated_position = position;
 
-                            if self.right_panel_tab == Some(RightPanelTab::Statistics)
-                                && self.last_stats_update.elapsed() > std::time::Duration::from_secs(5)
-                            {
-                                self.update_cached_stats();
-                            }
-
                             if !self.current_track_play_counted && duration > Duration::ZERO {
                                 let is_estimated = duration == position;
                                 let threshold = if is_estimated {
@@ -1593,25 +1587,20 @@ impl AppState {
                                 if let Some(ref mut track) = self.current_track {
                                     let count = crate::db::increment_play_count(track.path.clone());
                                     track.play_count = count;
-                                    
-                                    // Add to stats.json daily bucket track/artist play counts
-                                    crate::stats::add_track_play(&track.artist, track.path.clone());
 
-                                    // Check milestone targets
-                                    let today_plays = crate::stats::get(|sdb| {
-                                        let today_str = chrono::Local::now().format("%Y-%m-%d").to_string();
-                                        sdb.daily_buckets.get(&today_str).map(|d| d.track_play_count).unwrap_or(0)
-                                    });
-                                    let milestone_opt = match today_plays {
-                                        25 => Some(("Bronze Milestone", "You have listened to 25 songs today! \u{f025}")),
-                                        50 => Some(("Silver Milestone", "You have listened to 50 songs today! \u{f005}")),
-                                        100 => Some(("Gold Milestone", "You have listened to 100 songs today! \u{f091}")),
-                                        _ => None,
-                                    };
-                                    if let Some((title, msg)) = milestone_opt {
+                                    let toasts = crate::stats::on_track_play(
+                                        &track.artist,
+                                        &track.genre,
+                                        track.path.clone(),
+                                        &self.all_tracks,
+                                    );
+                                    for (title, msg) in toasts {
+                                        let nid = self.next_notification_id;
+                                        self.next_notification_id += 1;
                                         self.active_notifications.push(StatsNotification {
-                                            title: title.to_string(),
-                                            message: msg.to_string(),
+                                            id: nid,
+                                            title,
+                                            message: msg,
                                             created_at: std::time::Instant::now(),
                                         });
                                     }
@@ -3883,9 +3872,6 @@ impl AppState {
                     self.right_panel_tab = None;
                 } else {
                     self.right_panel_tab = Some(tab);
-                    if tab == RightPanelTab::Statistics {
-                        self.update_cached_stats();
-                    }
                 }
                 crate::db::write(|db| db.right_panel_tab = self.right_panel_tab);
                 Task::none()
