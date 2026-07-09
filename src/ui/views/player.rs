@@ -1038,6 +1038,7 @@ pub fn song_breakdown_view(
                 .size(small_size)
                 .color(theme::overlay0())
                 .align_x(iced::alignment::Horizontal::Right),
+            Space::with_width(16),
         ]
         .spacing(4)
         .align_y(Alignment::Start)
