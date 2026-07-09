@@ -1530,9 +1530,6 @@ impl AppState {
             }
 
             Message::PollAudio => {
-                // Dismiss old notifications after 5 seconds
-                self.active_notifications.retain(|n| n.created_at.elapsed() < Duration::from_secs(5));
-
                 // Hourly check
                 let current_hour = {
                     use chrono::Timelike;
@@ -1543,7 +1540,10 @@ impl AppState {
                 } else if self.last_checked_hour != Some(current_hour) {
                     self.last_checked_hour = Some(current_hour);
                     if self.playback_state == PlaybackState::Playing {
+                        let nid = self.next_notification_id;
+                        self.next_notification_id += 1;
                         self.active_notifications.push(StatsNotification {
+                            id: nid,
                             title: "Time Flies".to_string(),
                             message: "You've been listening for another hour!".to_string(),
                             created_at: std::time::Instant::now(),
