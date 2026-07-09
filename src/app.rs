@@ -58,12 +58,6 @@ pub enum RightPanelTab {
     Lyrics,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum StatsSubTab {
-    ListeningStats,
-    Leaderboard,
-}
-
 #[derive(Debug, Clone)]
 pub struct StatsNotification {
     pub id: u64,
@@ -270,7 +264,7 @@ pub enum Message {
     ToggleSidebarSearch,
     GlobalCursorMoved(iced::Point),
     GlobalClick,
-    SelectStatsSubTab(StatsSubTab),
+    DismissNotification(u64),
     ShowPeriodBreakdown(usize),
     ClosePeriodBreakdown,
     SelectArtistFromBreakdown(String),
@@ -639,13 +633,6 @@ impl GroupByControlState {
 }
 
 impl AppState {
-    pub fn update_cached_stats(&mut self) {
-        self.cached_listening_stats = crate::stats::get_restructured_stats(&self.all_tracks);
-        self.cached_monthly_leaderboard = crate::stats::get_combined_monthly_leaderboard();
-        self.cached_all_time_leaderboard = crate::stats::get_combined_all_time_leaderboard();
-        self.last_stats_update = std::time::Instant::now();
-    }
-
     pub fn is_draggable_playlist_view(&self) -> bool {
         match &self.selected_playlist {
             Some(name) => {
@@ -3970,9 +3957,8 @@ impl AppState {
                 Task::none()
             }
 
-            Message::SelectStatsSubTab(sub_tab) => {
-                self.stats_sub_tab = sub_tab;
-                self.update_cached_stats();
+            Message::DismissNotification(id) => {
+                self.active_notifications.retain(|n| n.id != id);
                 Task::none()
             }
 
