@@ -2055,6 +2055,25 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     })
     .padding([2, 8]);
 
+    let stats_btn = button(
+        text(crate::ui::icons::ICON_STATS)
+            .size(20)
+            .font(crate::ui::icons::NERD_FONT_MONO)
+    )
+    .on_press(Message::ShowPeriodBreakdown(0))
+    .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+        let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+        iced::widget::button::Style {
+            text_color: if is_hovered {
+                theme::text()
+            } else {
+                theme::subtext()
+            },
+            ..Default::default()
+        }
+    })
+    .padding([2, 8]);
+
     let clear_queue_btn: Element<'_, Message> = Space::with_width(0.0).into();
 
     let clear_queue_spacer: Element<'_, Message> = Space::with_width(0.0).into();
@@ -2074,6 +2093,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     let right_bar = row![
         now_playing_tab,
         right_controls_el,
+        stats_btn,
         settings_btn,
         Space::with_width(12.0)
     ]
