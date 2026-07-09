@@ -60,6 +60,14 @@ pub struct StatsDb {
     // Top-10 snapshot for ladder change detection
     #[serde(default)]
     pub previous_top_10_snapshot: Vec<(String, f64)>,
+
+    // One-time backfill: legacy album data split evenly across albums
+    #[serde(default)]
+    pub populated_legacy_albums: bool,
+    #[serde(default)]
+    pub legacy_album_minutes: HashMap<String, f64>,
+    #[serde(default)]
+    pub legacy_album_tracks: HashMap<String, u32>,
 }
 
 impl StatsDb {
@@ -164,6 +172,80 @@ pub fn add_playback_time(artist: &str, album: &str, genre: &str, secs: f64) {
             day.longest_session_minutes = session_mins;
         }
     });
+}
+
+// ── One-Time Album Data Backfill ────────────────────────────────────────────
+
+pub fn backfill_album_data(tracks: &[crate::library::models::Track]) {
+    let mut artist_albums: HashMap<String, Vec<String>> = HashMap::new();
+    for track in tracks {
+        if !track.artist.is_empty() && !track.album.is_empty() {
+            let clean = if track.album.trim().is_empty() { "Unknown".to_string() } else { track.album.trim().to_string() };
+            let albums = artist_albums.entry(track.artist.clone()).or_default();
+            if !albums.contains(&clean) {
+                albums.push(clean);
+            }
+        }
+    }
+
+    write(|db| {
+        if db.populated_legacy_albums {
+            return;
+        }
+
+        // Backfill legacy artist minutes → split evenly across albums
+        for (artist, mins) in &db.legacy_artist_minutes.clone() {
+            if let Some(albums) = artist_albums.get(artist) {
+                if !albums.is_empty() {
+                    let per_album = mins / albums.len() as f64;
+                    for album in albums {
+                        *db.legacy_album_minutes.entry(album.clone()).or_default() += per_album;
+                    }
+                }
+            }
+        }
+
+        // Backfill legacy artist tracks → split evenly across albums
+        for (artist, count) in &db.legacy_artist_tracks.clone() {
+            if let Some(albums) = artist_albums.get(artist) {
+                if !albums.is_empty() {
+                    let per_album = *count as f64 / albums.len() as f64;
+                    for album in albums {
+                        *db.legacy_album_tracks.entry(album.clone()).or_default() += per_album.round() as u32;
+                    }
+                }
+            }
+        }
+
+        // Backfill day buckets that lack album_minutes
+        for (_, day) in &mut db.daily_buckets {
+            if day.album_minutes.is_empty() {
+                for (artist, mins) in &day.artist_minutes.clone() {
+                    if let Some(albums) = artist_albums.get(artist) {
+                        if !albums.is_empty() {
+                            let per_album = mins / albums.len() as f64;
+                            for album in albums {
+                                *day.album_minutes.entry(album.clone()).or_default() += per_album;
+                            }
+                        }
+                    }
+                }
+                for (artist, count) in &day.artist_track_counts.clone() {
+                    if let Some(albums) = artist_albums.get(artist) {
+                        if !albums.is_empty() {
+                            let per_album = *count as f64 / albums.len() as f64;
+                            for album in albums {
+                                *day.album_track_counts.entry(album.clone()).or_default() += per_album.round() as u32;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        db.populated_legacy_albums = true;
+    });
+    flush();
 }
 
 pub fn on_track_play(
