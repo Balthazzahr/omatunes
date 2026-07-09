@@ -1,5 +1,5 @@
 use std::collections::{HashMap, HashSet};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 use serde::{Serialize, Deserialize};
@@ -165,8 +165,8 @@ pub fn add_playback_time(artist: &str, album: &str, genre: &str, secs: f64) {
 pub fn on_track_play(
     artist: &str,
     genre: &str,
-    track_path: PathBuf,
-    all_tracks: &[crate::library::models::Track],
+    _track_path: PathBuf,
+    _all_tracks: &[crate::library::models::Track],
 ) -> Vec<(String, String)> {
     let mut toasts: Vec<(String, String)> = Vec::new();
     let date_str = chrono::Local::now().format("%Y-%m-%d").to_string();
