@@ -829,6 +829,7 @@ impl AppState {
             last_accumulated_position: Duration::ZERO,
             show_period_breakdown: None,
             breakdown_period_idx: 0,
+            breakdown_song_view: None,
             active_notifications: Vec::new(),
             next_notification_id: 0,
             last_checked_hour: {
@@ -3961,69 +3962,27 @@ impl AppState {
 
             Message::ClosePeriodBreakdown => {
                 self.show_period_breakdown = None;
+                self.breakdown_song_view = None;
+                Task::none()
+            }
+
+            Message::CloseBreakdownSongView => {
+                self.breakdown_song_view = None;
                 Task::none()
             }
 
             Message::SelectArtistFromBreakdown(artist) => {
-                self.show_period_breakdown = None;
-                let now = std::time::Instant::now();
-                if let Some((ref prev_artist, last_time)) = self.last_click_artist {
-                    if prev_artist == &artist && now.duration_since(last_time) < std::time::Duration::from_millis(350) {
-                        self.last_click_artist = None;
-                        return Task::done(Message::DoubleClickArtist(artist));
-                    }
-                }
-                self.last_click_artist = Some((artist.clone(), now));
-                self.selected_artist = Some(artist);
-                self.view_mode = ViewMode::Artists;
-                self.selected_playlist = None;
-                self.selected_folder = None;
-                self.selected_album = None;
-                self.active_focus = Some(ActiveFocus::SidebarList);
-                self.search_query.clear();
-                self.update_filtered_tracks();
+                self.breakdown_song_view = Some(("Artist".to_string(), artist));
                 Task::none()
             }
 
             Message::SelectAlbumFromBreakdown(album) => {
-                self.show_period_breakdown = None;
-                let now = std::time::Instant::now();
-                if let Some((ref prev_album, last_time)) = self.last_click_album {
-                    if prev_album == &album && now.duration_since(last_time) < std::time::Duration::from_millis(350) {
-                        self.last_click_album = None;
-                        return Task::done(Message::DoubleClickAlbum(album));
-                    }
-                }
-                self.last_click_album = Some((album.clone(), now));
-                self.selected_album = Some(album);
-                self.selected_playlist = None;
-                self.selected_folder = None;
-                self.selected_artist = None;
-                self.active_focus = Some(ActiveFocus::SidebarList);
-                self.search_query.clear();
-                self.update_filtered_tracks();
+                self.breakdown_song_view = Some(("Album".to_string(), album));
                 Task::none()
             }
 
             Message::SelectGenreFromBreakdown(genre) => {
-                self.show_period_breakdown = None;
-                let now = std::time::Instant::now();
-                if let Some((ref prev_genre, last_time)) = self.last_click_genre {
-                    if prev_genre == &genre && now.duration_since(last_time) < std::time::Duration::from_millis(350) {
-                        self.last_click_genre = None;
-                        return Task::done(Message::DoubleClickGenre(genre));
-                    }
-                }
-                self.last_click_genre = Some((genre.clone(), now));
-                self.selected_genre = Some(genre);
-                self.view_mode = ViewMode::Genres;
-                self.selected_playlist = None;
-                self.selected_folder = None;
-                self.selected_artist = None;
-                self.selected_album = None;
-                self.active_focus = Some(ActiveFocus::SidebarList);
-                self.search_query.clear();
-                self.update_filtered_tracks();
+                self.breakdown_song_view = Some(("Genre".to_string(), genre));
                 Task::none()
             }
 
@@ -4919,7 +4878,15 @@ impl AppState {
 
         // Period breakdown popup overlay
         if let Some(ref breakdown) = self.show_period_breakdown {
-            view_stack = view_stack.push(crate::ui::views::player::period_breakdown_view(breakdown, self.breakdown_period_idx));
+            if let Some(ref song_view) = self.breakdown_song_view {
+                view_stack = view_stack.push(
+                    crate::ui::views::player::song_breakdown_view(
+                        &song_view.0, &song_view.1, self.breakdown_period_idx, &self.all_tracks,
+                    )
+                );
+            } else {
+                view_stack = view_stack.push(crate::ui::views::player::period_breakdown_view(breakdown, self.breakdown_period_idx));
+            }
         }
 
         // Queue popover overlay
