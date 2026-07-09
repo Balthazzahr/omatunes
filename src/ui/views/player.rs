@@ -831,7 +831,7 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown, active_p
                             .width(Length::Fill),
                     ]
                     .spacing(0)
-                    .align_y(Alignment::Center)
+                    .align_y(Alignment::Start)
                     .width(Length::Fill),
                 )
                 .on_press(make_on_press(name.clone()))
@@ -860,7 +860,7 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown, active_p
                         .align_x(iced::alignment::Horizontal::Right),
                 ]
                 .spacing(4)
-                .align_y(Alignment::Center);
+                .align_y(Alignment::Start);
                 col = col.push(row_item);
             }
         }
