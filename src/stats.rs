@@ -897,6 +897,85 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
     })
 }
 
+// ── Song Breakdown (per-artist/album/genre) ──────────────────────────────────
+
+#[derive(Debug, Clone)]
+pub struct SongBreakdownItem {
+    pub track_path: PathBuf,
+    pub title: String,
+    pub artist: String,
+    pub album: String,
+    pub play_count: u32,
+}
+
+pub fn get_song_breakdown(
+    category: &str,
+    name: &str,
+    period_idx: usize,
+    tracks: &[crate::library::models::Track],
+) -> Vec<SongBreakdownItem> {
+    get(|db| {
+        let now = chrono::Local::now().naive_local().date();
+        let today_str = now.format("%Y-%m-%d").to_string();
+        let days_from_monday = now.weekday().num_days_from_monday();
+        let monday = now - chrono::Duration::days(days_from_monday as i64);
+        let this_month_prefix = now.format("%Y-%m").to_string();
+
+        let periods: Vec<(&str, Box<dyn Fn(&str) -> bool>)> = vec![
+            ("Today", Box::new(move |d: &str| d == today_str)),
+            ("This Week", Box::new(move |d: &str| {
+                if let Some(date) = parse_date(d) { date >= monday && date <= now } else { false }
+            })),
+            ("This Month", Box::new(move |d: &str| d.starts_with(&this_month_prefix))),
+            ("All-Time", Box::new(move |_d: &str| true)),
+        ];
+
+        let (_label, filter) = &periods[period_idx];
+
+        // Aggregate track_play_counts across filtered days
+        let mut path_plays: HashMap<PathBuf, u32> = HashMap::new();
+        for (date_str, day) in &db.daily_buckets {
+            if filter(date_str) {
+                for (path, count) in &day.track_play_counts {
+                    *path_plays.entry(path.clone()).or_default() += count;
+                }
+            }
+        }
+
+        // Build track lookup from library
+        let mut track_map: HashMap<PathBuf, &crate::library::models::Track> = HashMap::new();
+        for track in tracks {
+            track_map.insert(track.path.clone(), track);
+        }
+
+        let mut items: Vec<SongBreakdownItem> = Vec::new();
+        for (path, count) in path_plays {
+            if let Some(track) = track_map.get(&path) {
+                let matches = match category {
+                    "Artist" => track.artist == name,
+                    "Album" => track.album == name,
+                    "Genre" => track.genres().any(|g| g.trim() == name),
+                    _ => false,
+                };
+                if matches {
+                    items.push(SongBreakdownItem {
+                        track_path: path,
+                        title: track.title.clone(),
+                        artist: track.artist.clone(),
+                        album: track.album.clone(),
+                        play_count: count,
+                    });
+                }
+            }
+        }
+
+        // Sort by play_count descending, then alphabetically
+        items.sort_by(|a, b| b.play_count.cmp(&a.play_count).then(a.title.cmp(&b.title)));
+        items.truncate(100);
+        items
+    })
+}
+
 pub fn get_restructured_stats(tracks: &[crate::library::models::Track]) -> Vec<RowStats> {
     get(|db| {
         let now = chrono::Local::now().naive_local().date();
