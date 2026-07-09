@@ -706,7 +706,7 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown, active_p
             .on_press(Message::ShowPeriodBreakdown(i))
             .padding([8, 16])
             .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
-                let is_hovered = matches!(status, iced::widget::button::Status::Hovered | iced::widget::button::Status::Pressed);
+                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
                 iced::widget::button::Style {
                     background: if is_active || is_hovered {
                         Some(iced::Background::Color(theme::surface0()))
@@ -856,6 +856,8 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown, active_p
     });
 
     let content = column![
+        period_tabs,
+        Space::with_height(20),
         row![
             header,
             Space::with_width(Length::Fill),
