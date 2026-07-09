@@ -767,16 +767,18 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
             }
         }
 
-        let mut artist_album_counts: HashMap<String, HashMap<String, usize>> = HashMap::new();
+        // BTreeMap for deterministic iteration order (fixes cycling)
+        let mut artist_album_list: BTreeMap<String, Vec<String>> = BTreeMap::new();
         for track in tracks {
             if !track.artist.is_empty() && !track.album.is_empty() {
-                let clean = if track.album.trim().is_empty() { "Unknown" } else { track.album.trim() };
-                *artist_album_counts
-                    .entry(track.artist.clone())
-                    .or_default()
-                    .entry(clean.to_string())
-                    .or_default() += 1;
+                let clean = if track.album.trim().is_empty() { "Unknown".to_string() } else { track.album.trim().to_string() };
+                artist_album_list.entry(track.artist.clone()).or_default().push(clean);
             }
+        }
+        // Deduplicate album lists
+        for albums in artist_album_list.values_mut() {
+            albums.sort();
+            albums.dedup();
         }
 
         for (date_str, day) in &db.daily_buckets {
@@ -819,11 +821,15 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
                     *genre_tracks_count.entry(g.clone()).or_default() += t;
                 }
                 if day.album_minutes.is_empty() {
+                    // Split artist minutes evenly across all albums for that artist
                     for (a, m) in &day.artist_minutes {
-                        if let Some(best_album) = artist_album_counts.get(a)
-                            .and_then(|amap| amap.iter().max_by_key(|(_, count)| **count).map(|(al, _)| al))
-                        {
-                            *album_minutes.entry(best_album.clone()).or_default() += m;
+                        if let Some(albums) = artist_album_list.get(a) {
+                            if !albums.is_empty() {
+                                let per_album = m / albums.len() as f64;
+                                for album in albums {
+                                    *album_minutes.entry(album.clone()).or_default() += per_album;
+                                }
+                            }
                         }
                     }
                 } else {
@@ -838,12 +844,11 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
         }
 
         if *label == "All-Time" {
-            for (a, m) in &db.legacy_artist_minutes {
-                if let Some(best_album) = artist_album_counts.get(a)
-                    .and_then(|amap| amap.iter().max_by_key(|(_, count)| **count).map(|(al, _)| al))
-                {
-                    *album_minutes.entry(best_album.clone()).or_default() += m;
-                }
+            for (al, m) in &db.legacy_album_minutes {
+                *album_minutes.entry(al.clone()).or_default() += m;
+            }
+            for (al, t) in &db.legacy_album_tracks {
+                *album_tracks_count.entry(al.clone()).or_default() += t;
             }
         }
 
