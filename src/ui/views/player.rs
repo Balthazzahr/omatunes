@@ -960,22 +960,23 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown, active_p
     .into()
 }
 
-pub fn song_breakdown_view<'a>(
-    category: &'a str,
-    name: &'a str,
+pub fn song_breakdown_view(
+    category: &str,
+    name: &str,
     period_idx: usize,
-    all_tracks: &'a [crate::library::models::Track],
-) -> Element<'a, Message> {
+    all_tracks: &[crate::library::models::Track],
+) -> Element<'static, Message> {
     use iced::Color;
 
     let items = crate::stats::get_song_breakdown(category, name, period_idx, all_tracks);
 
     let text_size: u16 = 16;
     let small_size: u16 = 14;
+    let total_items = items.len();
 
     let mut song_list = column![].spacing(4).width(Length::Fill);
 
-    for (i, item) in items.iter().enumerate() {
+    for (i, item) in items.into_iter().enumerate() {
         let rank = i + 1;
         let rank_color = if rank == 1 {
             Color::from_rgb(0.98, 0.80, 0.28)
@@ -988,11 +989,10 @@ pub fn song_breakdown_view<'a>(
         };
         let name_color: Color = if rank <= 3 { rank_color } else { theme::text() };
 
-        let subtitle = match category {
-            "Artist" => &item.album,
-            "Album" => &item.artist,
-            "Genre" => &item.artist,
-            _ => &item.artist,
+        let subtitle: String = match category {
+            "Artist" => item.album.clone(),
+            "Album" | "Genre" => item.artist.clone(),
+            _ => item.artist.clone(),
         };
 
         let row_item = row![
@@ -1007,7 +1007,7 @@ pub fn song_breakdown_view<'a>(
                 .color(theme::text()),
             Space::with_width(4),
             column![
-                text(&item.title)
+                text(item.title)
                     .font(crate::ui::icons::UI_FONT)
                     .size(text_size)
                     .color(name_color)
@@ -1032,8 +1032,8 @@ pub fn song_breakdown_view<'a>(
         .width(Length::Fill);
         song_list = song_list.push(row_item);
 
-        if i < items.len() - 1 {
-            let sep: Element<'_, Message> = container(Space::with_height(0))
+        if i < total_items - 1 {
+            let sep: Element<'static, Message> = container(Space::with_height(0))
                 .width(Length::Fill)
                 .height(1)
                 .style(|_| iced::widget::container::Style {
@@ -1075,7 +1075,7 @@ pub fn song_breakdown_view<'a>(
         ]
         .align_y(Alignment::Center),
         Space::with_height(16),
-        text(format!("Top {} songs by play count", items.len().min(100)))
+        text(format!("Top {} songs by play count", total_items.min(100)))
             .font(crate::ui::icons::UI_FONT)
             .size(14)
             .color(theme::subtext()),
