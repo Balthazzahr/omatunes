@@ -337,7 +337,7 @@ fn decode_file(
         .tracks()
         .iter()
         .find(|t| t.codec_params.codec != CODEC_TYPE_NULL)
-        .ok_or_else(|| anyhow!("Nenhuma faixa de áudio"))?;
+        .ok_or_else(|| anyhow!("No audio track"))?;
 
     let track_id  = track.id;
     let time_base = track.codec_params.time_base;
