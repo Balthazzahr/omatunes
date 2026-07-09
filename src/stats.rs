@@ -970,41 +970,65 @@ pub fn get_song_breakdown(
             ("All-Time", Box::new(move |_d: &str| true)),
         ];
 
-        let (_label, filter) = &periods[period_idx];
+        let mut items: Vec<SongBreakdownItem> = Vec::new();
 
-        // Aggregate track_play_counts across filtered days
-        let mut path_plays: HashMap<PathBuf, u32> = HashMap::new();
-        for (date_str, day) in &db.daily_buckets {
-            if filter(date_str) {
-                for (path, count) in &day.track_play_counts {
-                    *path_plays.entry(path.clone()).or_default() += count;
+        if period_idx == 3 {
+            // "All-Time": pull play counts directly from tracks slice loaded from db.json
+            for track in tracks {
+                if track.play_count > 0 {
+                    let matches = match category {
+                        "Artist" => track.artist == name,
+                        "Album" => track.album == name,
+                        "Genre" => track.genres().iter().any(|g| g.trim() == name),
+                        _ => false,
+                    };
+                    if matches {
+                        items.push(SongBreakdownItem {
+                            track_path: track.path.clone(),
+                            title: track.title.clone(),
+                            artist: track.artist.clone(),
+                            album: track.album.clone(),
+                            play_count: track.play_count,
+                        });
+                    }
                 }
             }
-        }
+        } else {
+            let (_label, filter) = &periods[period_idx];
 
-        // Build track lookup from library
-        let mut track_map: HashMap<PathBuf, &crate::library::models::Track> = HashMap::new();
-        for track in tracks {
-            track_map.insert(track.path.clone(), track);
-        }
+            // Aggregate track_play_counts across filtered days
+            let mut path_plays: HashMap<PathBuf, u32> = HashMap::new();
+            for (date_str, day) in &db.daily_buckets {
+                if filter(date_str) {
+                    for (path, count) in &day.track_play_counts {
+                        *path_plays.entry(path.clone()).or_default() += count;
+                    }
+                }
+            }
 
-        let mut items: Vec<SongBreakdownItem> = Vec::new();
-        for (path, count) in path_plays {
-            if let Some(track) = track_map.get(&path) {
-                let matches = match category {
-                    "Artist" => track.artist == name,
-                    "Album" => track.album == name,
-                    "Genre" => track.genres().iter().any(|g| g.trim() == name),
-                    _ => false,
-                };
-                if matches {
-                    items.push(SongBreakdownItem {
-                        track_path: path,
-                        title: track.title.clone(),
-                        artist: track.artist.clone(),
-                        album: track.album.clone(),
-                        play_count: count,
-                    });
+            // Build track lookup from library
+            let mut track_map: HashMap<PathBuf, &crate::library::models::Track> = HashMap::new();
+            for track in tracks {
+                track_map.insert(track.path.clone(), track);
+            }
+
+            for (path, count) in path_plays {
+                if let Some(track) = track_map.get(&path) {
+                    let matches = match category {
+                        "Artist" => track.artist == name,
+                        "Album" => track.album == name,
+                        "Genre" => track.genres().iter().any(|g| g.trim() == name),
+                        _ => false,
+                    };
+                    if matches {
+                        items.push(SongBreakdownItem {
+                            track_path: path,
+                            title: track.title.clone(),
+                            artist: track.artist.clone(),
+                            album: track.album.clone(),
+                            play_count: count,
+                        });
+                    }
                 }
             }
         }
