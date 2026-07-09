@@ -2095,7 +2095,6 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         right_controls_el,
         Space::with_width(4.0),
         stats_btn,
-        Space::with_width(4.0),
         settings_btn,
         Space::with_width(12.0)
     ]
