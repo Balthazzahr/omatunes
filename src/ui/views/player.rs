@@ -858,12 +858,12 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown, active_p
                     text(format!("({} Songs)", count))
                         .font(crate::ui::icons::UI_FONT)
                         .size(small_size)
-                        .color(theme::overlay0()),
+                        .color(theme::subtext()),
                     Space::with_width(8),
                     text(format_hours(*mins))
                         .font(crate::ui::icons::UI_FONT_BOLD)
                         .size(text_size)
-                        .color(theme::overlay0())
+                        .color(theme::subtext())
                         .align_x(iced::alignment::Horizontal::Right),
                 ]
                 .spacing(4)
@@ -920,10 +920,15 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown, active_p
         ]
         .align_y(Alignment::Center),
         Space::with_height(16),
-        text(header_text)
-            .font(crate::ui::icons::UI_FONT_BOLD)
-            .size(15)
-            .color(theme::overlay0()),
+        row![
+            Space::with_width(Length::Fill),
+            text(header_text)
+                .font(crate::ui::icons::UI_FONT_BOLD)
+                .size(15)
+                .color(theme::subtext()),
+            Space::with_width(Length::Fill),
+        ]
+        .align_y(Alignment::Center),
         Space::with_height(16),
         tables,
     ];
@@ -931,8 +936,8 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown, active_p
     container(
         container(content)
             .padding(28)
-            .max_width(1400)
-            .max_height(720)
+            .max_width(1420)
+            .max_height(700)
             .style(|_| iced::widget::container::Style {
                 background: Some(iced::Background::Color(theme::mantle())),
                 border: iced::Border {
