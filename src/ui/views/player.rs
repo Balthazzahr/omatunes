@@ -937,8 +937,8 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown, active_p
     container(
         container(content)
             .padding(28)
-            .max_width(1704)
-            .max_height(630)
+            .max_width(1500)
+            .max_height(575)
             .style(|_| iced::widget::container::Style {
                 background: Some(iced::Background::Color(theme::mantle())),
                 border: iced::Border {
