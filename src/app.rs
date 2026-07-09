@@ -800,7 +800,7 @@ impl AppState {
             last_clicked_track: None,
             hidden_artists_albums: crate::db::get(|db| db.hidden_artists_albums.clone()),
             playlist_tab: PlaylistTab::Playlists,
-            right_panel_tab: db_right_panel_tab,
+            right_panel_tab: db_right_panel_tab.and_then(|t| if t == RightPanelTab::Statistics { None } else { Some(t) }),
             right_panel_tab_user_scrolled: false,
             show_song_search: false,
             show_sidebar_search: false,
