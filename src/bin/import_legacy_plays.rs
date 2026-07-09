@@ -1,6 +1,8 @@
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
+use lofty::prelude::*;
+
 
 #[derive(Deserialize, Debug)]
 struct OmatunesDb {
