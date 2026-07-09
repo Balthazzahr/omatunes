@@ -867,22 +867,18 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
         let avg_song_mins: f64 = 4.0;
         let mut genre_list: Vec<(String, f64, u32)> = genre_minutes.into_iter()
             .map(|(name, mins)| {
-                let mut count = genre_tracks_count.get(&name).cloned().unwrap_or(0);
-                if count == 0 && mins > 0.0 {
-                    count = (mins / avg_song_mins).ceil() as u32;
-                }
-                (name, mins, count)
+                let count = genre_tracks_count.get(&name).cloned().unwrap_or(0);
+                let estimated = if mins > 0.0 { (mins / avg_song_mins).ceil() as u32 } else { 0 };
+                (name, mins, count.max(estimated))
             })
             .collect();
         genre_list.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
         genre_list.truncate(TOP_N_BREAKDOWN);
         let mut album_list: Vec<(String, f64, u32)> = album_minutes.into_iter()
             .map(|(name, mins)| {
-                let mut count = album_tracks_count.get(&name).cloned().unwrap_or(0);
-                if count == 0 && mins > 0.0 {
-                    count = (mins / avg_song_mins).ceil() as u32;
-                }
-                (name, mins, count)
+                let count = album_tracks_count.get(&name).cloned().unwrap_or(0);
+                let estimated = if mins > 0.0 { (mins / avg_song_mins).ceil() as u32 } else { 0 };
+                (name, mins, count.max(estimated))
             })
             .collect();
         album_list.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
