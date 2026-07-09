@@ -747,13 +747,6 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown, active_p
         period_tabs = period_tabs.push(tab_btn);
     }
 
-    let header_text = format!(
-        "{} - {} Tracks | {} played",
-        breakdown.period_label,
-        breakdown.total_plays,
-        format_header_time(breakdown.total_minutes)
-    );
-
     let close_btn = button(
         text("\u{f00d}")
             .font(crate::ui::icons::NERD_FONT_MONO)
@@ -922,7 +915,15 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown, active_p
         Space::with_height(16),
         row![
             Space::with_width(Length::Fill),
-            text(header_text)
+            text(&breakdown.period_label)
+                .font(crate::ui::icons::UI_FONT_BOLD)
+                .size(15)
+                .color(theme::accent()),
+            text(" - ")
+                .font(crate::ui::icons::UI_FONT_BOLD)
+                .size(15)
+                .color(theme::subtext()),
+            text(format!("{} Tracks | {} played", breakdown.total_plays, format_header_time(breakdown.total_minutes)))
                 .font(crate::ui::icons::UI_FONT_BOLD)
                 .size(15)
                 .color(theme::subtext()),
@@ -936,8 +937,8 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown, active_p
     container(
         container(content)
             .padding(28)
-            .max_width(1420)
-            .max_height(700)
+            .max_width(1704)
+            .max_height(630)
             .style(|_| iced::widget::container::Style {
                 background: Some(iced::Background::Color(theme::mantle())),
                 border: iced::Border {
