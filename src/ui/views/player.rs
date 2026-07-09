@@ -974,10 +974,9 @@ pub fn song_breakdown_view(
     let small_size: u16 = 13;
     let total_items = items.len();
 
-    fn format_song_mins(plays: u32) -> String {
-        let mins = plays as f64 * 4.0;
+    fn format_song_mins(mins: f64) -> String {
         let h = (mins / 60.0).floor() as u64;
-        let m = (mins as u64) % 60;
+        let m = (mins.round() as u64) % 60;
         if h > 0 {
             format!("{}h {}m", h, m)
         } else {
@@ -1006,7 +1005,13 @@ pub fn song_breakdown_view(
             _ => item.artist.clone(),
         };
 
-        let stats_text = format!("{} plays \u{2022} {}", item.play_count, format_song_mins(item.play_count));
+        let duration_mins = all_tracks.iter()
+            .find(|t| t.path == item.track_path)
+            .map(|t| t.duration.as_secs_f64() / 60.0)
+            .unwrap_or(4.0);
+
+        let total_mins = item.play_count as f64 * duration_mins;
+        let stats_text = format!("{} plays \u{2022} {}", item.play_count, format_song_mins(total_mins));
 
         let row_item = row![
             text(format!("{:>2}", rank))
