@@ -100,6 +100,61 @@ impl StatsDb {
 pub fn init() {
     let db = StatsDb::load();
     STATS.get_or_init(|| Mutex::new(db));
+    prune_old_buckets();
+}
+
+pub fn prune_old_buckets() {
+    write(|db| {
+        let cutoff = chrono::Local::now().naive_local().date() - chrono::Duration::days(35);
+        let mut days_to_prune = Vec::new();
+
+        for (date_str, day) in &db.daily_buckets {
+            if let Some(date) = parse_date(date_str) {
+                if date < cutoff {
+                    if !day.artist_minutes.is_empty() || !day.track_play_counts.is_empty() {
+                        days_to_prune.push(date_str.clone());
+                    }
+                }
+            }
+        }
+
+        if days_to_prune.is_empty() {
+            return;
+        }
+
+        for date_str in days_to_prune {
+            if let Some(mut day) = db.daily_buckets.remove(&date_str) {
+                db.legacy_tracks += day.track_play_count;
+                db.legacy_minutes += day.total_minutes;
+
+                for (artist, mins) in &day.artist_minutes {
+                    *db.legacy_artist_minutes.entry(artist.clone()).or_default() += mins;
+                }
+                for (artist, count) in &day.artist_track_counts {
+                    *db.legacy_artist_tracks.entry(artist.clone()).or_default() += count;
+                }
+                for (album, mins) in &day.album_minutes {
+                    *db.legacy_album_minutes.entry(album.clone()).or_default() += mins;
+                }
+                for (album, count) in &day.album_track_counts {
+                    *db.legacy_album_tracks.entry(album.clone()).or_default() += count;
+                }
+
+                // Clear maps to reclaim disk/memory footprint
+                day.artist_minutes.clear();
+                day.artist_track_counts.clear();
+                day.track_play_counts.clear();
+                day.genre_minutes.clear();
+                day.album_minutes.clear();
+                day.genre_track_counts.clear();
+                day.album_track_counts.clear();
+
+                // Re-insert bucket container with only overall day-minutes/plays to preserve streak logic
+                db.daily_buckets.insert(date_str, day);
+            }
+        }
+    });
+    flush();
 }
 
 pub fn get<F, R>(f: F) -> R
