@@ -66,6 +66,7 @@ pub enum StatsSubTab {
 
 #[derive(Debug, Clone)]
 pub struct StatsNotification {
+    pub id: u64,
     pub title: String,
     pub message: String,
     pub created_at: std::time::Instant,
@@ -608,14 +609,10 @@ pub struct AppState {
     pub show_queue_popover: bool,
     pub queue_scroll_id: scrollable::Id,
     pub last_accumulated_position: Duration,
-    pub stats_sub_tab: StatsSubTab,
     pub show_period_breakdown: Option<crate::stats::PeriodBreakdown>,
     pub active_notifications: Vec<StatsNotification>,
+    pub next_notification_id: u64,
     pub last_checked_hour: Option<u32>,
-    pub cached_listening_stats: Vec<crate::stats::RowStats>,
-    pub cached_monthly_leaderboard: Vec<(String, f64, u32)>,
-    pub cached_all_time_leaderboard: Vec<(String, f64, u32)>,
-    pub last_stats_update: std::time::Instant,
 }
 
 pub struct GroupByControlState {
@@ -840,17 +837,13 @@ impl AppState {
             show_queue_popover: false,
             queue_scroll_id: scrollable::Id::unique(),
             last_accumulated_position: Duration::ZERO,
-            stats_sub_tab: StatsSubTab::ListeningStats,
             show_period_breakdown: None,
             active_notifications: Vec::new(),
+            next_notification_id: 0,
             last_checked_hour: {
                 use chrono::Timelike;
                 Some(chrono::Local::now().hour())
             },
-            cached_listening_stats: Vec::new(),
-            cached_monthly_leaderboard: Vec::new(),
-            cached_all_time_leaderboard: Vec::new(),
-            last_stats_update: std::time::Instant::now(),
         };
 
         (state, scan_task)
