@@ -3953,6 +3953,7 @@ impl AppState {
             Message::ShowPeriodBreakdown(period_idx) => {
                 let breakdown = crate::stats::get_period_breakdown(period_idx, &self.all_tracks);
                 self.show_period_breakdown = Some(breakdown);
+                self.breakdown_period_idx = period_idx;
                 Task::none()
             }
 
@@ -4916,7 +4917,7 @@ impl AppState {
 
         // Period breakdown popup overlay
         if let Some(ref breakdown) = self.show_period_breakdown {
-            view_stack = view_stack.push(crate::ui::views::player::period_breakdown_view(breakdown));
+            view_stack = view_stack.push(crate::ui::views::player::period_breakdown_view(breakdown, self.breakdown_period_idx));
         }
 
         // Queue popover overlay
