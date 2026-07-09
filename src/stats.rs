@@ -685,6 +685,18 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
             }
         }
 
+        let mut artist_album_counts: HashMap<String, HashMap<String, usize>> = HashMap::new();
+        for track in tracks {
+            if !track.artist.is_empty() && !track.album.is_empty() {
+                let clean = if track.album.trim().is_empty() { "Unknown" } else { track.album.trim() };
+                *artist_album_counts
+                    .entry(track.artist.clone())
+                    .or_default()
+                    .entry(clean.to_string())
+                    .or_default() += 1;
+            }
+        }
+
         for (date_str, day) in &db.daily_buckets {
             if filter(date_str) {
                 total_plays += day.track_play_count;
@@ -724,11 +736,31 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
                 for (g, t) in &day.genre_track_counts {
                     *genre_tracks_count.entry(g.clone()).or_default() += t;
                 }
-                for (al, m) in &day.album_minutes {
-                    *album_minutes.entry(al.clone()).or_default() += m;
+                if day.album_minutes.is_empty() {
+                    for (a, m) in &day.artist_minutes {
+                        if let Some(best_album) = artist_album_counts.get(a)
+                            .and_then(|amap| amap.iter().max_by_key(|(_, count)| **count).map(|(al, _)| al))
+                        {
+                            *album_minutes.entry(best_album.clone()).or_default() += m;
+                        }
+                    }
+                } else {
+                    for (al, m) in &day.album_minutes {
+                        *album_minutes.entry(al.clone()).or_default() += m;
+                    }
                 }
                 for (al, t) in &day.album_track_counts {
                     *album_tracks_count.entry(al.clone()).or_default() += t;
+                }
+            }
+        }
+
+        if *label == "All-Time" {
+            for (a, m) in &db.legacy_artist_minutes {
+                if let Some(best_album) = artist_album_counts.get(a)
+                    .and_then(|amap| amap.iter().max_by_key(|(_, count)| **count).map(|(al, _)| al))
+                {
+                    *album_minutes.entry(best_album.clone()).or_default() += m;
                 }
             }
         }
