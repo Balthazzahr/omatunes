@@ -304,13 +304,13 @@ pub fn on_track_play(
                     let mut msg_parts = Vec::new();
 
                     match old_pos {
-                        Some(from) => {
+                        Some(_from) => {
                             msg_parts.push(format!(
                                 "{} has knocked {} out of the #{} spot",
                                 artist_name, displaced, new_pos
                             ));
                             msg_parts.push(format!(
-                                "\n  \u{f062} {} \u{2192} #{}",
+                                "  \u{f062} {} \u{2192} #{}",
                                 artist_name, new_pos
                             ));
                             match displaced_new_pos {
