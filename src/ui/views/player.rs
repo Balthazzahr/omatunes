@@ -275,7 +275,6 @@ pub fn tab_strip(state: &AppState) -> Element<'_, Message> {
             container(
                 column![
                     tab_btn(crate::app::RightPanelTab::Visualizer, crate::ui::icons::ICON_VISUALIZER, "Visualizer"),
-                    tab_btn(crate::app::RightPanelTab::Statistics, crate::ui::icons::ICON_STATS, "Listening Statistics"),
                     tab_btn(crate::app::RightPanelTab::Lyrics, crate::ui::icons::ICON_LYRICS, "Lyrics"),
                 ]
                 .width(Length::Fill)
