@@ -678,6 +678,58 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown, active_p
         }
     };
 
+    let period_tabs_data = [
+        (crate::ui::icons::ICON_CALENDAR_DAY, "Day"),
+        (crate::ui::icons::ICON_CALENDAR_WEEK, "Week"),
+        (crate::ui::icons::ICON_CALENDAR_MONTH_FA, "Month"),
+        (crate::ui::icons::ICON_TROPHY_FA, "All-Time"),
+    ];
+
+    let mut period_tabs = row![].spacing(8).align_y(Alignment::Center);
+    for (i, (icon, label)) in period_tabs_data.iter().enumerate() {
+        let is_active = i == active_period;
+        let tab_content = row![
+            text(*icon)
+                .font(crate::ui::icons::NERD_FONT_MONO)
+                .size(20)
+                .color(if is_active { theme::accent() } else { theme::subtext() }),
+            Space::with_width(6),
+            text(*label)
+                .font(crate::ui::icons::UI_FONT_BOLD)
+                .size(18)
+                .color(if is_active { theme::accent() } else { theme::subtext() }),
+        ]
+        .spacing(0)
+        .align_y(Alignment::Center);
+
+        let tab_btn = button(tab_content)
+            .on_press(Message::ShowPeriodBreakdown(i))
+            .padding([8, 16])
+            .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+                let is_hovered = matches!(status, iced::widget::button::Status::Hovered | iced::widget::button::Status::Pressed);
+                iced::widget::button::Style {
+                    background: if is_active || is_hovered {
+                        Some(iced::Background::Color(theme::surface0()))
+                    } else {
+                        None
+                    },
+                    text_color: if is_active {
+                        theme::accent()
+                    } else if is_hovered {
+                        theme::text()
+                    } else {
+                        theme::subtext()
+                    },
+                    border: iced::Border {
+                        radius: 6.0.into(),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                }
+            });
+        period_tabs = period_tabs.push(tab_btn);
+    }
+
     let header = row![
         text(&breakdown.period_label)
             .font(crate::ui::icons::UI_FONT_BOLD)
