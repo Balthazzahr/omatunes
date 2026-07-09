@@ -75,4 +75,10 @@ pub const ICON_CHECK:         &str = "\u{f00c}";  // nf-fa-check
 pub const ICON_TIMES:         &str = "\u{f00d}";  // nf-fa-times
 pub const ICON_GLOBE:         &str = "\u{f0ac}";  // nf-fa-globe
 
+// Toast / milestone icons
+pub const ICON_HEADPHONES:   &str = "\u{f025}";  // nf-fa-headphones — Bronze
+pub const ICON_STAR:         &str = "\u{f005}";  // nf-fa-star — Silver
+pub const ICON_ARROW_UP:     &str = "\u{f062}";  // nf-fa-arrow_up
+pub const ICON_ARROW_DOWN:   &str = "\u{f063}";  // nf-fa-arrow_down
+
 
