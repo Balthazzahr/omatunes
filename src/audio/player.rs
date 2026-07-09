@@ -118,7 +118,7 @@ fn audio_thread(
     let device = match host.default_output_device() {
         Some(d) => d,
         None => {
-            let _ = event_tx.send(AudioEvent::Error("Nenhum dispositivo de áudio".into()));
+            let _ = event_tx.send(AudioEvent::Error("No audio device".into()));
             return;
         }
     };
@@ -329,7 +329,7 @@ fn decode_file(
 
     let probed = symphonia::default::get_probe()
         .format(&hint, mss, &fmt_opts, &MetadataOptions::default())
-        .map_err(|e| anyhow!("Formato não suportado: {e}"))?;
+        .map_err(|e| anyhow!("Unsupported format: {e}"))?;
 
     let mut format = probed.format;
 

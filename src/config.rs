@@ -180,7 +180,7 @@ fn read_or_default() -> Config {
     match toml::from_str::<Config>(&content) {
         Ok(c) => c,
         Err(e) => {
-            eprintln!("omatunes: config inválida ({e}), usando padrões");
+            eprintln!("omatunes: invalid config ({e}), using defaults");
             Config::default()
         }
     }
