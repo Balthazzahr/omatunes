@@ -670,11 +670,18 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
         let mut genre_minutes: HashMap<String, f64> = HashMap::new();
         let mut album_minutes: HashMap<String, f64> = HashMap::new();
 
+        let mut artist_tracks_count: HashMap<String, u32> = HashMap::new();
+        let mut genre_tracks_count: HashMap<String, u32> = HashMap::new();
+        let mut album_tracks_count: HashMap<String, u32> = HashMap::new();
+
         if *label == "All-Time" {
             total_plays += db.legacy_tracks;
             total_minutes += db.legacy_minutes;
             for (a, m) in &db.legacy_artist_minutes {
                 *artist_minutes.entry(a.clone()).or_default() += m;
+            }
+            for (a, t) in &db.legacy_artist_tracks {
+                *artist_tracks_count.entry(a.clone()).or_default() += t;
             }
         }
 
@@ -684,6 +691,9 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
                 total_minutes += day.total_minutes;
                 for (a, m) in &day.artist_minutes {
                     *artist_minutes.entry(a.clone()).or_default() += m;
+                }
+                for (a, t) in &day.artist_track_counts {
+                    *artist_tracks_count.entry(a.clone()).or_default() += t;
                 }
                 if day.genre_minutes.is_empty() {
                     let mut artist_genre_counts: HashMap<String, HashMap<String, usize>> = HashMap::new();
@@ -711,19 +721,40 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
                         *genre_minutes.entry(g.clone()).or_default() += m;
                     }
                 }
+                for (g, t) in &day.genre_track_counts {
+                    *genre_tracks_count.entry(g.clone()).or_default() += t;
+                }
                 for (al, m) in &day.album_minutes {
                     *album_minutes.entry(al.clone()).or_default() += m;
+                }
+                for (al, t) in &day.album_track_counts {
+                    *album_tracks_count.entry(al.clone()).or_default() += t;
                 }
             }
         }
 
-        let mut artist_list: Vec<(String, f64)> = artist_minutes.into_iter().collect();
+        let mut artist_list: Vec<(String, f64, u32)> = artist_minutes.into_iter()
+            .map(|(name, mins)| {
+                let count = artist_tracks_count.get(&name).cloned().unwrap_or(0);
+                (name, mins, count)
+            })
+            .collect();
         artist_list.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
         artist_list.truncate(TOP_N_BREAKDOWN);
-        let mut genre_list: Vec<(String, f64)> = genre_minutes.into_iter().collect();
+        let mut genre_list: Vec<(String, f64, u32)> = genre_minutes.into_iter()
+            .map(|(name, mins)| {
+                let count = genre_tracks_count.get(&name).cloned().unwrap_or(0);
+                (name, mins, count)
+            })
+            .collect();
         genre_list.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
         genre_list.truncate(TOP_N_BREAKDOWN);
-        let mut album_list: Vec<(String, f64)> = album_minutes.into_iter().collect();
+        let mut album_list: Vec<(String, f64, u32)> = album_minutes.into_iter()
+            .map(|(name, mins)| {
+                let count = album_tracks_count.get(&name).cloned().unwrap_or(0);
+                (name, mins, count)
+            })
+            .collect();
         album_list.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
         album_list.truncate(TOP_N_BREAKDOWN);
 
