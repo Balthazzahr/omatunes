@@ -169,6 +169,7 @@ pub fn add_playback_time(artist: &str, album: &str, genre: &str, secs: f64) {
 pub fn on_track_play(
     artist: &str,
     genre: &str,
+    album: &str,
     _track_path: PathBuf,
     _all_tracks: &[crate::library::models::Track],
 ) -> Vec<(String, String)> {
@@ -188,7 +189,7 @@ pub fn on_track_play(
             *c
         };
 
-        // 3. Running all-time genre counts
+        // 3. Running all-time genre counts + daily genre/album track counts
         let genre_names: Vec<String> = if genre.contains("; ") {
             genre.split("; ").map(|g| {
                 let clean = g.trim();
@@ -203,6 +204,10 @@ pub fn on_track_play(
             let c = db.all_time_genre_tracks.entry(gn.clone()).or_default();
             *c += 1;
             genre_totals.push((gn.clone(), *c));
+            *day.genre_track_counts.entry(gn.clone()).or_default() += 1;
+        }
+        if !album.is_empty() {
+            *day.album_track_counts.entry(album.to_string()).or_default() += 1;
         }
 
         // 4. Daily milestone check
