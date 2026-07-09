@@ -1593,6 +1593,7 @@ impl AppState {
                                     let toasts = crate::stats::on_track_play(
                                         &track.artist,
                                         &track.genre,
+                                        &track.album,
                                         track.path.clone(),
                                         &self.all_tracks,
                                     );
