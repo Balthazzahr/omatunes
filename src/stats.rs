@@ -68,6 +68,10 @@ pub struct StatsDb {
     pub legacy_album_minutes: HashMap<String, f64>,
     #[serde(default)]
     pub legacy_album_tracks: HashMap<String, u32>,
+
+    // One-time backfill: infer historical track-level play counts
+    #[serde(default)]
+    pub legacy_track_counts_populated: bool,
 }
 
 impl StatsDb {
