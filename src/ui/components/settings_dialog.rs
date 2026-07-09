@@ -56,13 +56,6 @@ fn section_header(label: &'static str) -> Element<'static, Message> {
 
 pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
     // ── Shared data ───────────────────────────────────────────────────────────
-    let languages = vec![
-        "auto".to_string(),
-        "en".to_string(),
-        "pt_BR".to_string(),
-        "es".to_string(),
-    ];
-
     let theme_sources = vec![
         "System".to_string(),
         "Preset".to_string(),
