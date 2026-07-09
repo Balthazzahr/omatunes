@@ -82,17 +82,34 @@ The same drawer also shows lyrics, synced or plain:
 
 ## Listening Statistics & Leaderboards
 
-OmaTUNES tracks your detailed listening history and provides aggregates and leaderboards within the right-side slide-out drawer tab (represented by the bar chart icon).
+OmaTUNES tracks your detailed listening history and provides a comprehensive statistics dashboard and leaderboard system within a dedicated breakdown modal.
 
-**Listening Statistics**
-- **Slices of Time**: View stats aggregated dynamically across five columns: **Songs** played, **Hours** listened, **Top Genre**, and **Top Artist** — segmented chronologically by **Today**, **This Week**, **This Month**, and **All-Time**.
-- **Interactive Browsing**: The Top Genre and Top Artist values render as clickable links. Clicking a genre or artist instantly takes you to your main Library view pre-filtered by that specific criteria.
-- **Sizing Bounds**: The statistics table scales dynamically to fill the available drawer height and width, maintaining a clean 16px margin on all sides. The player split height is locked to a minimum floor of 330px to guarantee the table rows always have room to render cleanly.
+**Accessing Statistics**
+- Click the **Listening Statistics** icon (the bar-chart icon) located in the top-right toolbar. This opens a modal overlay displaying the **Leaderboards** panel.
 
-**Leaderboards**
-- Click the podium tab at the bottom of the statistics drawer to toggle the Leaderboards panel.
-- Shows your **Monthly Top 5** and **All-Time Top 10** artists sorted by total minutes played, formatted as: `Artist Name — Xh Ym (N tracks)`.
-- Features Gold, Silver, and Bronze highlighting for the top 3 spots to represent rankings.
+**The Leaderboards Modal**
+- **Period Tabs**: Select from **Day**, **Week**, **This Month**, or **All-Time** tabs at the top to see statistics aggregated chronologically for that window.
+- **Header Info**: The header displays a clean summary for the selected period: `{Period Name} - {Track Count} Tracks | {Hours} Played`.
+- **Three-Column Dashboard**: Displays your top 10 rankings side-by-side for three distinct categories:
+  - **Top Artists**
+  - **Top Albums**
+  - **Top Genres**
+- **Rank Highlights**: Ranks 1 to 10 are listed with Gold, Silver, and Bronze highlighting for the top 3 podium finishes alongside category-specific Nerd Font icons.
+- **Data Formatting**: Displays the entity name, track count, and formatted hours played (right-aligned).
+
+**Drill-Down Song Breakdown**
+- Clicking any leaderboard entry (any Artist, Album, or Genre) launches a detailed, scrollable sub-window showing the **Top 100 Songs** by play count for that selection.
+- Displays track ranks, song titles, subtitles (Album/Artist details), play counts, and total estimated listening minutes.
+- Includes a **Back Arrow** button in the top-left to return to the main leaderboard view, and a close button on the right to close the modal entirely.
+- Integrates complete click-through prevention to absorb mouse events so underlying screen rows are not selected accidentally.
+
+**Milestone Toasts & Change Notifications**
+- **Persistent Milestone Notifications**: Real-time popups notify you when you cross milestones:
+  - **Daily milestones**: 25, 50, or 100 tracks played in a single day.
+  - **Artist milestones**: 50, 100, 500, or 1000 plays for a single artist.
+  - **Genre milestones**: 50, 100, 500, or 1000 plays for a single genre.
+- **Ladder Change Detection**: Automatically checks your top-10 all-time artist rankings at the start of a listening session and alerts you with a notification if an artist climbs or drops positions.
+- **Hourly Nudges**: Displays a "Time Flies" reminder toast at the completion of every consecutive hour of an active listening session.
 
 ---
 
@@ -112,7 +129,7 @@ Right-click any artist or album row for a quick menu: hide it from your browsing
 
 This is where you actually see your tracks. A few things worth knowing:
 
-**Group by Tray** — Hover the grouping capsule in the bottom-right corner of the track list to expand the tray, allowing you to cluster tracks dynamically by **Album**, **Artist**, **Genre**, or **Year** under row headers. Clear the grouping by clicking the base icon or the active grouping option to collapse back to a flat view. Your grouping preference is remembered automatically between sessions.
+**Group by Tray** — Hover the grouping capsule in the bottom-right corner of the track list to expand the tray, allowing you to cluster tracks dynamically by **Album**, **Artist**, **Genre**, or **Year** under row headers. Selecting any grouping option automatically sorts your library by that group. While grouped, clicking on any table column header (such as Track Number, Plays, or Title) will sort the tracks *within* each group, while the groups themselves remain in their correct order. Clear the grouping by clicking the base icon or the active grouping option to collapse back to a flat view. Your grouping preference is remembered automatically between sessions.
 
 **Columns** — click and drag a column header to reorder it, right where you want it. Right-click a header for the column menu, which now handles show/hide toggles only (reordering moved to drag-and-drop, since dragging is faster than hunting through a menu). Your column order and visibility choices are saved automatically.
 
