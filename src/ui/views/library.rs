@@ -2087,13 +2087,12 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     }
     right_controls = right_controls.push(search_toggle_btn);
     let right_controls_el: Element<'_, Message> = right_controls
-        .padding(iced::Padding { top: 0.0, right: 8.0, bottom: 0.0, left: 16.0 })
+        .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 0.0, left: 16.0 })
         .into();
 
     let right_bar = row![
         now_playing_tab,
         right_controls_el,
-        Space::with_width(4.0),
         stats_btn,
         settings_btn,
         Space::with_width(12.0)
