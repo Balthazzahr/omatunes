@@ -5,7 +5,7 @@ use std::sync::{Mutex, OnceLock};
 use iced::widget::container;
 use iced::{Border, Color};
 
-// ── Paleta ───────────────────────────────────────────────────────────────────
+// ── Palette ──────────────────────────────────────────────────────────────────
 
 static PALETTE: OnceLock<Mutex<Palette>> = OnceLock::new();
 
@@ -408,7 +408,7 @@ fn home_dir() -> Option<PathBuf> {
     std::env::var("HOME").ok().map(PathBuf::from)
 }
 
-// ── Acessores de cor ─────────────────────────────────────────────────────────
+// ── Color accessors ──────────────────────────────────────────────────────────
 
 macro_rules! color_fn {
     ($name:ident, $field:ident) => {
