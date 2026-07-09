@@ -1149,5 +1149,6 @@ pub fn song_breakdown_view(
 
     mouse_area(outer)
         .interaction(iced::mouse::Interaction::Idle)
+        .on_press(Message::Noop)
         .into()
 }

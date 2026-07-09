@@ -3972,6 +3972,8 @@ impl AppState {
                 Task::none()
             }
 
+            Message::Noop => Task::none(),
+
             Message::SelectArtistFromBreakdown(artist) => {
                 self.breakdown_song_view = Some(("Artist".to_string(), artist));
                 Task::none()
