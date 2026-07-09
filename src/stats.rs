@@ -954,7 +954,7 @@ pub fn get_song_breakdown(
                 let matches = match category {
                     "Artist" => track.artist == name,
                     "Album" => track.album == name,
-                    "Genre" => track.genres().any(|g| g.trim() == name),
+                    "Genre" => track.genres().iter().any(|g| g.trim() == name),
                     _ => false,
                 };
                 if matches {

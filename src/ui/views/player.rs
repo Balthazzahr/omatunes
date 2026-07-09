@@ -960,12 +960,12 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown, active_p
     .into()
 }
 
-pub fn song_breakdown_view(
-    category: &str,
-    name: &str,
+pub fn song_breakdown_view<'a>(
+    category: &'a str,
+    name: &'a str,
     period_idx: usize,
-    all_tracks: &[crate::library::models::Track],
-) -> Element<'_, Message> {
+    all_tracks: &'a [crate::library::models::Track],
+) -> Element<'a, Message> {
     use iced::Color;
 
     let items = crate::stats::get_song_breakdown(category, name, period_idx, all_tracks);
