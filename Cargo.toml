@@ -13,13 +13,13 @@ symphonia = { version = "0.5", features = ["all"] }
 # Audio — output
 cpal = "0.15"
 
-# Tags / metadados
+# Tags / metadata
 lofty = "0.21"
 
 # MPRIS2 (D-Bus)
 mpris-server = "0.8"
 
-# FFT para visualizador de espectro
+# FFT for spectrum visualizer
 rustfft = "6.2"
 
 # Scanner de diretório
