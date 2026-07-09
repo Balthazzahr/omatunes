@@ -662,24 +662,50 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
         .spacing(0)
         .height(Length::Fill),
     )
-    .height(Length::Fixed(500.0));
+    .height(Length::Fill);
+
+    let close_btn = button(
+        text(ICON_TIMES)
+            .font(NERD_FONT_MONO)
+            .size(16)
+    )
+    .on_press(Message::CloseSettings)
+    .padding(6)
+    .style(|_theme: &iced::Theme, status: iced::widget::button::Status| {
+        let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+        iced::widget::button::Style {
+            background: if is_hovered { Some(iced::Background::Color(theme::surface0())) } else { None },
+            text_color: if is_hovered { theme::accent() } else { theme::text() },
+            border: iced::Border {
+                radius: 4.0.into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        }
+    });
 
     let dialog_content = column![
-        text("App Settings")
-            .size(20)
-            .font(UI_FONT_BOLD)
-            .color(theme::accent()),
+        row![
+            text("App Settings")
+                .size(20)
+                .font(UI_FONT_BOLD)
+                .color(theme::accent()),
+            Space::with_width(Length::Fill),
+            close_btn,
+        ]
+        .align_y(Alignment::Center),
         Space::with_height(16),
         body,
         Space::with_height(20),
         buttons,
     ]
-    .height(Length::Shrink);
+    .height(Length::Fill);
 
     container(
         container(dialog_content)
             .width(800)
-            .max_height(600)
+            .height(Length::Fill)
+            .max_height(450)
             .padding(24)
             .style(|_| iced::widget::container::Style {
                 background: Some(iced::Background::Color(theme::mantle())),
@@ -701,3 +727,4 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
     })
     .into()
 }
+
