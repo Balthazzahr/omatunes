@@ -271,6 +271,7 @@ pub enum Message {
     SelectAlbumFromBreakdown(String),
     SelectGenreFromBreakdown(String),
     CloseBreakdownSongView,
+    Noop,
 
     OpenSettings,
     CloseSettings,
