@@ -187,7 +187,7 @@ pub fn load_palette_from_config() -> Palette {
         }
         _ => { // "System"
             try_load_omarchy_theme().unwrap_or_else(|| {
-                eprintln!("omatunes: tema Omarchy não encontrado, usando lavender padrão");
+                eprintln!("omatunes: Omarchy theme not found, using default lavender");
                 Palette::default_lavender()
             })
         }
@@ -237,7 +237,7 @@ fn try_load_omarchy_theme() -> Option<Palette> {
         .or_else(|_| std::fs::read_to_string(&system_path))
         .ok()?;
 
-    eprintln!("omatunes: carregando tema \"{}\"", theme_name);
+    eprintln!("omatunes: loading theme \"{}\"", theme_name);
     parse_colors_toml(&content)
 }
 
