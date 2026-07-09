@@ -970,11 +970,22 @@ pub fn song_breakdown_view(
 
     let items = crate::stats::get_song_breakdown(category, name, period_idx, all_tracks);
 
-    let text_size: u16 = 16;
-    let small_size: u16 = 14;
+    let text_size: u16 = 15;
+    let small_size: u16 = 13;
     let total_items = items.len();
 
-    let mut song_list = column![].spacing(4).width(Length::Fill);
+    fn format_song_mins(plays: u32) -> String {
+        let mins = plays as f64 * 4.0;
+        let h = (mins / 60.0).floor() as u64;
+        let m = (mins as u64) % 60;
+        if h > 0 {
+            format!("{}h {}m", h, m)
+        } else {
+            format!("{}m", m)
+        }
+    }
+
+    let mut song_list = column![].spacing(3).width(Length::Fill);
 
     for (i, item) in items.into_iter().enumerate() {
         let rank = i + 1;
@@ -995,6 +1006,8 @@ pub fn song_breakdown_view(
             _ => item.artist.clone(),
         };
 
+        let stats_text = format!("{} plays \u{2022} {}", item.play_count, format_song_mins(item.play_count));
+
         let row_item = row![
             text(format!("{:>2}", rank))
                 .font(crate::ui::icons::NERD_FONT_MONO)
@@ -1005,7 +1018,7 @@ pub fn song_breakdown_view(
                 .font(crate::ui::icons::NERD_FONT_MONO)
                 .size(text_size)
                 .color(theme::text()),
-            Space::with_width(4),
+            Space::with_width(6),
             column![
                 text(item.title)
                     .font(crate::ui::icons::UI_FONT)
@@ -1020,10 +1033,9 @@ pub fn song_breakdown_view(
             ]
             .spacing(0)
             .width(Length::Fill),
-            Space::with_width(8),
-            text(format!("{} plays", item.play_count))
-                .font(crate::ui::icons::UI_FONT_BOLD)
-                .size(text_size)
+            text(stats_text)
+                .font(crate::ui::icons::UI_FONT)
+                .size(small_size)
                 .color(theme::overlay0())
                 .align_x(iced::alignment::Horizontal::Right),
         ]
@@ -1045,33 +1057,61 @@ pub fn song_breakdown_view(
         }
     }
 
+    let close_btn = |msg: Message| {
+        button(
+            text("\u{f00d}")
+                .font(crate::ui::icons::NERD_FONT_MONO)
+                .size(18)
+        )
+        .on_press(msg)
+        .padding(6)
+        .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+            iced::widget::button::Style {
+                background: if is_hovered { Some(iced::Background::Color(theme::surface0())) } else { None },
+                text_color: if is_hovered { theme::accent() } else { theme::text() },
+                border: iced::Border {
+                    radius: 4.0.into(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            }
+        })
+    };
+
+    let back_btn = |msg: Message| {
+        button(
+            text("\u{f060}")
+                .font(crate::ui::icons::NERD_FONT_MONO)
+                .size(18)
+                .color(theme::accent()),
+        )
+        .on_press(msg)
+        .padding(6)
+        .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+            iced::widget::button::Style {
+                background: if is_hovered { Some(iced::Background::Color(theme::surface0())) } else { None },
+                text_color: if is_hovered { theme::accent() } else { theme::text() },
+                border: iced::Border {
+                    radius: 4.0.into(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            }
+        })
+    };
+
     let content = column![
         row![
-            button(
-                text("\u{f060}")
-                    .font(crate::ui::icons::NERD_FONT_MONO)
-                    .size(18)
-                    .color(theme::accent()),
-            )
-            .on_press(Message::CloseBreakdownSongView)
-            .padding(6)
-            .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
-                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-                iced::widget::button::Style {
-                    background: if is_hovered { Some(iced::Background::Color(theme::surface0())) } else { None },
-                    text_color: if is_hovered { theme::accent() } else { theme::text() },
-                    border: iced::Border {
-                        radius: 4.0.into(),
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                }
-            }),
+            back_btn(Message::CloseBreakdownSongView),
             Space::with_width(12),
             text(format!("{} \u{2014} Song Breakdown", name))
                 .font(crate::ui::icons::UI_FONT_BOLD)
                 .size(20)
                 .color(theme::accent()),
+            Space::with_width(Length::Fill),
+            close_btn(Message::ClosePeriodBreakdown),
         ]
         .align_y(Alignment::Center),
         Space::with_height(16),
@@ -1083,28 +1123,31 @@ pub fn song_breakdown_view(
         scrollable(song_list).height(Length::Fill),
     ];
 
-    container(
-        container(content)
-            .padding(28)
-            .max_width(1500)
-            .max_height(575)
-            .style(|_| iced::widget::container::Style {
-                background: Some(iced::Background::Color(theme::mantle())),
-                border: iced::Border {
-                    color: theme::surface0(),
-                    width: 1.0,
-                    radius: 8.0.into(),
-                },
-                ..Default::default()
-            })
-    )
-    .width(Length::Fill)
-    .height(Length::Fill)
-    .center_x(Length::Fill)
-    .center_y(Length::Fill)
-    .style(|_| iced::widget::container::Style {
-        background: Some(iced::Background::Color(theme::with_alpha(theme::base(), 0.8))),
-        ..Default::default()
-    })
-    .into()
+    let inner = container(content)
+        .padding(28)
+        .max_width(1500)
+        .max_height(575)
+        .style(|_| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::mantle())),
+            border: iced::Border {
+                color: theme::surface0(),
+                width: 1.0,
+                radius: 8.0.into(),
+            },
+            ..Default::default()
+        });
+
+    let outer = container(inner)
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .center_x(Length::Fill)
+        .center_y(Length::Fill)
+        .style(|_| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::with_alpha(theme::base(), 0.8))),
+            ..Default::default()
+        });
+
+    mouse_area(outer)
+        .interaction(iced::mouse::Interaction::Idle)
+        .into()
 }
