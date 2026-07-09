@@ -7,10 +7,10 @@ edition = "2021"
 # GUI
 iced = { version = "0.13", features = ["image", "canvas", "tokio", "lazy"] }
 
-# Áudio — decode
+# Audio — decode
 symphonia = { version = "0.5", features = ["all"] }
 
-# Áudio — output
+# Audio — output
 cpal = "0.15"
 
 # Tags / metadados
