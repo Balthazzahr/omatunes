@@ -254,8 +254,8 @@ pub fn on_track_play(
     artist: &str,
     genre: &str,
     album: &str,
-    _track_path: PathBuf,
-    _all_tracks: &[crate::library::models::Track],
+    track_path: PathBuf,
+    all_tracks: &[crate::library::models::Track],
 ) -> Vec<(String, String)> {
     let mut toasts: Vec<(String, String)> = Vec::new();
     let date_str = chrono::Local::now().format("%Y-%m-%d").to_string();
@@ -265,6 +265,7 @@ pub fn on_track_play(
         let day = db.daily_buckets.entry(date_str.clone()).or_default();
         day.track_play_count += 1;
         *day.artist_track_counts.entry(artist.to_string()).or_default() += 1;
+        *day.track_play_counts.entry(track_path).or_default() += 1;
 
         // 2. Running all-time artist count
         let artist_total = {
@@ -290,8 +291,9 @@ pub fn on_track_play(
             genre_totals.push((gn.clone(), *c));
             *day.genre_track_counts.entry(gn.clone()).or_default() += 1;
         }
-        if !album.is_empty() {
-            *day.album_track_counts.entry(album.to_string()).or_default() += 1;
+        let clean_album_track = album.trim();
+        if !clean_album_track.is_empty() {
+            *day.album_track_counts.entry(clean_album_track.to_string()).or_default() += 1;
         }
 
         // 4. Daily milestone check
