@@ -270,6 +270,7 @@ pub enum Message {
     SelectArtistFromBreakdown(String),
     SelectAlbumFromBreakdown(String),
     SelectGenreFromBreakdown(String),
+    CloseBreakdownSongView,
 
     OpenSettings,
     CloseSettings,
@@ -605,6 +606,7 @@ pub struct AppState {
     pub last_accumulated_position: Duration,
     pub show_period_breakdown: Option<crate::stats::PeriodBreakdown>,
     pub breakdown_period_idx: usize,
+    pub breakdown_song_view: Option<(String, String)>,
     pub active_notifications: Vec<StatsNotification>,
     pub next_notification_id: u64,
     pub last_checked_hour: Option<u32>,
