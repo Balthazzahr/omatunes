@@ -46,10 +46,10 @@ rfd = "0.15"
 # Async traits
 async-trait = "0.1"
 
-# Gerador de números aleatórios (shuffle)
+# Random number generator (shuffle)
 rand = "0.8"
 
-# Data e Hora para Recently Played
+# Date and time for Recently Played
 chrono = { version = "0.4", features = ["serde"] }
 
 [profile.release]
