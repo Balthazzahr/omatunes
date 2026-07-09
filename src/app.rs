@@ -604,6 +604,7 @@ pub struct AppState {
     pub queue_scroll_id: scrollable::Id,
     pub last_accumulated_position: Duration,
     pub show_period_breakdown: Option<crate::stats::PeriodBreakdown>,
+    pub breakdown_period_idx: usize,
     pub active_notifications: Vec<StatsNotification>,
     pub next_notification_id: u64,
     pub last_checked_hour: Option<u32>,
@@ -825,6 +826,7 @@ impl AppState {
             queue_scroll_id: scrollable::Id::unique(),
             last_accumulated_position: Duration::ZERO,
             show_period_breakdown: None,
+            breakdown_period_idx: 0,
             active_notifications: Vec::new(),
             next_notification_id: 0,
             last_checked_hour: {
