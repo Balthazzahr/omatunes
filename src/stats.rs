@@ -189,7 +189,7 @@ pub fn backfill_album_data(tracks: &[crate::library::models::Track]) {
     }
 
     write(|db| {
-        if db.populated_legacy_albums {
+        if db.legacy_albums_populated_v2 {
             return;
         }
 
@@ -217,7 +217,7 @@ pub fn backfill_album_data(tracks: &[crate::library::models::Track]) {
             }
         }
 
-        // Backfill day buckets that lack album_minutes
+        // Backfill day buckets: handle album_minutes and album_track_counts separately
         for (_, day) in &mut db.daily_buckets {
             if day.album_minutes.is_empty() {
                 for (artist, mins) in &day.artist_minutes.clone() {
@@ -230,6 +230,8 @@ pub fn backfill_album_data(tracks: &[crate::library::models::Track]) {
                         }
                     }
                 }
+            }
+            if day.album_track_counts.is_empty() {
                 for (artist, count) in &day.artist_track_counts.clone() {
                     if let Some(albums) = artist_albums.get(artist) {
                         if !albums.is_empty() {
@@ -243,7 +245,7 @@ pub fn backfill_album_data(tracks: &[crate::library::models::Track]) {
             }
         }
 
-        db.populated_legacy_albums = true;
+        db.legacy_albums_populated_v2 = true;
     });
     flush();
 }
