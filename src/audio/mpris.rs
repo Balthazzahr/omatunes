@@ -54,7 +54,7 @@ pub fn launch(
             {
                 Ok(p) => p,
                 Err(e) => {
-                    eprintln!("MPRIS: falha ao registrar no D-Bus: {e}");
+                    eprintln!("MPRIS: failed to register on D-Bus: {e}");
                     return;
                 }
             };
