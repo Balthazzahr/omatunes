@@ -20,6 +20,10 @@ pub struct DayStats {
     pub album_minutes: HashMap<String, f64>,
     #[serde(default)]
     pub longest_session_minutes: f64,
+    #[serde(default)]
+    pub genre_track_counts: HashMap<String, u32>,
+    #[serde(default)]
+    pub album_track_counts: HashMap<String, u32>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -628,12 +632,12 @@ pub struct PeriodBreakdown {
     pub period_label: String,
     pub total_minutes: f64,
     pub total_plays: u32,
-    pub artist_minutes: Vec<(String, f64)>,
-    pub genre_minutes: Vec<(String, f64)>,
-    pub album_minutes: Vec<(String, f64)>,
+    pub artist_minutes: Vec<(String, f64, u32)>,
+    pub genre_minutes: Vec<(String, f64, u32)>,
+    pub album_minutes: Vec<(String, f64, u32)>,
 }
 
-const TOP_N_BREAKDOWN: usize = 25;
+const TOP_N_BREAKDOWN: usize = 10;
 
 pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models::Track]) -> PeriodBreakdown {
     get(|db| {
