@@ -1033,16 +1033,15 @@ pub fn song_breakdown_view<'a>(
         song_list = song_list.push(row_item);
 
         if i < items.len() - 1 {
-            song_list = song_list.push(
-                container(Space::with_height(0))
-                    .width(Length::Fill)
-                    .height(1)
-                    .style(|_| iced::widget::container::Style {
-                        background: Some(iced::Background::Color(theme::surface0())),
-                        ..Default::default()
-                    })
-                    .into() as Element<'_, Message>
-            );
+            let sep: Element<'_, Message> = container(Space::with_height(0))
+                .width(Length::Fill)
+                .height(1)
+                .style(|_| iced::widget::container::Style {
+                    background: Some(iced::Background::Color(theme::surface0())),
+                    ..Default::default()
+                })
+                .into();
+            song_list = song_list.push(sep);
         }
     }
 
