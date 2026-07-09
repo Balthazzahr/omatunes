@@ -162,17 +162,195 @@ pub fn add_playback_time(artist: &str, album: &str, genre: &str, secs: f64) {
     });
 }
 
-pub fn add_track_play(artist: &str, track_path: PathBuf) {
+pub fn on_track_play(
+    artist: &str,
+    genre: &str,
+    track_path: PathBuf,
+    all_tracks: &[crate::library::models::Track],
+) -> Vec<(String, String)> {
+    let mut toasts: Vec<(String, String)> = Vec::new();
     let date_str = chrono::Local::now().format("%Y-%m-%d").to_string();
-    
+
     write(|db| {
-        let day = db.daily_buckets.entry(date_str).or_default();
+        // 1. Daily bucket
+        let day = db.daily_buckets.entry(date_str.clone()).or_default();
         day.track_play_count += 1;
-        
-        let artist_count = day.artist_track_counts.entry(artist.to_string()).or_default();
-        *artist_count += 1;
-        
+        *day.artist_track_counts.entry(artist.to_string()).or_default() += 1;
+
+        // 2. Running all-time artist count
+        let artist_total = {
+            let c = db.all_time_artist_tracks.entry(artist.to_string()).or_default();
+            *c += 1;
+            *c
+        };
+
+        // 3. Running all-time genre counts
+        let genre_names: Vec<String> = if genre.contains("; ") {
+            genre.split("; ").map(|g| {
+                let clean = g.trim();
+                if clean.is_empty() { "Unknown".to_string() } else { clean.to_string() }
+            }).collect()
+        } else {
+            let clean = genre.trim();
+            vec![if clean.is_empty() { "Unknown".to_string() } else { clean.to_string() }]
+        };
+        let mut genre_totals: Vec<(String, u32)> = Vec::new();
+        for gn in &genre_names {
+            let c = db.all_time_genre_tracks.entry(gn.clone()).or_default();
+            *c += 1;
+            genre_totals.push((gn.clone(), *c));
+        }
+
+        // 4. Daily milestone check
+        let daily_awarded = db.daily_milestones_awarded.entry(date_str).or_default();
+        for &thresh in &[25u32, 50, 100] {
+            if day.track_play_count == thresh && !daily_awarded.contains(&thresh) {
+                daily_awarded.insert(thresh);
+                let (title_suffix, icon) = match thresh {
+                    25 => ("Bronze", "\u{f025}"),
+                    50 => ("Silver", "\u{f005}"),
+                    100 => ("Gold", "\u{f091}"),
+                    _ => unreachable!(),
+                };
+                toasts.push((
+                    format!("{} Milestone", title_suffix),
+                    format!("You have listened to {} songs today! {}", thresh, icon),
+                ));
+            }
+        }
+
+        // 5. Artist milestone check
+        let artist_awarded = db.artist_milestones_awarded.entry(artist.to_string()).or_default();
+        for &thresh in &[50u32, 100, 500, 1000] {
+            if artist_total == thresh {
+                let key = thresh.to_string();
+                if !artist_awarded.contains(&key) {
+                    artist_awarded.insert(key);
+                    let (tier, icon) = match thresh {
+                        50 => ("Bronze", "\u{f025}"),
+                        100 => ("Silver", "\u{f005}"),
+                        500 => ("Gold", "\u{f091}"),
+                        1000 => ("Platinum", "\u{f053f}"),
+                        _ => unreachable!(),
+                    };
+                    toasts.push((
+                        format!("{} Milestone \u{2013} {}", tier, artist),
+                        format!("{} has been played {} times! {}", artist, thresh, icon),
+                    ));
+                }
+            }
+        }
+
+        // 6. Genre milestone check
+        for (gn, total) in &genre_totals {
+            let genre_awarded = db.genre_milestones_awarded.entry(gn.clone()).or_default();
+            for &thresh in &[50u32, 100, 500, 1000] {
+                if *total == thresh {
+                    let key = thresh.to_string();
+                    if !genre_awarded.contains(&key) {
+                        genre_awarded.insert(key);
+                        let (tier, icon) = match thresh {
+                            50 => ("Bronze", "\u{f025}"),
+                            100 => ("Silver", "\u{f005}"),
+                            500 => ("Gold", "\u{f091}"),
+                            1000 => ("Platinum", "\u{f053f}"),
+                            _ => unreachable!(),
+                        };
+                        toasts.push((
+                            format!("{} Milestone \u{2013} {}", tier, gn),
+                            format!("{} genre has been played {} times! {}", gn, thresh, icon),
+                        ));
+                    }
+                }
+            }
+        }
+
+        // 7. Top-10 ladder change check
+        // Build current all-time leaderboard by minutes
+        let mut all_artist_minutes: HashMap<String, f64> = db.legacy_artist_minutes.clone();
+        for (_, day) in &db.daily_buckets {
+            for (a, m) in &day.artist_minutes {
+                *all_artist_minutes.entry(a.clone()).or_default() += m;
+            }
+        }
+        let mut ranked: Vec<(String, f64)> = all_artist_minutes.into_iter().collect();
+        ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        ranked.truncate(10);
+
+        let prev = &db.previous_top_10_snapshot;
+        if !prev.is_empty() && prev != &ranked {
+            let prev_artists: Vec<&str> = prev.iter().map(|(a, _)| a.as_str()).collect();
+            let cur_artists: Vec<&str> = ranked.iter().map(|(a, _)| a.as_str()).collect();
+
+            for (i, artist_name) in cur_artists.iter().enumerate() {
+                if i >= prev_artists.len() {
+                    // New entry beyond previous top 10's length - shouldn't happen since both are length 10
+                    break;
+                }
+                if *artist_name != prev_artists[i] {
+                    // Found first position where they differ
+                    let new_pos = i + 1;
+                    let displaced = prev_artists[i];
+
+                    // Find where the mover was before
+                    let old_pos = prev_artists.iter().position(|&a| a == *artist_name)
+                        .map(|p| p + 1);
+
+                    // Find where the displaced went
+                    let displaced_new_pos = cur_artists.iter().position(|&a| a == displaced)
+                        .map(|p| p + 1);
+
+                    let ladder_title = "LADDER CHANGE".to_string();
+                    let mut msg_parts = Vec::new();
+
+                    match old_pos {
+                        Some(from) => {
+                            msg_parts.push(format!(
+                                "{} has knocked {} out of the #{} spot",
+                                artist_name, displaced, new_pos
+                            ));
+                            msg_parts.push(format!(
+                                "\n  \u{f062} {} \u{2192} #{}",
+                                artist_name, new_pos
+                            ));
+                            match displaced_new_pos {
+                                Some(dp) => {
+                                    msg_parts.push(format!("  \u{f063} {} \u{2192} #{}", displaced, dp));
+                                }
+                                None => {
+                                    msg_parts.push(format!("  \u{f063} {} out of Top 10", displaced));
+                                }
+                            }
+                        }
+                        None => {
+                            // New entry to top 10
+                            msg_parts.push(format!(
+                                "{} has entered the Top 10 at #{}!",
+                                artist_name, new_pos
+                            ));
+                            match displaced_new_pos {
+                                Some(dp) => {
+                                    msg_parts.push(format!(
+                                        "  {} has been pushed to #{}",
+                                        displaced, dp
+                                    ));
+                                }
+                                None => {
+                                    msg_parts.push(format!("  {} has dropped out of Top 10", displaced));
+                                }
+                            }
+                        }
+                    }
+
+                    toasts.push((ladder_title, msg_parts.join("\n")));
+                    break; // Only one ladder toast per track play
+                }
+            }
+        }
+        db.previous_top_10_snapshot = ranked;
     });
+
+    toasts
 }
 
 // ── Aggregation & Query Functions ─────────────────────────────────────────────
