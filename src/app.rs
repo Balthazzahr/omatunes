@@ -5365,6 +5365,35 @@ impl AppState {
         if !self.active_notifications.is_empty() {
             let mut toasts_col = column![].spacing(8);
             for n in &self.active_notifications {
+                let close_btn = button(
+                    text("\u{f00d}")
+                        .size(12)
+                        .font(crate::ui::icons::NERD_FONT_MONO)
+                        .color(theme::subtext())
+                )
+                .on_press(Message::DismissNotification(n.id))
+                .padding(4)
+                .style(|_, status| {
+                    let is_hovered = matches!(status, iced::widget::button::Status::Hovered);
+                    iced::widget::button::Style {
+                        background: None,
+                        text_color: if is_hovered { theme::accent() } else { theme::subtext() },
+                        border: iced::Border::default(),
+                        ..Default::default()
+                    }
+                });
+
+                let msg_lines: Vec<&str> = n.message.split('\n').collect();
+                let mut msg_col = column![].spacing(2);
+                for line in msg_lines {
+                    msg_col = msg_col.push(
+                        text(line)
+                            .size(13)
+                            .font(crate::ui::icons::UI_FONT)
+                            .color(theme::text())
+                    );
+                }
+
                 let toast_card = container(
                     column![
                         row![
@@ -5376,18 +5405,17 @@ impl AppState {
                             text(&n.title)
                                 .size(14)
                                 .font(crate::ui::icons::UI_FONT_BOLD)
-                                .color(theme::accent()),
+                                .color(theme::accent())
+                                .width(Length::Fill),
+                            close_btn,
                         ]
                         .align_y(Alignment::Center),
                         Space::with_height(6),
-                        text(&n.message)
-                            .size(13)
-                            .font(crate::ui::icons::UI_FONT)
-                            .color(theme::text())
+                        msg_col,
                     ]
                     .spacing(0)
                 )
-                .width(Length::Fixed(300.0))
+                .width(Length::Fixed(360.0))
                 .padding(12)
                 .style(|_| iced::widget::container::Style {
                     background: Some(iced::Background::Color(theme::surface0())),
