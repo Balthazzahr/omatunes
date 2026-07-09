@@ -250,6 +250,44 @@ pub fn backfill_album_data(tracks: &[crate::library::models::Track]) {
         }
 
         db.legacy_albums_populated_v2 = true;
+
+        // One-time backfill: infer historical track_play_counts from artist_track_counts
+        if !db.legacy_track_counts_populated {
+            // Build artist→tracks mapping from library
+            let mut artist_tracks_map: HashMap<String, Vec<std::path::PathBuf>> = HashMap::new();
+            for track in tracks {
+                if !track.artist.is_empty() {
+                    artist_tracks_map
+                        .entry(track.artist.clone())
+                        .or_default()
+                        .push(track.path.clone());
+                }
+            }
+
+            // Backfill day buckets
+            for (_, day) in &mut db.daily_buckets {
+                if day.track_play_counts.is_empty() && !day.artist_track_counts.is_empty() {
+                    for (artist, count) in &day.artist_track_counts.clone() {
+                        if *count > 0 {
+                            if let Some(track_paths) = artist_tracks_map.get(artist) {
+                                if !track_paths.is_empty() {
+                                    let per_track = *count / track_paths.len() as u32;
+                                    let remainder = *count % track_paths.len() as u32;
+                                    for (j, path) in track_paths.iter().enumerate() {
+                                        let this_track = if (j as u32) < remainder { per_track + 1 } else { per_track };
+                                        if this_track > 0 {
+                                            *day.track_play_counts.entry(path.clone()).or_default() += this_track;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            db.legacy_track_counts_populated = true;
+        }
     });
     flush();
 }
