@@ -447,7 +447,7 @@ pub fn lerp_color(a: Color, b: Color, t: f32) -> Color {
     }
 }
 
-// ── Estilos de Container ──────────────────────────────────────────────────────
+// ── Container Styles ─────────────────────────────────────────────────────────
 
 pub fn card(_: &iced::Theme) -> container::Style {
     container::Style {
