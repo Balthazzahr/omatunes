@@ -22,16 +22,16 @@ mpris-server = "0.8"
 # FFT for spectrum visualizer
 rustfft = "6.2"
 
-# Scanner de diretório
+# Directory scanner
 walkdir = "2"
 
 # Async runtime
 tokio = { version = "1", features = ["full"] }
 
-# Processamento de imagem (capas de álbum)
+# Image processing (album covers)
 image = "0.25"
 
-# Erros ergonômicos
+# Error handling
 thiserror = "2"
 anyhow = "1"
 
