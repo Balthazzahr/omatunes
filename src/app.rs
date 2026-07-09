@@ -1653,7 +1653,7 @@ impl AppState {
                                 }
                             }
                         }
-                        AudioEvent::Error(e) => eprintln!("Erro de áudio: {e}"),
+                        AudioEvent::Error(e) => eprintln!("Audio error: {e}"),
                         AudioEvent::Playing { .. } => {
                             self.playback_state = PlaybackState::Playing;
                         }
