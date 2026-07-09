@@ -102,9 +102,6 @@ volume = 0.8
 shuffle = false
 repeat = false
 
-# Language ("auto", "en", "pt_BR", "es")
-language = "auto"
-
 # Seek / Volume steps
 seek_step = 5
 volume_step = 0.05

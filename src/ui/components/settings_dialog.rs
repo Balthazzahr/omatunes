@@ -3,7 +3,7 @@ use iced::{Alignment, Element, Length};
 
 use crate::app::{Message, SettingsState, SettingsTab};
 use crate::ui::theme;
-use crate::ui::icons::{ICON_LIBRARY, ICON_SLIDERS, ICON_MONITOR, ICON_PALETTE, ICON_KEYBOARD, ICON_FOLDER, ICON_AUTO_SCAN, ICON_VOLUME_HIGH, ICON_CHECK, ICON_TIMES, ICON_GLOBE, NERD_FONT_MONO, UI_FONT_BOLD, UI_FONT};
+use crate::ui::icons::{ICON_LIBRARY, ICON_SLIDERS, ICON_MONITOR, ICON_PALETTE, ICON_KEYBOARD, ICON_FOLDER, ICON_AUTO_SCAN, ICON_VOLUME_HIGH, ICON_CHECK, ICON_TIMES, NERD_FONT_MONO, UI_FONT_BOLD, UI_FONT};
 
 fn tab_button<'a>(
     icon: &'static str,
