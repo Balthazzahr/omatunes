@@ -272,14 +272,6 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
         }
 
         SettingsTab::Display => {
-            let lang_pick = pick_list(
-                languages,
-                Some(state.language.clone()),
-                Message::SettingsLanguageChanged,
-            )
-            .padding(8)
-            .width(Length::Fill);
-
             let scale_slider = slider(0.5..=2.5f32, state.font_scale, Message::SettingsFontScaleChanged)
                 .step(0.05);
             let scale_label = text(format!("{:.2}x", state.font_scale)).size(12).color(theme::text());
@@ -287,14 +279,6 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
             scrollable(
                 column![
                     section_header("Display"),
-                    Space::with_height(16),
-                    row![
-                        text(ICON_GLOBE).font(NERD_FONT_MONO).size(14).color(theme::overlay0()),
-                        Space::with_width(6),
-                        field_label("Interface Language"),
-                    ].align_y(Alignment::Center),
-                    Space::with_height(6),
-                    lang_pick,
                     Space::with_height(16),
                     row![
                         text("Aa").font(UI_FONT_BOLD).size(14).color(theme::overlay0()),
