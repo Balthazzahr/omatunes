@@ -404,7 +404,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
             if let Some(track) = display_track {
                 if track.lyrics.trim().is_empty() {
                     container(
-                        text("No lyrics available.\nRight click song -> Edit ID3 tags to add lyrics.")
+                        text("No lyrics available.")
                             .color(theme::overlay0())
                             .size(14)
                             .align_y(iced::alignment::Vertical::Center)
@@ -829,7 +829,7 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown, active_p
                         text(icon_char)
                             .font(crate::ui::icons::NERD_FONT_MONO)
                             .size(text_size)
-                            .color(theme::overlay0()),
+                            .color(name_color),
                         Space::with_width(4),
                         text(name.as_str())
                             .font(crate::ui::icons::UI_FONT)
