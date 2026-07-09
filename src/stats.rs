@@ -63,7 +63,7 @@ pub struct StatsDb {
 
     // One-time backfill: legacy album data split evenly across albums
     #[serde(default)]
-    pub populated_legacy_albums: bool,
+    pub legacy_albums_populated_v2: bool,
     #[serde(default)]
     pub legacy_album_minutes: HashMap<String, f64>,
     #[serde(default)]
