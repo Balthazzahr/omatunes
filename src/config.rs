@@ -165,14 +165,14 @@ fn read_or_default() -> Config {
             std::fs::create_dir_all(dir).ok();
         }
         std::fs::write(&path, DEFAULT_CONFIG).ok();
-        eprintln!("omatunes: configuração criada em {}", path.display());
+        eprintln!("omatunes: config created at {}", path.display());
         return Config::default();
     }
 
     let content = match std::fs::read_to_string(&path) {
         Ok(s) => s,
         Err(e) => {
-            eprintln!("omatunes: erro ao ler config: {e}");
+            eprintln!("omatunes: error reading config: {e}");
             return Config::default();
         }
     };
