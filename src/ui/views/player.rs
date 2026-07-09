@@ -1041,7 +1041,7 @@ pub fn song_breakdown_view<'a>(
                         background: Some(iced::Background::Color(theme::surface0())),
                         ..Default::default()
                     })
-                    .into()
+                    .into() as Element<'_, Message>
             );
         }
     }
