@@ -1233,7 +1233,7 @@ pub fn achievement_detail_view(entity_type: &str, entity_name: &str) -> Element<
         }
     });
 
-    let mut list_col = column![].spacing(8).padding([0, 12, 0, 0]);
+    let mut list_col = column![].spacing(8).padding(iced::Padding { top: 0.0, right: 12.0, bottom: 0.0, left: 0.0 });
     for ((period, tier), count, date_str) in unique_awards {
         let row_item = container(
             row![
