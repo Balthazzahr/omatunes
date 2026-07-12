@@ -158,6 +158,9 @@ pub fn prune_old_buckets() {
                 for (album, count) in &day.album_track_counts {
                     *db.legacy_album_tracks.entry(album.clone()).or_default() += count;
                 }
+                for (genre, mins) in &day.genre_minutes {
+                    *db.legacy_genre_minutes.entry(genre.clone()).or_default() += mins;
+                }
 
                 // Clear maps to reclaim disk/memory footprint
                 day.artist_minutes.clear();
@@ -584,23 +587,33 @@ pub fn on_track_play(
     all_tracks: &[crate::library::models::Track],
 ) -> Vec<(String, String)> {
     let mut toasts: Vec<(String, String)> = Vec::new();
-    let date_str = chrono::Local::now().format("%Y-%m-%d").to_string();
+    let now_dt = chrono::Local::now();
+    let date_str = now_dt.format("%Y-%m-%d").to_string();
+    use chrono::Datelike;
+    let current_year = now_dt.date_naive().year() as u32;
 
     write(|db| {
         // 1. Daily bucket
         let day = db.daily_buckets.entry(date_str.clone()).or_default();
         day.track_play_count += 1;
         *day.artist_track_counts.entry(artist.to_string()).or_default() += 1;
-        *day.track_play_counts.entry(track_path).or_default() += 1;
+        *day.track_play_counts.entry(track_path.clone()).or_default() += 1;
 
-        // 2. Running all-time artist count
+        // 2. Yearly bucket
+        let yr_stats = db.yearly_buckets.entry(current_year).or_default();
+        yr_stats.track_play_count += 1;
+        *yr_stats.artist_track_counts.entry(artist.to_string()).or_default() += 1;
+        *yr_stats.album_track_counts.entry(album.to_string()).or_default() += 1;
+        *yr_stats.track_play_counts.entry(track_path.clone()).or_default() += 1;
+
+        // 3. Running all-time artist count
         let artist_total = {
             let c = db.all_time_artist_tracks.entry(artist.to_string()).or_default();
             *c += 1;
             *c
         };
 
-        // 3. Running all-time genre counts + daily genre/album track counts
+        // 4. Running all-time genre counts + daily/yearly genre/album track counts
         let genre_names: Vec<String> = if genre.contains("; ") {
             genre.split("; ").map(|g| {
                 let clean = g.trim();
@@ -616,77 +629,15 @@ pub fn on_track_play(
             *c += 1;
             genre_totals.push((gn.clone(), *c));
             *day.genre_track_counts.entry(gn.clone()).or_default() += 1;
+            *yr_stats.genre_track_counts.entry(gn.clone()).or_default() += 1;
         }
         let clean_album_track = album.trim();
         if !clean_album_track.is_empty() {
             *day.album_track_counts.entry(clean_album_track.to_string()).or_default() += 1;
+            *yr_stats.album_track_counts.entry(clean_album_track.to_string()).or_default() += 1;
         }
 
-        // 4. Daily milestone check
-        let daily_awarded = db.daily_milestones_awarded.entry(date_str).or_default();
-        for &thresh in &[25u32, 50, 100] {
-            if day.track_play_count == thresh && !daily_awarded.contains(&thresh) {
-                daily_awarded.insert(thresh);
-                let (title_suffix, icon) = match thresh {
-                    25 => ("Bronze", "\u{f025}"),
-                    50 => ("Silver", "\u{f005}"),
-                    100 => ("Gold", "\u{f091}"),
-                    _ => unreachable!(),
-                };
-                toasts.push((
-                    format!("{} Milestone", title_suffix),
-                    format!("You have listened to {} songs today! {}", thresh, icon),
-                ));
-            }
-        }
-
-        // 5. Artist milestone check
-        let artist_awarded = db.artist_milestones_awarded.entry(artist.to_string()).or_default();
-        for &thresh in &[50u32, 100, 500, 1000] {
-            if artist_total == thresh {
-                let key = thresh.to_string();
-                if !artist_awarded.contains(&key) {
-                    artist_awarded.insert(key);
-                    let (tier, icon) = match thresh {
-                        50 => ("Bronze", "\u{f025}"),
-                        100 => ("Silver", "\u{f005}"),
-                        500 => ("Gold", "\u{f091}"),
-                        1000 => ("Platinum", "\u{f053f}"),
-                        _ => unreachable!(),
-                    };
-                    toasts.push((
-                        format!("{} Milestone \u{2013} {}", tier, artist),
-                        format!("{} has been played {} times! {}", artist, thresh, icon),
-                    ));
-                }
-            }
-        }
-
-        // 6. Genre milestone check
-        for (gn, total) in &genre_totals {
-            let genre_awarded = db.genre_milestones_awarded.entry(gn.clone()).or_default();
-            for &thresh in &[50u32, 100, 500, 1000] {
-                if *total == thresh {
-                    let key = thresh.to_string();
-                    if !genre_awarded.contains(&key) {
-                        genre_awarded.insert(key);
-                        let (tier, icon) = match thresh {
-                            50 => ("Bronze", "\u{f025}"),
-                            100 => ("Silver", "\u{f005}"),
-                            500 => ("Gold", "\u{f091}"),
-                            1000 => ("Platinum", "\u{f053f}"),
-                            _ => unreachable!(),
-                        };
-                        toasts.push((
-                            format!("{} Milestone \u{2013} {}", tier, gn),
-                            format!("{} genre has been played {} times! {}", gn, thresh, icon),
-                        ));
-                    }
-                }
-            }
-        }
-
-        // 7. Top-10 ladder change check
+        // 5. Top-10 ladder change check
         // Build current all-time leaderboard by minutes
         let mut all_artist_minutes: HashMap<String, f64> = db.legacy_artist_minutes.clone();
         for (_, day) in &db.daily_buckets {
@@ -705,19 +656,15 @@ pub fn on_track_play(
 
             for (i, artist_name) in cur_artists.iter().enumerate() {
                 if i >= prev_artists.len() {
-                    // New entry beyond previous top 10's length - shouldn't happen since both are length 10
                     break;
                 }
                 if *artist_name != prev_artists[i] {
-                    // Found first position where they differ
                     let new_pos = i + 1;
                     let displaced = prev_artists[i];
 
-                    // Find where the mover was before
                     let old_pos = prev_artists.iter().position(|&a| a == *artist_name)
                         .map(|p| p + 1);
 
-                    // Find where the displaced went
                     let displaced_new_pos = cur_artists.iter().position(|&a| a == displaced)
                         .map(|p| p + 1);
 
@@ -744,7 +691,6 @@ pub fn on_track_play(
                             }
                         }
                         None => {
-                            // New entry to top 10
                             msg_parts.push(format!(
                                 "{} has entered the Top 10 at #{}!",
                                 artist_name, new_pos
