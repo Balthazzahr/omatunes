@@ -277,7 +277,36 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                     let is_selected = state.selected_artist.as_ref() == Some(&artist) && state.selected_playlist.is_none();
 
                     let label_color = if is_selected { theme::accent() } else { theme::text() };
-                    let label: Element<Message> = row![
+                    
+                    let badge_el: Element<'_, Message> = if let Some(a) = crate::stats::get_highest_achievement("Artist", &artist) {
+                        let icon_str = match a.period.as_str() {
+                            "Daily" => crate::ui::icons::ICON_AWARD,
+                            "Weekly" => crate::ui::icons::ICON_MEDAL,
+                            "Monthly" => crate::ui::icons::ICON_CROWN,
+                            "Yearly" => crate::ui::icons::ICON_TROPHY_FA,
+                            "All-Time" => crate::ui::icons::ICON_GEM,
+                            _ => crate::ui::icons::ICON_AWARD,
+                        };
+                        let tier_color = match a.tier.as_str() {
+                            "Bronze" => iced::Color::from_rgb(0.72, 0.45, 0.20),
+                            "Silver" => iced::Color::from_rgb(0.75, 0.75, 0.75),
+                            "Gold" => iced::Color::from_rgb(0.83, 0.69, 0.22),
+                            "Platinum" => iced::Color::from_rgb(0.49, 0.78, 0.89),
+                            "Legendary" => iced::Color::from_rgb(0.62, 0.31, 0.87),
+                            _ => label_color,
+                        };
+                        row![
+                            Space::with_width(6),
+                            text(icon_str)
+                                .font(crate::ui::icons::NERD_FONT_MONO)
+                                .size(12)
+                                .color(tier_color),
+                        ].into()
+                    } else {
+                        Space::with_width(0).into()
+                    };
+
+                    let mut label_row = row![
                         text(crate::ui::icons::ICON_PERSON)
                             .font(crate::ui::icons::NERD_FONT_MONO)
                             .size(13)
@@ -286,7 +315,10 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                         text(artist.clone())
                             .color(label_color)
                             .size(13),
-                    ].align_y(Alignment::Center).into();
+                    ].align_y(Alignment::Center);
+
+                    label_row = label_row.push(badge_el);
+                    let label: Element<Message> = label_row.into();
 
                     let context_btn = button(
                         text("\u{f142}") // vertical ellipsis Nerd Font
@@ -328,7 +360,36 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                     let is_selected = state.selected_album.as_ref() == Some(&album) && state.selected_playlist.is_none();
 
                     let label_color = if is_selected { theme::accent() } else { theme::text() };
-                    let label: Element<Message> = row![
+                    
+                    let badge_el: Element<'_, Message> = if let Some(a) = crate::stats::get_highest_achievement("Album", &album) {
+                        let icon_str = match a.period.as_str() {
+                            "Daily" => crate::ui::icons::ICON_AWARD,
+                            "Weekly" => crate::ui::icons::ICON_MEDAL,
+                            "Monthly" => crate::ui::icons::ICON_CROWN,
+                            "Yearly" => crate::ui::icons::ICON_TROPHY_FA,
+                            "All-Time" => crate::ui::icons::ICON_GEM,
+                            _ => crate::ui::icons::ICON_AWARD,
+                        };
+                        let tier_color = match a.tier.as_str() {
+                            "Bronze" => iced::Color::from_rgb(0.72, 0.45, 0.20),
+                            "Silver" => iced::Color::from_rgb(0.75, 0.75, 0.75),
+                            "Gold" => iced::Color::from_rgb(0.83, 0.69, 0.22),
+                            "Platinum" => iced::Color::from_rgb(0.49, 0.78, 0.89),
+                            "Legendary" => iced::Color::from_rgb(0.62, 0.31, 0.87),
+                            _ => label_color,
+                        };
+                        row![
+                            Space::with_width(6),
+                            text(icon_str)
+                                .font(crate::ui::icons::NERD_FONT_MONO)
+                                .size(12)
+                                .color(tier_color),
+                        ].into()
+                    } else {
+                        Space::with_width(0).into()
+                    };
+
+                    let mut label_row = row![
                         text(crate::ui::icons::ICON_CD)
                             .font(crate::ui::icons::NERD_FONT_MONO)
                             .size(13)
@@ -337,7 +398,10 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                         text(album.clone())
                             .color(label_color)
                             .size(13),
-                    ].align_y(Alignment::Center).into();
+                    ].align_y(Alignment::Center);
+
+                    label_row = label_row.push(badge_el);
+                    let label: Element<Message> = label_row.into();
 
                     let context_btn = button(
                         text("\u{f142}")
@@ -379,7 +443,36 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                     let is_selected = state.selected_genre.as_ref() == Some(&genre) && state.selected_playlist.is_none();
 
                     let label_color = if is_selected { theme::accent() } else { theme::text() };
-                    let label: Element<Message> = row![
+                    
+                    let badge_el: Element<'_, Message> = if let Some(a) = crate::stats::get_highest_achievement("Genre", &genre) {
+                        let icon_str = match a.period.as_str() {
+                            "Daily" => crate::ui::icons::ICON_AWARD,
+                            "Weekly" => crate::ui::icons::ICON_MEDAL,
+                            "Monthly" => crate::ui::icons::ICON_CROWN,
+                            "Yearly" => crate::ui::icons::ICON_TROPHY_FA,
+                            "All-Time" => crate::ui::icons::ICON_GEM,
+                            _ => crate::ui::icons::ICON_AWARD,
+                        };
+                        let tier_color = match a.tier.as_str() {
+                            "Bronze" => iced::Color::from_rgb(0.72, 0.45, 0.20),
+                            "Silver" => iced::Color::from_rgb(0.75, 0.75, 0.75),
+                            "Gold" => iced::Color::from_rgb(0.83, 0.69, 0.22),
+                            "Platinum" => iced::Color::from_rgb(0.49, 0.78, 0.89),
+                            "Legendary" => iced::Color::from_rgb(0.62, 0.31, 0.87),
+                            _ => label_color,
+                        };
+                        row![
+                            Space::with_width(6),
+                            text(icon_str)
+                                .font(crate::ui::icons::NERD_FONT_MONO)
+                                .size(12)
+                                .color(tier_color),
+                        ].into()
+                    } else {
+                        Space::with_width(0).into()
+                    };
+
+                    let mut label_row = row![
                         text(crate::ui::icons::ICON_TAG)
                             .font(crate::ui::icons::NERD_FONT_MONO)
                             .size(13)
@@ -388,7 +481,10 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                         text(genre.clone())
                             .color(label_color)
                             .size(13),
-                    ].align_y(Alignment::Center).into();
+                    ].align_y(Alignment::Center);
+
+                    label_row = label_row.push(badge_el);
+                    let label: Element<Message> = label_row.into();
 
                     let btn = button(label)
                         .on_press(Message::SelectGenre(genre.clone()))
