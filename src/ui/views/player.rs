@@ -1599,9 +1599,6 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
     .width(Length::Fill)
     .height(Length::Fill)
     .into()
-    .width(Length::Fill)
-    .height(Length::Fill)
-    .into()
 }
 
 pub fn achievement_detail_view(entity_type: &str, entity_name: &str) -> Element<'static, Message> {
