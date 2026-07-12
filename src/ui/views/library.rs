@@ -2113,7 +2113,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     .padding([2, 8]);
 
     let stats_btn = button(
-        text(crate::ui::icons::ICON_STATS)
+        text(crate::ui::icons::ICON_TROPHY)
             .size(20)
             .font(crate::ui::icons::NERD_FONT_MONO)
     )
