@@ -4198,6 +4198,13 @@ impl AppState {
                 Task::none()
             }
 
+            Message::SettingsShowAchievementsInUiChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.show_achievements_in_ui = val;
+                }
+                Task::none()
+            }
+
             Message::SettingsSave => {
                 if let Some(ref mut state) = self.show_settings {
                     // Don't save if there are validation errors in hex codes
