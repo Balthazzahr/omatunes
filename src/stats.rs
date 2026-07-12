@@ -1570,3 +1570,50 @@ pub fn get_restructured_stats(tracks: &[crate::library::models::Track]) -> Vec<R
         rows
     })
 }
+
+pub fn get_achievement_requirement(period: &str, tier: &str) -> String {
+    let text = match period {
+        "Daily" => match tier {
+            "Bronze" => "Listen for 30 minutes in a single day",
+            "Silver" => "Listen for 60 minutes (1 hour) in a single day",
+            "Gold" => "Listen for 120 minutes (2 hours) in a single day",
+            "Platinum" => "Listen for 180 minutes (3 hours) in a single day",
+            "Legendary" => "Listen for 240 minutes (4 hours) in a single day",
+            _ => "",
+        },
+        "Weekly" => match tier {
+            "Bronze" => "Listen for 60 minutes (1 hour) in a single week",
+            "Silver" => "Listen for 120 minutes (2 hours) in a single week",
+            "Gold" => "Listen for 240 minutes (4 hours) in a single week",
+            "Platinum" => "Listen for 360 minutes (6 hours) in a single week",
+            "Legendary" => "Listen for 480 minutes (8 hours) in a single week",
+            _ => "",
+        },
+        "Monthly" => match tier {
+            "Bronze" => "Listen for 4 hours in a single month",
+            "Silver" => "Listen for 8 hours in a single month",
+            "Gold" => "Listen for 16 hours in a single month",
+            "Platinum" => "Listen for 24 hours in a single month",
+            "Legendary" => "Listen for 32 hours in a single month",
+            _ => "",
+        },
+        "Yearly" => match tier {
+            "Bronze" => "Listen for 48 hours (2 days) in a single year",
+            "Silver" => "Listen for 96 hours (4 days) in a single year",
+            "Gold" => "Listen for 192 hours (8 days) in a single year",
+            "Platinum" => "Listen for 288 hours (12 days) in a single year",
+            "Legendary" => "Listen for 384 hours (16 days) in a single year",
+            _ => "",
+        },
+        "All-Time" => match tier {
+            "Bronze" => "Listen for 100 hours overall",
+            "Silver" => "Listen for 200 hours overall",
+            "Gold" => "Listen for 300 hours overall",
+            "Platinum" => "Listen for 400 hours overall",
+            "Legendary" => "Listen for 500 hours overall",
+            _ => "",
+        },
+        _ => "",
+    };
+    text.to_string()
+}
