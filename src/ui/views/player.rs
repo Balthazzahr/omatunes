@@ -1233,7 +1233,7 @@ pub fn achievement_detail_view(entity_type: &str, entity_name: &str) -> Element<
         }
     });
 
-    let mut list_col = column![].spacing(8);
+    let mut list_col = column![].spacing(8).padding([0, 12, 0, 0]);
     for ((period, tier), count, date_str) in unique_awards {
         let row_item = container(
             row![
@@ -1253,11 +1253,15 @@ pub fn achievement_detail_view(entity_type: &str, entity_name: &str) -> Element<
                         .font(crate::ui::icons::UI_FONT_BOLD)
                         .size(14)
                         .color(theme::text()),
-                    text(format!("First achieved on: {}", date_str))
+                    text(crate::stats::get_achievement_requirement(&period, &tier))
                         .font(crate::ui::icons::UI_FONT)
                         .size(12)
+                        .color(theme::text()),
+                    text(format!("First achieved on: {}", date_str))
+                        .font(crate::ui::icons::UI_FONT)
+                        .size(11)
                         .color(theme::subtext()),
-                ].spacing(2),
+                ].spacing(3),
                 Space::with_width(Length::Fill),
                 text(format!("x{}", count))
                     .font(crate::ui::icons::UI_FONT_BOLD)
