@@ -4149,6 +4149,7 @@ impl AppState {
                     color_picker_r: 0.0,
                     color_picker_g: 0.0,
                     color_picker_b: 0.0,
+                    show_achievements_in_ui: cfg.show_achievements_in_ui,
                 });
                 Task::none()
             }
@@ -4226,6 +4227,7 @@ impl AppState {
                     cfg.volume = state.initial_volume;
                     cfg.playback_defaults = state.playback_defaults.clone();
                     cfg.auto_scan = state.auto_scan.clone();
+                    cfg.show_achievements_in_ui = state.show_achievements_in_ui;
                     
                     cfg.theme_source = state.theme_source.clone();
                     cfg.theme_preset = state.theme_preset.clone();
