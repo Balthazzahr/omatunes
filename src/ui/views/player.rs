@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use iced::widget::{column, container, image, row, text, Space, button, slider, mouse_area, stack, scrollable, tooltip};
 use iced::{Alignment, Element, Length};
 
