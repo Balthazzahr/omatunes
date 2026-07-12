@@ -276,6 +276,7 @@ pub enum Message {
     CloseAchievementDetail,
     SelectAchievementsSubTab(AchievementsSubTab),
     SelectAchievementsSort(AchievementsSort),
+    ShowMoreAchievements,
     Noop,
 
     OpenSettings,
@@ -4037,6 +4038,7 @@ impl AppState {
 
             Message::SelectStatsModalTab(tab) => {
                 self.stats_modal_tab = tab;
+                self.achievements_limit = 10;
                 Task::none()
             }
 
@@ -4052,11 +4054,18 @@ impl AppState {
 
             Message::SelectAchievementsSubTab(sub_tab) => {
                 self.achievements_sub_tab = sub_tab;
+                self.achievements_limit = 10;
                 Task::none()
             }
 
             Message::SelectAchievementsSort(sort) => {
                 self.achievements_sort = sort;
+                self.achievements_limit = 10;
+                Task::none()
+            }
+
+            Message::ShowMoreAchievements => {
+                self.achievements_limit += 10;
                 Task::none()
             }
 
