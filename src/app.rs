@@ -622,6 +622,7 @@ pub struct AppState {
     pub selected_achievement_detail: Option<(String, String)>,
     pub achievements_sub_tab: AchievementsSubTab,
     pub achievements_sort: AchievementsSort,
+    pub achievements_limit: usize,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -875,6 +876,7 @@ impl AppState {
             selected_achievement_detail: None,
             achievements_sub_tab: AchievementsSubTab::Artists,
             achievements_sort: AchievementsSort::AchievementLevel,
+            achievements_limit: 10,
         };
 
         (state, scan_task)
