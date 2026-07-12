@@ -366,6 +366,7 @@ pub struct SettingsState {
     pub color_picker_r: f32,
     pub color_picker_g: f32,
     pub color_picker_b: f32,
+    pub show_achievements_in_ui: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -3403,6 +3404,7 @@ impl AppState {
                     color_picker_r: 0.0,
                     color_picker_g: 0.0,
                     color_picker_b: 0.0,
+                    show_achievements_in_ui: cfg.show_achievements_in_ui,
                 });
                 self.show_shortcuts = false;
                 Task::none()
