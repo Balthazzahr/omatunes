@@ -1126,8 +1126,6 @@ fn get_genre_cover_data(genre: &str, tracks: &[crate::library::models::Track]) -
 fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
     use crate::stats::EarnedAchievement;
     
-    let achievements = crate::stats::get(|db| db.earned_achievements.clone());
-    
     let make_sub_tab = |label: &'static str, tab: crate::app::AchievementsSubTab| {
         let is_active = state.achievements_sub_tab == tab;
         button(
