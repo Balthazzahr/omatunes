@@ -1040,7 +1040,17 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
         entity_type: &'static str,
         mut entities: Vec<(String, Vec<EarnedAchievement>)>,
     ) -> Element<'a, Message> {
-        entities.sort_by(|a, b| a.0.to_lowercase().cmp(&b.0.to_lowercase()));
+        entities.sort_by(|a, b| {
+            let max_a = a.1.iter().map(|ach| crate::stats::get_achievement_score(&ach.period, &ach.tier)).max().unwrap_or(0);
+            let max_b = b.1.iter().map(|ach| crate::stats::get_achievement_score(&ach.period, &ach.tier)).max().unwrap_or(0);
+            
+            let count_a = a.1.len();
+            let count_b = b.1.len();
+            
+            max_b.cmp(&max_a)
+                .then(count_b.cmp(&count_a))
+                .then(a.0.to_lowercase().cmp(&b.0.to_lowercase()))
+        });
         
         let mut list_col = column![].spacing(8).width(Length::Fill).padding(iced::Padding { top: 0.0, right: 12.0, bottom: 0.0, left: 0.0 });
         
@@ -1106,13 +1116,28 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                     awards_col = awards_col.push(badge);
                 }
                 
+                let highest_ach = awards.iter().max_by_key(|ach| crate::stats::get_achievement_score(&ach.period, &ach.tier));
+                let title_color = if let Some(a) = highest_ach {
+                    match a.tier.as_str() {
+                        "Bronze" => iced::Color::from_rgb(0.72, 0.45, 0.20),
+                        "Silver" => iced::Color::from_rgb(0.75, 0.75, 0.75),
+                        "Gold" => iced::Color::from_rgb(0.83, 0.69, 0.22),
+                        "Platinum" => iced::Color::from_rgb(0.49, 0.78, 0.89),
+                        "Legendary" => iced::Color::from_rgb(0.62, 0.31, 0.87),
+                        _ => theme::text(),
+                    }
+                } else {
+                    theme::text()
+                };
+
                 let card_content = container(
                     column![
                         row![
                             text(name.clone())
                                 .font(crate::ui::icons::UI_FONT_BOLD)
-                                .size(14)
-                                .color(theme::text())
+                                .size(16)
+                                .color(title_color)
+                                .align_x(iced::alignment::Horizontal::Center)
                                 .width(Length::Fill),
                         ].align_y(Alignment::Center),
                         Space::with_height(12),
