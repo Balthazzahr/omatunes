@@ -671,7 +671,13 @@ fn wrap_text(text: &str, max_chars: usize) -> Vec<String> {
     sub_lines
 }
 
-pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown, active_period: usize) -> Element<'_, Message> {
+pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Message> {
+    let breakdown = match &state.show_period_breakdown {
+        Some(b) => b,
+        None => return Space::with_width(0).into(),
+    };
+    let active_period = state.breakdown_period_idx;
+
     let format_hours = |mins: f64| -> String {
         let total_secs = (mins * 60.0) as u64;
         let h = total_secs / 3600;
@@ -699,7 +705,8 @@ pub fn period_breakdown_view(breakdown: &crate::stats::PeriodBreakdown, active_p
         (crate::ui::icons::ICON_CALENDAR_DAY, "Day"),
         (crate::ui::icons::ICON_CALENDAR_WEEK, "Week"),
         (crate::ui::icons::ICON_CALENDAR_MONTH_FA, "Month"),
-        (crate::ui::icons::ICON_TROPHY_FA, "All-Time"),
+        (crate::ui::icons::ICON_TROPHY_FA, "Year"),
+        (crate::ui::icons::ICON_GEM, "All-Time"),
     ];
 
     let mut period_tabs = row![].spacing(8).align_y(Alignment::Center);
