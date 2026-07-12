@@ -673,14 +673,17 @@ pub fn backfill_achievements(tracks: &[crate::library::models::Track]) {
                 let year = date.year() as u32;
                 
                 if let Some(day) = db.daily_buckets.get(date_str) {
-                    for artist in day.artist_minutes.keys() {
-                        check_and_award_all_tiers(db, "Artist", artist, date_str, year, &mut dummy);
+                    let day_artists: Vec<String> = day.artist_minutes.keys().cloned().collect();
+                    let day_albums: Vec<String> = day.album_minutes.keys().cloned().collect();
+                    let day_genres: Vec<String> = day.genre_minutes.keys().cloned().collect();
+                    for artist in day_artists {
+                        check_and_award_all_tiers(db, "Artist", &artist, date_str, year, &mut dummy);
                     }
-                    for album in day.album_minutes.keys() {
-                        check_and_award_all_tiers(db, "Album", album, date_str, year, &mut dummy);
+                    for album in day_albums {
+                        check_and_award_all_tiers(db, "Album", &album, date_str, year, &mut dummy);
                     }
-                    for genre in day.genre_minutes.keys() {
-                        check_and_award_all_tiers(db, "Genre", genre, date_str, year, &mut dummy);
+                    for genre in day_genres {
+                        check_and_award_all_tiers(db, "Genre", &genre, date_str, year, &mut dummy);
                     }
                 }
             }
