@@ -1202,64 +1202,66 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
             albums.dedup();
         }
 
-        for (date_str, day) in &db.daily_buckets {
-            if filter(date_str) {
-                total_plays += day.track_play_count;
-                total_minutes += day.total_minutes;
-                for (a, m) in &day.artist_minutes {
-                    *artist_minutes.entry(a.clone()).or_default() += m;
-                }
-                for (a, t) in &day.artist_track_counts {
-                    *artist_tracks_count.entry(a.clone()).or_default() += t;
-                }
-                if day.genre_minutes.is_empty() {
-                    let mut artist_genre_counts: HashMap<String, HashMap<String, usize>> = HashMap::new();
-                    for track in tracks {
-                        if !track.artist.is_empty() && !track.genre.is_empty() {
-                            for g in track.genres() {
-                                let clean = if g.trim().is_empty() { "Unknown" } else { g.trim() };
-                                *artist_genre_counts
-                                    .entry(track.artist.clone())
-                                    .or_default()
-                                    .entry(clean.to_string())
-                                    .or_default() += 1;
-                            }
-                        }
-                    }
+        if *label != "This Year" {
+            for (date_str, day) in &db.daily_buckets {
+                if filter(date_str) {
+                    total_plays += day.track_play_count;
+                    total_minutes += day.total_minutes;
                     for (a, m) in &day.artist_minutes {
-                        if let Some(best_genre) = artist_genre_counts.get(a)
-                            .and_then(|gmap| gmap.iter().max_by_key(|(_, count)| **count).map(|(g, _)| g))
-                        {
-                            *genre_minutes.entry(best_genre.clone()).or_default() += m;
-                        }
+                        *artist_minutes.entry(a.clone()).or_default() += m;
                     }
-                } else {
-                    for (g, m) in &day.genre_minutes {
-                        *genre_minutes.entry(g.clone()).or_default() += m;
+                    for (a, t) in &day.artist_track_counts {
+                        *artist_tracks_count.entry(a.clone()).or_default() += t;
                     }
-                }
-                for (g, t) in &day.genre_track_counts {
-                    *genre_tracks_count.entry(g.clone()).or_default() += t;
-                }
-                if day.album_minutes.is_empty() {
-                    // Split artist minutes evenly across all albums for that artist
-                    for (a, m) in &day.artist_minutes {
-                        if let Some(albums) = artist_album_list.get(a) {
-                            if !albums.is_empty() {
-                                let per_album = m / albums.len() as f64;
-                                for album in albums {
-                                    *album_minutes.entry(album.clone()).or_default() += per_album;
+                    if day.genre_minutes.is_empty() {
+                        let mut artist_genre_counts: HashMap<String, HashMap<String, usize>> = HashMap::new();
+                        for track in tracks {
+                            if !track.artist.is_empty() && !track.genre.is_empty() {
+                                for g in track.genres() {
+                                    let clean = if g.trim().is_empty() { "Unknown" } else { g.trim() };
+                                    *artist_genre_counts
+                                        .entry(track.artist.clone())
+                                        .or_default()
+                                        .entry(clean.to_string())
+                                        .or_default() += 1;
                                 }
                             }
                         }
+                        for (a, m) in &day.artist_minutes {
+                            if let Some(best_genre) = artist_genre_counts.get(a)
+                                .and_then(|gmap| gmap.iter().max_by_key(|(_, count)| **count).map(|(g, _)| g))
+                            {
+                                *genre_minutes.entry(best_genre.clone()).or_default() += m;
+                            }
+                        }
+                    } else {
+                        for (g, m) in &day.genre_minutes {
+                            *genre_minutes.entry(g.clone()).or_default() += m;
+                        }
                     }
-                } else {
-                    for (al, m) in &day.album_minutes {
-                        *album_minutes.entry(al.clone()).or_default() += m;
+                    for (g, t) in &day.genre_track_counts {
+                        *genre_tracks_count.entry(g.clone()).or_default() += t;
                     }
-                }
-                for (al, t) in &day.album_track_counts {
-                    *album_tracks_count.entry(al.clone()).or_default() += t;
+                    if day.album_minutes.is_empty() {
+                        // Split artist minutes evenly across all albums for that artist
+                        for (a, m) in &day.artist_minutes {
+                            if let Some(albums) = artist_album_list.get(a) {
+                                if !albums.is_empty() {
+                                    let per_album = m / albums.len() as f64;
+                                    for album in albums {
+                                        *album_minutes.entry(album.clone()).or_default() += per_album;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        for (al, m) in &day.album_minutes {
+                            *album_minutes.entry(al.clone()).or_default() += m;
+                        }
+                    }
+                    for (al, t) in &day.album_track_counts {
+                        *album_tracks_count.entry(al.clone()).or_default() += t;
+                    }
                 }
             }
         }
