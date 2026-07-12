@@ -1128,7 +1128,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
     
     let achievements = crate::stats::get(|db| db.earned_achievements.clone());
     
-    let make_sub_tab = |label: &str, tab: crate::app::AchievementsSubTab| {
+    let make_sub_tab = |label: &'static str, tab: crate::app::AchievementsSubTab| {
         let is_active = state.achievements_sub_tab == tab;
         button(
             text(label)
@@ -1148,7 +1148,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
         })
     };
 
-    let make_sort_btn = |label: &str, sort: crate::app::AchievementsSort| {
+    let make_sort_btn = |label: &'static str, sort: crate::app::AchievementsSort| {
         let is_active = state.achievements_sort == sort;
         button(
             text(label)
@@ -1361,13 +1361,13 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
             } else {
                 row![
                     container(Space::new(Length::Fill, Length::Fill))
-                        .width(Length::FillPortion((f * 100.0) as u32))
+                        .width(Length::FillPortion((f * 100.0) as u16))
                         .style(|_| iced::widget::container::Style {
                             background: Some(iced::Background::Color(theme::accent())),
                             border: iced::Border { radius: 3.0.into(), ..Default::default() },
                             ..Default::default()
                         }),
-                    Space::new(Length::FillPortion(((1.0 - f) * 100.0) as u32), Length::Fill)
+                    Space::new(Length::FillPortion(((1.0 - f) * 100.0) as u16), Length::Fill)
                 ]
                 .width(Length::Fill)
                 .into()
@@ -1378,7 +1378,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                     .width(Length::Fill)
                     .height(6.0)
                     .style(|_| iced::widget::container::Style {
-                        background: Some(iced::Background::Color(theme::surface1())),
+                        background: Some(iced::Background::Color(theme::surface0())),
                         border: iced::Border { radius: 3.0.into(), ..Default::default() },
                         ..Default::default()
                     })
@@ -1403,7 +1403,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                         text("\u{f053f}")
                             .font(crate::ui::icons::NERD_FONT_MONO)
                             .size(16)
-                            .color(theme::surface2())
+                            .color(theme::overlay0())
                     )
                     .width(26)
                     .height(26)
@@ -1420,7 +1420,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                         .color(theme::subtext())
                 ]
                 .spacing(2)
-                .align_items(Alignment::End);
+                .align_x(Alignment::End);
 
                 dots_row = dots_row.push(
                     container(milestone_col)
