@@ -234,3 +234,7 @@ theme_source = "System"
 # Theme preset (used when theme_source = "Preset")
 theme_preset = "Nord"
 "#;
+
+fn default_show_achievements_in_ui() -> bool {
+    true
+}

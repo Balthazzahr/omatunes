@@ -283,6 +283,7 @@ pub enum Message {
     SettingsSeekStepChanged(String),
     SettingsVolumeStepChanged(f32),
     SettingsFontScaleChanged(f32),
+    SettingsShowAchievementsInUiChanged(bool),
     SettingsSave,
     SettingsThemeSourceChanged(String),
     SettingsThemePresetChanged(String),
