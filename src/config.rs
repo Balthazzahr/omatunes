@@ -101,6 +101,8 @@ pub struct Config {
     pub playback_defaults: PlaybackDefaults,
     #[serde(default)]
     pub auto_scan: AutoScanConfig,
+    #[serde(default = "default_show_achievements_in_ui")]
+    pub show_achievements_in_ui: bool,
 }
 
 impl Default for Config {
@@ -117,6 +119,7 @@ impl Default for Config {
             custom_theme: None,
             playback_defaults: PlaybackDefaults::default(),
             auto_scan: AutoScanConfig::default(),
+            show_achievements_in_ui: true,
         }
     }
 }
