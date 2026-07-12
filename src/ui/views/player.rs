@@ -1189,91 +1189,13 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
     .width(Length::Fill)
     .padding([0, 16]);
 
-    #[derive(Clone)]
-    struct EntityItem {
-        name: String,
-        plays: u32,
-        highest_tier_score: u32,
-        num_awards: usize,
-    }
-
-    let mut items = Vec::new();
     let entity_type_str = match state.achievements_sub_tab {
         crate::app::AchievementsSubTab::Artists => "Artist",
         crate::app::AchievementsSubTab::Albums => "Album",
         crate::app::AchievementsSubTab::Genres => "Genre",
     };
 
-    let mut unique_names = std::collections::HashSet::new();
-    for track in state.all_tracks.iter() {
-        match state.achievements_sub_tab {
-            crate::app::AchievementsSubTab::Artists => {
-                if !track.artist.trim().is_empty() {
-                    unique_names.insert(track.artist.clone());
-                }
-            }
-            crate::app::AchievementsSubTab::Albums => {
-                if !track.album.trim().is_empty() {
-                    unique_names.insert(track.album.clone());
-                }
-            }
-            crate::app::AchievementsSubTab::Genres => {
-                if !track.genre.trim().is_empty() {
-                    let parts = if track.genre.contains("; ") {
-                        track.genre.split("; ").map(|g| g.trim().to_string()).collect::<Vec<_>>()
-                    } else {
-                        vec![track.genre.trim().to_string()]
-                    };
-                    for p in parts {
-                        if !p.is_empty() && p != "Unknown" {
-                            unique_names.insert(p);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    for name in unique_names {
-        let plays = match state.achievements_sub_tab {
-            crate::app::AchievementsSubTab::Artists => crate::stats::get_artist_play_count(&name, &state.all_tracks),
-            crate::app::AchievementsSubTab::Albums => crate::stats::get_album_play_count(&name, &state.all_tracks),
-            crate::app::AchievementsSubTab::Genres => crate::stats::get_genre_play_count(&name, &state.all_tracks),
-        };
-        if plays == 0 {
-            continue;
-        }
-
-        let entity_awards: Vec<_> = achievements.iter()
-            .filter(|a| a.entity_type == entity_type_str && a.entity_name == name)
-            .collect();
-        let num_awards = entity_awards.len();
-        let highest_tier_score = entity_awards.iter()
-            .map(|a| crate::stats::get_achievement_score(&a.period, &a.tier))
-            .max()
-            .unwrap_or(0);
-
-        items.push(EntityItem {
-            name,
-            plays,
-            highest_tier_score,
-            num_awards,
-        });
-    }
-
-    match state.achievements_sort {
-        crate::app::AchievementsSort::Alphabetical => {
-            items.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
-        }
-        crate::app::AchievementsSort::AchievementLevel => {
-            items.sort_by(|a, b| {
-                b.highest_tier_score.cmp(&a.highest_tier_score)
-                    .then(b.num_awards.cmp(&a.num_awards))
-                    .then(b.plays.cmp(&a.plays))
-                    .then(a.name.to_lowercase().cmp(&b.name.to_lowercase()))
-            });
-        }
-    }
+    let items = &state.achievements_items;
 
     let mut list_col = column![].spacing(12).width(Length::Fill).padding(iced::Padding {
         top: 0.0,
