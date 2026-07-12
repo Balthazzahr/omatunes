@@ -87,7 +87,15 @@ pub const ICON_ARROW_UP:     &str = "\u{f062}";  // nf-fa-arrow_up
 pub const ICON_ARROW_DOWN:   &str = "\u{f063}";  // nf-fa-arrow_down
 
 pub fn get_award_image_bytes(period: &str, tier: &str) -> &'static [u8] {
-    match (period, tier) {
+    let (p, t) = match tier {
+        "Bronze Trophy" => ("Yearly", "Bronze"),
+        "Silver Trophy" => ("Yearly", "Silver"),
+        "Gold Trophy" => ("Yearly", "Gold"),
+        "Platinum Crown" => ("Monthly", "Platinum"),
+        "Legendary Gem" => ("All-Time", "Legendary"),
+        _ => (period, tier),
+    };
+    match (p, t) {
         ("Daily", "Bronze") => include_bytes!("../../assets/award_daily_bronze.png"),
         ("Daily", "Silver") => include_bytes!("../../assets/award_daily_silver.png"),
         ("Daily", "Gold") => include_bytes!("../../assets/award_daily_gold.png"),
