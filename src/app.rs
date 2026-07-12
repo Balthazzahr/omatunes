@@ -625,6 +625,15 @@ pub struct AppState {
     pub achievements_sort: AchievementsSort,
     pub achievements_limit: usize,
     pub achievements_cover_cache: std::sync::Mutex<std::collections::HashMap<String, Option<Vec<u8>>>>,
+    pub achievements_items: Vec<AchievementItem>,
+}
+
+#[derive(Debug, Clone)]
+pub struct AchievementItem {
+    pub name: String,
+    pub plays: u32,
+    pub highest_tier_score: u32,
+    pub num_awards: usize,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
