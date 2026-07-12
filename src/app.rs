@@ -622,8 +622,8 @@ pub struct AppState {
     pub stats_modal_tab: StatsModalTab,
     pub selected_achievement_detail: Option<(String, String)>,
     pub achievements_sub_tab: AchievementsSubTab,
-    pub achievements_sort: AchievementsSort,
-    pub achievements_limit: usize,
+    pub achievements_offset: usize,
+    pub achievements_search_query: String,
     pub achievements_cover_cache: std::sync::Mutex<std::collections::HashMap<String, iced::widget::image::Handle>>,
     pub achievements_items: Vec<AchievementItem>,
 }
