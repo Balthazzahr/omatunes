@@ -1016,206 +1016,451 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
         .into()
 }
 
+fn get_artist_cover_data(artist: &str, tracks: &[crate::library::models::Track]) -> Option<Vec<u8>> {
+    let mut artist_tracks: Vec<&crate::library::models::Track> = tracks.iter().filter(|t| t.artist == artist).collect();
+    if !artist_tracks.is_empty() {
+        use rand::seq::SliceRandom;
+        let mut rng = rand::thread_rng();
+        artist_tracks.shuffle(&mut rng);
+        for t in artist_tracks {
+            if let Some(data) = crate::library::scanner::load_cover(&t.path) {
+                return Some(data);
+            }
+        }
+    }
+    None
+}
+
+fn get_album_cover_data(album: &str, tracks: &[crate::library::models::Track]) -> Option<Vec<u8>> {
+    for t in tracks {
+        if t.album == album {
+            if let Some(data) = crate::library::scanner::load_cover(&t.path) {
+                return Some(data);
+            }
+        }
+    }
+    None
+}
+
+fn get_genre_cover_data(genre: &str, tracks: &[crate::library::models::Track]) -> Option<Vec<u8>> {
+    let mut album_tracks: HashMap<(String, String), Vec<&crate::library::models::Track>> = HashMap::new();
+    for t in tracks {
+        if !t.album.trim().is_empty() {
+            album_tracks.entry((t.artist.clone(), t.album.clone())).or_default().push(t);
+        }
+    }
+
+    let mut matching_albums = Vec::new();
+    for ((_artist, _album_name), track_list) in album_tracks {
+        let total = track_list.len();
+        if total == 0 {
+            continue;
+        }
+        let matching = track_list.iter().filter(|t| {
+            if t.genre.contains("; ") {
+                t.genre.split("; ").any(|g| g.trim() == genre)
+            } else {
+                t.genre.trim() == genre
+            }
+        }).count();
+        let pct = (matching as f32) / (total as f32);
+        if pct > 0.70 {
+            matching_albums.push(track_list);
+        }
+    }
+
+    if !matching_albums.is_empty() {
+        use rand::seq::SliceRandom;
+        let mut rng = rand::thread_rng();
+        if let Some(selected_track_list) = matching_albums.choose(&mut rng) {
+            for t in *selected_track_list {
+                if let Some(data) = crate::library::scanner::load_cover(&t.path) {
+                    return Some(data);
+                }
+            }
+        }
+    }
+    None
+}
+
 fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
     use crate::stats::EarnedAchievement;
     
     let achievements = crate::stats::get(|db| db.earned_achievements.clone());
     
-    let mut artists_map: HashMap<String, Vec<EarnedAchievement>> = HashMap::new();
-    let mut albums_map: HashMap<String, Vec<EarnedAchievement>> = HashMap::new();
-    let mut genres_map: HashMap<String, Vec<EarnedAchievement>> = HashMap::new();
-    
-    for a in achievements {
-        match a.entity_type.as_str() {
-            "Artist" => artists_map.entry(a.entity_name.clone()).or_default().push(a),
-            "Album" => albums_map.entry(a.entity_name.clone()).or_default().push(a),
-            "Genre" => genres_map.entry(a.entity_name.clone()).or_default().push(a),
-            _ => {}
-        }
-    }
-    
-    fn build_achievement_column<'a>(
-        title: &'a str,
-        icon_char: char,
-        entity_type: &'static str,
-        mut entities: Vec<(String, Vec<EarnedAchievement>)>,
-    ) -> Element<'a, Message> {
-        entities.sort_by(|a, b| {
-            let max_a = a.1.iter().map(|ach| crate::stats::get_achievement_score(&ach.period, &ach.tier)).max().unwrap_or(0);
-            let max_b = b.1.iter().map(|ach| crate::stats::get_achievement_score(&ach.period, &ach.tier)).max().unwrap_or(0);
-            
-            let count_a = a.1.len();
-            let count_b = b.1.len();
-            
-            max_b.cmp(&max_a)
-                .then(count_b.cmp(&count_a))
-                .then(a.0.to_lowercase().cmp(&b.0.to_lowercase()))
-        });
-        
-        let mut list_col = column![].spacing(8).width(Length::Fill).padding(iced::Padding { top: 0.0, right: 12.0, bottom: 0.0, left: 0.0 });
-        
-        if entities.is_empty() {
-            list_col = list_col.push(
-                container(
-                    text("No awards earned yet")
-                        .font(crate::ui::icons::UI_FONT)
-                        .size(14)
-                        .color(theme::overlay0())
-                )
-                .padding(12)
-                .width(Length::Fill)
-                .align_x(iced::alignment::Horizontal::Center)
-            );
-        } else {
-            for (name, awards) in entities {
-                let mut award_counts: HashMap<(String, String), (usize, String)> = HashMap::new();
-                for a in &awards {
-                    let entry = award_counts.entry((a.period.clone(), a.tier.clone())).or_insert((0, a.date_earned.clone()));
-                    entry.0 += 1;
-                    if a.date_earned < entry.1 {
-                        entry.1 = a.date_earned.clone();
-                    }
-                }
-                
-                let mut unique_awards: Vec<((String, String), usize, String)> = award_counts.into_iter()
-                    .map(|(k, v)| (k, v.0, v.1))
-                    .collect();
-                unique_awards.sort_by_key(|a| std::cmp::Reverse(crate::stats::get_achievement_score(&a.0.0, &a.0.1)));
-                
-                let top_3 = &unique_awards[0..unique_awards.len().min(3)];
-                
-                let mut awards_col = column![].spacing(8);
-                for ((period, tier), count, _) in top_3 {
-                    let count_suffix = if *count > 1 { format!(" x{}", count) } else { "".to_string() };
-                    let req_str = crate::stats::get_achievement_requirement(period, tier);
-                    
-                    let badge = row![
-                        image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes(period, tier).to_vec()))
-                            .width(Length::Fixed(20.0))
-                            .height(Length::Fixed(20.0)),
-                        Space::with_width(8),
-                        column![
-                            text(format!("{} {} ({}){}", tier, match period.as_str() {
-                                "Daily" => "Ribbon",
-                                "Weekly" => "Medal",
-                                "Monthly" => "Crown",
-                                "Yearly" => "Trophy",
-                                "All-Time" => "Diamond",
-                                _ => "Award",
-                            }, period, count_suffix))
-                                .font(crate::ui::icons::UI_FONT_BOLD)
-                                .size(12)
-                                .color(theme::text()),
-                            text(req_str)
-                                .font(crate::ui::icons::UI_FONT)
-                                .size(11)
-                                .color(theme::subtext()),
-                        ].spacing(1)
-                    ].align_y(Alignment::Center);
-                    
-                    awards_col = awards_col.push(badge);
-                }
-                
-                let highest_ach = awards.iter().max_by_key(|ach| crate::stats::get_achievement_score(&ach.period, &ach.tier));
-                let title_color = if let Some(a) = highest_ach {
-                    match a.tier.as_str() {
-                        "Bronze" => iced::Color::from_rgb(0.72, 0.45, 0.20),
-                        "Silver" => iced::Color::from_rgb(0.75, 0.75, 0.75),
-                        "Gold" => iced::Color::from_rgb(0.83, 0.69, 0.22),
-                        "Platinum" => iced::Color::from_rgb(0.49, 0.78, 0.89),
-                        "Legendary" => iced::Color::from_rgb(0.62, 0.31, 0.87),
-                        _ => theme::text(),
-                    }
-                } else {
-                    theme::text()
-                };
+    let make_sub_tab = |label: &str, tab: crate::app::AchievementsSubTab| {
+        let is_active = state.achievements_sub_tab == tab;
+        button(
+            text(label)
+                .font(crate::ui::icons::UI_FONT_BOLD)
+                .size(16)
+        )
+        .on_press(Message::SelectAchievementsSubTab(tab))
+        .padding([6, 16])
+        .style(move |_, status| {
+            let is_hovered = status == iced::widget::button::Status::Hovered;
+            iced::widget::button::Style {
+                background: if is_active { Some(iced::Background::Color(theme::surface0())) } else { None },
+                text_color: if is_active { theme::accent() } else if is_hovered { theme::text() } else { theme::subtext() },
+                border: iced::Border { radius: 6.0.into(), ..Default::default() },
+                ..Default::default()
+            }
+        })
+    };
 
-                let card_content = container(
-                    column![
-                        row![
-                            text(name.clone())
-                                .font(crate::ui::icons::UI_FONT_BOLD)
-                                .size(16)
-                                .color(title_color)
-                                .align_x(iced::alignment::Horizontal::Center)
-                                .width(Length::Fill),
-                        ].align_y(Alignment::Center),
-                        Space::with_height(12),
-                        awards_col,
-                    ]
-                )
-                .padding([18, 16])
-                .width(Length::Fill)
-                .style(|_| iced::widget::container::Style {
-                    background: Some(iced::Background::Color(theme::surface0())),
-                    border: iced::Border {
-                        color: theme::surface0(),
-                        width: 1.0,
-                        radius: 6.0.into(),
-                    },
-                    ..Default::default()
-                });
-                
-                let card_btn = button(card_content)
-                    .on_press(Message::OpenAchievementDetail(entity_type.to_string(), name.clone()))
-                    .padding(0)
-                    .style(|_, status| {
-                        let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-                        iced::widget::button::Style {
-                            background: None,
-                            border: iced::Border {
-                                color: if is_hovered { theme::accent() } else { iced::Color::TRANSPARENT },
-                                width: 1.0,
-                                radius: 6.0.into(),
-                            },
-                            ..Default::default()
+    let make_sort_btn = |label: &str, sort: crate::app::AchievementsSort| {
+        let is_active = state.achievements_sort == sort;
+        button(
+            text(label)
+                .font(crate::ui::icons::UI_FONT)
+                .size(13)
+        )
+        .on_press(Message::SelectAchievementsSort(sort))
+        .padding([4, 12])
+        .style(move |_, status| {
+            let is_hovered = status == iced::widget::button::Status::Hovered;
+            iced::widget::button::Style {
+                background: if is_active { Some(iced::Background::Color(theme::surface0())) } else { None },
+                text_color: if is_active { theme::accent() } else if is_hovered { theme::text() } else { theme::subtext() },
+                border: iced::Border { radius: 4.0.into(), ..Default::default() },
+                ..Default::default()
+            }
+        })
+    };
+
+    let top_bar = row![
+        row![
+            make_sub_tab("Artists", crate::app::AchievementsSubTab::Artists),
+            Space::with_width(8),
+            make_sub_tab("Albums", crate::app::AchievementsSubTab::Albums),
+            Space::with_width(8),
+            make_sub_tab("Genres", crate::app::AchievementsSubTab::Genres),
+        ].align_y(Alignment::Center),
+        Space::with_width(Length::Fill),
+        row![
+            text("Sort by:").font(crate::ui::icons::UI_FONT).size(13).color(theme::subtext()),
+            Space::with_width(8),
+            make_sort_btn("Achievement Level", crate::app::AchievementsSort::AchievementLevel),
+            Space::with_width(6),
+            make_sort_btn("Alphabetical", crate::app::AchievementsSort::Alphabetical),
+        ].align_y(Alignment::Center),
+    ]
+    .align_y(Alignment::Center)
+    .width(Length::Fill)
+    .padding([0, 16]);
+
+    #[derive(Clone)]
+    struct EntityItem {
+        name: String,
+        plays: u32,
+        highest_tier_score: u32,
+        num_awards: usize,
+    }
+
+    let mut items = Vec::new();
+    let entity_type_str = match state.achievements_sub_tab {
+        crate::app::AchievementsSubTab::Artists => "Artist",
+        crate::app::AchievementsSubTab::Albums => "Album",
+        crate::app::AchievementsSubTab::Genres => "Genre",
+    };
+
+    let mut unique_names = std::collections::HashSet::new();
+    for track in state.all_tracks.iter() {
+        match state.achievements_sub_tab {
+            crate::app::AchievementsSubTab::Artists => {
+                if !track.artist.trim().is_empty() {
+                    unique_names.insert(track.artist.clone());
+                }
+            }
+            crate::app::AchievementsSubTab::Albums => {
+                if !track.album.trim().is_empty() {
+                    unique_names.insert(track.album.clone());
+                }
+            }
+            crate::app::AchievementsSubTab::Genres => {
+                if !track.genre.trim().is_empty() {
+                    let parts = if track.genre.contains("; ") {
+                        track.genre.split("; ").map(|g| g.trim().to_string()).collect::<Vec<_>>()
+                    } else {
+                        vec![track.genre.trim().to_string()]
+                    };
+                    for p in parts {
+                        if !p.is_empty() && p != "Unknown" {
+                            unique_names.insert(p);
                         }
-                    });
-                
-                list_col = list_col.push(card_btn);
+                    }
+                }
             }
         }
-        
-        column![
-            text(title)
-                .font(crate::ui::icons::UI_FONT_BOLD)
-                .size(17)
-                .color(theme::subtext()),
-            Space::with_height(8),
-            scrollable(list_col).height(Length::Fill),
-        ]
-        .spacing(0)
-        .width(Length::FillPortion(1))
-        .into()
     }
-    
-    let artists_list: Vec<(String, Vec<EarnedAchievement>)> = artists_map.into_iter().collect();
-    let albums_list: Vec<(String, Vec<EarnedAchievement>)> = albums_map.into_iter().collect();
-    let genres_list: Vec<(String, Vec<EarnedAchievement>)> = genres_map.into_iter().collect();
-    
-    let sep = || -> Element<'_, Message> {
-        container(Space::with_width(0))
-            .width(1)
-            .height(Length::Fill)
+
+    for name in unique_names {
+        let plays = match state.achievements_sub_tab {
+            crate::app::AchievementsSubTab::Artists => crate::stats::get_artist_play_count(&name, &state.all_tracks),
+            crate::app::AchievementsSubTab::Albums => crate::stats::get_album_play_count(&name, &state.all_tracks),
+            crate::app::AchievementsSubTab::Genres => crate::stats::get_genre_play_count(&name, &state.all_tracks),
+        };
+        if plays == 0 {
+            continue;
+        }
+
+        let entity_awards: Vec<_> = achievements.iter()
+            .filter(|a| a.entity_type == entity_type_str && a.entity_name == name)
+            .collect();
+        let num_awards = entity_awards.len();
+        let highest_tier_score = entity_awards.iter()
+            .map(|a| crate::stats::get_achievement_score(&a.period, &a.tier))
+            .max()
+            .unwrap_or(0);
+
+        items.push(EntityItem {
+            name,
+            plays,
+            highest_tier_score,
+            num_awards,
+        });
+    }
+
+    match state.achievements_sort {
+        crate::app::AchievementsSort::Alphabetical => {
+            items.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+        }
+        crate::app::AchievementsSort::AchievementLevel => {
+            items.sort_by(|a, b| {
+                b.highest_tier_score.cmp(&a.highest_tier_score)
+                    .then(b.num_awards.cmp(&a.num_awards))
+                    .then(b.plays.cmp(&a.plays))
+                    .then(a.name.to_lowercase().cmp(&b.name.to_lowercase()))
+            });
+        }
+    }
+
+    let mut list_col = column![].spacing(12).width(Length::Fill).padding(iced::Padding {
+        top: 0.0,
+        right: 12.0,
+        bottom: 0.0,
+        left: 0.0,
+    });
+
+    if items.is_empty() {
+        list_col = list_col.push(
+            container(text("No items found").font(crate::ui::icons::UI_FONT).color(theme::overlay0()))
+                .padding(24)
+                .width(Length::Fill)
+                .align_x(iced::alignment::Horizontal::Center)
+        );
+    } else {
+        for item in items {
+            let cover_data = match state.achievements_sub_tab {
+                crate::app::AchievementsSubTab::Artists => get_artist_cover_data(&item.name, &state.all_tracks),
+                crate::app::AchievementsSubTab::Albums => get_album_cover_data(&item.name, &state.all_tracks),
+                crate::app::AchievementsSubTab::Genres => get_genre_cover_data(&item.name, &state.all_tracks),
+            };
+            let cover_art: Element<Message> = if let Some(data) = cover_data {
+                image(iced::widget::image::Handle::from_bytes(data))
+                    .width(90)
+                    .height(90)
+                    .content_fit(iced::ContentFit::Cover)
+                    .into()
+            } else {
+                let note_bytes = include_bytes!("../../../assets/OmaTUNES NOTE.png");
+                container(
+                    image(iced::widget::image::Handle::from_bytes(note_bytes.to_vec()))
+                        .width(90)
+                        .height(90)
+                        .content_fit(iced::ContentFit::Cover)
+                )
+                .width(90)
+                .height(90)
+                .align_x(iced::alignment::Horizontal::Center)
+                .align_y(iced::alignment::Vertical::Center)
+                .style(theme::card)
+                .into()
+            };
+
+            let title_color = match item.highest_tier_score {
+                1 => iced::Color::from_rgb(0.72, 0.45, 0.20), // Bronze
+                2 => iced::Color::from_rgb(0.75, 0.75, 0.75), // Silver
+                3 => iced::Color::from_rgb(0.83, 0.69, 0.22), // Gold
+                4 => iced::Color::from_rgb(0.49, 0.78, 0.89), // Platinum Crown
+                5 => iced::Color::from_rgb(0.62, 0.31, 0.87), // Legendary Gem
+                _ => theme::text(),
+            };
+
+            let thresholds = match state.achievements_sub_tab {
+                crate::app::AchievementsSubTab::Artists | crate::app::AchievementsSubTab::Albums => &crate::stats::ARTIST_THRESHOLDS,
+                crate::app::AchievementsSubTab::Genres => &crate::stats::GENRE_THRESHOLDS,
+            };
+
+            let plays_f = item.plays as f32;
+            let f: f32 = if plays_f < thresholds[0] as f32 {
+                0.0 + 0.2 * (plays_f / thresholds[0] as f32)
+            } else if plays_f < thresholds[1] as f32 {
+                0.2 + 0.2 * ((plays_f - thresholds[0] as f32) / (thresholds[1] as f32 - thresholds[0] as f32))
+            } else if plays_f < thresholds[2] as f32 {
+                0.4 + 0.2 * ((plays_f - thresholds[1] as f32) / (thresholds[2] as f32 - thresholds[1] as f32))
+            } else if plays_f < thresholds[3] as f32 {
+                0.6 + 0.2 * ((plays_f - thresholds[2] as f32) / (thresholds[3] as f32 - thresholds[2] as f32))
+            } else if plays_f < thresholds[4] as f32 {
+                0.8 + 0.2 * ((plays_f - thresholds[3] as f32) / (thresholds[4] as f32 - thresholds[3] as f32))
+            } else {
+                1.0
+            };
+
+            let bar_inner: Element<Message> = if f <= 0.01 {
+                Space::new(Length::Fill, Length::Fill).into()
+            } else if f >= 0.99 {
+                container(Space::new(Length::Fill, Length::Fill))
+                    .width(Length::Fill)
+                    .style(|_| iced::widget::container::Style {
+                        background: Some(iced::Background::Color(theme::accent())),
+                        border: iced::Border { radius: 3.0.into(), ..Default::default() },
+                        ..Default::default()
+                    })
+                    .into()
+            } else {
+                row![
+                    container(Space::new(Length::Fill, Length::Fill))
+                        .width(Length::FillPortion((f * 100.0) as u32))
+                        .style(|_| iced::widget::container::Style {
+                            background: Some(iced::Background::Color(theme::accent())),
+                            border: iced::Border { radius: 3.0.into(), ..Default::default() },
+                            ..Default::default()
+                        }),
+                    Space::new(Length::FillPortion(((1.0 - f) * 100.0) as u32), Length::Fill)
+                ]
+                .width(Length::Fill)
+                .into()
+            };
+
+            let progress_line = container(
+                container(bar_inner)
+                    .width(Length::Fill)
+                    .height(6.0)
+                    .style(|_| iced::widget::container::Style {
+                        background: Some(iced::Background::Color(theme::surface1())),
+                        border: iced::Border { radius: 3.0.into(), ..Default::default() },
+                        ..Default::default()
+                    })
+            )
+            .width(Length::Fill)
+            .height(30.0)
+            .align_y(iced::alignment::Vertical::Center);
+
+            let mut dots_row = row![].width(Length::Fill);
+            for i in 0..5 {
+                let thresh = thresholds[i];
+                let achieved = item.plays >= thresh;
+                let tier_name = crate::stats::TIERS[i];
+                
+                let dot: Element<Message> = if achieved {
+                    image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes("All-Time", tier_name).to_vec()))
+                        .width(26)
+                        .height(26)
+                        .into()
+                } else {
+                    container(
+                        text("\u{f053f}")
+                            .font(crate::ui::icons::NERD_FONT_MONO)
+                            .size(16)
+                            .color(theme::surface2())
+                    )
+                    .width(26)
+                    .height(26)
+                    .align_x(iced::alignment::Horizontal::Center)
+                    .align_y(iced::alignment::Vertical::Center)
+                    .into()
+                };
+
+                let milestone_col = column![
+                    dot,
+                    text(format!("{} plays", thresh))
+                        .font(crate::ui::icons::UI_FONT)
+                        .size(10)
+                        .color(theme::subtext())
+                ]
+                .spacing(2)
+                .align_items(Alignment::End);
+
+                dots_row = dots_row.push(
+                    container(milestone_col)
+                        .width(Length::Fill)
+                        .align_x(iced::alignment::Horizontal::Right)
+                );
+            }
+
+            let milestone_bar = stack![
+                progress_line,
+                container(dots_row).width(Length::Fill).height(45.0).align_y(iced::alignment::Vertical::Center)
+            ]
+            .width(Length::Fill);
+
+            let right_col = column![
+                text(item.name.clone())
+                    .font(crate::ui::icons::UI_FONT_BOLD)
+                    .size(20)
+                    .color(title_color)
+                    .align_x(iced::alignment::Horizontal::Center)
+                    .width(Length::Fill),
+                Space::with_height(4),
+                text(format!("Total Plays: {}", item.plays))
+                    .font(crate::ui::icons::UI_FONT)
+                    .size(12)
+                    .color(theme::subtext())
+                    .align_x(iced::alignment::Horizontal::Center)
+                    .width(Length::Fill),
+                Space::with_height(10),
+                milestone_bar,
+            ]
+            .spacing(0)
+            .width(Length::Fill);
+
+            let card_content = container(
+                row![
+                    cover_art,
+                    Space::with_width(16),
+                    right_col,
+                    Space::with_width(8),
+                ]
+                .align_y(Alignment::Center)
+                .width(Length::Fill)
+            )
+            .padding([16, 16])
+            .width(Length::Fill)
             .style(|_| iced::widget::container::Style {
                 background: Some(iced::Background::Color(theme::surface0())),
+                border: iced::Border {
+                    color: theme::surface0(),
+                    width: 1.0,
+                    radius: 8.0.into(),
+                },
                 ..Default::default()
-            })
-            .into()
-    };
-    
-    row![
-        Space::with_width(12),
-        build_achievement_column("Artists", '\u{f4ff}', "Artist", artists_list),
-        Space::with_width(12),
-        sep(),
-        Space::with_width(12),
-        build_achievement_column("Albums", '\u{e271}', "Album", albums_list),
-        Space::with_width(12),
-        sep(),
-        Space::with_width(12),
-        build_achievement_column("Genres", '\u{f02b}', "Genre", genres_list),
-        Space::with_width(12),
+            });
+
+            let card_btn = button(card_content)
+                .on_press(Message::OpenAchievementDetail(entity_type_str.to_string(), item.name.clone()))
+                .padding(0)
+                .style(|_, status| {
+                    let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                    iced::widget::button::Style {
+                        background: None,
+                        border: iced::Border {
+                            color: if is_hovered { theme::accent() } else { iced::Color::TRANSPARENT },
+                            width: 1.0,
+                            radius: 8.0.into(),
+                        },
+                        ..Default::default()
+                    }
+                });
+
+            list_col = list_col.push(card_btn);
+        }
+    }
+
+    column![
+        top_bar,
+        Space::with_height(12),
+        scrollable(list_col).height(Length::Fill),
     ]
     .spacing(0)
     .width(Length::Fill)
@@ -1263,26 +1508,19 @@ pub fn achievement_detail_view(entity_type: &str, entity_name: &str) -> Element<
     });
 
     let mut list_col = column![].spacing(8).padding(iced::Padding { top: 0.0, right: 12.0, bottom: 0.0, left: 0.0 });
-    for ((period, tier), count, date_str) in unique_awards {
+    for ((_period, tier), count, date_str) in unique_awards {
         let row_item = container(
             row![
-                image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes(&period, &tier).to_vec()))
+                image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes("All-Time", &tier).to_vec()))
                     .width(Length::Fixed(28.0))
                     .height(Length::Fixed(28.0)),
                 Space::with_width(12),
                 column![
-                    text(format!("{} {} ({})", tier, match period.as_str() {
-                        "Daily" => "Ribbon",
-                        "Weekly" => "Medal",
-                        "Monthly" => "Crown",
-                        "Yearly" => "Trophy",
-                        "All-Time" => "Diamond",
-                        _ => "Award",
-                    }, period))
+                    text(format!("{} (All-Time)", tier))
                         .font(crate::ui::icons::UI_FONT_BOLD)
                         .size(14)
                         .color(theme::text()),
-                    text(crate::stats::get_achievement_requirement(&period, &tier))
+                    text(crate::stats::get_achievement_requirement(entity_type, &tier))
                         .font(crate::ui::icons::UI_FONT)
                         .size(12)
                         .color(theme::text()),
