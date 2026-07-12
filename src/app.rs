@@ -879,6 +879,7 @@ impl AppState {
             achievements_sub_tab: AchievementsSubTab::Artists,
             achievements_sort: AchievementsSort::AchievementLevel,
             achievements_limit: 10,
+            achievements_cover_cache: std::sync::Mutex::new(std::collections::HashMap::new()),
         };
 
         (state, scan_task)
@@ -4029,6 +4030,7 @@ impl AppState {
             Message::ClosePeriodBreakdown => {
                 self.show_period_breakdown = None;
                 self.breakdown_song_view = None;
+                self.achievements_cover_cache.lock().unwrap().clear();
                 Task::none()
             }
 
