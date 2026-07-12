@@ -1113,7 +1113,7 @@ fn get_genre_cover_data(genre: &str, tracks: &[crate::library::models::Track]) -
         use rand::seq::SliceRandom;
         let mut rng = rand::thread_rng();
         if let Some(selected_track_list) = matching_albums.choose(&mut rng) {
-            for t in *selected_track_list {
+            for t in selected_track_list {
                 if let Some(data) = crate::library::scanner::load_cover(&t.path) {
                     return Some(data);
                 }
