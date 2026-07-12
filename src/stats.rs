@@ -202,14 +202,185 @@ pub fn flush() {
     }
 }
 
-// ── Accumulation Helper ───────────────────────────────────────────────────────
+pub fn get_achievement_score(period: &str, tier: &str) -> u32 {
+    match (period, tier) {
+        ("All-Time", "Legendary") => 25,
+        ("Yearly", "Legendary") => 24,
+        ("Monthly", "Legendary") => 23,
+        ("Weekly", "Legendary") => 22,
+        ("Daily", "Legendary") => 21,
+        ("All-Time", "Platinum") => 20,
+        ("All-Time", "Gold") => 19,
+        ("Yearly", "Platinum") => 18,
+        ("All-Time", "Silver") => 17,
+        ("Yearly", "Gold") => 16,
+        ("All-Time", "Bronze") => 15,
+        ("Yearly", "Silver") => 14,
+        ("Monthly", "Platinum") => 13,
+        ("Yearly", "Bronze") => 12,
+        ("Monthly", "Gold") => 11,
+        ("Weekly", "Platinum") => 10,
+        ("Monthly", "Silver") => 9,
+        ("Weekly", "Gold") => 8,
+        ("Monthly", "Bronze") => 7,
+        ("Daily", "Platinum") => 6,
+        ("Weekly", "Silver") => 5,
+        ("Daily", "Gold") => 4,
+        ("Weekly", "Bronze") => 3,
+        ("Daily", "Silver") => 2,
+        ("Daily", "Bronze") => 1,
+        _ => 0,
+    }
+}
 
-pub fn add_playback_time(artist: &str, album: &str, genre: &str, secs: f64) {
+pub fn get_highest_achievement(entity_type: &str, entity_name: &str) -> Option<EarnedAchievement> {
+    get(|db| {
+        db.earned_achievements.iter()
+            .filter(|a| a.entity_type == entity_type && a.entity_name == entity_name)
+            .max_by_key(|a| get_achievement_score(&a.period, &a.tier))
+            .cloned()
+    })
+}
+
+fn check_and_award_all_tiers(
+    db: &mut StatsDb,
+    entity_type: &str,
+    entity_name: &str,
+    date_str: &str,
+    year: u32,
+    new_awards: &mut Vec<EarnedAchievement>,
+) {
+    use chrono::{NaiveDate, Datelike};
+
+    let date = match NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {
+        Ok(d) => d,
+        Err(_) => return,
+    };
+
+    // 1. Daily minutes
+    let daily_mins = if let Some(day) = db.daily_buckets.get(date_str) {
+        match entity_type {
+            "Artist" => day.artist_minutes.get(entity_name).cloned().unwrap_or(0.0),
+            "Album" => day.album_minutes.get(entity_name).cloned().unwrap_or(0.0),
+            "Genre" => day.genre_minutes.get(entity_name).cloned().unwrap_or(0.0),
+            _ => 0.0,
+        }
+    } else {
+        0.0;
+    };
+
+    // 2. Weekly minutes
+    let days_from_monday = date.weekday().num_days_from_monday();
+    let monday = date - chrono::Duration::days(days_from_monday as i64);
+    let monday_str = monday.format("%Y-%m-%d").to_string();
+
+    let mut weekly_mins = 0.0;
+    for offset in 0..7 {
+        let check_date = monday + chrono::Duration::days(offset);
+        let check_date_str = check_date.format("%Y-%m-%d").to_string();
+        if let Some(day) = db.daily_buckets.get(&check_date_str) {
+            weekly_mins += match entity_type {
+                "Artist" => day.artist_minutes.get(entity_name).cloned().unwrap_or(0.0),
+                "Album" => day.album_minutes.get(entity_name).cloned().unwrap_or(0.0),
+                "Genre" => day.genre_minutes.get(entity_name).cloned().unwrap_or(0.0),
+                _ => 0.0,
+            };
+        }
+    }
+
+    // 3. Monthly minutes
+    let month_prefix = date.format("%Y-%m-").to_string();
+    let mut monthly_mins = 0.0;
+    for (d_str, day) in &db.daily_buckets {
+        if d_str.starts_with(&month_prefix) {
+            monthly_mins += match entity_type {
+                "Artist" => day.artist_minutes.get(entity_name).cloned().unwrap_or(0.0),
+                "Album" => day.album_minutes.get(entity_name).cloned().unwrap_or(0.0),
+                "Genre" => day.genre_minutes.get(entity_name).cloned().unwrap_or(0.0),
+                _ => 0.0,
+            };
+        }
+    }
+
+    // 4. Yearly minutes
+    let yearly_mins = if let Some(yr_stats) = db.yearly_buckets.get(&year) {
+        match entity_type {
+            "Artist" => yr_stats.artist_minutes.get(entity_name).cloned().unwrap_or(0.0),
+            "Album" => yr_stats.album_minutes.get(entity_name).cloned().unwrap_or(0.0),
+            "Genre" => yr_stats.genre_minutes.get(entity_name).cloned().unwrap_or(0.0),
+            _ => 0.0,
+        }
+    } else {
+        0.0;
+    };
+
+    // 5. All-Time minutes
+    let legacy_mins = match entity_type {
+        "Artist" => db.legacy_artist_minutes.get(entity_name).cloned().unwrap_or(0.0),
+        "Album" => db.legacy_album_minutes.get(entity_name).cloned().unwrap_or(0.0),
+        "Genre" => db.legacy_genre_minutes.get(entity_name).cloned().unwrap_or(0.0),
+        _ => 0.0,
+    };
+    let mut all_time_mins = legacy_mins;
+    for day in db.daily_buckets.values() {
+        all_time_mins += match entity_type {
+            "Artist" => day.artist_minutes.get(entity_name).cloned().unwrap_or(0.0),
+            "Album" => day.album_minutes.get(entity_name).cloned().unwrap_or(0.0),
+            "Genre" => day.genre_minutes.get(entity_name).cloned().unwrap_or(0.0),
+            _ => 0.0,
+        };
+    }
+
+    let mut check = |period: &str, tier: &str, thresh: f64, val: f64, key: &str| {
+        if val >= thresh {
+            let already = db.earned_achievements.iter().any(|a| {
+                a.entity_type == entity_type
+                    && a.entity_name == entity_name
+                    && a.period == period
+                    && a.tier == tier
+                    && a.date_earned == key
+            });
+            if !already {
+                let award = EarnedAchievement {
+                    entity_type: entity_type.to_string(),
+                    entity_name: entity_name.to_string(),
+                    period: period.to_string(),
+                    tier: tier.to_string(),
+                    date_earned: key.to_string(),
+                };
+                db.earned_achievements.push(award.clone());
+                new_awards.push(award);
+            }
+        }
+    };
+
+    let tiers = [
+        ("Bronze", 30.0, 60.0, 240.0, 2880.0, 6000.0),
+        ("Silver", 60.0, 120.0, 480.0, 5760.0, 12000.0),
+        ("Gold", 120.0, 240.0, 960.0, 11520.0, 18000.0),
+        ("Platinum", 180.0, 360.0, 1440.0, 17280.0, 24000.0),
+        ("Legendary", 240.0, 480.0, 1920.0, 23040.0, 30000.0),
+    ];
+
+    for (tier, d_th, w_th, m_th, y_th, at_th) in tiers {
+        check("Daily", tier, d_th, daily_mins, date_str);
+        check("Weekly", tier, w_th, weekly_mins, &monday_str);
+        check("Monthly", tier, m_th, monthly_mins, &month_prefix[0..7]);
+        check("Yearly", tier, y_th, yearly_mins, &year.to_string());
+        check("All-Time", tier, at_th, all_time_mins, "all-time");
+    }
+}
+
+pub fn add_playback_time(artist: &str, album: &str, genre: &str, secs: f64) -> Vec<EarnedAchievement> {
     let now_dt = chrono::Local::now();
     let date_str = now_dt.format("%Y-%m-%d").to_string();
+    use chrono::Datelike;
+    let current_year = now_dt.date_naive().year() as u32;
     let now_ts = now_dt.timestamp();
     let minutes = secs / 60.0;
-    
+
+    let mut new_awards = Vec::new();
+
     write(|db| {
         // Handle Session Closing Check (30 minutes = 1800 seconds)
         if let Some(last_ts) = db.last_active_timestamp {
@@ -219,16 +390,21 @@ pub fn add_playback_time(artist: &str, album: &str, genre: &str, secs: f64) {
         } else {
             db.current_session_accum_secs = 0.0;
         }
-        
+
         db.current_session_accum_secs += secs;
         db.last_active_timestamp = Some(now_ts);
-        
-        let day = db.daily_buckets.entry(date_str).or_default();
+
+        // 1. Daily bucket accumulation
+        let day = db.daily_buckets.entry(date_str.clone()).or_default();
         day.total_minutes += minutes;
-        
+
         let artist_entry = day.artist_minutes.entry(artist.to_string()).or_default();
         *artist_entry += minutes;
-        
+
+        let clean_album = if album.trim().is_empty() { "Unknown".to_string() } else { album.trim().to_string() };
+        let album_entry = day.album_minutes.entry(clean_album.clone()).or_default();
+        *album_entry += minutes;
+
         if genre.contains("; ") {
             for g in genre.split("; ") {
                 let clean = if g.trim().is_empty() { "Unknown" } else { g.trim() };
@@ -241,15 +417,49 @@ pub fn add_playback_time(artist: &str, album: &str, genre: &str, secs: f64) {
             *genre_entry += minutes;
         }
 
-        let clean_album = if album.trim().is_empty() { "Unknown" } else { album.trim() };
-        let album_entry = day.album_minutes.entry(clean_album.to_string()).or_default();
-        *album_entry += minutes;
-
         let session_mins = db.current_session_accum_secs / 60.0;
         if session_mins > day.longest_session_minutes {
             day.longest_session_minutes = session_mins;
         }
+
+        // 2. Yearly bucket accumulation
+        let yr_stats = db.yearly_buckets.entry(current_year).or_default();
+        yr_stats.total_minutes += minutes;
+
+        let yr_artist_entry = yr_stats.artist_minutes.entry(artist.to_string()).or_default();
+        *yr_artist_entry += minutes;
+
+        let yr_album_entry = yr_stats.album_minutes.entry(clean_album.clone()).or_default();
+        *yr_album_entry += minutes;
+
+        if genre.contains("; ") {
+            for g in genre.split("; ") {
+                let clean = if g.trim().is_empty() { "Unknown" } else { g.trim() };
+                let yr_genre_entry = yr_stats.genre_minutes.entry(clean.to_string()).or_default();
+                *yr_genre_entry += minutes;
+            }
+        } else {
+            let clean_genre = if genre.trim().is_empty() { "Unknown" } else { genre.trim() };
+            let yr_genre_entry = yr_stats.genre_minutes.entry(clean_genre.to_string()).or_default();
+            *yr_genre_entry += minutes;
+        }
+
+        // 3. Check and award achievements
+        check_and_award_all_tiers(db, "Artist", artist, &date_str, current_year, &mut new_awards);
+        check_and_award_all_tiers(db, "Album", &clean_album, &date_str, current_year, &mut new_awards);
+
+        if genre.contains("; ") {
+            for g in genre.split("; ") {
+                let clean = if g.trim().is_empty() { "Unknown" } else { g.trim() };
+                check_and_award_all_tiers(db, "Genre", clean, &date_str, current_year, &mut new_awards);
+            }
+        } else {
+            let clean_genre = if genre.trim().is_empty() { "Unknown" } else { genre.trim() };
+            check_and_award_all_tiers(db, "Genre", clean_genre, &date_str, current_year, &mut new_awards);
+        }
     });
+
+    new_awards
 }
 
 // ── One-Time Album Data Backfill ────────────────────────────────────────────
