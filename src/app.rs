@@ -277,6 +277,8 @@ pub enum Message {
     SelectAchievementsSubTab(AchievementsSubTab),
     SelectAchievementsSort(AchievementsSort),
     ShowMoreAchievements,
+    ShowPreviousAchievements,
+    AchievementsSearchChanged(String),
     Noop,
 
     OpenSettings,
