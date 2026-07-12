@@ -1130,7 +1130,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                 .style(|_| iced::widget::container::Style {
                     background: Some(iced::Background::Color(theme::surface0())),
                     border: iced::Border {
-                        color: theme::surface1(),
+                        color: theme::surface0(),
                         width: 1.0,
                         radius: 6.0.into(),
                     },
