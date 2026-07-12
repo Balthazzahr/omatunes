@@ -1294,12 +1294,23 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
         let display_items = items.iter().take(state.achievements_limit);
 
         for item in display_items {
-            let cover_data = match state.achievements_sub_tab {
-                crate::app::AchievementsSubTab::Artists => get_artist_cover_data(&item.name, &state.all_tracks),
-                crate::app::AchievementsSubTab::Albums => get_album_cover_data(&item.name, &state.all_tracks),
-                crate::app::AchievementsSubTab::Genres => get_genre_cover_data(&item.name, &state.all_tracks),
+            let cache_key = format!("{:?}:{}", state.achievements_sub_tab, item.name);
+            let cached_cover = {
+                let mut cache = state.achievements_cover_cache.lock().unwrap();
+                if let Some(cached) = cache.get(&cache_key) {
+                    cached.clone()
+                } else {
+                    let cover_data = match state.achievements_sub_tab {
+                        crate::app::AchievementsSubTab::Artists => get_artist_cover_data(&item.name, &state.all_tracks),
+                        crate::app::AchievementsSubTab::Albums => get_album_cover_data(&item.name, &state.all_tracks),
+                        crate::app::AchievementsSubTab::Genres => get_genre_cover_data(&item.name, &state.all_tracks),
+                    };
+                    cache.insert(cache_key, cover_data.clone());
+                    cover_data
+                }
             };
-            let cover_art: Element<Message> = if let Some(data) = cover_data {
+
+            let cover_art: Element<Message> = if let Some(data) = cached_cover {
                 image(iced::widget::image::Handle::from_bytes(data))
                     .width(90)
                     .height(90)
