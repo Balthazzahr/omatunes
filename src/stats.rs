@@ -1337,6 +1337,8 @@ pub fn get_song_breakdown(
         let days_from_monday = now.weekday().num_days_from_monday();
         let monday = now - chrono::Duration::days(days_from_monday as i64);
         let this_month_prefix = now.format("%Y-%m").to_string();
+        use chrono::Datelike;
+        let this_year_prefix = now.year().to_string();
 
         let periods: Vec<(&str, Box<dyn Fn(&str) -> bool>)> = vec![
             ("Today", Box::new(move |d: &str| d == today_str)),
@@ -1344,12 +1346,46 @@ pub fn get_song_breakdown(
                 if let Some(date) = parse_date(d) { date >= monday && date <= now } else { false }
             })),
             ("This Month", Box::new(move |d: &str| d.starts_with(&this_month_prefix))),
+            ("This Year", Box::new(move |d: &str| d.starts_with(&this_year_prefix))),
             ("All-Time", Box::new(move |_d: &str| true)),
         ];
 
         let mut items: Vec<SongBreakdownItem> = Vec::new();
 
         if period_idx == 3 {
+            // "This Year": pull play counts from yearly_buckets
+            let current_year = now.year() as u32;
+            let mut path_plays = HashMap::new();
+            if let Some(yr_stats) = db.yearly_buckets.get(&current_year) {
+                path_plays = yr_stats.track_play_counts.clone();
+            }
+
+            // Build track lookup from library
+            let mut track_map: HashMap<PathBuf, &crate::library::models::Track> = HashMap::new();
+            for track in tracks {
+                track_map.insert(track.path.clone(), track);
+            }
+
+            for (path, count) in path_plays {
+                if let Some(track) = track_map.get(&path) {
+                    let matches = match category {
+                        "Artist" => track.artist == name,
+                        "Album" => track.album == name,
+                        "Genre" => track.genres().iter().any(|g| g.trim() == name),
+                        _ => false,
+                    };
+                    if matches {
+                        items.push(SongBreakdownItem {
+                            track_path: path,
+                            title: track.title.clone(),
+                            artist: track.artist.clone(),
+                            album: track.album.clone(),
+                            play_count: count,
+                        });
+                    }
+                }
+            }
+        } else if period_idx == 4 {
             // "All-Time": pull play counts directly from tracks slice loaded from db.json
             for track in tracks {
                 if track.play_count > 0 {

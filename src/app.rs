@@ -2611,6 +2611,7 @@ impl AppState {
             Message::LibraryScanned(tracks) => {
                 self.all_tracks = Arc::new(tracks);
                 crate::stats::backfill_album_data(&self.all_tracks);
+                crate::stats::backfill_achievements(&self.all_tracks);
                 self.update_live_smart_playlists();
                 let mut cache: HashMap<PathBuf, Vec<Track>> = HashMap::new();
                 for track in self.all_tracks.iter() {
