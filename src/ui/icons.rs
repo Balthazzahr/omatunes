@@ -62,6 +62,11 @@ pub const ICON_CALENDAR_DAY:  &str = "\u{f00ed}"; // nf-md-calendar
 pub const ICON_CALENDAR_WEEK: &str = "\u{f272}";  // nf-fa-calendar_minus_o
 pub const ICON_CALENDAR_MONTH_FA: &str = "\u{f073}"; // nf-fa-calendar
 pub const ICON_TROPHY_FA:     &str = "\u{f091}"; // nf-fa-trophy
+pub const ICON_AWARD:         &str = "\u{f559}"; // nf-fa-award
+pub const ICON_MEDAL:         &str = "\u{f5a2}"; // nf-fa-medal
+pub const ICON_CROWN:         &str = "\u{f521}"; // nf-fa-crown
+pub const ICON_GEM:           &str = "\u{f3a5}"; // nf-fa-gem
+
 
 // Settings nav icons
 pub const ICON_KEYBOARD:      &str = "\u{f11c}";  // nf-fa-keyboard
