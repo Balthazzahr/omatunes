@@ -269,7 +269,7 @@ fn check_and_award_all_tiers(
             _ => 0.0,
         }
     } else {
-        0.0;
+        0.0
     };
 
     // 2. Weekly minutes
@@ -314,7 +314,7 @@ fn check_and_award_all_tiers(
             _ => 0.0,
         }
     } else {
-        0.0;
+        0.0
     };
 
     // 5. All-Time minutes
