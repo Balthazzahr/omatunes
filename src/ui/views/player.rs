@@ -1092,15 +1092,15 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                     let mut badge = row![
                         text(icon_str)
                             .font(crate::ui::icons::NERD_FONT_MONO)
-                            .size(16)
+                            .size(24)
                             .color(tier_color),
                     ].spacing(4).align_y(Alignment::Center);
                     
                     if *count > 1 {
                         badge = badge.push(
                             text(format!("x{}", count))
-                                .font(crate::ui::icons::UI_FONT)
-                                .size(11)
+                                .font(crate::ui::icons::UI_FONT_BOLD)
+                                .size(12)
                                 .color(theme::subtext())
                         );
                     }
@@ -1121,11 +1121,11 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                                 .color(theme::text())
                                 .width(Length::Fill),
                         ].align_y(Alignment::Center),
-                        Space::with_height(8),
+                        Space::with_height(14),
                         awards_row,
                     ]
                 )
-                .padding(12)
+                .padding([18, 16])
                 .width(Length::Fill)
                 .style(|_| iced::widget::container::Style {
                     background: Some(iced::Background::Color(theme::surface0())),
