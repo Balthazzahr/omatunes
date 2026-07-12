@@ -62,10 +62,10 @@ pub const ICON_CALENDAR_DAY:  &str = "\u{f00ed}"; // nf-md-calendar
 pub const ICON_CALENDAR_WEEK: &str = "\u{f272}";  // nf-fa-calendar_minus_o
 pub const ICON_CALENDAR_MONTH_FA: &str = "\u{f073}"; // nf-fa-calendar
 pub const ICON_TROPHY_FA:     &str = "\u{f091}"; // trophy (nf-fa-trophy)
-pub const ICON_AWARD:         &str = "\u{f02e}"; // ribbon (nf-fa-bookmark)
-pub const ICON_MEDAL:         &str = "\u{f0a3}"; // rosette badge (nf-fa-certificate)
-pub const ICON_CROWN:         &str = "\u{f005}"; // star/crown (nf-fa-star)
-pub const ICON_GEM:           &str = "\u{f219}"; // diamond (nf-fa-diamond)
+pub const ICON_AWARD:         &str = "\u{f559}"; // award ribbon (nf-fa-award)
+pub const ICON_MEDAL:         &str = "\u{f5a2}"; // medal with star (nf-fa-medal)
+pub const ICON_CROWN:         &str = "\u{f521}"; // crown (nf-fa-crown)
+pub const ICON_GEM:           &str = "\u{f3a5}"; // gem (nf-fa-gem)
 
 
 // Settings nav icons
