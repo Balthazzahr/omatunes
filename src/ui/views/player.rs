@@ -1072,28 +1072,10 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                 
                 let mut awards_row = row![].spacing(12).align_y(Alignment::Center);
                 for ((period, tier), count, _) in top_3 {
-                    let icon_str = match period.as_str() {
-                        "Daily" => crate::ui::icons::ICON_AWARD,
-                        "Weekly" => crate::ui::icons::ICON_MEDAL,
-                        "Monthly" => crate::ui::icons::ICON_CROWN,
-                        "Yearly" => crate::ui::icons::ICON_TROPHY_FA,
-                        "All-Time" => crate::ui::icons::ICON_GEM,
-                        _ => crate::ui::icons::ICON_AWARD,
-                    };
-                    let tier_color = match tier.as_str() {
-                        "Bronze" => iced::Color::from_rgb(0.72, 0.45, 0.20),
-                        "Silver" => iced::Color::from_rgb(0.75, 0.75, 0.75),
-                        "Gold" => iced::Color::from_rgb(0.83, 0.69, 0.22),
-                        "Platinum" => iced::Color::from_rgb(0.49, 0.78, 0.89),
-                        "Legendary" => iced::Color::from_rgb(0.62, 0.31, 0.87),
-                        _ => theme::text(),
-                    };
-                    
                     let mut badge = row![
-                        text(icon_str)
-                            .font(crate::ui::icons::NERD_FONT_MONO)
-                            .size(24)
-                            .color(tier_color),
+                        image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes(period, tier).to_vec()))
+                            .width(Length::Fixed(24.0))
+                            .height(Length::Fixed(24.0)),
                     ].spacing(4).align_y(Alignment::Center);
                     
                     if *count > 1 {
