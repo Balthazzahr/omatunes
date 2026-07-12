@@ -1266,7 +1266,7 @@ pub fn achievement_detail_view(entity_type: &str, entity_name: &str) -> Element<
             row![
                 text(icon_str)
                     .font(crate::ui::icons::NERD_FONT_MONO)
-                    .size(20)
+                    .size(28)
                     .color(tier_color),
                 Space::with_width(12),
                 column![
