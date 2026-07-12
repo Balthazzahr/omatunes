@@ -611,6 +611,14 @@ pub struct AppState {
     pub active_notifications: Vec<StatsNotification>,
     pub next_notification_id: u64,
     pub last_checked_hour: Option<u32>,
+    pub stats_modal_tab: StatsModalTab,
+    pub selected_achievement_detail: Option<(String, String)>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StatsModalTab {
+    Leaderboard,
+    Achievements,
 }
 
 pub struct GroupByControlState {
