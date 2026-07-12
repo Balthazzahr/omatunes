@@ -1166,6 +1166,14 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
         })
     };
 
+    let search_input = text_input(
+        "Search...",
+        &state.achievements_search_query,
+    )
+    .on_input(Message::AchievementsSearchChanged)
+    .padding(6)
+    .width(Length::Fixed(180.0));
+
     let top_bar = row![
         row![
             make_sub_tab("Artists", crate::app::AchievementsSubTab::Artists),
@@ -1175,12 +1183,14 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
             make_sub_tab("Genres", crate::app::AchievementsSubTab::Genres),
         ].align_y(Alignment::Center),
         Space::with_width(Length::Fill),
+        search_input,
+        Space::with_width(Length::Fill),
         row![
-            text("Sort by:").font(crate::ui::icons::UI_FONT).size(13).color(theme::subtext()),
-            Space::with_width(8),
-            make_sort_btn("Achievement Level", crate::app::AchievementsSort::AchievementLevel),
+            text("Sort:").font(crate::ui::icons::UI_FONT).size(13).color(theme::subtext()),
             Space::with_width(6),
-            make_sort_btn("Alphabetical", crate::app::AchievementsSort::Alphabetical),
+            make_sort_btn("Level", crate::app::AchievementsSort::AchievementLevel),
+            Space::with_width(4),
+            make_sort_btn("A-Z", crate::app::AchievementsSort::Alphabetical),
         ].align_y(Alignment::Center),
     ]
     .align_y(Alignment::Center)
@@ -1193,7 +1203,60 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
         crate::app::AchievementsSubTab::Genres => "Genre",
     };
 
-    let items = &state.achievements_items;
+    // Filter the items by query (case-insensitive contains check)
+    let query = state.achievements_search_query.to_lowercase();
+    let filtered_items: Vec<&crate::app::AchievementItem> = state.achievements_items.iter()
+        .filter(|item| item.name.to_lowercase().contains(&query))
+        .collect();
+
+    let total_items = filtered_items.len();
+    let page_items = filtered_items.iter()
+        .skip(state.achievements_offset)
+        .take(3);
+
+    // Auto-complete Suggestions (take up to 3 containing matching names)
+    let mut suggestions = Vec::new();
+    if !state.achievements_search_query.trim().is_empty() {
+        let matches: Vec<String> = state.achievements_items.iter()
+            .map(|item| item.name.clone())
+            .filter(|name| name.to_lowercase().contains(&query) && name.to_lowercase() != query)
+            .collect();
+        suggestions = matches.into_iter().take(3).collect();
+    }
+
+    let suggestions_bar: Element<'_, Message> = if !suggestions.is_empty() {
+        let mut sug_row = row![
+            text("Suggestions:")
+                .font(crate::ui::icons::UI_FONT)
+                .size(11)
+                .color(theme::subtext()),
+            Space::with_width(6)
+        ].align_y(Alignment::Center);
+
+        for sug in suggestions {
+            let sug_clone = sug.clone();
+            sug_row = sug_row.push(
+                button(text(&sug).font(crate::ui::icons::UI_FONT).size(11))
+                    .on_press(Message::AchievementsSearchChanged(sug_clone))
+                    .padding([2, 8])
+                    .style(move |_, status| {
+                        let is_hovered = status == iced::widget::button::Status::Hovered;
+                        iced::widget::button::Style {
+                            background: Some(iced::Background::Color(theme::surface0())),
+                            text_color: if is_hovered { theme::accent() } else { theme::text() },
+                            border: iced::Border { radius: 4.0.into(), ..Default::default() },
+                            ..Default::default()
+                        }
+                    })
+            ).push(Space::with_width(6));
+        }
+        container(sug_row)
+            .width(Length::Fill)
+            .padding([0, 16])
+            .into()
+    } else {
+        Space::with_height(0).into()
+    };
 
     let mut list_col = column![].spacing(12).width(Length::Fill).padding(iced::Padding {
         top: 0.0,
@@ -1202,7 +1265,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
         left: 0.0,
     });
 
-    if items.is_empty() {
+    if filtered_items.is_empty() {
         list_col = list_col.push(
             container(text("No items found").font(crate::ui::icons::UI_FONT).color(theme::overlay0()))
                 .padding(24)
@@ -1210,33 +1273,23 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                 .align_x(iced::alignment::Horizontal::Center)
         );
     } else {
-        let total_items = items.len();
-        let display_items = items.iter().take(state.achievements_limit);
-
-        for (idx, item) in display_items.enumerate() {
-            let cache_key = if idx < 3 {
-                format!("{:?}:{}", state.achievements_sub_tab, item.name)
-            } else {
-                "static:note".to_string()
-            };
+        for (idx, item) in page_items.enumerate() {
+            // Note: Since there are exactly 3 visible items per page, we render artwork for all of them.
+            // Caching handles ensures 0% texture decoding overhead per frame.
+            let cache_key = format!("{:?}:{}", state.achievements_sub_tab, item.name);
 
             let cached_cover = {
                 let mut cache = state.achievements_cover_cache.lock().unwrap();
                 if let Some(handle) = cache.get(&cache_key) {
                     handle.clone()
                 } else {
-                    let handle = if idx < 3 {
-                        let cover_data = match state.achievements_sub_tab {
-                            crate::app::AchievementsSubTab::Artists => get_artist_cover_data(&item.name, &state.all_tracks),
-                            crate::app::AchievementsSubTab::Albums => get_album_cover_data(&item.name, &state.all_tracks),
-                            crate::app::AchievementsSubTab::Genres => get_genre_cover_data(&item.name, &state.all_tracks),
-                        };
-                        if let Some(data) = cover_data {
-                            iced::widget::image::Handle::from_bytes(data)
-                        } else {
-                            let note_bytes = include_bytes!("../../../assets/OmaTUNES NOTE.png");
-                            iced::widget::image::Handle::from_bytes(note_bytes.to_vec())
-                        }
+                    let cover_data = match state.achievements_sub_tab {
+                        crate::app::AchievementsSubTab::Artists => get_artist_cover_data(&item.name, &state.all_tracks),
+                        crate::app::AchievementsSubTab::Albums => get_album_cover_data(&item.name, &state.all_tracks),
+                        crate::app::AchievementsSubTab::Genres => get_genre_cover_data(&item.name, &state.all_tracks),
+                    };
+                    let handle = if let Some(data) = cover_data {
+                        iced::widget::image::Handle::from_bytes(data)
                     } else {
                         let note_bytes = include_bytes!("../../../assets/OmaTUNES NOTE.png");
                         iced::widget::image::Handle::from_bytes(note_bytes.to_vec())
@@ -1481,28 +1534,71 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
 
             list_col = list_col.push(card_btn);
         }
-
-        if total_items > state.achievements_limit {
-            list_col = list_col.push(
-                container(
-                    button(text("Show More").font(crate::ui::icons::UI_FONT_BOLD).size(14))
-                        .on_press(Message::ShowMoreAchievements)
-                        .padding([8, 16])
-                        .style(crate::ui::theme::secondary_button)
-                )
-                .width(Length::Fill)
-                .align_x(iced::alignment::Horizontal::Center)
-                .padding([12, 0])
-            );
-        }
     }
+
+    let has_previous = state.achievements_offset >= 3;
+    let has_next = state.achievements_offset + 3 < total_items;
+
+    let prev_btn = if has_previous {
+        button(text("Previous Page").font(crate::ui::icons::UI_FONT_BOLD).size(13))
+            .on_press(Message::ShowPreviousAchievements)
+            .padding([6, 12])
+            .style(crate::ui::theme::secondary_button)
+    } else {
+        button(text("Previous Page").font(crate::ui::icons::UI_FONT_BOLD).size(13))
+            .padding([6, 12])
+            .style(|_, _| iced::widget::button::Style {
+                text_color: theme::overlay0(),
+                ..Default::default()
+            })
+    };
+
+    let next_btn = if has_next {
+        button(text("Next Page").font(crate::ui::icons::UI_FONT_BOLD).size(13))
+            .on_press(Message::ShowMoreAchievements)
+            .padding([6, 12])
+            .style(crate::ui::theme::secondary_button)
+    } else {
+        button(text("Next Page").font(crate::ui::icons::UI_FONT_BOLD).size(13))
+            .padding([6, 12])
+            .style(|_, _| iced::widget::button::Style {
+                text_color: theme::overlay0(),
+                ..Default::default()
+            })
+    };
+
+    let page_num = (state.achievements_offset / 3) + 1;
+    let total_pages = ((total_items + 2) / 3).max(1);
+
+    let pagination_bar = row![
+        prev_btn,
+        Space::with_width(16),
+        text(format!("Page {} of {}", page_num, total_pages))
+            .font(crate::ui::icons::UI_FONT)
+            .size(13)
+            .color(theme::subtext()),
+        Space::with_width(16),
+        next_btn,
+    ]
+    .align_y(Alignment::Center);
+
+    let bottom_bar = container(pagination_bar)
+        .width(Length::Fill)
+        .align_x(iced::alignment::Horizontal::Center)
+        .padding([8, 0]);
 
     column![
         top_bar,
-        Space::with_height(12),
-        scrollable(list_col).height(Length::Fill),
+        suggestions_bar,
+        Space::with_height(8),
+        list_col,
+        Space::with_height(10),
+        bottom_bar,
     ]
     .spacing(0)
+    .width(Length::Fill)
+    .height(Length::Fill)
+    .into()
     .width(Length::Fill)
     .height(Length::Fill)
     .into()
