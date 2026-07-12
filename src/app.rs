@@ -4007,6 +4007,21 @@ impl AppState {
                 Task::none()
             }
 
+            Message::SelectStatsModalTab(tab) => {
+                self.stats_modal_tab = tab;
+                Task::none()
+            }
+
+            Message::OpenAchievementDetail(entity_type, entity_name) => {
+                self.selected_achievement_detail = Some((entity_type, entity_name));
+                Task::none()
+            }
+
+            Message::CloseAchievementDetail => {
+                self.selected_achievement_detail = None;
+                Task::none()
+            }
+
             Message::Noop => Task::none(),
 
             Message::SelectArtistFromBreakdown(artist) => {
@@ -4923,8 +4938,15 @@ impl AppState {
                     )
                 );
             } else {
-                view_stack = view_stack.push(crate::ui::views::player::period_breakdown_view(breakdown, self.breakdown_period_idx));
+                view_stack = view_stack.push(crate::ui::views::player::period_breakdown_view(self));
             }
+        }
+
+        // Achievement detail drill-down popup overlay
+        if let Some(ref detail) = self.selected_achievement_detail {
+            view_stack = view_stack.push(
+                crate::ui::views::player::achievement_detail_view(&detail.0, &detail.1)
+            );
         }
 
         // Queue popover overlay
