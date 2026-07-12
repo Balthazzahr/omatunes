@@ -986,7 +986,7 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
     ]
     .spacing(0);
 
-    container(
+    let outer = container(
         container(content)
             .padding(28)
             .max_width(1500)
@@ -1008,8 +1008,12 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
     .style(|_| iced::widget::container::Style {
         background: Some(iced::Background::Color(theme::with_alpha(theme::base(), 0.8))),
         ..Default::default()
-    })
-    .into()
+    });
+
+    mouse_area(outer)
+        .interaction(iced::mouse::Interaction::Idle)
+        .on_press(Message::Noop)
+        .into()
 }
 
 fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
