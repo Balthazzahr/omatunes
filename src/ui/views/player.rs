@@ -57,6 +57,26 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .style(iced::widget::button::text)
         .padding(0);
 
+        let artist_badge: Element<'_, Message> = if state.show_achievements_in_ui() {
+            if let Some(a) = crate::stats::get_highest_achievement("Artist", &track.artist) {
+                row![
+                    Space::with_width(6),
+                    image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes("All-Time", &a.tier).to_vec()))
+                        .width(Length::Fixed(14.0))
+                        .height(Length::Fixed(14.0)),
+                ].into()
+            } else {
+                Space::with_width(0).into()
+            }
+        } else {
+            Space::with_width(0).into()
+        };
+
+        let artist_row = row![
+            artist_btn,
+            artist_badge,
+        ].align_y(Alignment::Center);
+
         let album_label = track.album.clone();
         let album_btn = button(
             text(album_label)
@@ -67,10 +87,30 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .style(iced::widget::button::text)
         .padding(0);
 
-        column![
-            artist_btn,
-            song_btn,
+        let album_badge: Element<'_, Message> = if state.show_achievements_in_ui() {
+            if let Some(a) = crate::stats::get_highest_achievement("Album", &track.album) {
+                row![
+                    Space::with_width(6),
+                    image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes("All-Time", &a.tier).to_vec()))
+                        .width(Length::Fixed(14.0))
+                        .height(Length::Fixed(14.0)),
+                ].into()
+            } else {
+                Space::with_width(0).into()
+            }
+        } else {
+            Space::with_width(0).into()
+        };
+
+        let album_row = row![
             album_btn,
+            album_badge,
+        ].align_y(Alignment::Center);
+
+        column![
+            artist_row,
+            song_btn,
+            album_row,
         ]
         .spacing(4)
         .into()
