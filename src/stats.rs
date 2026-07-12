@@ -501,128 +501,47 @@ pub fn backfill_album_data(tracks: &[crate::library::models::Track]) {
 }
 
 pub fn backfill_achievements(tracks: &[crate::library::models::Track]) {
-    let mut artist_genres: HashMap<String, String> = HashMap::new();
-    for track in tracks {
-        if !track.artist.is_empty() && !track.genre.is_empty() {
-            artist_genres.insert(track.artist.clone(), track.genre.clone());
-        }
-    }
-
     write(|db| {
-        if db.legacy_genre_minutes.is_empty() {
-            for (artist, mins) in &db.legacy_artist_minutes {
-                if let Some(genre) = artist_genres.get(artist) {
-                    let clean = if genre.trim().is_empty() { "Unknown".to_string() } else { genre.trim().to_string() };
-                    if clean.contains("; ") {
-                        for g in clean.split("; ") {
-                            let cg = if g.trim().is_empty() { "Unknown" } else { g.trim() };
-                            *db.legacy_genre_minutes.entry(cg.to_string()).or_default() += mins;
-                        }
-                    } else {
-                        *db.legacy_genre_minutes.entry(clean).or_default() += mins;
+        db.earned_achievements.clear();
+
+        // 1. Gather all unique artists, albums, genres
+        let mut artist_plays: HashMap<String, u32> = HashMap::new();
+        let mut album_plays: HashMap<String, u32> = HashMap::new();
+        let mut genre_plays: HashMap<String, u32> = HashMap::new();
+
+        for track in tracks {
+            if track.play_count == 0 {
+                continue;
+            }
+            if !track.artist.trim().is_empty() {
+                *artist_plays.entry(track.artist.clone()).or_default() += track.play_count;
+            }
+            if !track.album.trim().is_empty() {
+                *album_plays.entry(track.album.clone()).or_default() += track.play_count;
+            }
+            if !track.genre.trim().is_empty() {
+                let genres: Vec<String> = if track.genre.contains("; ") {
+                    track.genre.split("; ").map(|g| g.trim().to_string()).collect()
+                } else {
+                    vec![track.genre.trim().to_string()]
+                };
+                for g in genres {
+                    if !g.is_empty() {
+                        *genre_plays.entry(g).or_default() += track.play_count;
                     }
                 }
             }
         }
-
-        let mut artists = HashSet::new();
-        let mut albums = HashSet::new();
-        let mut genres = HashSet::new();
-
-        for artist in db.legacy_artist_minutes.keys() {
-            artists.insert(artist.clone());
-        }
-        for album in db.legacy_album_minutes.keys() {
-            albums.insert(album.clone());
-        }
-        for genre in db.legacy_genre_minutes.keys() {
-            genres.insert(genre.clone());
-        }
-
-        for day in db.daily_buckets.values() {
-            for artist in day.artist_minutes.keys() {
-                artists.insert(artist.clone());
-            }
-            for album in day.album_minutes.keys() {
-                albums.insert(album.clone());
-            }
-            for genre in day.genre_minutes.keys() {
-                genres.insert(genre.clone());
-            }
-        }
-
-        db.yearly_buckets.clear();
-        for (date_str, day) in &db.daily_buckets {
-            if let Some(date) = parse_date(date_str) {
-                use chrono::Datelike;
-                let year = date.year() as u32;
-                let yr_stats = db.yearly_buckets.entry(year).or_default();
-                yr_stats.total_minutes += day.total_minutes;
-                yr_stats.track_play_count += day.track_play_count;
-                
-                for (a, m) in &day.artist_minutes {
-                    *yr_stats.artist_minutes.entry(a.clone()).or_default() += m;
-                }
-                for (a, c) in &day.artist_track_counts {
-                    *yr_stats.artist_track_counts.entry(a.clone()).or_default() += c;
-                }
-                for (al, m) in &day.album_minutes {
-                    *yr_stats.album_minutes.entry(al.clone()).or_default() += m;
-                }
-                for (al, c) in &day.album_track_counts {
-                    *yr_stats.album_track_counts.entry(al.clone()).or_default() += c;
-                }
-                for (g, m) in &day.genre_minutes {
-                    *yr_stats.genre_minutes.entry(g.clone()).or_default() += m;
-                }
-                for (g, c) in &day.genre_track_counts {
-                    *yr_stats.genre_track_counts.entry(g.clone()).or_default() += c;
-                }
-                for (path, c) in &day.track_play_counts {
-                    *yr_stats.track_play_counts.entry(path.clone()).or_default() += c;
-                }
-            }
-        }
-
-        let mut dates: Vec<String> = db.daily_buckets.keys().cloned().collect();
-        dates.sort();
 
         let mut dummy = Vec::new();
-        for date_str in &dates {
-            if let Some(date) = parse_date(date_str) {
-                use chrono::Datelike;
-                let year = date.year() as u32;
-                
-                if let Some(day) = db.daily_buckets.get(date_str) {
-                    let day_artists: Vec<String> = day.artist_minutes.keys().cloned().collect();
-                    let day_albums: Vec<String> = day.album_minutes.keys().cloned().collect();
-                    let day_genres: Vec<String> = day.genre_minutes.keys().cloned().collect();
-                    for artist in day_artists {
-                        check_and_award_all_tiers(db, "Artist", &artist, date_str, year, &mut dummy);
-                    }
-                    for album in day_albums {
-                        check_and_award_all_tiers(db, "Album", &album, date_str, year, &mut dummy);
-                    }
-                    for genre in day_genres {
-                        check_and_award_all_tiers(db, "Genre", &genre, date_str, year, &mut dummy);
-                    }
-                }
-            }
+        for (artist, plays) in artist_plays {
+            check_and_award_new_system(db, "Artist", &artist, plays, "Historical", &mut dummy);
         }
-
-        let now_dt = chrono::Local::now();
-        use chrono::Datelike;
-        let cur_year = now_dt.date_naive().year() as u32;
-        let today_str = now_dt.format("%Y-%m-%d").to_string();
-
-        for artist in &artists {
-            check_and_award_all_tiers(db, "Artist", artist, &today_str, cur_year, &mut dummy);
+        for (album, plays) in album_plays {
+            check_and_award_new_system(db, "Album", &album, plays, "Historical", &mut dummy);
         }
-        for album in &albums {
-            check_and_award_all_tiers(db, "Album", album, &today_str, cur_year, &mut dummy);
-        }
-        for genre in &genres {
-            check_and_award_all_tiers(db, "Genre", genre, &today_str, cur_year, &mut dummy);
+        for (genre, plays) in genre_plays {
+            check_and_award_new_system(db, "Genre", &genre, plays, "Historical", &mut dummy);
         }
     });
     flush();
@@ -642,27 +561,24 @@ pub fn on_track_play(
     let current_year = now_dt.date_naive().year() as u32;
 
     write(|db| {
-        // 1. Daily bucket
+        // 1. Accumulate daily / yearly stats for leaderboards (minutes / count)
         let day = db.daily_buckets.entry(date_str.clone()).or_default();
         day.track_play_count += 1;
         *day.artist_track_counts.entry(artist.to_string()).or_default() += 1;
         *day.track_play_counts.entry(track_path.clone()).or_default() += 1;
 
-        // 2. Yearly bucket
         let yr_stats = db.yearly_buckets.entry(current_year).or_default();
         yr_stats.track_play_count += 1;
         *yr_stats.artist_track_counts.entry(artist.to_string()).or_default() += 1;
         *yr_stats.album_track_counts.entry(album.to_string()).or_default() += 1;
         *yr_stats.track_play_counts.entry(track_path.clone()).or_default() += 1;
 
-        // 3. Running all-time artist count
-        let artist_total = {
+        let _artist_total = {
             let c = db.all_time_artist_tracks.entry(artist.to_string()).or_default();
             *c += 1;
             *c
         };
 
-        // 4. Running all-time genre counts + daily/yearly genre/album track counts
         let genre_names: Vec<String> = if genre.contains("; ") {
             genre.split("; ").map(|g| {
                 let clean = g.trim();
@@ -672,22 +588,42 @@ pub fn on_track_play(
             let clean = genre.trim();
             vec![if clean.is_empty() { "Unknown".to_string() } else { clean.to_string() }]
         };
-        let mut genre_totals: Vec<(String, u32)> = Vec::new();
         for gn in &genre_names {
             let c = db.all_time_genre_tracks.entry(gn.clone()).or_default();
             *c += 1;
-            genre_totals.push((gn.clone(), *c));
             *day.genre_track_counts.entry(gn.clone()).or_default() += 1;
             *yr_stats.genre_track_counts.entry(gn.clone()).or_default() += 1;
         }
-        let clean_album_track = album.trim();
-        if !clean_album_track.is_empty() {
-            *day.album_track_counts.entry(clean_album_track.to_string()).or_default() += 1;
-            *yr_stats.album_track_counts.entry(clean_album_track.to_string()).or_default() += 1;
+        let clean_album = album.trim();
+        if !clean_album.is_empty() {
+            *day.album_track_counts.entry(clean_album.to_string()).or_default() += 1;
+            *yr_stats.album_track_counts.entry(clean_album.to_string()).or_default() += 1;
         }
 
-        // 5. Top-10 ladder change check
-        // Build current all-time leaderboard by minutes
+        // 2. Check and award new system achievements
+        let artist_plays = get_artist_play_count(artist, all_tracks);
+        let album_plays = get_album_play_count(album, all_tracks);
+        
+        let mut new_awards = Vec::new();
+        check_and_award_new_system(db, "Artist", artist, artist_plays, &date_str, &mut new_awards);
+        if !clean_album.is_empty() {
+            check_and_award_new_system(db, "Album", clean_album, album_plays, &date_str, &mut new_awards);
+        }
+        for gn in &genre_names {
+            if gn != "Unknown" {
+                let genre_plays = get_genre_play_count(gn, all_tracks);
+                check_and_award_new_system(db, "Genre", gn, genre_plays, &date_str, &mut new_awards);
+            }
+        }
+
+        for award in new_awards {
+            toasts.push((
+                "ACHIEVEMENT UNLOCKED!".to_string(),
+                format!("You've earned the {} for {}!", award.tier, award.entity_name),
+            ));
+        }
+
+        // 3. Top-10 ladder change check (listening minutes leaderboard)
         let mut all_artist_minutes: HashMap<String, f64> = db.legacy_artist_minutes.clone();
         for (_, day) in &db.daily_buckets {
             for (a, m) in &day.artist_minutes {
