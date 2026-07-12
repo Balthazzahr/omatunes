@@ -4159,7 +4159,8 @@ impl AppState {
 
             Message::SelectStatsModalTab(tab) => {
                 self.stats_modal_tab = tab;
-                self.achievements_limit = 10;
+                self.achievements_offset = 0;
+                self.achievements_search_query.clear();
                 if tab == StatsModalTab::Achievements {
                     self.recalculate_achievements_items();
                 }
@@ -4178,20 +4179,33 @@ impl AppState {
 
             Message::SelectAchievementsSubTab(sub_tab) => {
                 self.achievements_sub_tab = sub_tab;
-                self.achievements_limit = 10;
+                self.achievements_offset = 0;
+                self.achievements_search_query.clear();
                 self.recalculate_achievements_items();
                 Task::none()
             }
 
             Message::SelectAchievementsSort(sort) => {
                 self.achievements_sort = sort;
-                self.achievements_limit = 10;
+                self.achievements_offset = 0;
                 self.recalculate_achievements_items();
                 Task::none()
             }
 
             Message::ShowMoreAchievements => {
-                self.achievements_limit += 10;
+                self.achievements_offset += 3;
+                Task::none()
+            }
+
+            Message::ShowPreviousAchievements => {
+                self.achievements_offset = self.achievements_offset.saturating_sub(3);
+                Task::none()
+            }
+
+            Message::AchievementsSearchChanged(query) => {
+                self.achievements_search_query = query;
+                self.achievements_offset = 0;
+                self.recalculate_achievements_items();
                 Task::none()
             }
 
