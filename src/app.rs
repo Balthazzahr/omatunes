@@ -667,6 +667,10 @@ impl GroupByControlState {
 }
 
 impl AppState {
+    pub fn show_achievements_in_ui(&self) -> bool {
+        crate::config::get().show_achievements_in_ui
+    }
+
     pub fn is_draggable_playlist_view(&self) -> bool {
         match &self.selected_playlist {
             Some(name) => {
