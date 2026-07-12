@@ -1030,7 +1030,7 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
         container(content)
             .padding(28)
             .max_width(1500)
-            .max_height(575)
+            .max_height(if state.stats_modal_tab == crate::app::StatsModalTab::Achievements { 1000.0 } else { 575.0 })
             .style(|_| iced::widget::container::Style {
                 background: Some(iced::Background::Color(theme::mantle())),
                 border: iced::Border {
@@ -1290,7 +1290,10 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                 .align_x(iced::alignment::Horizontal::Center)
         );
     } else {
-        for item in items {
+        let total_items = items.len();
+        let display_items = items.iter().take(state.achievements_limit);
+
+        for item in display_items {
             let cover_data = match state.achievements_sub_tab {
                 crate::app::AchievementsSubTab::Artists => get_artist_cover_data(&item.name, &state.all_tracks),
                 crate::app::AchievementsSubTab::Albums => get_album_cover_data(&item.name, &state.all_tracks),
@@ -1354,7 +1357,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                     .width(Length::Fill)
                     .style(|_| iced::widget::container::Style {
                         background: Some(iced::Background::Color(theme::accent())),
-                        border: iced::Border { radius: 3.0.into(), ..Default::default() },
+                        border: iced::Border { radius: 6.0.into(), ..Default::default() },
                         ..Default::default()
                     })
                     .into()
@@ -1364,7 +1367,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                         .width(Length::FillPortion((f * 100.0) as u16))
                         .style(|_| iced::widget::container::Style {
                             background: Some(iced::Background::Color(theme::accent())),
-                            border: iced::Border { radius: 3.0.into(), ..Default::default() },
+                            border: iced::Border { radius: 6.0.into(), ..Default::default() },
                             ..Default::default()
                         }),
                     Space::new(Length::FillPortion(((1.0 - f) * 100.0) as u16), Length::Fill)
@@ -1376,10 +1379,10 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
             let progress_line = container(
                 container(bar_inner)
                     .width(Length::Fill)
-                    .height(6.0)
+                    .height(12.0)
                     .style(|_| iced::widget::container::Style {
-                        background: Some(iced::Background::Color(theme::surface0())),
-                        border: iced::Border { radius: 3.0.into(), ..Default::default() },
+                        background: Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.15))),
+                        border: iced::Border { radius: 6.0.into(), ..Default::default() },
                         ..Default::default()
                     })
             )
@@ -1393,6 +1396,13 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                 let achieved = item.plays >= thresh;
                 let tier_name = crate::stats::TIERS[i];
                 
+                let dot_char = match i {
+                    0 | 1 | 2 => crate::ui::icons::ICON_TROPHY,
+                    3 => crate::ui::icons::ICON_CROWN,
+                    4 => crate::ui::icons::ICON_GEM,
+                    _ => crate::ui::icons::ICON_TROPHY,
+                };
+                
                 let dot: Element<Message> = if achieved {
                     image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes("All-Time", tier_name).to_vec()))
                         .width(26)
@@ -1400,7 +1410,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                         .into()
                 } else {
                     container(
-                        text("\u{f053f}")
+                        text(dot_char)
                             .font(crate::ui::icons::NERD_FONT_MONO)
                             .size(16)
                             .color(theme::overlay0())
@@ -1412,9 +1422,29 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                     .into()
                 };
 
+                let shadow = container(Space::new(Length::Fixed(24.0), Length::Fixed(24.0)))
+                    .width(24)
+                    .height(24)
+                    .style(|_| iced::widget::container::Style {
+                        background: Some(iced::Background::Color(iced::Color::from_rgba(0.0, 0.0, 0.0, 0.55))),
+                        border: iced::Border { radius: 12.0.into(), ..Default::default() },
+                        ..Default::default()
+                    });
+
+                let dot_with_shadow = stack![
+                    container(shadow).padding(iced::Padding { top: 2.0, left: 1.0, ..Default::default() }),
+                    container(dot).width(26).height(26).align_x(iced::alignment::Horizontal::Center).align_y(iced::alignment::Vertical::Center)
+                ];
+
+                let req_label = if achieved {
+                    format!("{} plays", thresh)
+                } else {
+                    format!("{} plays needed", thresh - item.plays)
+                };
+
                 let milestone_col = column![
-                    dot,
-                    text(format!("{} plays", thresh))
+                    dot_with_shadow,
+                    text(req_label)
                         .font(crate::ui::icons::UI_FONT)
                         .size(10)
                         .color(theme::subtext())
@@ -1435,6 +1465,36 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
             ]
             .width(Length::Fill);
 
+            let label_f = f.clamp(0.0, 1.0);
+            let current_plays_bar: Element<Message> = if label_f <= 0.05 {
+                row![
+                    text(format!("{} plays", item.plays))
+                        .font(crate::ui::icons::UI_FONT_BOLD)
+                        .size(11)
+                        .color(theme::accent()),
+                    Space::with_width(Length::Fill)
+                ].into()
+            } else if label_f >= 0.95 {
+                row![
+                    Space::with_width(Length::Fill),
+                    text(format!("{} plays", item.plays))
+                        .font(crate::ui::icons::UI_FONT_BOLD)
+                        .size(11)
+                        .color(theme::accent())
+                ].into()
+            } else {
+                row![
+                    Space::new(Length::FillPortion((label_f * 100.0) as u16), Length::Shrink),
+                    text(format!("{} plays", item.plays))
+                        .font(crate::ui::icons::UI_FONT_BOLD)
+                        .size(11)
+                        .color(theme::accent()),
+                    Space::new(Length::FillPortion(((1.0 - label_f) * 100.0) as u16), Length::Shrink)
+                ]
+                .width(Length::Fill)
+                .into()
+            };
+
             let right_col = column![
                 text(item.name.clone())
                     .font(crate::ui::icons::UI_FONT_BOLD)
@@ -1443,13 +1503,8 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                     .align_x(iced::alignment::Horizontal::Center)
                     .width(Length::Fill),
                 Space::with_height(4),
-                text(format!("Total Plays: {}", item.plays))
-                    .font(crate::ui::icons::UI_FONT)
-                    .size(12)
-                    .color(theme::subtext())
-                    .align_x(iced::alignment::Horizontal::Center)
-                    .width(Length::Fill),
-                Space::with_height(10),
+                current_plays_bar,
+                Space::with_height(2),
                 milestone_bar,
             ]
             .spacing(0)
@@ -1494,6 +1549,20 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                 });
 
             list_col = list_col.push(card_btn);
+        }
+
+        if total_items > state.achievements_limit {
+            list_col = list_col.push(
+                container(
+                    button(text("Show More").font(crate::ui::icons::UI_FONT_BOLD).size(14))
+                        .on_press(Message::ShowMoreAchievements)
+                        .padding([8, 16])
+                        .style(crate::ui::theme::secondary_button)
+                )
+                .width(Length::Fill)
+                .align_x(iced::alignment::Horizontal::Center)
+                .padding([12, 0])
+            );
         }
     }
 
