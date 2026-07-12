@@ -1576,7 +1576,28 @@ impl AppState {
                                 let diff = position.saturating_sub(self.last_accumulated_position);
                                 if diff > Duration::ZERO && diff <= Duration::from_secs(1) {
                                     if let Some(ref track) = self.current_track {
-                                        crate::stats::add_playback_time(&track.artist, &track.album, &track.genre, diff.as_secs_f64());
+                                        let new_awards = crate::stats::add_playback_time(&track.artist, &track.album, &track.genre, diff.as_secs_f64());
+                                        for award in new_awards {
+                                            let nid = self.next_notification_id;
+                                            self.next_notification_id += 1;
+                                            let award_name = match award.period.as_str() {
+                                                "Daily" => "Ribbon",
+                                                "Weekly" => "Medal",
+                                                "Monthly" => "Crown",
+                                                "Yearly" => "Trophy",
+                                                "All-Time" => "Diamond",
+                                                _ => "Award",
+                                            };
+                                            self.active_notifications.push(StatsNotification {
+                                                id: nid,
+                                                title: format!("{} Earned!", award_name),
+                                                message: format!(
+                                                    "You've unlocked a {} {} ({}) for {}!",
+                                                    award.tier, award_name, award.period, award.entity_name
+                                                ),
+                                                created_at: std::time::Instant::now(),
+                                            });
+                                        }
                                     }
                                 }
                             }
