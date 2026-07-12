@@ -278,13 +278,17 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
 
                     let label_color = if is_selected { theme::accent() } else { theme::text() };
                     
-                    let badge_el: Element<'_, Message> = if let Some(a) = crate::stats::get_highest_achievement("Artist", &artist) {
-                        row![
-                            Space::with_width(6),
-                            iced::widget::image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes(&a.period, &a.tier).to_vec()))
-                                .width(iced::Length::Fixed(12.0))
-                                .height(iced::Length::Fixed(12.0)),
-                        ].into()
+                    let badge_el: Element<'_, Message> = if state.show_achievements_in_ui() {
+                        if let Some(a) = crate::stats::get_highest_achievement("Artist", &artist) {
+                            row![
+                                Space::with_width(6),
+                                iced::widget::image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes("All-Time", &a.tier).to_vec()))
+                                    .width(iced::Length::Fixed(12.0))
+                                    .height(iced::Length::Fixed(12.0)),
+                            ].into()
+                        } else {
+                            Space::with_width(0).into()
+                        }
                     } else {
                         Space::with_width(0).into()
                     };
@@ -344,13 +348,17 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
 
                     let label_color = if is_selected { theme::accent() } else { theme::text() };
                     
-                    let badge_el: Element<'_, Message> = if let Some(a) = crate::stats::get_highest_achievement("Album", &album) {
-                        row![
-                            Space::with_width(6),
-                            iced::widget::image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes(&a.period, &a.tier).to_vec()))
-                                .width(iced::Length::Fixed(12.0))
-                                .height(iced::Length::Fixed(12.0)),
-                        ].into()
+                    let badge_el: Element<'_, Message> = if state.show_achievements_in_ui() {
+                        if let Some(a) = crate::stats::get_highest_achievement("Album", &album) {
+                            row![
+                                Space::with_width(6),
+                                iced::widget::image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes("All-Time", &a.tier).to_vec()))
+                                    .width(iced::Length::Fixed(12.0))
+                                    .height(iced::Length::Fixed(12.0)),
+                            ].into()
+                        } else {
+                            Space::with_width(0).into()
+                        }
                     } else {
                         Space::with_width(0).into()
                     };
@@ -410,13 +418,17 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
 
                     let label_color = if is_selected { theme::accent() } else { theme::text() };
                     
-                    let badge_el: Element<'_, Message> = if let Some(a) = crate::stats::get_highest_achievement("Genre", &genre) {
-                        row![
-                            Space::with_width(6),
-                            iced::widget::image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes(&a.period, &a.tier).to_vec()))
-                                .width(iced::Length::Fixed(12.0))
-                                .height(iced::Length::Fixed(12.0)),
-                        ].into()
+                    let badge_el: Element<'_, Message> = if state.show_achievements_in_ui() {
+                        if let Some(a) = crate::stats::get_highest_achievement("Genre", &genre) {
+                            row![
+                                Space::with_width(6),
+                                iced::widget::image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes("All-Time", &a.tier).to_vec()))
+                                    .width(iced::Length::Fixed(12.0))
+                                    .height(iced::Length::Fixed(12.0)),
+                            ].into()
+                        } else {
+                            Space::with_width(0).into()
+                        }
                     } else {
                         Space::with_width(0).into()
                     };
