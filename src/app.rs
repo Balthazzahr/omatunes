@@ -4137,6 +4137,7 @@ impl AppState {
                 let breakdown = crate::stats::get_period_breakdown(period_idx, &self.all_tracks);
                 self.show_period_breakdown = Some(breakdown);
                 self.breakdown_period_idx = period_idx;
+                self.recalculate_achievements_items();
                 Task::none()
             }
 
@@ -4155,6 +4156,9 @@ impl AppState {
             Message::SelectStatsModalTab(tab) => {
                 self.stats_modal_tab = tab;
                 self.achievements_limit = 10;
+                if tab == StatsModalTab::Achievements {
+                    self.recalculate_achievements_items();
+                }
                 Task::none()
             }
 
@@ -4171,12 +4175,14 @@ impl AppState {
             Message::SelectAchievementsSubTab(sub_tab) => {
                 self.achievements_sub_tab = sub_tab;
                 self.achievements_limit = 10;
+                self.recalculate_achievements_items();
                 Task::none()
             }
 
             Message::SelectAchievementsSort(sort) => {
                 self.achievements_sort = sort;
                 self.achievements_limit = 10;
+                self.recalculate_achievements_items();
                 Task::none()
             }
 
