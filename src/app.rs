@@ -889,6 +889,7 @@ impl AppState {
             achievements_sort: AchievementsSort::AchievementLevel,
             achievements_limit: 10,
             achievements_cover_cache: std::sync::Mutex::new(std::collections::HashMap::new()),
+            achievements_items: Vec::new(),
         };
 
         (state, scan_task)
