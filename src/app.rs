@@ -271,6 +271,9 @@ pub enum Message {
     SelectAlbumFromBreakdown(String),
     SelectGenreFromBreakdown(String),
     CloseBreakdownSongView,
+    SelectStatsModalTab(StatsModalTab),
+    OpenAchievementDetail(String, String),
+    CloseAchievementDetail,
     Noop,
 
     OpenSettings,
@@ -845,6 +848,8 @@ impl AppState {
                 use chrono::Timelike;
                 Some(chrono::Local::now().hour())
             },
+            stats_modal_tab: StatsModalTab::Leaderboard,
+            selected_achievement_detail: None,
         };
 
         (state, scan_task)
