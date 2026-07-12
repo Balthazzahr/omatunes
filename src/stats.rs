@@ -381,19 +381,6 @@ pub fn add_playback_time(artist: &str, album: &str, genre: &str, secs: f64) -> V
             *yr_genre_entry += minutes;
         }
 
-        // 3. Check and award achievements
-        check_and_award_all_tiers(db, "Artist", artist, &date_str, current_year, &mut new_awards);
-        check_and_award_all_tiers(db, "Album", &clean_album, &date_str, current_year, &mut new_awards);
-
-        if genre.contains("; ") {
-            for g in genre.split("; ") {
-                let clean = if g.trim().is_empty() { "Unknown" } else { g.trim() };
-                check_and_award_all_tiers(db, "Genre", clean, &date_str, current_year, &mut new_awards);
-            }
-        } else {
-            let clean_genre = if genre.trim().is_empty() { "Unknown" } else { genre.trim() };
-            check_and_award_all_tiers(db, "Genre", clean_genre, &date_str, current_year, &mut new_awards);
-        }
     });
 
     new_awards
