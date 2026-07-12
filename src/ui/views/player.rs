@@ -1038,7 +1038,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
     ) -> Element<'a, Message> {
         entities.sort_by(|a, b| a.0.to_lowercase().cmp(&b.0.to_lowercase()));
         
-        let mut list_col = column![].spacing(8).width(Length::Fill).padding([0, 12, 0, 0]);
+        let mut list_col = column![].spacing(8).width(Length::Fill).padding(iced::Padding { top: 0.0, right: 12.0, bottom: 0.0, left: 0.0 });
         
         if entities.is_empty() {
             list_col = list_col.push(
