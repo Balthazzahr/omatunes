@@ -1134,6 +1134,8 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
         let days_from_monday = now.weekday().num_days_from_monday();
         let monday = now - chrono::Duration::days(days_from_monday as i64);
         let this_month_prefix = now.format("%Y-%m").to_string();
+        use chrono::Datelike;
+        let this_year_prefix = now.year().to_string();
 
         let periods: Vec<(&str, Box<dyn Fn(&str) -> bool>)> = vec![
             ("Today", Box::new(move |d: &str| d == today_str)),
@@ -1143,6 +1145,7 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
                 } else { false }
             })),
             ("This Month", Box::new(move |d: &str| d.starts_with(&this_month_prefix))),
+            ("This Year", Box::new(move |d: &str| d.starts_with(&this_year_prefix))),
             ("All-Time", Box::new(move |_d: &str| true)),
         ];
 
@@ -1157,6 +1160,20 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
         let mut genre_tracks_count: HashMap<String, u32> = HashMap::new();
         let mut album_tracks_count: HashMap<String, u32> = HashMap::new();
 
+        if *label == "This Year" {
+            let current_year = now.year() as u32;
+            if let Some(yr_stats) = db.yearly_buckets.get(&current_year) {
+                total_plays = yr_stats.track_play_count;
+                total_minutes = yr_stats.total_minutes;
+                artist_minutes = yr_stats.artist_minutes.clone();
+                artist_tracks_count = yr_stats.artist_track_counts.clone();
+                genre_minutes = yr_stats.genre_minutes.clone();
+                genre_tracks_count = yr_stats.genre_track_counts.clone();
+                album_minutes = yr_stats.album_minutes.clone();
+                album_tracks_count = yr_stats.album_track_counts.clone();
+            }
+        }
+
         if *label == "All-Time" {
             total_plays += db.legacy_tracks;
             total_minutes += db.legacy_minutes;
@@ -1165,6 +1182,9 @@ pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models:
             }
             for (a, t) in &db.legacy_artist_tracks {
                 *artist_tracks_count.entry(a.clone()).or_default() += t;
+            }
+            for (g, m) in &db.legacy_genre_minutes {
+                *genre_minutes.entry(g.clone()).or_default() += m;
             }
         }
 
