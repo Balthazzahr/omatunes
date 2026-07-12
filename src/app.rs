@@ -6233,6 +6233,7 @@ fn merge_song_order(manual_order: &[PathBuf], live_set: &[PathBuf]) -> Vec<PathB
 pub fn run() -> iced::Result {
     iced::application("omatunes", AppState::update, AppState::view)
         .subscription(AppState::subscription)
+        .font(include_bytes!("../assets/JetBrainsMonoNerdFontMono-Regular.ttf"))
         .default_font(iced::Font {
             family: iced::font::Family::Name("JetBrainsMono Nerd Font Mono"),
             weight: iced::font::Weight::Normal,
