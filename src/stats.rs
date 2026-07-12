@@ -579,6 +579,131 @@ pub fn backfill_album_data(tracks: &[crate::library::models::Track]) {
     flush();
 }
 
+pub fn backfill_achievements(tracks: &[crate::library::models::Track]) {
+    let mut artist_genres: HashMap<String, String> = HashMap::new();
+    for track in tracks {
+        if !track.artist.is_empty() && !track.genre.is_empty() {
+            artist_genres.insert(track.artist.clone(), track.genre.clone());
+        }
+    }
+
+    write(|db| {
+        if db.legacy_genre_minutes.is_empty() {
+            for (artist, mins) in &db.legacy_artist_minutes {
+                if let Some(genre) = artist_genres.get(artist) {
+                    let clean = if genre.trim().is_empty() { "Unknown".to_string() } else { genre.trim().to_string() };
+                    if clean.contains("; ") {
+                        for g in clean.split("; ") {
+                            let cg = if g.trim().is_empty() { "Unknown" } else { g.trim() };
+                            *db.legacy_genre_minutes.entry(cg.to_string()).or_default() += mins;
+                        }
+                    } else {
+                        *db.legacy_genre_minutes.entry(clean).or_default() += mins;
+                    }
+                }
+            }
+        }
+
+        let mut artists = HashSet::new();
+        let mut albums = HashSet::new();
+        let mut genres = HashSet::new();
+
+        for artist in db.legacy_artist_minutes.keys() {
+            artists.insert(artist.clone());
+        }
+        for album in db.legacy_album_minutes.keys() {
+            albums.insert(album.clone());
+        }
+        for genre in db.legacy_genre_minutes.keys() {
+            genres.insert(genre.clone());
+        }
+
+        for day in db.daily_buckets.values() {
+            for artist in day.artist_minutes.keys() {
+                artists.insert(artist.clone());
+            }
+            for album in day.album_minutes.keys() {
+                albums.insert(album.clone());
+            }
+            for genre in day.genre_minutes.keys() {
+                genres.insert(genre.clone());
+            }
+        }
+
+        db.yearly_buckets.clear();
+        for (date_str, day) in &db.daily_buckets {
+            if let Some(date) = parse_date(date_str) {
+                use chrono::Datelike;
+                let year = date.year() as u32;
+                let yr_stats = db.yearly_buckets.entry(year).or_default();
+                yr_stats.total_minutes += day.total_minutes;
+                yr_stats.track_play_count += day.track_play_count;
+                
+                for (a, m) in &day.artist_minutes {
+                    *yr_stats.artist_minutes.entry(a.clone()).or_default() += m;
+                }
+                for (a, c) in &day.artist_track_counts {
+                    *yr_stats.artist_track_counts.entry(a.clone()).or_default() += c;
+                }
+                for (al, m) in &day.album_minutes {
+                    *yr_stats.album_minutes.entry(al.clone()).or_default() += m;
+                }
+                for (al, c) in &day.album_track_counts {
+                    *yr_stats.album_track_counts.entry(al.clone()).or_default() += c;
+                }
+                for (g, m) in &day.genre_minutes {
+                    *yr_stats.genre_minutes.entry(g.clone()).or_default() += m;
+                }
+                for (g, c) in &day.genre_track_counts {
+                    *yr_stats.genre_track_counts.entry(g.clone()).or_default() += c;
+                }
+                for (path, c) in &day.track_play_counts {
+                    *yr_stats.track_play_counts.entry(path.clone()).or_default() += c;
+                }
+            }
+        }
+
+        let mut dates: Vec<String> = db.daily_buckets.keys().cloned().collect();
+        dates.sort();
+
+        let mut dummy = Vec::new();
+        for date_str in &dates {
+            if let Some(date) = parse_date(date_str) {
+                use chrono::Datelike;
+                let year = date.year() as u32;
+                
+                if let Some(day) = db.daily_buckets.get(date_str) {
+                    for artist in day.artist_minutes.keys() {
+                        check_and_award_all_tiers(db, "Artist", artist, date_str, year, &mut dummy);
+                    }
+                    for album in day.album_minutes.keys() {
+                        check_and_award_all_tiers(db, "Album", album, date_str, year, &mut dummy);
+                    }
+                    for genre in day.genre_minutes.keys() {
+                        check_and_award_all_tiers(db, "Genre", genre, date_str, year, &mut dummy);
+                    }
+                }
+            }
+        }
+
+        let now_dt = chrono::Local::now();
+        use chrono::Datelike;
+        let cur_year = now_dt.date_naive().year() as u32;
+        let today_str = now_dt.format("%Y-%m-%d").to_string();
+
+        for artist in &artists {
+            check_and_award_all_tiers(db, "Artist", artist, &today_str, cur_year, &mut dummy);
+        }
+        for album in &albums {
+            check_and_award_all_tiers(db, "Album", album, &today_str, cur_year, &mut dummy);
+        }
+        for genre in &genres {
+            check_and_award_all_tiers(db, "Genre", genre, &today_str, cur_year, &mut dummy);
+        }
+    });
+    flush();
+}
+
 pub fn on_track_play(
     artist: &str,
     genre: &str,
