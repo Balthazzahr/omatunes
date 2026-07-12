@@ -26,6 +26,17 @@ pub struct DayStats {
     pub album_track_counts: HashMap<String, u32>,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+pub struct EarnedAchievement {
+    pub entity_type: String,     // "Artist", "Album", or "Genre"
+    pub entity_name: String,
+    pub period: String,          // "Daily", "Weekly", "Monthly", "Yearly", "All-Time"
+    pub tier: String,            // "Bronze", "Silver", "Gold", "Platinum", "Legendary"
+    pub date_earned: String,     // "YYYY-MM-DD"
+}
+
+pub type YearlyStats = DayStats;
+
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct StatsDb {
     pub daily_buckets: HashMap<String, DayStats>, // Key: "YYYY-MM-DD"
@@ -72,6 +83,12 @@ pub struct StatsDb {
     // One-time backfill: infer historical track-level play counts
     #[serde(default)]
     pub legacy_track_counts_populated: bool,
+
+    // New Achievement System and Yearly buckets
+    #[serde(default)]
+    pub yearly_buckets: HashMap<u32, YearlyStats>,
+    #[serde(default)]
+    pub earned_achievements: Vec<EarnedAchievement>,
 }
 
 impl StatsDb {
