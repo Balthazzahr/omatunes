@@ -86,4 +86,40 @@ pub const ICON_STAR:         &str = "\u{f005}";  // nf-fa-star — Silver
 pub const ICON_ARROW_UP:     &str = "\u{f062}";  // nf-fa-arrow_up
 pub const ICON_ARROW_DOWN:   &str = "\u{f063}";  // nf-fa-arrow_down
 
+pub fn get_award_image_bytes(period: &str, tier: &str) -> &'static [u8] {
+    match (period, tier) {
+        ("Daily", "Bronze") => include_bytes!("../../assets/award_daily_bronze.png"),
+        ("Daily", "Silver") => include_bytes!("../../assets/award_daily_silver.png"),
+        ("Daily", "Gold") => include_bytes!("../../assets/award_daily_gold.png"),
+        ("Daily", "Platinum") => include_bytes!("../../assets/award_daily_platinum.png"),
+        ("Daily", "Legendary") => include_bytes!("../../assets/award_daily_legendary.png"),
+        
+        ("Weekly", "Bronze") => include_bytes!("../../assets/award_weekly_bronze.png"),
+        ("Weekly", "Silver") => include_bytes!("../../assets/award_weekly_silver.png"),
+        ("Weekly", "Gold") => include_bytes!("../../assets/award_weekly_gold.png"),
+        ("Weekly", "Platinum") => include_bytes!("../../assets/award_weekly_platinum.png"),
+        ("Weekly", "Legendary") => include_bytes!("../../assets/award_weekly_legendary.png"),
+        
+        ("Monthly", "Bronze") => include_bytes!("../../assets/award_monthly_bronze.png"),
+        ("Monthly", "Silver") => include_bytes!("../../assets/award_monthly_silver.png"),
+        ("Monthly", "Gold") => include_bytes!("../../assets/award_monthly_gold.png"),
+        ("Monthly", "Platinum") => include_bytes!("../../assets/award_monthly_platinum.png"),
+        ("Monthly", "Legendary") => include_bytes!("../../assets/award_monthly_legendary.png"),
+        
+        ("Yearly", "Bronze") => include_bytes!("../../assets/award_yearly_bronze.png"),
+        ("Yearly", "Silver") => include_bytes!("../../assets/award_yearly_silver.png"),
+        ("Yearly", "Gold") => include_bytes!("../../assets/award_yearly_gold.png"),
+        ("Yearly", "Platinum") => include_bytes!("../../assets/award_yearly_platinum.png"),
+        ("Yearly", "Legendary") => include_bytes!("../../assets/award_yearly_legendary.png"),
+        
+        ("All-Time", "Bronze") => include_bytes!("../../assets/award_all_time_bronze.png"),
+        ("All-Time", "Silver") => include_bytes!("../../assets/award_all_time_silver.png"),
+        ("All-Time", "Gold") => include_bytes!("../../assets/award_all_time_gold.png"),
+        ("All-Time", "Platinum") => include_bytes!("../../assets/award_all_time_platinum.png"),
+        ("All-Time", "Legendary") => include_bytes!("../../assets/award_all_time_legendary.png"),
+        
+        _ => include_bytes!("../../assets/award_daily_bronze.png"),
+    }
+}
+
 
