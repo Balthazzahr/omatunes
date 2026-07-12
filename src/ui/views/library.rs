@@ -345,28 +345,11 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                     let label_color = if is_selected { theme::accent() } else { theme::text() };
                     
                     let badge_el: Element<'_, Message> = if let Some(a) = crate::stats::get_highest_achievement("Album", &album) {
-                        let icon_str = match a.period.as_str() {
-                            "Daily" => crate::ui::icons::ICON_AWARD,
-                            "Weekly" => crate::ui::icons::ICON_MEDAL,
-                            "Monthly" => crate::ui::icons::ICON_CROWN,
-                            "Yearly" => crate::ui::icons::ICON_TROPHY_FA,
-                            "All-Time" => crate::ui::icons::ICON_GEM,
-                            _ => crate::ui::icons::ICON_AWARD,
-                        };
-                        let tier_color = match a.tier.as_str() {
-                            "Bronze" => iced::Color::from_rgb(0.72, 0.45, 0.20),
-                            "Silver" => iced::Color::from_rgb(0.75, 0.75, 0.75),
-                            "Gold" => iced::Color::from_rgb(0.83, 0.69, 0.22),
-                            "Platinum" => iced::Color::from_rgb(0.49, 0.78, 0.89),
-                            "Legendary" => iced::Color::from_rgb(0.62, 0.31, 0.87),
-                            _ => label_color,
-                        };
                         row![
                             Space::with_width(6),
-                            text(icon_str)
-                                .font(crate::ui::icons::NERD_FONT_MONO)
-                                .size(12)
-                                .color(tier_color),
+                            iced::widget::image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes(&a.period, &a.tier).to_vec()))
+                                .width(iced::Length::Fixed(12.0))
+                                .height(iced::Length::Fixed(12.0)),
                         ].into()
                     } else {
                         Space::with_width(0).into()
