@@ -1038,7 +1038,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
     ) -> Element<'a, Message> {
         entities.sort_by(|a, b| a.0.to_lowercase().cmp(&b.0.to_lowercase()));
         
-        let mut list_col = column![].spacing(8).width(Length::Fill);
+        let mut list_col = column![].spacing(8).width(Length::Fill).padding([0, 12, 0, 0]);
         
         if entities.is_empty() {
             list_col = list_col.push(
@@ -1070,41 +1070,49 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                 
                 let top_3 = &unique_awards[0..unique_awards.len().min(3)];
                 
-                let mut awards_row = row![].spacing(12).align_y(Alignment::Center);
+                let mut awards_col = column![].spacing(8);
                 for ((period, tier), count, _) in top_3 {
-                    let mut badge = row![
-                        image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes(period, tier).to_vec()))
-                            .width(Length::Fixed(24.0))
-                            .height(Length::Fixed(24.0)),
-                    ].spacing(4).align_y(Alignment::Center);
+                    let count_suffix = if *count > 1 { format!(" x{}", count) } else { "".to_string() };
+                    let req_str = crate::stats::get_achievement_requirement(period, tier);
                     
-                    if *count > 1 {
-                        badge = badge.push(
-                            text(format!("x{}", count))
+                    let badge = row![
+                        image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes(period, tier).to_vec()))
+                            .width(Length::Fixed(20.0))
+                            .height(Length::Fixed(20.0)),
+                        Space::with_width(8),
+                        column![
+                            text(format!("{} {} ({}){}", tier, match period.as_str() {
+                                "Daily" => "Ribbon",
+                                "Weekly" => "Medal",
+                                "Monthly" => "Crown",
+                                "Yearly" => "Trophy",
+                                "All-Time" => "Diamond",
+                                _ => "Award",
+                            }, period, count_suffix))
                                 .font(crate::ui::icons::UI_FONT_BOLD)
                                 .size(12)
-                                .color(theme::subtext())
-                        );
-                    }
-                    awards_row = awards_row.push(badge);
+                                .color(theme::text()),
+                            text(req_str)
+                                .font(crate::ui::icons::UI_FONT)
+                                .size(11)
+                                .color(theme::subtext()),
+                        ].spacing(1)
+                    ].align_y(Alignment::Center);
+                    
+                    awards_col = awards_col.push(badge);
                 }
                 
                 let card_content = container(
                     column![
                         row![
-                            text(icon_char)
-                                .font(crate::ui::icons::NERD_FONT_MONO)
-                                .size(14)
-                                .color(theme::accent()),
-                            Space::with_width(6),
                             text(name.clone())
                                 .font(crate::ui::icons::UI_FONT_BOLD)
                                 .size(14)
                                 .color(theme::text())
                                 .width(Length::Fill),
                         ].align_y(Alignment::Center),
-                        Space::with_height(14),
-                        awards_row,
+                        Space::with_height(12),
+                        awards_col,
                     ]
                 )
                 .padding([18, 16])
