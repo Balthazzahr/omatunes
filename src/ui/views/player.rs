@@ -1213,44 +1213,44 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
         let total_items = items.len();
         let display_items = items.iter().take(state.achievements_limit);
 
-        for item in display_items {
-            let cache_key = format!("{:?}:{}", state.achievements_sub_tab, item.name);
+        for (idx, item) in display_items.enumerate() {
+            let cache_key = if idx < 3 {
+                format!("{:?}:{}", state.achievements_sub_tab, item.name)
+            } else {
+                "static:note".to_string()
+            };
+
             let cached_cover = {
                 let mut cache = state.achievements_cover_cache.lock().unwrap();
-                if let Some(cached) = cache.get(&cache_key) {
-                    cached.clone()
+                if let Some(handle) = cache.get(&cache_key) {
+                    handle.clone()
                 } else {
-                    let cover_data = match state.achievements_sub_tab {
-                        crate::app::AchievementsSubTab::Artists => get_artist_cover_data(&item.name, &state.all_tracks),
-                        crate::app::AchievementsSubTab::Albums => get_album_cover_data(&item.name, &state.all_tracks),
-                        crate::app::AchievementsSubTab::Genres => get_genre_cover_data(&item.name, &state.all_tracks),
+                    let handle = if idx < 3 {
+                        let cover_data = match state.achievements_sub_tab {
+                            crate::app::AchievementsSubTab::Artists => get_artist_cover_data(&item.name, &state.all_tracks),
+                            crate::app::AchievementsSubTab::Albums => get_album_cover_data(&item.name, &state.all_tracks),
+                            crate::app::AchievementsSubTab::Genres => get_genre_cover_data(&item.name, &state.all_tracks),
+                        };
+                        if let Some(data) = cover_data {
+                            iced::widget::image::Handle::from_bytes(data)
+                        } else {
+                            let note_bytes = include_bytes!("../../../assets/OmaTUNES NOTE.png");
+                            iced::widget::image::Handle::from_bytes(note_bytes.to_vec())
+                        }
+                    } else {
+                        let note_bytes = include_bytes!("../../../assets/OmaTUNES NOTE.png");
+                        iced::widget::image::Handle::from_bytes(note_bytes.to_vec())
                     };
-                    cache.insert(cache_key, cover_data.clone());
-                    cover_data
+                    cache.insert(cache_key, handle.clone());
+                    handle
                 }
             };
 
-            let cover_art: Element<Message> = if let Some(data) = cached_cover {
-                image(iced::widget::image::Handle::from_bytes(data))
-                    .width(90)
-                    .height(90)
-                    .content_fit(iced::ContentFit::Cover)
-                    .into()
-            } else {
-                let note_bytes = include_bytes!("../../../assets/OmaTUNES NOTE.png");
-                container(
-                    image(iced::widget::image::Handle::from_bytes(note_bytes.to_vec()))
-                        .width(90)
-                        .height(90)
-                        .content_fit(iced::ContentFit::Cover)
-                )
+            let cover_art: Element<Message> = image(cached_cover)
                 .width(90)
                 .height(90)
-                .align_x(iced::alignment::Horizontal::Center)
-                .align_y(iced::alignment::Vertical::Center)
-                .style(theme::card)
-                .into()
-            };
+                .content_fit(iced::ContentFit::Cover)
+                .into();
 
             let title_color = match item.highest_tier_score {
                 1 => iced::Color::from_rgb(0.72, 0.45, 0.20), // Bronze
