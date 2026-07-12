@@ -205,33 +205,24 @@ pub fn flush() {
     }
 }
 
+pub const ARTIST_THRESHOLDS: [u32; 5] = [50, 150, 300, 500, 1000];
+pub const ALBUM_THRESHOLDS: [u32; 5] = [50, 150, 300, 500, 1000];
+pub const GENRE_THRESHOLDS: [u32; 5] = [100, 300, 600, 1000, 2000];
+
+pub const TIERS: [&str; 5] = ["Bronze Trophy", "Silver Trophy", "Gold Trophy", "Platinum Crown", "Legendary Gem"];
+
 pub fn get_achievement_score(period: &str, tier: &str) -> u32 {
-    match (period, tier) {
-        ("All-Time", "Legendary") => 25,
-        ("Yearly", "Legendary") => 24,
-        ("Monthly", "Legendary") => 23,
-        ("Weekly", "Legendary") => 22,
-        ("Daily", "Legendary") => 21,
-        ("All-Time", "Platinum") => 20,
-        ("All-Time", "Gold") => 19,
-        ("Yearly", "Platinum") => 18,
-        ("All-Time", "Silver") => 17,
-        ("Yearly", "Gold") => 16,
-        ("All-Time", "Bronze") => 15,
-        ("Yearly", "Silver") => 14,
-        ("Monthly", "Platinum") => 13,
-        ("Yearly", "Bronze") => 12,
-        ("Monthly", "Gold") => 11,
-        ("Weekly", "Platinum") => 10,
-        ("Monthly", "Silver") => 9,
-        ("Weekly", "Gold") => 8,
-        ("Monthly", "Bronze") => 7,
-        ("Daily", "Platinum") => 6,
-        ("Weekly", "Silver") => 5,
-        ("Daily", "Gold") => 4,
-        ("Weekly", "Bronze") => 3,
-        ("Daily", "Silver") => 2,
-        ("Daily", "Bronze") => 1,
+    match tier {
+        "Bronze Trophy" => 1,
+        "Silver Trophy" => 2,
+        "Gold Trophy" => 3,
+        "Platinum Crown" => 4,
+        "Legendary Gem" => 5,
+        "Bronze" | "Bronze Ribbon" | "Bronze Medal" => 1,
+        "Silver" | "Silver Ribbon" | "Silver Medal" => 2,
+        "Gold" | "Gold Ribbon" | "Gold Medal" => 3,
+        "Platinum" | "Platinum Crown" => 4,
+        "Legendary" | "Legendary Gem" => 5,
         _ => 0,
     }
 }
@@ -245,132 +236,75 @@ pub fn get_highest_achievement(entity_type: &str, entity_name: &str) -> Option<E
     })
 }
 
-fn check_and_award_all_tiers(
+pub fn get_artist_play_count(artist: &str, tracks: &[crate::library::models::Track]) -> u32 {
+    tracks.iter()
+        .filter(|t| t.artist == artist)
+        .map(|t| t.play_count)
+        .sum()
+}
+
+pub fn get_album_play_count(album: &str, tracks: &[crate::library::models::Track]) -> u32 {
+    tracks.iter()
+        .filter(|t| t.album == album)
+        .map(|t| t.play_count)
+        .sum()
+}
+
+pub fn get_genre_play_count(genre: &str, tracks: &[crate::library::models::Track]) -> u32 {
+    tracks.iter()
+        .filter(|t| {
+            if t.genre.contains("; ") {
+                t.genre.split("; ").any(|g| g.trim() == genre)
+            } else {
+                t.genre.trim() == genre
+            }
+        })
+        .map(|t| t.play_count)
+        .sum()
+}
+
+pub fn get_earned_tiers(entity_type: &str, play_count: u32) -> Vec<&'static str> {
+    let thresholds = match entity_type {
+        "Artist" => &ARTIST_THRESHOLDS,
+        "Album" => &ALBUM_THRESHOLDS,
+        "Genre" => &GENRE_THRESHOLDS,
+        _ => return Vec::new(),
+    };
+    let mut earned = Vec::new();
+    if play_count >= thresholds[0] { earned.push("Bronze Trophy"); }
+    if play_count >= thresholds[1] { earned.push("Silver Trophy"); }
+    if play_count >= thresholds[2] { earned.push("Gold Trophy"); }
+    if play_count >= thresholds[3] { earned.push("Platinum Crown"); }
+    if play_count >= thresholds[4] { earned.push("Legendary Gem"); }
+    earned
+}
+
+pub fn check_and_award_new_system(
     db: &mut StatsDb,
     entity_type: &str,
     entity_name: &str,
+    play_count: u32,
     date_str: &str,
-    year: u32,
     new_awards: &mut Vec<EarnedAchievement>,
 ) {
-    use chrono::{NaiveDate, Datelike};
-
-    let date = match NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {
-        Ok(d) => d,
-        Err(_) => return,
-    };
-
-    // 1. Daily minutes
-    let daily_mins = if let Some(day) = db.daily_buckets.get(date_str) {
-        match entity_type {
-            "Artist" => day.artist_minutes.get(entity_name).cloned().unwrap_or(0.0),
-            "Album" => day.album_minutes.get(entity_name).cloned().unwrap_or(0.0),
-            "Genre" => day.genre_minutes.get(entity_name).cloned().unwrap_or(0.0),
-            _ => 0.0,
-        }
-    } else {
-        0.0
-    };
-
-    // 2. Weekly minutes
-    let days_from_monday = date.weekday().num_days_from_monday();
-    let monday = date - chrono::Duration::days(days_from_monday as i64);
-    let monday_str = monday.format("%Y-%m-%d").to_string();
-
-    let mut weekly_mins = 0.0;
-    for offset in 0..7 {
-        let check_date = monday + chrono::Duration::days(offset);
-        let check_date_str = check_date.format("%Y-%m-%d").to_string();
-        if let Some(day) = db.daily_buckets.get(&check_date_str) {
-            weekly_mins += match entity_type {
-                "Artist" => day.artist_minutes.get(entity_name).cloned().unwrap_or(0.0),
-                "Album" => day.album_minutes.get(entity_name).cloned().unwrap_or(0.0),
-                "Genre" => day.genre_minutes.get(entity_name).cloned().unwrap_or(0.0),
-                _ => 0.0,
+    let earned = get_earned_tiers(entity_type, play_count);
+    for tier in earned {
+        let already = db.earned_achievements.iter().any(|a| {
+            a.entity_type == entity_type
+                && a.entity_name == entity_name
+                && a.tier == tier
+        });
+        if !already {
+            let award = EarnedAchievement {
+                entity_type: entity_type.to_string(),
+                entity_name: entity_name.to_string(),
+                period: "All-Time".to_string(),
+                tier: tier.to_string(),
+                date_earned: date_str.to_string(),
             };
+            db.earned_achievements.push(award.clone());
+            new_awards.push(award);
         }
-    }
-
-    // 3. Monthly minutes
-    let month_prefix = date.format("%Y-%m-").to_string();
-    let mut monthly_mins = 0.0;
-    for (d_str, day) in &db.daily_buckets {
-        if d_str.starts_with(&month_prefix) {
-            monthly_mins += match entity_type {
-                "Artist" => day.artist_minutes.get(entity_name).cloned().unwrap_or(0.0),
-                "Album" => day.album_minutes.get(entity_name).cloned().unwrap_or(0.0),
-                "Genre" => day.genre_minutes.get(entity_name).cloned().unwrap_or(0.0),
-                _ => 0.0,
-            };
-        }
-    }
-
-    // 4. Yearly minutes
-    let yearly_mins = if let Some(yr_stats) = db.yearly_buckets.get(&year) {
-        match entity_type {
-            "Artist" => yr_stats.artist_minutes.get(entity_name).cloned().unwrap_or(0.0),
-            "Album" => yr_stats.album_minutes.get(entity_name).cloned().unwrap_or(0.0),
-            "Genre" => yr_stats.genre_minutes.get(entity_name).cloned().unwrap_or(0.0),
-            _ => 0.0,
-        }
-    } else {
-        0.0
-    };
-
-    // 5. All-Time minutes
-    let legacy_mins = match entity_type {
-        "Artist" => db.legacy_artist_minutes.get(entity_name).cloned().unwrap_or(0.0),
-        "Album" => db.legacy_album_minutes.get(entity_name).cloned().unwrap_or(0.0),
-        "Genre" => db.legacy_genre_minutes.get(entity_name).cloned().unwrap_or(0.0),
-        _ => 0.0,
-    };
-    let mut all_time_mins = legacy_mins;
-    for day in db.daily_buckets.values() {
-        all_time_mins += match entity_type {
-            "Artist" => day.artist_minutes.get(entity_name).cloned().unwrap_or(0.0),
-            "Album" => day.album_minutes.get(entity_name).cloned().unwrap_or(0.0),
-            "Genre" => day.genre_minutes.get(entity_name).cloned().unwrap_or(0.0),
-            _ => 0.0,
-        };
-    }
-
-    let mut check = |period: &str, tier: &str, thresh: f64, val: f64, key: &str| {
-        if val >= thresh {
-            let already = db.earned_achievements.iter().any(|a| {
-                a.entity_type == entity_type
-                    && a.entity_name == entity_name
-                    && a.period == period
-                    && a.tier == tier
-                    && a.date_earned == key
-            });
-            if !already {
-                let award = EarnedAchievement {
-                    entity_type: entity_type.to_string(),
-                    entity_name: entity_name.to_string(),
-                    period: period.to_string(),
-                    tier: tier.to_string(),
-                    date_earned: key.to_string(),
-                };
-                db.earned_achievements.push(award.clone());
-                new_awards.push(award);
-            }
-        }
-    };
-
-    let tiers = [
-        ("Bronze", 30.0, 60.0, 240.0, 2880.0, 6000.0),
-        ("Silver", 60.0, 120.0, 480.0, 5760.0, 12000.0),
-        ("Gold", 120.0, 240.0, 960.0, 11520.0, 18000.0),
-        ("Platinum", 180.0, 360.0, 1440.0, 17280.0, 24000.0),
-        ("Legendary", 240.0, 480.0, 1920.0, 23040.0, 30000.0),
-    ];
-
-    for (tier, d_th, w_th, m_th, y_th, at_th) in tiers {
-        check("Daily", tier, d_th, daily_mins, date_str);
-        check("Weekly", tier, w_th, weekly_mins, &monday_str);
-        check("Monthly", tier, m_th, monthly_mins, &month_prefix[0..7]);
-        check("Yearly", tier, y_th, yearly_mins, &year.to_string());
-        check("All-Time", tier, at_th, all_time_mins, "all-time");
     }
 }
 

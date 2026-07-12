@@ -276,6 +276,13 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                 .step(0.05);
             let scale_label = text(format!("{:.2}x", state.font_scale)).size(12).color(theme::text());
 
+            let show_achievements_cb = checkbox(
+                "Show achievements icons in the main UI",
+                state.show_achievements_in_ui,
+            )
+            .on_toggle(Message::SettingsShowAchievementsInUiChanged)
+            .size(16);
+
             scrollable(
                 column![
                     section_header("Display"),
@@ -287,6 +294,14 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                     ].align_y(Alignment::Center),
                     Space::with_height(6),
                     row![scale_slider, Space::with_width(12), scale_label].align_y(Alignment::Center),
+                    Space::with_height(20),
+                    row![
+                        text("\u{f053f}").font(NERD_FONT_MONO).size(14).color(theme::overlay0()),
+                        Space::with_width(6),
+                        field_label("Achievements UI Visibility"),
+                    ].align_y(Alignment::Center),
+                    Space::with_height(8),
+                    show_achievements_cb,
                 ]
                 .spacing(0)
                 .padding(iced::Padding {
