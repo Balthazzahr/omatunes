@@ -618,12 +618,27 @@ pub struct AppState {
     pub last_checked_hour: Option<u32>,
     pub stats_modal_tab: StatsModalTab,
     pub selected_achievement_detail: Option<(String, String)>,
+    pub achievements_sub_tab: AchievementsSubTab,
+    pub achievements_sort: AchievementsSort,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StatsModalTab {
     Leaderboard,
     Achievements,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AchievementsSubTab {
+    Artists,
+    Albums,
+    Genres,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AchievementsSort {
+    Alphabetical,
+    AchievementLevel,
 }
 
 pub struct GroupByControlState {
@@ -852,6 +867,8 @@ impl AppState {
             },
             stats_modal_tab: StatsModalTab::Leaderboard,
             selected_achievement_detail: None,
+            achievements_sub_tab: AchievementsSubTab::Artists,
+            achievements_sort: AchievementsSort::AchievementLevel,
         };
 
         (state, scan_task)
