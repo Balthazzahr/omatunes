@@ -89,6 +89,8 @@ pub struct StatsDb {
     pub yearly_buckets: HashMap<u32, YearlyStats>,
     #[serde(default)]
     pub earned_achievements: Vec<EarnedAchievement>,
+    #[serde(default)]
+    pub legacy_genre_minutes: HashMap<String, f64>,
 }
 
 impl StatsDb {
