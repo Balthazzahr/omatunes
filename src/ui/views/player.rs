@@ -1030,7 +1030,7 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
         container(content)
             .padding(28)
             .max_width(1500)
-            .max_height(if state.stats_modal_tab == crate::app::StatsModalTab::Achievements { 1000.0 } else { 575.0 })
+            .max_height(575.0)
             .style(|_| iced::widget::container::Style {
                 background: Some(iced::Background::Color(theme::mantle())),
                 border: iced::Border {
