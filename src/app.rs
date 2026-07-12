@@ -622,6 +622,7 @@ pub struct AppState {
     pub stats_modal_tab: StatsModalTab,
     pub selected_achievement_detail: Option<(String, String)>,
     pub achievements_sub_tab: AchievementsSubTab,
+    pub achievements_sort: AchievementsSort,
     pub achievements_offset: usize,
     pub achievements_search_query: String,
     pub achievements_cover_cache: std::sync::Mutex<std::collections::HashMap<String, iced::widget::image::Handle>>,
@@ -990,7 +991,8 @@ impl AppState {
             selected_achievement_detail: None,
             achievements_sub_tab: AchievementsSubTab::Artists,
             achievements_sort: AchievementsSort::AchievementLevel,
-            achievements_limit: 10,
+            achievements_offset: 0,
+            achievements_search_query: String::new(),
             achievements_cover_cache: std::sync::Mutex::new(std::collections::HashMap::new()),
             achievements_items: Vec::new(),
         };
