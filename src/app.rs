@@ -624,6 +624,7 @@ pub struct AppState {
     pub achievements_sub_tab: AchievementsSubTab,
     pub achievements_sort: AchievementsSort,
     pub achievements_limit: usize,
+    pub achievements_cover_cache: std::sync::Mutex<std::collections::HashMap<String, Option<Vec<u8>>>>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
