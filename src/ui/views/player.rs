@@ -1236,7 +1236,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
         for sug in suggestions {
             let sug_clone = sug.clone();
             sug_row = sug_row.push(
-                button(text(&sug).font(crate::ui::icons::UI_FONT).size(11))
+                button(text(sug).font(crate::ui::icons::UI_FONT).size(11))
                     .on_press(Message::AchievementsSearchChanged(sug_clone))
                     .padding([2, 8])
                     .style(move |_, status| {
