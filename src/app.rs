@@ -2009,7 +2009,7 @@ impl AppState {
 
             Message::ToggleLikeTrack(track) => {
                 self.show_context_menu = None;
-                let liked = crate::db::toggle_favorite(track.path.clone());
+                let liked = !track.liked;
                 if let Err(e) = crate::library::scanner::write_like_status(&track.path, liked) {
                     eprintln!("Failed to write like status to file: {e}");
                 }

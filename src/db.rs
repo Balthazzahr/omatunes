@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -233,18 +233,6 @@ pub fn increment_play_count(path: PathBuf) -> u32 {
         let count = db.play_counts.entry(path).or_insert(0);
         *count += 1;
         *count
-    })
-}
-
-pub fn toggle_favorite(path: PathBuf) -> bool {
-    write(|db| {
-        if db.favorites.contains(&path) {
-            db.favorites.remove(&path);
-            false
-        } else {
-            db.favorites.insert(path);
-            true
-        }
     })
 }
 
