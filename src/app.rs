@@ -5472,7 +5472,7 @@ impl AppState {
                         .padding([4, 4]);
 
                         let toggle_btn = button(
-                            text("\u{f46a}")
+                            text("\u{f16a}")
                                 .font(crate::ui::icons::NERD_FONT_MONO)
                                 .color(theme::accent())
                                 .size(14)
@@ -5481,17 +5481,10 @@ impl AppState {
                         .style(iced::widget::button::text)
                         .padding([4, 4]);
 
-                        let name_btn = button(
-                            text(col_label).size(14).color(theme::text())
-                        )
-                        .on_press(Message::ToggleColumnVisibility(col))
-                        .style(iced::widget::button::text)
-                        .padding([4, 4]);
-
                         let row_item = row![
                             drag_btn,
                             toggle_btn,
-                            name_btn,
+                            text(col_label).size(14).color(theme::text()),
                         ]
                         .spacing(2)
                         .align_y(Alignment::Center);
