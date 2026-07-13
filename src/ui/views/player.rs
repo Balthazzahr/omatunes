@@ -301,44 +301,26 @@ pub fn tab_strip(state: &AppState) -> Element<'_, Message> {
             })
     };
 
-    let left_sep = container(Space::new(Length::Fixed(1.0), Length::Fill))
-        .style(|_| iced::widget::container::Style {
-            background: Some(iced::Background::Color(theme::surface0())),
-            ..Default::default()
-        })
-        .width(1.0)
-        .height(Length::Fill);
-
-    column![
-        row![
-            left_sep,
-            container(
-                column![
-                    tab_btn(crate::app::RightPanelTab::Visualizer, crate::ui::icons::ICON_VISUALIZER, "Visualizer"),
-                    tab_btn(crate::app::RightPanelTab::Lyrics, crate::ui::icons::ICON_LYRICS, "Lyrics"),
-                ]
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .spacing(0)
-            )
-            .width(55.0)
-            .height(Length::Fill)
-            .style(|_| iced::widget::container::Style {
-                background: None,
-                ..Default::default()
-            })
+    container(
+        column![
+            tab_btn(crate::app::RightPanelTab::Visualizer, crate::ui::icons::ICON_VISUALIZER, "Visualizer"),
+            tab_btn(crate::app::RightPanelTab::Lyrics, crate::ui::icons::ICON_LYRICS, "Lyrics"),
         ]
-        .width(56.0)
-        .height(Length::Fill),
-        container(Space::new(Length::Fill, Length::Fixed(1.0)))
-            .style(|_| iced::widget::container::Style {
-                background: Some(iced::Background::Color(theme::surface0())),
-                ..Default::default()
-            })
-            .height(1.0)
-    ]
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .spacing(0)
+    )
     .width(56.0)
     .height(Length::Fill)
+    .style(|_| iced::widget::container::Style {
+        background: None,
+        border: iced::Border {
+            color: theme::surface0(),
+            width: 1.0,
+            radius: 0.0.into(),
+        },
+        ..Default::default()
+    })
     .into()
 }
 
