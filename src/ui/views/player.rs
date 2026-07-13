@@ -1394,10 +1394,14 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                         .into()
                 } else {
                     container(
-                        text(dot_char)
-                            .font(crate::ui::icons::NERD_FONT_MONO)
-                            .size(20)
-                            .color(theme::overlay0())
+                        row![
+                            Space::with_width(Length::Fixed(4.0)),
+                            text(dot_char)
+                                .font(crate::ui::icons::NERD_FONT_MONO)
+                                .size(20)
+                                .color(theme::overlay0()),
+                        ]
+                        .align_y(Alignment::Center)
                     )
                     .width(34)
                     .height(34)
