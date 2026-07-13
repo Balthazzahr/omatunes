@@ -78,6 +78,22 @@ pub fn default_table_columns() -> Vec<TableColumn> {
     ]
 }
 
+pub fn default_column_order() -> Vec<TableColumn> {
+    vec![
+        TableColumn::TrackNumber,
+        TableColumn::Title,
+        TableColumn::Artist,
+        TableColumn::Album,
+        TableColumn::Genre,
+        TableColumn::Year,
+        TableColumn::DiscNumber,
+        TableColumn::Duration,
+        TableColumn::Plays,
+        TableColumn::DatePlayed,
+        TableColumn::Liked,
+    ]
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct OmatunesDb {
     pub play_counts: HashMap<PathBuf, u32>,
@@ -136,12 +152,16 @@ pub struct OmatunesDb {
 
 impl Default for OmatunesDb {
     fn default() -> Self {
+        let defaults = default_table_columns();
+        let all_cols = default_column_order();
+        let hidden: Vec<TableColumn> = all_cols.iter().filter(|c| !defaults.contains(c)).copied().collect();
         OmatunesDb {
             play_counts: HashMap::default(),
             playlists: HashMap::default(),
             recently_played: Vec::default(),
             hidden_artists_albums: Vec::default(),
-            table_columns: default_table_columns(),
+            table_columns: all_cols,
+            hidden_columns: hidden,
             group_by_album: false,
             group_by: Some(GroupBy::None),
             sidebar_width: None,
