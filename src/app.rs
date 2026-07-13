@@ -947,6 +947,7 @@ impl AppState {
             last_click_genre: None,
             hovered_playlist: None,
             show_context_menu: None,
+            context_dragging_column: None,
             playlist_menu_expanded: false,
             modifiers: Default::default(),
             selected_tracks: Arc::new(Vec::new()),
@@ -3930,6 +3931,7 @@ impl AppState {
 
             Message::ToggleContextMenu(val) => {
                 self.show_context_menu = val;
+                self.context_dragging_column = None;
                 self.playlist_menu_expanded = false;
                 Task::none()
             }
