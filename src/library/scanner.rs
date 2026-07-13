@@ -24,7 +24,7 @@ const COVER_FILENAMES: &[&str] = &[
 
 /// Write like/rating metadata to an audio file using the unified generic tag API.
 ///
-/// Writes POPM (rating=5), RATING=100, LIKE=1.
+/// Writes POPM (rating=5), RATING=100, xLIKE=1.
 /// When `is_liked` is false, all of the above are removed.
 pub fn write_like_status(path: &Path, is_liked: bool) -> Result<()> {
     let mut tagged_file = Probe::open(path)?.read()?;
@@ -36,7 +36,7 @@ pub fn write_like_status(path: &Path, is_liked: bool) -> Result<()> {
 
     tag.remove_key(&ItemKey::Popularimeter);
     let rating_key = ItemKey::Unknown("RATING".to_string());
-    let like_key = ItemKey::Unknown("LIKE".to_string());
+    let like_key = ItemKey::Unknown("xLIKE".to_string());
     tag.retain(|i| i.key() != &rating_key && i.key() != &like_key);
 
     if is_liked {
@@ -49,7 +49,7 @@ pub fn write_like_status(path: &Path, is_liked: bool) -> Result<()> {
             ItemValue::Text("100".to_string()),
         ));
         tag.insert_unchecked(TagItem::new(
-            ItemKey::Unknown("LIKE".to_string()),
+            ItemKey::Unknown("xLIKE".to_string()),
             ItemValue::Text("1".to_string()),
         ));
     }
@@ -201,7 +201,7 @@ fn read_tags(path: &Path) -> Result<TrackInfo> {
         .unwrap_or_default();
 
     let liked = tags
-        .and_then(|t| t.get_string(&ItemKey::Unknown("LIKE".to_string())))
+        .and_then(|t| t.get_string(&ItemKey::Unknown("xLIKE".to_string())))
         .map(|s| s == "1")
         .unwrap_or(false);
 
