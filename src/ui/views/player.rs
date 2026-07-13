@@ -1030,7 +1030,7 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
         container(content)
             .padding(28)
             .max_width(1500)
-            .max_height(575.0)
+            .max_height(950.0)
             .style(|_| iced::widget::container::Style {
                 background: Some(iced::Background::Color(theme::mantle())),
                 border: iced::Border {
@@ -1206,7 +1206,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
     let total_items = filtered_items.len();
     let page_items = filtered_items.iter()
         .skip(state.achievements_offset)
-        .take(3);
+        .take(5);
 
     // Auto-complete Suggestions (take up to 3 containing matching names)
     let mut suggestions = Vec::new();
@@ -1552,8 +1552,8 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
         }
     }
 
-    let has_previous = state.achievements_offset >= 3;
-    let has_next = state.achievements_offset + 3 < total_items;
+    let has_previous = state.achievements_offset >= 5;
+    let has_next = state.achievements_offset + 5 < total_items;
 
     let prev_btn = if has_previous {
         button(text("Previous Page").font(crate::ui::icons::UI_FONT_BOLD).size(13))
@@ -1583,8 +1583,8 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
             })
     };
 
-    let page_num = (state.achievements_offset / 3) + 1;
-    let total_pages = ((total_items + 2) / 3).max(1);
+    let page_num = (state.achievements_offset / 5) + 1;
+    let total_pages = ((total_items + 4) / 5).max(1);
 
     let pagination_bar = row![
         prev_btn,

@@ -960,7 +960,7 @@ pub fn get_combined_all_time_leaderboard() -> Vec<(String, f64, u32)> {
         }).collect();
         
         combined.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
-        combined.truncate(10);
+        combined.truncate(TOP_N_BREAKDOWN);
         combined
     })
 }
@@ -985,7 +985,7 @@ pub struct PeriodBreakdown {
     pub album_minutes: Vec<(String, f64, u32)>,
 }
 
-const TOP_N_BREAKDOWN: usize = 10;
+const TOP_N_BREAKDOWN: usize = 25;
 
 pub fn get_period_breakdown(period_idx: usize, tracks: &[crate::library::models::Track]) -> PeriodBreakdown {
     get(|db| {

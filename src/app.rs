@@ -4185,12 +4185,12 @@ impl AppState {
             }
 
             Message::ShowMoreAchievements => {
-                self.achievements_offset += 3;
+                self.achievements_offset += 5;
                 Task::none()
             }
 
             Message::ShowPreviousAchievements => {
-                self.achievements_offset = self.achievements_offset.saturating_sub(3);
+                self.achievements_offset = self.achievements_offset.saturating_sub(5);
                 Task::none()
             }
 
