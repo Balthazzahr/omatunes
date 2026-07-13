@@ -746,8 +746,8 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
         (crate::ui::icons::ICON_CALENDAR_DAY, "Day"),
         (crate::ui::icons::ICON_CALENDAR_WEEK, "Week"),
         (crate::ui::icons::ICON_CALENDAR_MONTH_FA, "Month"),
-        (crate::ui::icons::ICON_TROPHY_FA, "Year"),
-        (crate::ui::icons::ICON_GEM, "All-Time"),
+        (crate::ui::icons::ICON_CALENDAR_YEAR, "Year"),
+        (crate::ui::icons::ICON_ALL_TIME, "All-Time"),
     ];
 
     let mut period_tabs = row![].spacing(8).align_y(Alignment::Center);
@@ -1371,7 +1371,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                     })
             )
             .width(Length::Fill)
-            .height(30.0)
+            .height(38.0)
             .align_y(iced::alignment::Vertical::Center);
 
             let mut dots_row = row![].width(Length::Fill);
@@ -1389,18 +1389,18 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                 
                 let dot: Element<Message> = if achieved {
                     image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes("All-Time", tier_name).to_vec()))
-                        .width(26)
-                        .height(26)
+                        .width(34)
+                        .height(34)
                         .into()
                 } else {
                     container(
                         text(dot_char)
                             .font(crate::ui::icons::NERD_FONT_MONO)
-                            .size(16)
+                            .size(20)
                             .color(theme::overlay0())
                     )
-                    .width(26)
-                    .height(26)
+                    .width(34)
+                    .height(34)
                     .align_x(iced::alignment::Horizontal::Center)
                     .align_y(iced::alignment::Vertical::Center)
                     .into()
