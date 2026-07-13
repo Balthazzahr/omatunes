@@ -5503,9 +5503,10 @@ impl AppState {
                         Space::with_height(4)
                     ].spacing(2);
 
-                    // Visible columns (in db.table_columns order)
+                    // All columns in order (visible and hidden in one list)
                     for &col in &active_cols {
                         let col_label = col.label();
+                        let is_visible = crate::db::get(|db| !db.hidden_columns.contains(&col));
                         let is_dragging_this = self.context_dragging_column == Some(col);
                         let is_hover_target = self.context_drag_hover_column == Some(col);
 
@@ -5517,8 +5518,10 @@ impl AppState {
 
                         let label_color = if is_hover_target {
                             theme::accent()
-                        } else {
+                        } else if is_visible {
                             theme::text()
+                        } else {
+                            theme::overlay0()
                         };
 
                         let drag_handle = mouse_area(
@@ -5533,10 +5536,16 @@ impl AppState {
                         .on_release(Message::ContextColumnDragEnd)
                         .interaction(iced::mouse::Interaction::Grab);
 
+                        let (checkbox_icon, checkbox_color) = if is_visible {
+                            ("\u{f0fe}", theme::accent())
+                        } else {
+                            ("\u{f096}", theme::overlay0())
+                        };
+
                         let toggle_btn = button(
-                            text("\u{f16a}")
+                            text(checkbox_icon)
                                 .font(crate::ui::icons::NERD_FONT_MONO)
-                                .color(theme::accent())
+                                .color(checkbox_color)
                                 .size(14)
                         )
                         .on_press(Message::ToggleColumnVisibility(col))
@@ -5574,55 +5583,6 @@ impl AppState {
                         };
 
                         cols_col = cols_col.push(row_el);
-                    }
-
-                    // Separator
-                    cols_col = cols_col.push(
-                        container(Space::with_height(0))
-                            .width(Length::Fill)
-                            .height(1)
-                            .style(|_| iced::widget::container::Style {
-                                background: Some(iced::Background::Color(theme::surface0())),
-                                ..Default::default()
-                            })
-                            .padding([4, 0])
-                    );
-
-                    // Hidden columns (not in active_cols, in canonical order)
-                    for &col in crate::db::TableColumn::all() {
-                        if active_cols.contains(&col) {
-                            continue;
-                        }
-                        let col_label = col.label();
-
-                        let drag_btn = button(
-                            text("\u{f0c9}")
-                                .font(crate::ui::icons::NERD_FONT_MONO)
-                                .color(theme::overlay0())
-                                .size(14)
-                        )
-                        .style(iced::widget::button::text)
-                        .padding([4, 4]);
-
-                        let toggle_btn = button(
-                            text("\u{f096}")
-                                .font(crate::ui::icons::NERD_FONT_MONO)
-                                .color(theme::overlay0())
-                                .size(14)
-                        )
-                        .on_press(Message::ToggleColumnVisibility(col))
-                        .style(iced::widget::button::text)
-                        .padding([4, 4]);
-
-                        let row_item = row![
-                            drag_btn,
-                            toggle_btn,
-                            text(col_label).size(14).color(theme::overlay0()),
-                        ]
-                        .spacing(2)
-                        .align_y(Alignment::Center);
-
-                        cols_col = cols_col.push(row_item);
                     }
 
                     // Reset buttons
