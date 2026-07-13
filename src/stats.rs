@@ -597,7 +597,6 @@ pub fn on_track_play(
         let clean_album = album.trim();
         if !clean_album.is_empty() {
             *day.album_track_counts.entry(clean_album.to_string()).or_default() += 1;
-            *yr_stats.album_track_counts.entry(clean_album.to_string()).or_default() += 1;
         }
 
         // 2. Check and award new system achievements

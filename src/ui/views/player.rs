@@ -1461,7 +1461,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
 
             let milestone_bar = stack![
                 progress_line,
-                container(dots_row).width(Length::Fill).height(38.0).align_y(iced::alignment::Vertical::Center)
+                container(dots_row).width(Length::Fill).height(58.0).align_y(iced::alignment::Vertical::Center)
             ]
             .width(Length::Fill);
 
