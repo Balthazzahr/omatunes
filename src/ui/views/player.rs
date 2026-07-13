@@ -625,9 +625,9 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     ..Default::default()
                 })
         )
-        .width(6.0)
+        .width(4.0)
         .height(Length::Fill)
-        .center_x(Length::Fixed(6.0))
+        .center_x(Length::Fixed(4.0))
         .style(|_| iced::widget::container::Style {
             background: Some(iced::Background::Color(iced::Color::TRANSPARENT)),
             ..Default::default()
