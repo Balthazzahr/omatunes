@@ -1387,61 +1387,92 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                     _ => crate::ui::icons::ICON_TROPHY,
                 };
                 
-                let dot: Element<Message> = if achieved {
-                    image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes("All-Time", tier_name).to_vec()))
-                        .width(34)
-                        .height(34)
-                        .into()
+                let tier_color = match i {
+                    0 => iced::Color::from_rgb(0.72, 0.45, 0.20),
+                    1 => iced::Color::from_rgb(0.75, 0.75, 0.75),
+                    2 => iced::Color::from_rgb(0.83, 0.69, 0.22),
+                    3 => iced::Color::from_rgb(0.49, 0.78, 0.89),
+                    4 => iced::Color::from_rgb(0.62, 0.31, 0.87),
+                    _ => theme::overlay0(),
+                };
+
+                let remaining = if achieved { 0 } else { thresh - item.plays };
+
+                let tooltip_body = container(
+                    column![
+                        text(format!("{} plays", thresh))
+                            .font(crate::ui::icons::UI_FONT_BOLD)
+                            .size(14)
+                            .color(theme::text()),
+                        text(if achieved {
+                            "Earned".to_string()
+                        } else {
+                            format!("{} more plays to earn", remaining)
+                        })
+                            .font(crate::ui::icons::UI_FONT)
+                            .size(11)
+                            .color(theme::subtext()),
+                    ]
+                    .spacing(2)
+                )
+                .padding(8)
+                .style(|_| iced::widget::container::Style {
+                    background: Some(iced::Background::Color(theme::surface0())),
+                    border: iced::Border {
+                        color: theme::overlay0(),
+                        width: 1.0,
+                        radius: 4.0.into(),
+                    },
+                    ..Default::default()
+                });
+
+                let icon_with_tooltip: Element<Message> = if achieved {
+                    let img = image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes("All-Time", tier_name).to_vec()))
+                        .width(38)
+                        .height(38);
+                    tooltip(
+                        container(img)
+                            .width(38)
+                            .height(38)
+                            .align_x(iced::alignment::Horizontal::Center)
+                            .align_y(iced::alignment::Vertical::Center),
+                        tooltip_body,
+                        iced::widget::tooltip::Position::Top,
+                    ).into()
                 } else {
-                    container(
-                        row![
-                            Space::with_width(Length::Fixed(4.0)),
+                    let hover_btn = button(
+                        container(
                             text(dot_char)
                                 .font(crate::ui::icons::NERD_FONT_MONO)
-                                .size(20)
+                                .size(28)
                                 .color(theme::overlay0()),
-                        ]
-                        .align_y(Alignment::Center)
+                        )
+                        .width(38)
+                        .height(38)
+                        .align_x(iced::alignment::Horizontal::Center)
+                        .align_y(iced::alignment::Vertical::Center)
                     )
-                    .width(34)
-                    .height(34)
-                    .align_x(iced::alignment::Horizontal::Center)
-                    .align_y(iced::alignment::Vertical::Center)
-                    .into()
-                };
-
-                let icon_box = container(Space::new(Length::Fixed(38.0), Length::Fixed(38.0)))
-                    .width(38)
-                    .height(38)
-                    .style(|_| iced::widget::container::Style {
-                        background: Some(iced::Background::Color(theme::base())),
-                        border: iced::Border { radius: 6.0.into(), width: 1.0, color: theme::surface0() },
-                        ..Default::default()
+                    .on_press(Message::Noop)
+                    .padding(0)
+                    .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+                        let is_hovered = status == iced::widget::button::Status::Hovered;
+                        iced::widget::button::Style {
+                            background: None,
+                            text_color: if is_hovered { tier_color } else { theme::overlay0() },
+                            border: iced::Border { radius: 6.0.into(), ..Default::default() },
+                            ..Default::default()
+                        }
                     });
 
-                let icon_in_box = stack![
-                    icon_box,
-                    container(dot).width(34).height(34).align_x(iced::alignment::Horizontal::Center).align_y(iced::alignment::Vertical::Center)
-                ];
-
-                let req_label = if achieved {
-                    format!("{}", thresh)
-                } else {
-                    format!("{}", thresh - item.plays)
+                    tooltip(
+                        hover_btn,
+                        tooltip_body,
+                        iced::widget::tooltip::Position::Top,
+                    ).into()
                 };
 
-                let milestone_col = column![
-                    icon_in_box,
-                    text(req_label)
-                        .font(crate::ui::icons::UI_FONT)
-                        .size(13)
-                        .color(theme::overlay0())
-                ]
-                .spacing(2)
-                .align_x(Alignment::Center);
-
                 dots_row = dots_row.push(
-                    container(milestone_col)
+                    container(icon_with_tooltip)
                         .width(Length::Fill)
                         .align_x(iced::alignment::Horizontal::Right)
                 );
@@ -1449,7 +1480,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
 
             let milestone_bar = stack![
                 progress_line,
-                container(dots_row).width(Length::Fill).height(65.0).align_y(iced::alignment::Vertical::Center)
+                container(dots_row).width(Length::Fill).height(38.0).align_y(iced::alignment::Vertical::Center)
             ]
             .width(Length::Fill);
 
