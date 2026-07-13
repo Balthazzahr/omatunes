@@ -1392,7 +1392,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
 
                 let remaining = if achieved { 0 } else { thresh - item.plays };
 
-                let tooltip_body = container(
+                let tooltip_body: Element<'_, Message> = container(
                     column![
                         text(format!("{} plays", thresh))
                             .font(crate::ui::icons::UI_FONT_BOLD)
@@ -1418,7 +1418,8 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                         radius: 4.0.into(),
                     },
                     ..Default::default()
-                });
+                })
+                .into();
 
                 let default_color = if achieved { tier_color } else { theme::text() };
 
