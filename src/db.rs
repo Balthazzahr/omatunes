@@ -73,7 +73,6 @@ fn default_table_columns() -> Vec<TableColumn> {
         TableColumn::Title,
         TableColumn::Artist,
         TableColumn::Album,
-        TableColumn::Duration,
         TableColumn::Plays,
         TableColumn::Liked,
     ]
