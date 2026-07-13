@@ -5059,7 +5059,7 @@ impl AppState {
                 .width(Length::Fill)
                 .height(iced::Length::Fixed(self.player_height - 28.0)),
             container(library_tabs)
-                .padding(iced::Padding { top: self.player_height - 29.0, right: 0.0, bottom: 0.0, left: 0.0 })
+                .padding(iced::Padding { top: self.player_height - 28.0, right: 0.0, bottom: 0.0, left: 0.0 })
                 .width(Length::Fill)
                 .height(iced::Length::Fixed(self.player_height)),
         ]
