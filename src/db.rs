@@ -89,6 +89,8 @@ pub struct OmatunesDb {
     #[serde(default = "default_table_columns")]
     pub table_columns: Vec<TableColumn>,
     #[serde(default)]
+    pub hidden_columns: Vec<TableColumn>,
+    #[serde(default)]
     pub group_by_album: bool,
     #[serde(default)]
     pub group_by: Option<GroupBy>,

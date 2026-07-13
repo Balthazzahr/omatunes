@@ -3985,7 +3985,7 @@ impl AppState {
             }
 
             Message::ContextColumnDragOver(target_col) => {
-                self.context_drag_hover_column = Some(target_col);
+                self.context_drag_hover_column = self.context_dragging_column;
                 if let Some(src_col) = self.context_dragging_column {
                     if src_col != target_col {
                         crate::db::write(|db| {
