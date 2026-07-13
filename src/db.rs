@@ -67,7 +67,7 @@ impl TableColumn {
     }
 }
 
-fn default_table_columns() -> Vec<TableColumn> {
+pub fn default_table_columns() -> Vec<TableColumn> {
     vec![
         TableColumn::TrackNumber,
         TableColumn::Title,
