@@ -204,6 +204,14 @@ impl OmatunesDb {
                 db.group_by = Some(GroupBy::None);
             }
         }
+        // Migration: ensure all columns are in table_columns order
+        let all_cols = TableColumn::all();
+        for &col in all_cols {
+            if !db.table_columns.contains(&col) {
+                db.hidden_columns.push(col);
+                db.table_columns.push(col);
+            }
+        }
         db
     }
 

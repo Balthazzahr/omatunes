@@ -943,7 +943,10 @@ pub fn get_available_track_list_width(state: &AppState) -> f32 {
 }
 
 pub fn get_responsive_columns(state: &AppState) -> Vec<crate::db::TableColumn> {
-    let saved_cols = crate::db::get(|db| db.table_columns.clone());
+    let (saved_cols, hidden_cols) = crate::db::get(|db| (db.table_columns.clone(), db.hidden_columns.clone()));
+    let saved_cols: Vec<crate::db::TableColumn> = saved_cols.into_iter()
+        .filter(|c| !hidden_cols.contains(c))
+        .collect();
     let available_width = get_available_track_list_width(state) - 24.0;
     
     let hide_priority = &[
