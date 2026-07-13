@@ -22,69 +22,36 @@ const COVER_FILENAMES: &[&str] = &[
     "folder.png", "Folder.png",
 ];
 
-/// Write like/rating metadata to an audio file using format-specific frames.
+/// Write like/rating metadata to an audio file using the unified generic tag API.
 ///
-/// For MP3 (ID3v2): writes POPM (rating=255), TXXX:RATING="5", TXXX:LIKE="1".
-/// For other formats (Vorbis Comments, APE, MP4, etc.): writes RATING=5, RATING=100, LIKE=1.
+/// Writes POPM (rating=5), RATING=100, LIKE=1.
 /// When `is_liked` is false, all of the above are removed.
 pub fn write_like_status(path: &Path, is_liked: bool) -> Result<()> {
     let mut tagged_file = Probe::open(path)?.read()?;
 
-    match tagged_file.primary_tag_type() {
-        TagType::Id3v2 => {
-            if tagged_file.tag_mut(TagType::Id3v2).is_none() {
-                tagged_file.insert_tag(Tag::new(TagType::Id3v2));
-            }
+    if tagged_file.primary_tag_mut().is_none() {
+        tagged_file.insert_tag(Tag::new(tagged_file.primary_tag_type()));
+    }
+    let tag = tagged_file.primary_tag_mut().unwrap();
 
-            let mut id3v2: Id3v2Tag = tagged_file
-                .tag_mut(TagType::Id3v2)
-                .unwrap()
-                .clone()
-                .into();
+    tag.remove_key(&ItemKey::Popularimeter);
+    let rating_key = ItemKey::Unknown("RATING".to_string());
+    let like_key = ItemKey::Unknown("LIKE".to_string());
+    tag.retain(|i| i.key() != &rating_key && i.key() != &like_key);
 
-            id3v2.retain(|f| !matches!(f, Frame::Popularimeter(_)));
-            id3v2.remove_user_text("RATING");
-            id3v2.remove_user_text("LIKE");
-
-            if is_liked {
-                id3v2.insert(Frame::Popularimeter(PopularimeterFrame::new(
-                    "Windows Media Player 9 Series".to_string(),
-                    255,
-                    0,
-                )));
-                id3v2.insert_user_text("RATING".to_string(), "5".to_string());
-                id3v2.insert_user_text("LIKE".to_string(), "1".to_string());
-            }
-
-            let tag: Tag = id3v2.into();
-            tagged_file.insert_tag(tag);
-        }
-        _ => {
-            if tagged_file.primary_tag_mut().is_none() {
-                tagged_file.insert_tag(Tag::new(tagged_file.primary_tag_type()));
-            }
-            let tag = tagged_file.primary_tag_mut().unwrap();
-
-            tag.remove_key(&ItemKey::Popularimeter);
-            let rating_key = ItemKey::Unknown("RATING".to_string());
-            let like_key = ItemKey::Unknown("LIKE".to_string());
-            tag.retain(|i| i.key() != &rating_key && i.key() != &like_key);
-
-            if is_liked {
-                tag.insert_unchecked(TagItem::new(
-                    ItemKey::Popularimeter,
-                    ItemValue::Text("5".to_string()),
-                ));
-                tag.insert_unchecked(TagItem::new(
-                    ItemKey::Unknown("RATING".to_string()),
-                    ItemValue::Text("100".to_string()),
-                ));
-                tag.insert_unchecked(TagItem::new(
-                    ItemKey::Unknown("LIKE".to_string()),
-                    ItemValue::Text("1".to_string()),
-                ));
-            }
-        }
+    if is_liked {
+        tag.insert_unchecked(TagItem::new(
+            ItemKey::Popularimeter,
+            ItemValue::Text("5".to_string()),
+        ));
+        tag.insert_unchecked(TagItem::new(
+            ItemKey::Unknown("RATING".to_string()),
+            ItemValue::Text("100".to_string()),
+        ));
+        tag.insert_unchecked(TagItem::new(
+            ItemKey::Unknown("LIKE".to_string()),
+            ItemValue::Text("1".to_string()),
+        ));
     }
 
     tagged_file.save_to_path(path, WriteOptions::default())?;
