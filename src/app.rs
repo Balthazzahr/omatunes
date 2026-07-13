@@ -5520,11 +5520,18 @@ impl AppState {
                     for &col in &active_cols {
                         let col_label = col.label();
                         let is_dragging_this = self.context_dragging_column == Some(col);
+                        let is_hover_target = self.context_drag_hover_column == Some(col);
 
                         let drag_handle_color = if is_dragging_this {
                             theme::accent()
                         } else {
                             theme::subtext()
+                        };
+
+                        let label_color = if is_hover_target {
+                            theme::accent()
+                        } else {
+                            theme::text()
                         };
 
                         let drag_handle = mouse_area(
@@ -5552,15 +5559,30 @@ impl AppState {
                         let row_content = row![
                             drag_handle,
                             toggle_btn,
-                            text(col_label).size(14).color(theme::text()),
+                            text(col_label).size(14).color(label_color),
                         ]
                         .spacing(2)
                         .align_y(Alignment::Center);
 
                         let row_el: Element<'_, Message> = if self.context_dragging_column.is_some() {
-                            mouse_area(row_content)
-                                .on_enter(Message::ContextColumnDragOver(col))
-                                .into()
+                            mouse_area(
+                                if is_hover_target {
+                                    container(row_content)
+                                        .style(|_| iced::widget::container::Style {
+                                            background: Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.15))),
+                                            border: iced::Border {
+                                                radius: 4.0.into(),
+                                                ..Default::default()
+                                            },
+                                            ..Default::default()
+                                        })
+                                        .into()
+                                } else {
+                                    row_content.into()
+                                }
+                            )
+                            .on_enter(Message::ContextColumnDragOver(col))
+                            .into()
                         } else {
                             row_content.into()
                         };
