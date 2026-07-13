@@ -1446,7 +1446,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                     }
                 });
 
-                let icon_with_tooltip = tooltip(
+                let icon_with_tooltip: Element<Message> = tooltip(
                     icon_btn,
                     tooltip_body,
                     iced::widget::tooltip::Position::Top,
