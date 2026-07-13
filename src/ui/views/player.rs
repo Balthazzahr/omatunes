@@ -1363,7 +1363,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
             let progress_line = container(
                 container(bar_inner)
                     .width(Length::Fill)
-                    .height(12.0)
+                    .height(Length::Fill)
                     .style(|_| iced::widget::container::Style {
                         background: Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.15))),
                         border: iced::Border { radius: 6.0.into(), ..Default::default() },
@@ -1430,8 +1430,8 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                     icon_in_box,
                     text(req_label)
                         .font(crate::ui::icons::UI_FONT)
-                        .size(11)
-                        .color(theme::subtext())
+                        .size(13)
+                        .color(theme::overlay0())
                 ]
                 .spacing(2)
                 .align_x(Alignment::Center);
@@ -1445,7 +1445,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
 
             let milestone_bar = stack![
                 progress_line,
-                container(dots_row).width(Length::Fill).height(55.0).align_y(iced::alignment::Vertical::Center)
+                container(dots_row).width(Length::Fill).height(65.0).align_y(iced::alignment::Vertical::Center)
             ]
             .width(Length::Fill);
 
