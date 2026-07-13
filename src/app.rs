@@ -3934,6 +3934,7 @@ impl AppState {
             Message::ToggleContextMenu(val) => {
                 self.show_context_menu = val;
                 self.context_dragging_column = None;
+                self.context_drag_hover_column = None;
                 self.playlist_menu_expanded = false;
                 Task::none()
             }
@@ -3984,6 +3985,7 @@ impl AppState {
             }
 
             Message::ContextColumnDragOver(target_col) => {
+                self.context_drag_hover_column = Some(target_col);
                 if let Some(src_col) = self.context_dragging_column {
                     if src_col != target_col {
                         crate::db::write(|db| {
@@ -4003,6 +4005,7 @@ impl AppState {
 
             Message::ContextColumnDragEnd => {
                 self.context_dragging_column = None;
+                self.context_drag_hover_column = None;
                 Task::none()
             }
 
