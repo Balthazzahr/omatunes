@@ -272,8 +272,7 @@ pub enum Message {
     SelectGenreFromBreakdown(String),
     CloseBreakdownSongView,
     SelectStatsModalTab(StatsModalTab),
-    OpenAchievementDetail(String, String),
-    CloseAchievementDetail,
+
     SelectAchievementsSubTab(AchievementsSubTab),
     SelectAchievementsSort(AchievementsSort),
     ShowMoreAchievements,
@@ -622,7 +621,7 @@ pub struct AppState {
     pub next_notification_id: u64,
     pub last_checked_hour: Option<u32>,
     pub stats_modal_tab: StatsModalTab,
-    pub selected_achievement_detail: Option<(String, String)>,
+
     pub achievements_sub_tab: AchievementsSubTab,
     pub achievements_sort: AchievementsSort,
     pub achievements_offset: usize,
@@ -4167,16 +4166,6 @@ impl AppState {
                 if tab == StatsModalTab::Achievements {
                     self.recalculate_achievements_items();
                 }
-                Task::none()
-            }
-
-            Message::OpenAchievementDetail(entity_type, entity_name) => {
-                self.selected_achievement_detail = Some((entity_type, entity_name));
-                Task::none()
-            }
-
-            Message::CloseAchievementDetail => {
-                self.selected_achievement_detail = None;
                 Task::none()
             }
 

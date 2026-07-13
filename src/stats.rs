@@ -1428,29 +1428,4 @@ pub fn get_restructured_stats(tracks: &[crate::library::models::Track]) -> Vec<R
     })
 }
 
-pub fn get_achievement_requirement(entity_type: &str, tier: &str) -> String {
-    let req = match entity_type {
-        "Artist" | "Album" => match tier {
-            "Bronze Trophy" => 50,
-            "Silver Trophy" => 150,
-            "Gold Trophy" => 300,
-            "Platinum Crown" => 500,
-            "Legendary Gem" => 1000,
-            _ => 0,
-        },
-        "Genre" => match tier {
-            "Bronze Trophy" => 100,
-            "Silver Trophy" => 300,
-            "Gold Trophy" => 600,
-            "Platinum Crown" => 1000,
-            "Legendary Gem" => 2000,
-            _ => 0,
-        },
-        _ => 0,
-    };
-    if req > 0 {
-        format!("{} plays", req)
-    } else {
-        "".to_string()
-    }
-}
+
