@@ -5447,39 +5447,131 @@ impl AppState {
                 ContextMenuTarget::Header(clicked_col) => {
                     let title = "Table Columns".to_string();
                     let active_cols = crate::db::get(|db| db.table_columns.clone());
-                    
+
                     let mut cols_col = column![
                         text("Show / Hide:")
                             .size(13)
                             .color(theme::subtext())
                             .font(crate::ui::icons::UI_FONT_BOLD),
                         Space::with_height(4)
-                    ].spacing(4);
+                    ].spacing(2);
 
-                    for &col in crate::db::TableColumn::all() {
-                        let is_visible = active_cols.contains(&col);
+                    // Visible columns (in db.table_columns order)
+                    for &col in &active_cols {
                         let col_label = col.label();
-                        
-                        let icon_str = if is_visible { " " } else { " " };
-                        let btn = button(
-                            row![
-                                text(icon_str)
-                                    .font(crate::ui::icons::NERD_FONT_MONO)
-                                    .color(if is_visible { theme::accent() } else { theme::overlay0() })
-                                    .size(14),
-                                text(col_label).size(14).color(theme::text())
-                            ].spacing(8)
+                        let can_move = true;
+
+                        let drag_btn = button(
+                            text("\u{f0c9}")
+                                .font(crate::ui::icons::NERD_FONT_MONO)
+                                .color(theme::subtext())
+                                .size(14)
+                        )
+                        .on_press(Message::MoveColumnLeft(col))
+                        .style(iced::widget::button::text)
+                        .padding([4, 4]);
+
+                        let toggle_btn = button(
+                            text("\u{f46a}")
+                                .font(crate::ui::icons::NERD_FONT_MONO)
+                                .color(theme::accent())
+                                .size(14)
                         )
                         .on_press(Message::ToggleColumnVisibility(col))
-                        .style(item_style)
-                        .padding([4, 8])
-                        .width(Length::Fill);
+                        .style(iced::widget::button::text)
+                        .padding([4, 4]);
 
-                        cols_col = cols_col.push(btn);
+                        let name_btn = button(
+                            text(col_label).size(14).color(theme::text())
+                        )
+                        .on_press(Message::ToggleColumnVisibility(col))
+                        .style(iced::widget::button::text)
+                        .padding([4, 4]);
+
+                        let row_item = row![
+                            drag_btn,
+                            toggle_btn,
+                            name_btn,
+                        ]
+                        .spacing(2)
+                        .align_y(Alignment::Center);
+
+                        cols_col = cols_col.push(row_item);
                     }
 
+                    // Separator
+                    cols_col = cols_col.push(
+                        container(Space::with_height(0))
+                            .width(Length::Fill)
+                            .height(1)
+                            .style(|_| iced::widget::container::Style {
+                                background: Some(iced::Background::Color(theme::surface0())),
+                                ..Default::default()
+                            })
+                            .padding([4, 0])
+                    );
+
+                    // Hidden columns (not in active_cols, in canonical order)
+                    for &col in crate::db::TableColumn::all() {
+                        if active_cols.contains(&col) {
+                            continue;
+                        }
+                        let col_label = col.label();
+
+                        let drag_btn = button(
+                            text("\u{f0c9}")
+                                .font(crate::ui::icons::NERD_FONT_MONO)
+                                .color(theme::overlay0())
+                                .size(14)
+                        )
+                        .style(iced::widget::button::text)
+                        .padding([4, 4]);
+
+                        let toggle_btn = button(
+                            text("\u{f462}")
+                                .font(crate::ui::icons::NERD_FONT_MONO)
+                                .color(theme::overlay0())
+                                .size(14)
+                        )
+                        .on_press(Message::ToggleColumnVisibility(col))
+                        .style(iced::widget::button::text)
+                        .padding([4, 4]);
+
+                        let name_btn = button(
+                            text(col_label).size(14).color(theme::overlay0())
+                        )
+                        .on_press(Message::ToggleColumnVisibility(col))
+                        .style(iced::widget::button::text)
+                        .padding([4, 4]);
+
+                        let row_item = row![
+                            drag_btn,
+                            toggle_btn,
+                            name_btn,
+                        ]
+                        .spacing(2)
+                        .align_y(Alignment::Center);
+
+                        cols_col = cols_col.push(row_item);
+                    }
+
+                    // Reset button
+                    cols_col = cols_col.push(Space::with_height(8));
+                    cols_col = cols_col.push(
+                        button(
+                            text("Reset Default Order")
+                                .size(13)
+                                .font(crate::ui::icons::UI_FONT_BOLD)
+                                .color(theme::accent())
+                        )
+                        .on_press(Message::ResetColumnOrder)
+                        .style(item_style)
+                        .padding([6, 12])
+                        .width(Length::Fill)
+                    );
+
                     playlist_select = cols_col;
-                    
+
                     let dummy_create = button(text(""))
                         .style(iced::widget::button::text)
                         .padding(0);
