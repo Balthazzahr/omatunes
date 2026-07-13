@@ -989,7 +989,7 @@ impl AppState {
                 Some(chrono::Local::now().hour())
             },
             stats_modal_tab: StatsModalTab::Leaderboard,
-            selected_achievement_detail: None,
+
             achievements_sub_tab: AchievementsSubTab::Artists,
             achievements_sort: AchievementsSort::AchievementLevel,
             achievements_offset: 0,
@@ -5130,12 +5130,6 @@ impl AppState {
             }
         }
 
-        // Achievement detail drill-down popup overlay
-        if let Some(ref detail) = self.selected_achievement_detail {
-            view_stack = view_stack.push(
-                crate::ui::views::player::achievement_detail_view(&detail.0, &detail.1)
-            );
-        }
 
         // Queue popover overlay
         if self.show_queue_popover
