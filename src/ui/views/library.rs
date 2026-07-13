@@ -1035,19 +1035,12 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         let btn = button(txt)
             .style(iced::widget::button::text)
             .padding(0)
-            .width(width);
+            .width(width)
+            .on_press(Message::ToggleColumnSort(col));
 
-        let mut header_area: Element<'_, Message> = mouse_area(btn)
-            .on_press(Message::ColumnHeaderDragStart(col))
-            .on_release(Message::ColumnHeaderDragEnd)
+        let header_area: Element<'_, Message> = mouse_area(btn)
             .on_right_press(Message::ToggleContextMenu(Some(crate::app::ContextMenuTarget::Header(col))))
             .into();
-
-        if state.dragging_column_header.is_some() {
-            header_area = mouse_area(header_area)
-                .on_enter(Message::ColumnHeaderDragOver(col))
-                .into();
-        }
 
         header_widgets.push(header_area);
     }
