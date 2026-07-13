@@ -5565,24 +5565,23 @@ impl AppState {
                         .align_y(Alignment::Center);
 
                         let row_el: Element<'_, Message> = if self.context_dragging_column.is_some() {
-                            mouse_area(
-                                if is_hover_target {
-                                    container(row_content)
-                                        .style(|_| iced::widget::container::Style {
-                                            background: Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.15))),
-                                            border: iced::Border {
-                                                radius: 4.0.into(),
-                                                ..Default::default()
-                                            },
+                            let inner: Element<'_, Message> = if is_hover_target {
+                                container(row_content)
+                                    .style(|_| iced::widget::container::Style {
+                                        background: Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.15))),
+                                        border: iced::Border {
+                                            radius: 4.0.into(),
                                             ..Default::default()
-                                        })
-                                        .into()
-                                } else {
-                                    row_content.into()
-                                }
-                            )
-                            .on_enter(Message::ContextColumnDragOver(col))
-                            .into()
+                                        },
+                                        ..Default::default()
+                                    })
+                                    .into()
+                            } else {
+                                row_content.into()
+                            };
+                            mouse_area(inner)
+                                .on_enter(Message::ContextColumnDragOver(col))
+                                .into()
                         } else {
                             row_content.into()
                         };
