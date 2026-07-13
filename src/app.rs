@@ -3976,6 +3976,34 @@ impl AppState {
                 Task::none()
             }
 
+            Message::ContextColumnDragStart(col) => {
+                self.context_dragging_column = Some(col);
+                Task::none()
+            }
+
+            Message::ContextColumnDragOver(target_col) => {
+                if let Some(src_col) = self.context_dragging_column {
+                    if src_col != target_col {
+                        crate::db::write(|db| {
+                            if let (Some(src_pos), Some(dst_pos)) = (
+                                db.table_columns.iter().position(|&c| c == src_col),
+                                db.table_columns.iter().position(|&c| c == target_col),
+                            ) {
+                                let col = db.table_columns.remove(src_pos);
+                                let adjusted_dst = if src_pos < dst_pos { dst_pos - 1 } else { dst_pos };
+                                db.table_columns.insert(adjusted_dst, col);
+                            }
+                        });
+                    }
+                }
+                Task::none()
+            }
+
+            Message::ContextColumnDragEnd => {
+                self.context_dragging_column = None;
+                Task::none()
+            }
+
             Message::HideAlbumOrArtist(name, is_artist) => {
                 self.hidden_artists_albums.push((name.clone(), is_artist));
                 crate::db::write(|db| {
@@ -4963,8 +4991,28 @@ impl AppState {
 
             Message::ResetColumnOrder => {
                 crate::db::write(|db| {
+                    let defaults = crate::db::default_table_columns();
+                    let visible = db.table_columns.clone();
+                    let mut reordered: Vec<crate::db::TableColumn> = defaults.iter()
+                        .filter(|c| visible.contains(c))
+                        .copied()
+                        .collect();
+                    for c in &visible {
+                        if !reordered.contains(c) {
+                            reordered.push(*c);
+                        }
+                    }
+                    db.table_columns = reordered;
+                });
+                self.show_context_menu = None;
+                Task::none()
+            }
+
+            Message::ResetDefaultVisibility => {
+                crate::db::write(|db| {
                     db.table_columns = crate::db::default_table_columns();
                 });
+                self.show_context_menu = None;
                 Task::none()
             }
         }
