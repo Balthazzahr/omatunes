@@ -5514,16 +5514,25 @@ impl AppState {
                     // Visible columns (in db.table_columns order)
                     for &col in &active_cols {
                         let col_label = col.label();
+                        let is_dragging_this = self.context_dragging_column == Some(col);
 
-                        let drag_btn = button(
-                            text("\u{f0c9}")
-                                .font(crate::ui::icons::NERD_FONT_MONO)
-                                .color(theme::subtext())
-                                .size(14)
+                        let drag_handle_color = if is_dragging_this {
+                            theme::accent()
+                        } else {
+                            theme::subtext()
+                        };
+
+                        let drag_handle = mouse_area(
+                            container(
+                                text("\u{f0c9}")
+                                    .font(crate::ui::icons::NERD_FONT_MONO)
+                                    .color(drag_handle_color)
+                                    .size(14)
+                            ).padding([4, 4])
                         )
-                        .on_press(Message::MoveColumnLeft(col))
-                        .style(iced::widget::button::text)
-                        .padding([4, 4]);
+                        .on_press(Message::ContextColumnDragStart(col))
+                        .on_release(Message::ContextColumnDragEnd)
+                        .interaction(iced::mouse::Interaction::Grab);
 
                         let toggle_btn = button(
                             text("\u{f16a}")
@@ -5535,15 +5544,23 @@ impl AppState {
                         .style(iced::widget::button::text)
                         .padding([4, 4]);
 
-                        let row_item = row![
-                            drag_btn,
+                        let row_content = row![
+                            drag_handle,
                             toggle_btn,
                             text(col_label).size(14).color(theme::text()),
                         ]
                         .spacing(2)
                         .align_y(Alignment::Center);
 
-                        cols_col = cols_col.push(row_item);
+                        let row_el: Element<'_, Message> = if self.context_dragging_column.is_some() {
+                            mouse_area(row_content)
+                                .on_enter(Message::ContextColumnDragOver(col))
+                                .into()
+                        } else {
+                            row_content.into()
+                        };
+
+                        cols_col = cols_col.push(row_el);
                     }
 
                     // Separator
@@ -5595,7 +5612,7 @@ impl AppState {
                         cols_col = cols_col.push(row_item);
                     }
 
-                    // Reset button
+                    // Reset buttons
                     cols_col = cols_col.push(Space::with_height(8));
                     cols_col = cols_col.push(
                         button(
@@ -5605,6 +5622,19 @@ impl AppState {
                                 .color(theme::accent())
                         )
                         .on_press(Message::ResetColumnOrder)
+                        .style(item_style)
+                        .padding([6, 12])
+                        .width(Length::Fill)
+                    );
+                    cols_col = cols_col.push(Space::with_height(4));
+                    cols_col = cols_col.push(
+                        button(
+                            text("Reset Default Columns")
+                                .size(13)
+                                .font(crate::ui::icons::UI_FONT_BOLD)
+                                .color(theme::accent())
+                        )
+                        .on_press(Message::ResetDefaultVisibility)
                         .style(item_style)
                         .padding([6, 12])
                         .width(Length::Fill)
