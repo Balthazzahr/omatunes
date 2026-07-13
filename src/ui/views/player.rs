@@ -1197,12 +1197,6 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
     .width(Length::Fill)
     .padding([0, 16]);
 
-    let entity_type_str = match state.achievements_sub_tab {
-        crate::app::AchievementsSubTab::Artists => "Artist",
-        crate::app::AchievementsSubTab::Albums => "Album",
-        crate::app::AchievementsSubTab::Genres => "Genre",
-    };
-
     // Filter the items by query (case-insensitive contains check)
     let query = state.achievements_search_query.to_lowercase();
     let filtered_items: Vec<&crate::app::AchievementItem> = state.achievements_items.iter()
