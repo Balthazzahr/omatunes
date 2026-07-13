@@ -905,8 +905,6 @@ impl AppState {
             dragging_queue_index: None,
             dragging_playlist_sidebar: None,
             dragging_track_index: None,
-            dragging_column_header: None,
-            column_drag_moved: false,
             last_browsing_view: ViewMode::Artists,
             view_mode: ViewMode::Artists,
             selected_artist: None,
@@ -4944,47 +4942,22 @@ impl AppState {
                 Task::none()
             }
 
-            Message::ColumnHeaderDragStart(col) => {
-                self.dragging_column_header = Some(col);
-                self.column_drag_moved = false;
+            Message::ToggleColumnSort(col) => {
+                let sort_col = crate::ui::views::library::table_col_to_sort_col(col);
+                if self.sort_column == Some(sort_col) {
+                    self.sort_ascending = !self.sort_ascending;
+                } else {
+                    self.sort_column = Some(sort_col);
+                    self.sort_ascending = true;
+                }
+                self.update_filtered_tracks();
                 Task::none()
             }
 
-            Message::ColumnHeaderDragOver(target_col) => {
-                if let Some(source_col) = self.dragging_column_header {
-                    if source_col != target_col {
-                        crate::db::write(|db| {
-                            let cols = &mut db.table_columns;
-                            if let (Some(src_pos), Some(tgt_pos)) = (
-                                cols.iter().position(|&c| c == source_col),
-                                cols.iter().position(|&c| c == target_col),
-                            ) {
-                                let item = cols.remove(src_pos);
-                                cols.insert(tgt_pos, item);
-                            }
-                        });
-                        self.dragging_column_header = Some(target_col);
-                        self.column_drag_moved = true;
-                    }
-                }
-                Task::none()
-            }
-
-            Message::ColumnHeaderDragEnd => {
-                if let Some(col) = self.dragging_column_header {
-                    if !self.column_drag_moved {
-                        let sort_col = crate::ui::views::library::table_col_to_sort_col(col);
-                        if self.sort_column == Some(sort_col) {
-                            self.sort_ascending = !self.sort_ascending;
-                        } else {
-                            self.sort_column = Some(sort_col);
-                            self.sort_ascending = true;
-                        }
-                        self.update_filtered_tracks();
-                    }
-                }
-                self.dragging_column_header = None;
-                self.column_drag_moved = false;
+            Message::ResetColumnOrder => {
+                crate::db::write(|db| {
+                    db.table_columns = crate::db::default_table_columns();
+                });
                 Task::none()
             }
         }
