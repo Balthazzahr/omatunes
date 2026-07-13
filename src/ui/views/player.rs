@@ -1420,50 +1420,36 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                     ..Default::default()
                 });
 
-                let icon_with_tooltip: Element<Message> = if achieved {
-                    let img = image(iced::widget::image::Handle::from_bytes(crate::ui::icons::get_award_image_bytes("All-Time", tier_name).to_vec()))
-                        .width(38)
-                        .height(38);
-                    tooltip(
-                        container(img)
-                            .width(38)
-                            .height(38)
-                            .align_x(iced::alignment::Horizontal::Center)
-                            .align_y(iced::alignment::Vertical::Center),
-                        tooltip_body,
-                        iced::widget::tooltip::Position::Top,
-                    ).into()
-                } else {
-                    let hover_btn = button(
-                        container(
-                            text(dot_char)
-                                .font(crate::ui::icons::NERD_FONT_MONO)
-                                .size(28)
-                                .color(theme::overlay0()),
-                        )
-                        .width(38)
-                        .height(38)
-                        .align_x(iced::alignment::Horizontal::Center)
-                        .align_y(iced::alignment::Vertical::Center)
-                    )
-                    .on_press(Message::Noop)
-                    .padding(0)
-                    .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
-                        let is_hovered = status == iced::widget::button::Status::Hovered;
-                        iced::widget::button::Style {
-                            background: None,
-                            text_color: if is_hovered { tier_color } else { theme::overlay0() },
-                            border: iced::Border { radius: 6.0.into(), ..Default::default() },
-                            ..Default::default()
-                        }
-                    });
+                let default_color = if achieved { tier_color } else { theme::text() };
 
-                    tooltip(
-                        hover_btn,
-                        tooltip_body,
-                        iced::widget::tooltip::Position::Top,
-                    ).into()
-                };
+                let icon_btn = button(
+                    container(
+                        text(dot_char)
+                            .font(crate::ui::icons::NERD_FONT_MONO)
+                            .size(34),
+                    )
+                    .width(38)
+                    .height(38)
+                    .align_x(iced::alignment::Horizontal::Center)
+                    .align_y(iced::alignment::Vertical::Center)
+                )
+                .on_press(Message::Noop)
+                .padding(0)
+                .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+                    let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                    iced::widget::button::Style {
+                        background: None,
+                        text_color: if is_hovered { tier_color } else { default_color },
+                        border: iced::Border { radius: 6.0.into(), ..Default::default() },
+                        ..Default::default()
+                    }
+                });
+
+                let icon_with_tooltip = tooltip(
+                    icon_btn,
+                    tooltip_body,
+                    iced::widget::tooltip::Position::Top,
+                ).into();
 
                 dots_row = dots_row.push(
                     container(icon_with_tooltip)
