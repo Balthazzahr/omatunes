@@ -24,8 +24,9 @@ const COVER_FILENAMES: &[&str] = &[
 
 /// Write like/rating metadata to an audio file using the unified generic tag API.
 ///
-/// Writes POPM (rating=5), RATING=100, xLIKE=1.
+/// Writes RATING=100, xLIKE=1.
 /// When `is_liked` is false, all of the above are removed.
+/// Note: POPM is intentionally omitted (ID3v2 rejects `ItemValue::Text` for POPM).
 pub fn write_like_status(path: &Path, is_liked: bool) -> Result<()> {
     let mut tagged_file = Probe::open(path)?.read()?;
 
@@ -34,16 +35,11 @@ pub fn write_like_status(path: &Path, is_liked: bool) -> Result<()> {
     }
     let tag = tagged_file.primary_tag_mut().unwrap();
 
-    tag.remove_key(&ItemKey::Popularimeter);
     let rating_key = ItemKey::Unknown("RATING".to_string());
     let like_key = ItemKey::Unknown("xLIKE".to_string());
     tag.retain(|i| i.key() != &rating_key && i.key() != &like_key);
 
     if is_liked {
-        tag.insert_unchecked(TagItem::new(
-            ItemKey::Popularimeter,
-            ItemValue::Text("5".to_string()),
-        ));
         tag.insert_unchecked(TagItem::new(
             ItemKey::Unknown("RATING".to_string()),
             ItemValue::Text("100".to_string()),
