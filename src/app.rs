@@ -271,6 +271,7 @@ pub enum Message {
     GlobalCursorMoved(iced::Point),
     GlobalClick,
     DismissNotification(u64),
+    ToastClicked(u64),
     ShowPeriodBreakdown(usize),
     ClosePeriodBreakdown,
     SelectArtistFromBreakdown(String),
@@ -5744,7 +5745,7 @@ impl AppState {
                     },
                     ..Default::default()
                 });
-                toasts_col = toasts_col.push(toast_card);
+                toasts_col = toasts_col.push(mouse_area(toast_card).on_press(Message::ToastClicked(n.id)));
             }
             
             let toasts_overlay = container(toasts_col)
