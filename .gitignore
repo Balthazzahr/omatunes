@@ -1,1 +1,2 @@
-/target
+# Ignore build artifacts from Cargo
+target/

@@ -3275,7 +3275,7 @@ dependencies = [
 
 [[package]]
 name = "omatunes"
-version = "0.8.5-beta"
+version = "0.9.5-beta"
 dependencies = [
  "anyhow",
  "async-trait",
