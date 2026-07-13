@@ -2035,6 +2035,7 @@ impl AppState {
                     }
                 }
                 self.update_filtered_tracks();
+                self.write_current_liked_status();
                 Task::none()
             }
 

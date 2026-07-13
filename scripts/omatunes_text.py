@@ -229,26 +229,11 @@ def get_theme_colors():
 COLORS, theme_colors = get_theme_colors()
 
 def is_track_liked(track_url):
-    if not track_url:
-        return False
-    import urllib.parse
-    path_str = track_url
-    if path_str.startswith("file://"):
-        path_str = urllib.parse.unquote(path_str[7:])
-    db_path = pathlib.Path.home() / ".config/omatunes/db.json"
-    if not db_path.exists():
-        return False
     try:
-        with open(db_path, "r") as f:
-            db_data = json.load(f)
-        favorites = db_data.get("favorites", [])
-        norm_path = os.path.abspath(os.path.expanduser(path_str))
-        for fav in favorites:
-            if os.path.abspath(os.path.expanduser(fav)) == norm_path:
-                return True
+        like_path = pathlib.Path.home() / ".cache" / "omatunes_current_liked"
+        return like_path.read_text().strip() == "1"
     except:
-        pass
-    return False
+        return False
 
 if len(sys.argv) > 1:
     arg = sys.argv[1]
