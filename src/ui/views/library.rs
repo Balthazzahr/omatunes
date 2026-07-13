@@ -1500,18 +1500,10 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             .spacing(0)
         )
         .padding(6)
-        .style(move |theme: &iced::Theme| iced::widget::container::Style {
-            background: Some(iced::Background::Color(if has_active_grouping {
-                theme::with_alpha(theme::accent(), 0.18)
-            } else {
-                theme::mantle()
-            })),
+        .style(move |_: &iced::Theme| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::mantle())),
             border: iced::Border {
-                color: if has_active_grouping {
-                    theme::accent()
-                } else {
-                    theme::surface0()
-                },
+                color: theme::surface0(),
                 width: 1.0,
                 radius: 8.0.into(),
             },
