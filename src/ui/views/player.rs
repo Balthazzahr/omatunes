@@ -1365,7 +1365,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                     })
             )
             .width(Length::Fill)
-            .height(38.0)
+            .height(58.0)
             .align_y(iced::alignment::Vertical::Center);
 
             let mut dots_row = row![].width(Length::Fill);
@@ -1427,10 +1427,10 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                     container(
                         text(dot_char)
                             .font(crate::ui::icons::NERD_FONT_MONO)
-                            .size(34),
+                            .size(48),
                     )
-                    .width(38)
-                    .height(38)
+                    .width(52)
+                    .height(52)
                     .align_x(iced::alignment::Horizontal::Center)
                     .align_y(iced::alignment::Vertical::Center)
                 )
