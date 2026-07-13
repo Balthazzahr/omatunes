@@ -260,6 +260,10 @@ pub enum Message {
     MoveColumnLeft(crate::db::TableColumn),
     MoveColumnRight(crate::db::TableColumn),
     ResetColumnOrder,
+    ResetDefaultVisibility,
+    ContextColumnDragStart(crate::db::TableColumn),
+    ContextColumnDragOver(crate::db::TableColumn),
+    ContextColumnDragEnd,
     SelectPlaylistTab(PlaylistTab),
     ToggleRightPanelTab(RightPanelTab),
     ToggleSongSearch,
@@ -578,6 +582,7 @@ pub struct AppState {
 
     pub hovered_playlist: Option<String>,
     pub show_context_menu: Option<ContextMenuTarget>,
+    pub context_dragging_column: Option<crate::db::TableColumn>,
     pub playlist_menu_expanded: bool,
     pub modifiers: iced::keyboard::Modifiers,
     pub selected_tracks: Arc<Vec<Track>>,
@@ -5444,7 +5449,7 @@ impl AppState {
                         .padding(0);
                     (title, Some(playlist_actions.into()), dummy_create)
                 }
-                ContextMenuTarget::Header(clicked_col) => {
+                ContextMenuTarget::Header(_clicked_col) => {
                     let title = "Table Columns".to_string();
                     let active_cols = crate::db::get(|db| db.table_columns.clone());
 
@@ -5459,7 +5464,6 @@ impl AppState {
                     // Visible columns (in db.table_columns order)
                     for &col in &active_cols {
                         let col_label = col.label();
-                        let can_move = true;
 
                         let drag_btn = button(
                             text("\u{f0c9}")
