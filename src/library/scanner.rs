@@ -7,7 +7,7 @@ use lofty::config::WriteOptions;
 use lofty::file::TaggedFileExt;
 use lofty::prelude::*;
 use lofty::probe::Probe;
-use lofty::tag::{ItemKey, ItemValue, Tag, TagItem, TagType};
+use lofty::tag::{ItemKey, ItemValue, Tag, TagItem};
 use walkdir::WalkDir;
 
 use super::models::Track;
