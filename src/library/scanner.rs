@@ -5,7 +5,6 @@ use std::time::Duration;
 use anyhow::Result;
 use lofty::config::WriteOptions;
 use lofty::file::TaggedFileExt;
-use lofty::id3::v2::{Frame, Id3v2Tag, PopularimeterFrame};
 use lofty::prelude::*;
 use lofty::probe::Probe;
 use lofty::tag::{ItemKey, ItemValue, Tag, TagItem, TagType};
