@@ -1020,6 +1020,14 @@ impl AppState {
             });
         }
         self.send_mpris(MprisUpdate::Status(status));
+        self.write_current_liked_status();
+    }
+
+    fn write_current_liked_status(&self) {
+        let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
+        let path = PathBuf::from(home).join(".cache/omatunes_current_liked");
+        let status = self.current_track.as_ref().map(|t| t.liked).unwrap_or(false);
+        let _ = std::fs::write(&path, if status { "1" } else { "0" });
     }
 
     pub fn artists(&self) -> Vec<String> {
@@ -4169,6 +4177,33 @@ impl AppState {
 
             Message::DismissNotification(id) => {
                 self.active_notifications.retain(|n| n.id != id);
+                Task::none()
+            }
+
+            Message::ToastClicked(id) => {
+                let title = self.active_notifications.iter()
+                    .find(|n| n.id == id)
+                    .map(|n| n.title.clone());
+                self.active_notifications.retain(|n| n.id != id);
+                if let Some(title) = title {
+                    match title.as_str() {
+                        "LADDER CHANGE" => {
+                            let breakdown = crate::stats::get_period_breakdown(4, &self.all_tracks);
+                            self.show_period_breakdown = Some(breakdown);
+                            self.breakdown_period_idx = 4;
+                            self.stats_modal_tab = StatsModalTab::Leaderboard;
+                            self.recalculate_achievements_items();
+                        }
+                        "ACHIEVEMENT UNLOCKED!" | "Ribbon Earned!" | "Medal Earned!" | "Crown Earned!" | "Trophy Earned!" | "Diamond Earned!" => {
+                            let breakdown = crate::stats::get_period_breakdown(0, &self.all_tracks);
+                            self.show_period_breakdown = Some(breakdown);
+                            self.breakdown_period_idx = 0;
+                            self.stats_modal_tab = StatsModalTab::Achievements;
+                            self.recalculate_achievements_items();
+                        }
+                        _ => {}
+                    }
+                }
                 Task::none()
             }
 
