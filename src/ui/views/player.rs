@@ -1406,35 +1406,35 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                     .into()
                 };
 
-                let shadow = container(Space::new(Length::Fixed(24.0), Length::Fixed(24.0)))
-                    .width(24)
-                    .height(24)
+                let icon_box = container(Space::new(Length::Fixed(38.0), Length::Fixed(38.0)))
+                    .width(38)
+                    .height(38)
                     .style(|_| iced::widget::container::Style {
-                        background: Some(iced::Background::Color(iced::Color::from_rgba(0.0, 0.0, 0.0, 0.55))),
-                        border: iced::Border { radius: 12.0.into(), ..Default::default() },
+                        background: Some(iced::Background::Color(theme::base())),
+                        border: iced::Border { radius: 6.0.into(), width: 1.0, color: theme::surface0() },
                         ..Default::default()
                     });
 
-                let dot_with_shadow = stack![
-                    container(shadow).padding(iced::Padding { top: 2.0, left: 1.0, ..Default::default() }),
-                    container(dot).width(26).height(26).align_x(iced::alignment::Horizontal::Center).align_y(iced::alignment::Vertical::Center)
+                let icon_in_box = stack![
+                    icon_box,
+                    container(dot).width(34).height(34).align_x(iced::alignment::Horizontal::Center).align_y(iced::alignment::Vertical::Center)
                 ];
 
                 let req_label = if achieved {
-                    format!("{} plays", thresh)
+                    format!("{}", thresh)
                 } else {
-                    format!("{} plays needed", thresh - item.plays)
+                    format!("{}", thresh - item.plays)
                 };
 
                 let milestone_col = column![
-                    dot_with_shadow,
+                    icon_in_box,
                     text(req_label)
                         .font(crate::ui::icons::UI_FONT)
-                        .size(10)
+                        .size(11)
                         .color(theme::subtext())
                 ]
                 .spacing(2)
-                .align_x(Alignment::End);
+                .align_x(Alignment::Center);
 
                 dots_row = dots_row.push(
                     container(milestone_col)
@@ -1445,7 +1445,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
 
             let milestone_bar = stack![
                 progress_line,
-                container(dots_row).width(Length::Fill).height(45.0).align_y(iced::alignment::Vertical::Center)
+                container(dots_row).width(Length::Fill).height(55.0).align_y(iced::alignment::Vertical::Center)
             ]
             .width(Length::Fill);
 
