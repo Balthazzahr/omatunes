@@ -1552,7 +1552,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
             });
 
             let card_btn = button(card_content)
-                .on_press(Message::OpenAchievementDetail(entity_type_str.to_string(), item.name.clone()))
+                .on_press(Message::Noop)
                 .padding(0)
                 .style(|_, status| {
                     let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
