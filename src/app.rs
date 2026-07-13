@@ -3946,12 +3946,10 @@ impl AppState {
 
             Message::ToggleColumnVisibility(col) => {
                 crate::db::write(|db| {
-                    if db.table_columns.contains(&col) {
-                        if db.table_columns.len() > 1 {
-                            db.table_columns.retain(|&c| c != col);
-                        }
+                    if db.hidden_columns.contains(&col) {
+                        db.hidden_columns.retain(|&c| c != col);
                     } else {
-                        db.table_columns.push(col);
+                        db.hidden_columns.push(col);
                     }
                 });
                 Task::none()
@@ -4996,18 +4994,7 @@ impl AppState {
 
             Message::ResetColumnOrder => {
                 crate::db::write(|db| {
-                    let defaults = crate::db::default_table_columns();
-                    let visible = db.table_columns.clone();
-                    let mut reordered: Vec<crate::db::TableColumn> = defaults.iter()
-                        .filter(|c| visible.contains(c))
-                        .copied()
-                        .collect();
-                    for c in &visible {
-                        if !reordered.contains(c) {
-                            reordered.push(*c);
-                        }
-                    }
-                    db.table_columns = reordered;
+                    db.table_columns = crate::db::default_column_order();
                 });
                 self.show_context_menu = None;
                 Task::none()
@@ -5015,7 +5002,7 @@ impl AppState {
 
             Message::ResetDefaultVisibility => {
                 crate::db::write(|db| {
-                    db.table_columns = crate::db::default_table_columns();
+                    db.hidden_columns.clear();
                 });
                 self.show_context_menu = None;
                 Task::none()
