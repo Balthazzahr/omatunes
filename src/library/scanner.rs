@@ -119,11 +119,7 @@ pub fn scan_folder(dir: &Path) -> Vec<Track> {
     });
 
     pairs.into_iter().enumerate().map(|(_i, (path, info))| {
-        let (play_count, liked) = crate::db::get(|db| {
-            let pc = db.play_counts.get(&path).copied().unwrap_or(0);
-            let l = db.favorites.contains(&path);
-            (pc, l)
-        });
+        let play_count = crate::db::get(|db| db.play_counts.get(&path).copied().unwrap_or(0));
         Track {
             id: {
                 let mut hasher = std::collections::hash_map::DefaultHasher::new();
@@ -142,7 +138,7 @@ pub fn scan_folder(dir: &Path) -> Vec<Track> {
             genre: info.genre,
             year: info.year,
             play_count,
-            liked,
+            liked: info.liked,
             date_played: None,
             lyrics: info.lyrics,
         }
@@ -176,6 +172,7 @@ struct TrackInfo {
     genre: String,
     year: Option<u32>,
     lyrics: String,
+    liked: bool,
 }
 
 fn read_tags(path: &Path) -> Result<TrackInfo> {
@@ -237,7 +234,12 @@ fn read_tags(path: &Path) -> Result<TrackInfo> {
         .map(|s| s.to_string())
         .unwrap_or_default();
 
-    Ok(TrackInfo { title, artist, album, track_number, disc_number, duration_ms, genre, year, lyrics })
+    let liked = tags
+        .and_then(|t| t.get_string(&ItemKey::Unknown("LIKE".to_string())))
+        .map(|s| s == "1")
+        .unwrap_or(false);
+
+    Ok(TrackInfo { title, artist, album, track_number, disc_number, duration_ms, genre, year, lyrics, liked })
 }
 
 fn cover_from_folder(path: &Path) -> Option<Vec<u8>> {

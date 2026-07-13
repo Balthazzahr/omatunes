@@ -81,7 +81,6 @@ fn default_table_columns() -> Vec<TableColumn> {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct OmatunesDb {
-    pub favorites: HashSet<PathBuf>,
     pub play_counts: HashMap<PathBuf, u32>,
     pub playlists: HashMap<String, Vec<PathBuf>>,
     #[serde(default)]
@@ -137,7 +136,6 @@ pub struct OmatunesDb {
 impl Default for OmatunesDb {
     fn default() -> Self {
         OmatunesDb {
-            favorites: HashSet::default(),
             play_counts: HashMap::default(),
             playlists: HashMap::default(),
             recently_played: Vec::default(),
