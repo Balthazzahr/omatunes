@@ -640,16 +640,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
 
     Some(
         row![
-            column![
-                panel_drag_handle,
-                container(Space::new(Length::Fill, Length::Fixed(1.0)))
-                    .style(|_| iced::widget::container::Style {
-                        background: Some(iced::Background::Color(theme::surface0())),
-                        ..Default::default()
-                    })
-                    .height(1.0)
-            ]
-            .height(Length::Fill),
+            panel_drag_handle,
             pane
         ]
         .height(Length::Fixed(state.player_height))
