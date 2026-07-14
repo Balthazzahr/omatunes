@@ -58,12 +58,23 @@ pub enum RightPanelTab {
     Lyrics,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ToastKind {
+    LadderClimb,
+    EnteredTop10,
+    Achievement,
+}
+
 #[derive(Debug, Clone)]
 pub struct StatsNotification {
     pub id: u64,
     pub title: String,
     pub message: String,
     pub created_at: std::time::Instant,
+    pub kind: ToastKind,
+    pub artist_name: Option<String>,
+    pub positions_climbed: u32,
+    pub overtaken_artists: Vec<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
