@@ -1761,19 +1761,21 @@ impl AppState {
                                                 "All-Time" => "Diamond",
                                                 _ => "Award",
                                             };
-                                            self.active_notifications.push(StatsNotification {
-                                                id: nid,
-                                                title: format!("{} Earned!", award_name),
-                                                message: format!(
-                                                    "You've unlocked a {} {} ({}) for {}!",
-                                                    award.tier, award_name, award.period, award.entity_name
-                                                ),
-                                                created_at: std::time::Instant::now(),
-                                                kind: ToastKind::Achievement,
-                                                artist_name: None,
-                                                positions_climbed: 0,
-                                                overtaken_artists: Vec::new(),
-                                            });
+                                            if crate::config::get().show_toasts {
+                                                self.active_notifications.push(StatsNotification {
+                                                    id: nid,
+                                                    title: format!("{} Earned!", award_name),
+                                                    message: format!(
+                                                        "You've unlocked a {} {} ({}) for {}!",
+                                                        award.tier, award_name, award.period, award.entity_name
+                                                    ),
+                                                    created_at: std::time::Instant::now(),
+                                                    kind: ToastKind::Achievement,
+                                                    artist_name: None,
+                                                    positions_climbed: 0,
+                                                    overtaken_artists: Vec::new(),
+                                                });
+                                            }
                                         }
                                     }
                                 }
