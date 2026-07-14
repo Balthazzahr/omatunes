@@ -1767,6 +1767,10 @@ impl AppState {
                                                     award.tier, award_name, award.period, award.entity_name
                                                 ),
                                                 created_at: std::time::Instant::now(),
+                                                kind: ToastKind::Achievement,
+                                                artist_name: None,
+                                                positions_climbed: 0,
+                                                overtaken_artists: Vec::new(),
                                             });
                                         }
                                     }
