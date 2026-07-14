@@ -553,8 +553,8 @@ pub fn on_track_play(
     album: &str,
     track_path: PathBuf,
     all_tracks: &[crate::library::models::Track],
-) -> Vec<(String, String, Option<String>)> {
-    let mut toasts: Vec<(String, String, Option<String>)> = Vec::new();
+) -> Vec<(String, String, Option<String>, String, usize)> {
+    let mut toasts: Vec<(String, String, Option<String>, String, usize)> = Vec::new();
     let now_dt = chrono::Local::now();
     let date_str = now_dt.format("%Y-%m-%d").to_string();
     use chrono::Datelike;
