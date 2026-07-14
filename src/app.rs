@@ -5794,10 +5794,24 @@ impl AppState {
                     );
                 }
 
+                let toast_icon = match n.kind {
+                    ToastKind::LadderClimb => {
+                        if n.positions_climbed >= 4 {
+                            crate::ui::icons::ICON_FIRE
+                        } else if n.positions_climbed == 3 {
+                            crate::ui::icons::ICON_BOLT
+                        } else {
+                            crate::ui::icons::ICON_ARROW_UP
+                        }
+                    }
+                    ToastKind::EnteredTop10 => crate::ui::icons::ICON_ARROW_UP,
+                    ToastKind::Achievement => crate::ui::icons::ICON_TROPHY,
+                };
+
                 let toast_card = container(
                     column![
                         row![
-                            text(crate::ui::icons::ICON_MUSIC)
+                            text(toast_icon)
                                 .font(crate::ui::icons::NERD_FONT_MONO)
                                 .size(16)
                                 .color(theme::accent()),
@@ -5815,7 +5829,7 @@ impl AppState {
                     ]
                     .spacing(0)
                 )
-                .width(Length::Fixed(360.0))
+                .width(Length::Fixed(420.0))
                 .padding(12)
                 .style(|_| iced::widget::container::Style {
                     background: Some(iced::Background::Color(theme::surface0())),
