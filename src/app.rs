@@ -306,6 +306,7 @@ pub enum Message {
     SettingsVolumeStepChanged(f32),
     SettingsFontScaleChanged(f32),
     SettingsShowAchievementsInUiChanged(bool),
+    SettingsShowToastsChanged(bool),
     SettingsSave,
     SettingsThemeSourceChanged(String),
     SettingsThemePresetChanged(String),
@@ -385,6 +386,7 @@ pub struct SettingsState {
     pub color_picker_g: f32,
     pub color_picker_b: f32,
     pub show_achievements_in_ui: bool,
+    pub show_toasts: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
