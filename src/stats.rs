@@ -653,11 +653,11 @@ pub fn on_track_play(
                     let displaced_new_pos = cur_artists.iter().position(|&a| a == displaced)
                         .map(|p| p + 1);
 
-                    let ladder_title = "LADDER CHANGE".to_string();
                     let mut msg_parts = Vec::new();
 
                     match old_pos {
                         Some(_from) => {
+                            let ladder_title = "LADDER CHANGE".to_string();
                             msg_parts.push(format!(
                                 "{} has knocked {} out of the #{} spot",
                                 artist_name, displaced, new_pos
@@ -674,8 +674,10 @@ pub fn on_track_play(
                                     msg_parts.push(format!("  \u{f063} {} out of Top 10", displaced));
                                 }
                             }
+                            toasts.push((ladder_title, msg_parts.join("\n"), Some(artist_name.to_string())));
                         }
                         None => {
+                            let entry_title = "ENTERED TOP 10!".to_string();
                             msg_parts.push(format!(
                                 "{} has entered the Top 10 at #{}!",
                                 artist_name, new_pos
@@ -691,10 +693,9 @@ pub fn on_track_play(
                                     msg_parts.push(format!("  {} has dropped out of Top 10", displaced));
                                 }
                             }
+                            toasts.push((entry_title, msg_parts.join("\n"), Some(artist_name.to_string())));
                         }
                     }
-
-                    toasts.push((ladder_title, msg_parts.join("\n")));
                     break; // Only one ladder toast per track play
                 }
             }
