@@ -620,6 +620,8 @@ pub fn on_track_play(
                 "ACHIEVEMENT UNLOCKED!".to_string(),
                 format!("You've earned the {} for {}!", award.tier, award.entity_name),
                 None,
+                String::new(),
+                0,
             ));
         }
 
