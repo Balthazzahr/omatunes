@@ -708,6 +708,50 @@ pub fn on_track_play(
     toasts
 }
 
+pub fn ladder_title_for_tier(positions: u32) -> String {
+    match positions {
+        1 => "LADDER CHANGE".to_string(),
+        2 => "MOVING UP!".to_string(),
+        3 => "CLIMBING FAST!".to_string(),
+        4 => "ON A RAMPAGE!".to_string(),
+        _ => "TAKING OVER!".to_string(),
+    }
+}
+
+pub fn generate_ladder_message(artist: &str, positions: u32, new_pos: usize, overtaken: &[String]) -> String {
+    let ordinal = match positions {
+        1 => "".to_string(),
+        2 => "2 spots".to_string(),
+        3 => "3 spots".to_string(),
+        4 => "4 spots".to_string(),
+        n => format!("{} spots", n),
+    };
+
+    let movement = match positions {
+        1 => format!("{} has climbed to #{}", artist, new_pos),
+        2 => format!("{} is on the move! Up 2 to #{}", artist, new_pos),
+        3 => format!("{} is climbing fast! Up 3 to #{}", artist, new_pos),
+        4 => format!("{} is on a rampage! Up 4 to #{}", artist, new_pos),
+        _ => format!("{} is TAKING OVER! Up {} to #{}", artist, positions, new_pos),
+    };
+
+    if overtaken.is_empty() {
+        return movement;
+    }
+
+    let overtaken_list = match overtaken.len() {
+        1 => format!("overtaking {}", overtaken[0]),
+        2 => format!("overtaking {} and {}", overtaken[0], overtaken[1]),
+        _ => {
+            let (last, rest) = overtaken.split_last().unwrap();
+            let prefix: Vec<&str> = rest.iter().map(|s| s.as_str()).collect();
+            format!("overtaking {}, and {}", prefix.join(", "), last)
+        }
+    };
+
+    format!("{}\n{}", movement, overtaken_list)
+}
+
 // ── Aggregation & Query Functions ─────────────────────────────────────────────
 
 #[derive(Debug, Clone, Default)]
