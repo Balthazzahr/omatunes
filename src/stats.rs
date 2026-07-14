@@ -719,14 +719,6 @@ pub fn ladder_title_for_tier(positions: u32) -> String {
 }
 
 pub fn generate_ladder_message(artist: &str, positions: u32, new_pos: usize, overtaken: &[String]) -> String {
-    let ordinal = match positions {
-        1 => "".to_string(),
-        2 => "2 spots".to_string(),
-        3 => "3 spots".to_string(),
-        4 => "4 spots".to_string(),
-        n => format!("{} spots", n),
-    };
-
     let movement = match positions {
         1 => format!("{} has climbed to #{}", artist, new_pos),
         2 => format!("{} is on the move! Up 2 to #{}", artist, new_pos),
