@@ -103,6 +103,8 @@ pub struct Config {
     pub auto_scan: AutoScanConfig,
     #[serde(default = "default_show_achievements_in_ui")]
     pub show_achievements_in_ui: bool,
+    #[serde(default = "default_show_toasts")]
+    pub show_toasts: bool,
 }
 
 impl Default for Config {
