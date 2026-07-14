@@ -122,6 +122,7 @@ impl Default for Config {
             playback_defaults: PlaybackDefaults::default(),
             auto_scan: AutoScanConfig::default(),
             show_achievements_in_ui: true,
+            show_toasts: true,
         }
     }
 }
@@ -238,5 +239,9 @@ theme_preset = "Nord"
 "#;
 
 fn default_show_achievements_in_ui() -> bool {
+    true
+}
+
+fn default_show_toasts() -> bool {
     true
 }
