@@ -676,7 +676,7 @@ pub fn on_track_play(
                                     msg_parts.push(format!("  \u{f063} {} out of Top 10", displaced));
                                 }
                             }
-                            toasts.push((ladder_title, msg_parts.join("\n"), Some(artist_name.to_string())));
+                            toasts.push((ladder_title, msg_parts.join("\n"), Some(artist_name.to_string()), displaced.to_string(), new_pos));
                         }
                         None => {
                             let entry_title = "ENTERED TOP 10!".to_string();
@@ -695,7 +695,7 @@ pub fn on_track_play(
                                     msg_parts.push(format!("  {} has dropped out of Top 10", displaced));
                                 }
                             }
-                            toasts.push((entry_title, msg_parts.join("\n"), Some(artist_name.to_string())));
+                            toasts.push((entry_title, msg_parts.join("\n"), Some(artist_name.to_string()), displaced.to_string(), new_pos));
                         }
                     }
                     break; // Only one ladder toast per track play
