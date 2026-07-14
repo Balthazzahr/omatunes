@@ -4227,27 +4227,26 @@ impl AppState {
             }
 
             Message::ToastClicked(id) => {
-                let title = self.active_notifications.iter()
+                let kind = self.active_notifications.iter()
                     .find(|n| n.id == id)
-                    .map(|n| n.title.clone());
+                    .map(|n| n.kind);
                 self.active_notifications.retain(|n| n.id != id);
-                if let Some(title) = title {
-                    match title.as_str() {
-                        "LADDER CHANGE" => {
+                if let Some(kind) = kind {
+                    match kind {
+                        ToastKind::LadderClimb | ToastKind::EnteredTop10 => {
                             let breakdown = crate::stats::get_period_breakdown(4, &self.all_tracks);
                             self.show_period_breakdown = Some(breakdown);
                             self.breakdown_period_idx = 4;
                             self.stats_modal_tab = StatsModalTab::Leaderboard;
                             self.recalculate_achievements_items();
                         }
-                        "ACHIEVEMENT UNLOCKED!" | "Ribbon Earned!" | "Medal Earned!" | "Crown Earned!" | "Trophy Earned!" | "Diamond Earned!" => {
+                        ToastKind::Achievement => {
                             let breakdown = crate::stats::get_period_breakdown(0, &self.all_tracks);
                             self.show_period_breakdown = Some(breakdown);
                             self.breakdown_period_idx = 0;
                             self.stats_modal_tab = StatsModalTab::Achievements;
                             self.recalculate_achievements_items();
                         }
-                        _ => {}
                     }
                 }
                 Task::none()
