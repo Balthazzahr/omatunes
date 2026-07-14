@@ -3611,6 +3611,7 @@ impl AppState {
                     color_picker_g: 0.0,
                     color_picker_b: 0.0,
                     show_achievements_in_ui: cfg.show_achievements_in_ui,
+                    show_toasts: cfg.show_toasts,
                 });
                 self.show_shortcuts = false;
                 Task::none()
@@ -4441,6 +4442,7 @@ impl AppState {
                     color_picker_g: 0.0,
                     color_picker_b: 0.0,
                     show_achievements_in_ui: cfg.show_achievements_in_ui,
+                    show_toasts: cfg.show_toasts,
                 });
                 Task::none()
             }
