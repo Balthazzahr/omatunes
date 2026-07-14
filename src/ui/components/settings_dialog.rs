@@ -283,6 +283,13 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
             .on_toggle(Message::SettingsShowAchievementsInUiChanged)
             .size(16);
 
+            let show_toasts_cb = checkbox(
+                "Show toast notifications",
+                state.show_toasts,
+            )
+            .on_toggle(Message::SettingsShowToastsChanged)
+            .size(16);
+
             scrollable(
                 column![
                     section_header("Display"),
@@ -302,6 +309,14 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                     ].align_y(Alignment::Center),
                     Space::with_height(8),
                     show_achievements_cb,
+                    Space::with_height(16),
+                    row![
+                        text("\u{f0f3}").font(NERD_FONT_MONO).size(14).color(theme::overlay0()),
+                        Space::with_width(6),
+                        field_label("Toast Notifications"),
+                    ].align_y(Alignment::Center),
+                    Space::with_height(8),
+                    show_toasts_cb,
                 ]
                 .spacing(0)
                 .padding(iced::Padding {
