@@ -87,6 +87,8 @@ pub const ICON_HEADPHONES:   &str = "\u{f025}";  // nf-fa-headphones — Bronze
 pub const ICON_STAR:         &str = "\u{f005}";  // nf-fa-star — Silver
 pub const ICON_ARROW_UP:     &str = "\u{f062}";  // nf-fa-arrow_up
 pub const ICON_ARROW_DOWN:   &str = "\u{f063}";  // nf-fa-arrow_down
+pub const ICON_FIRE:         &str = "\u{f06d}";  // nf-fa-fire
+pub const ICON_BOLT:         &str = "\u{f0e7}";  // nf-fa-bolt
 
 pub fn get_award_image_bytes(period: &str, tier: &str) -> &'static [u8] {
     let (p, t) = match tier {
