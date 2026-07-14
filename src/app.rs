@@ -4498,6 +4498,13 @@ impl AppState {
                 Task::none()
             }
 
+            Message::SettingsShowToastsChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.show_toasts = val;
+                }
+                Task::none()
+            }
+
             Message::SettingsSave => {
                 if let Some(ref mut state) = self.show_settings {
                     // Don't save if there are validation errors in hex codes
@@ -4528,6 +4535,7 @@ impl AppState {
                     cfg.playback_defaults = state.playback_defaults.clone();
                     cfg.auto_scan = state.auto_scan.clone();
                     cfg.show_achievements_in_ui = state.show_achievements_in_ui;
+                    cfg.show_toasts = state.show_toasts;
                     
                     cfg.theme_source = state.theme_source.clone();
                     cfg.theme_preset = state.theme_preset.clone();
