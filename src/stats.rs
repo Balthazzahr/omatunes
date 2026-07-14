@@ -619,6 +619,7 @@ pub fn on_track_play(
             toasts.push((
                 "ACHIEVEMENT UNLOCKED!".to_string(),
                 format!("You've earned the {} for {}!", award.tier, award.entity_name),
+                None,
             ));
         }
 
