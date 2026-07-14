@@ -1797,15 +1797,55 @@ impl AppState {
                                         track.path.clone(),
                                         &self.all_tracks,
                                     );
-                                    for (title, msg) in toasts {
-                                        let nid = self.next_notification_id;
-                                        self.next_notification_id += 1;
-                                        self.active_notifications.push(StatsNotification {
-                                            id: nid,
-                                            title,
-                                            message: msg,
-                                            created_at: std::time::Instant::now(),
-                                        });
+                                    for (title, msg, artist_name, displaced, new_pos) in toasts {
+                                        if title == "LADDER CHANGE" {
+                                            // Consolidate: find existing ladder toast for same artist
+                                            if let Some(existing) = self.active_notifications.iter_mut().find(|n|
+                                                n.kind == ToastKind::LadderClimb && n.artist_name == artist_name
+                                            ) {
+                                                existing.positions_climbed += 1;
+                                                if !displaced.is_empty() {
+                                                    existing.overtaken_artists.push(displaced);
+                                                }
+                                                let pos = existing.positions_climbed;
+                                                let a = existing.artist_name.clone().unwrap_or_default();
+                                                let overtaken = existing.overtaken_artists.clone();
+                                                existing.title = crate::stats::ladder_title_for_tier(pos);
+                                                existing.message = crate::stats::generate_ladder_message(&a, pos, new_pos, &overtaken);
+                                            } else {
+                                                let nid = self.next_notification_id;
+                                                self.next_notification_id += 1;
+                                                self.active_notifications.push(StatsNotification {
+                                                    id: nid,
+                                                    title: crate::stats::ladder_title_for_tier(1),
+                                                    message: msg,
+                                                    created_at: std::time::Instant::now(),
+                                                    kind: ToastKind::LadderClimb,
+                                                    artist_name,
+                                                    positions_climbed: 1,
+                                                    overtaken_artists: if displaced.is_empty() { Vec::new() } else { vec![displaced] },
+                                                });
+                                            }
+                                        } else {
+                                            // Entered Top 10 or Achievement — always new toast
+                                            let nid = self.next_notification_id;
+                                            self.next_notification_id += 1;
+                                            let kind = if title == "ENTERED TOP 10!" {
+                                                ToastKind::EnteredTop10
+                                            } else {
+                                                ToastKind::Achievement
+                                            };
+                                            self.active_notifications.push(StatsNotification {
+                                                id: nid,
+                                                title,
+                                                message: msg,
+                                                created_at: std::time::Instant::now(),
+                                                kind,
+                                                artist_name,
+                                                positions_climbed: 0,
+                                                overtaken_artists: Vec::new(),
+                                            });
+                                        }
                                     }
 
                                     if let Some(t) = Arc::make_mut(&mut self.all_tracks).iter_mut().find(|t| t.path == track.path) {
