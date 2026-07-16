@@ -4279,9 +4279,6 @@ impl AppState {
             }
 
             Message::ShowPeriodBreakdown(period_idx) => {
-                if self.breakdown_period_idx == 4 && period_idx != 4 {
-                    self.mark_all_time_changes_viewed();
-                }
                 let breakdown = crate::stats::get_period_breakdown(period_idx, &self.all_tracks);
                 self.show_period_breakdown = Some(breakdown);
                 self.breakdown_period_idx = period_idx;
@@ -4303,9 +4300,6 @@ impl AppState {
             }
 
             Message::SelectStatsModalTab(tab) => {
-                if self.stats_modal_tab == StatsModalTab::Leaderboard && tab != StatsModalTab::Leaderboard && self.breakdown_period_idx == 4 {
-                    self.mark_all_time_changes_viewed();
-                }
                 self.stats_modal_tab = tab;
                 self.achievements_offset = 0;
                 self.achievements_search_query.clear();
