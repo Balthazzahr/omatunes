@@ -855,28 +855,6 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                         if let Some(change) = changes.get(name) {
                             let today = chrono::Local::now().format("%Y-%m-%d").to_string();
                             let is_unviewed = viewed_changes.map(|set| !set.contains(name)).unwrap_or(true);
-                            
-                            // Log debug info for artists we are interested in
-                            if name == "Tool" || name == "Sublime" || name == "The Smashing Pumpkins" {
-                                if let Ok(mut f) = std::fs::OpenOptions::new()
-                                    .create(true)
-                                    .append(true)
-                                    .open("/tmp/omatunes_debug.log")
-                                {
-                                    use std::io::Write;
-                                    let _ = writeln!(
-                                        f,
-                                        "[{}] name={}, change_date={}, today={}, is_unviewed={}, direction={}",
-                                        chrono::Local::now().format("%H:%M:%S"),
-                                        name,
-                                        change.date,
-                                        today,
-                                        is_unviewed,
-                                        change.direction
-                                    );
-                                }
-                            }
-
                             if change.date == today && is_unviewed {
                                 if change.direction == "up" {
                                     arrow_color = Some(theme::green());
