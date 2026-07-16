@@ -399,6 +399,7 @@ pub fn add_playback_time(artist: &str, album: &str, genre: &str, secs: f64) -> V
             *yr_genre_entry += minutes;
         }
 
+        detect_all_time_rank_changes(db);
     });
 
     new_awards
