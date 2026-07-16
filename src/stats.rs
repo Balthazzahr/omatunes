@@ -97,6 +97,18 @@ pub struct StatsDb {
     pub earned_achievements: Vec<EarnedAchievement>,
     #[serde(default)]
     pub legacy_genre_minutes: HashMap<String, f64>,
+    #[serde(default)]
+    pub artist_rank_changes: HashMap<String, RankChange>,
+    #[serde(default)]
+    pub album_rank_changes: HashMap<String, RankChange>,
+    #[serde(default)]
+    pub genre_rank_changes: HashMap<String, RankChange>,
+    #[serde(default)]
+    pub previous_artist_ranks: HashMap<String, usize>,
+    #[serde(default)]
+    pub previous_album_ranks: HashMap<String, usize>,
+    #[serde(default)]
+    pub previous_genre_ranks: HashMap<String, usize>,
 }
 
 impl StatsDb {
