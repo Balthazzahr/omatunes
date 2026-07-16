@@ -838,7 +838,7 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                     col = col.push(
                         container(Space::new(Length::Fill, Length::Fixed(1.0)))
                             .style(|_| iced::widget::container::Style {
-                                background: Some(iced::Background::Color(theme::surface1())),
+                                background: Some(iced::Background::Color(theme::surface0())),
                                 ..Default::default()
                             })
                             .height(1.0)
