@@ -720,6 +720,7 @@ pub fn on_track_play(
                 }
             }
         }
+        detect_all_time_rank_changes(db);
         db.previous_top_10_snapshot = ranked;
     });
 
