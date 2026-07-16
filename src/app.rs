@@ -5823,15 +5823,15 @@ impl AppState {
                     ToastKind::Achievement => {
                         let text_to_check = format!("{} {}", n.title, n.message).to_lowercase();
                         if text_to_check.contains("bronze") || text_to_check.contains("ribbon") {
-                            Color::from_rgb(0.80, 0.52, 0.25)
+                            iced::Color::from_rgb(0.80, 0.52, 0.25)
                         } else if text_to_check.contains("silver") || text_to_check.contains("medal") {
-                            Color::from_rgb(0.70, 0.70, 0.70)
+                            iced::Color::from_rgb(0.70, 0.70, 0.70)
                         } else if text_to_check.contains("gold") {
-                            Color::from_rgb(0.95, 0.78, 0.18)
+                            iced::Color::from_rgb(0.95, 0.78, 0.18)
                         } else if text_to_check.contains("platinum") || text_to_check.contains("crown") {
-                            Color::from_rgb(0.48, 0.82, 0.88)
+                            iced::Color::from_rgb(0.48, 0.82, 0.88)
                         } else if text_to_check.contains("legendary") || text_to_check.contains("gem") || text_to_check.contains("diamond") {
-                            Color::from_rgb(0.78, 0.47, 0.94)
+                            iced::Color::from_rgb(0.78, 0.47, 0.94)
                         } else {
                             theme::accent()
                         }
@@ -5853,15 +5853,15 @@ impl AppState {
                     } else if n.kind == ToastKind::Achievement {
                         let lower = line.to_lowercase();
                         if lower.contains("bronze") || lower.contains("ribbon") {
-                            line_color = Color::from_rgb(0.80, 0.52, 0.25);
+                            line_color = iced::Color::from_rgb(0.80, 0.52, 0.25);
                         } else if lower.contains("silver") || lower.contains("medal") {
-                            line_color = Color::from_rgb(0.70, 0.70, 0.70);
+                            line_color = iced::Color::from_rgb(0.70, 0.70, 0.70);
                         } else if lower.contains("gold") {
-                            line_color = Color::from_rgb(0.95, 0.78, 0.18);
+                            line_color = iced::Color::from_rgb(0.95, 0.78, 0.18);
                         } else if lower.contains("platinum") || lower.contains("crown") {
-                            line_color = Color::from_rgb(0.48, 0.82, 0.88);
+                            line_color = iced::Color::from_rgb(0.48, 0.82, 0.88);
                         } else if lower.contains("legendary") || lower.contains("gem") || lower.contains("diamond") {
-                            line_color = Color::from_rgb(0.78, 0.47, 0.94);
+                            line_color = iced::Color::from_rgb(0.78, 0.47, 0.94);
                         }
                     }
 
