@@ -849,7 +849,26 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                     );
                 }
 
-                let rank_color = if rank == 1 {
+                let mut arrow_color = None;
+                if is_all_time {
+                    if let Some(changes) = rank_changes {
+                        if let Some(change) = changes.get(name) {
+                            let today = chrono::Local::now().format("%Y-%m-%d").to_string();
+                            let is_unviewed = viewed_changes.map(|set| !set.contains(name)).unwrap_or(true);
+                            if change.date == today && is_unviewed {
+                                if change.direction == "up" {
+                                    arrow_color = Some(Color::from_rgb(0.2, 0.8, 0.2));
+                                } else if change.direction == "down" {
+                                    arrow_color = Some(Color::from_rgb(0.9, 0.2, 0.2));
+                                }
+                            }
+                        }
+                    }
+                }
+
+                let rank_color = if let Some(col) = arrow_color {
+                    col
+                } else if rank == 1 {
                     Color::from_rgb(0.98, 0.80, 0.28)
                 } else if rank == 2 {
                     Color::from_rgb(0.70, 0.70, 0.70)
@@ -861,7 +880,9 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                     theme::subtext()
                 };
 
-                let name_color: iced::Color = if rank <= 3 {
+                let name_color: iced::Color = if let Some(col) = arrow_color {
+                    col
+                } else if rank <= 3 {
                     rank_color
                 } else if rank > 10 {
                     dim_color
@@ -884,30 +905,18 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                 .spacing(2)
                 .align_y(Alignment::Center);
 
-                if is_all_time {
-                    if let Some(changes) = rank_changes {
-                        if let Some(change) = changes.get(name) {
-                            let today = chrono::Local::now().format("%Y-%m-%d").to_string();
-                            let is_unviewed = viewed_changes.map(|set| !set.contains(name)).unwrap_or(true);
-                            if change.date == today && is_unviewed {
-                                if change.direction == "up" {
-                                    rank_row = rank_row.push(
-                                        text("\u{f062}")
-                                            .font(crate::ui::icons::NERD_FONT_MONO)
-                                            .size(text_size - 4)
-                                            .color(Color::from_rgb(0.2, 0.8, 0.2))
-                                    );
-                                } else if change.direction == "down" {
-                                    rank_row = rank_row.push(
-                                        text("\u{f063}")
-                                            .font(crate::ui::icons::NERD_FONT_MONO)
-                                            .size(text_size - 4)
-                                            .color(Color::from_rgb(0.9, 0.2, 0.2))
-                                    );
-                                }
-                            }
-                        }
-                    }
+                if let Some(col) = arrow_color {
+                    let arrow_char = if rank_changes.unwrap().get(name).unwrap().direction == "up" {
+                        "\u{f062}"
+                    } else {
+                        "\u{f063}"
+                    };
+                    rank_row = rank_row.push(
+                        text(arrow_char)
+                            .font(crate::ui::icons::NERD_FONT_MONO)
+                            .size(text_size - 4)
+                            .color(col)
+                    );
                 }
 
                 let name_btn = button(
