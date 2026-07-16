@@ -110,6 +110,8 @@ pub struct StatsDb {
     pub previous_album_ranks: HashMap<String, usize>,
     #[serde(default)]
     pub previous_genre_ranks: HashMap<String, usize>,
+    #[serde(default)]
+    pub viewed_rank_changes: HashSet<String>,
 }
 
 impl StatsDb {
