@@ -919,6 +919,13 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                     );
                 }
 
+                let display_name = if name.chars().count() > 28 {
+                    let truncated: String = name.chars().take(25).collect();
+                    format!("{}...", truncated)
+                } else {
+                    name.clone()
+                };
+
                 let name_btn = button(
                     row![
                         rank_row,
@@ -928,12 +935,11 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                             .size(text_size)
                             .color(name_color),
                         Space::with_width(4),
-                        text(name.as_str())
+                        text(display_name.as_str())
                             .font(crate::ui::icons::UI_FONT)
                             .size(text_size)
                             .color(name_color)
-                            .width(Length::Fill)
-                            .overflow(iced::widget::text::Overflow::Ellipsis),
+                            .width(Length::Fill),
                     ]
                     .spacing(0)
                     .align_y(Alignment::Start)
