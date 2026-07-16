@@ -808,6 +808,8 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
         text_size: u16,
         small_size: u16,
         make_on_press: impl Fn(String) -> Message + 'a,
+        is_all_time: bool,
+        rank_changes: Option<&std::collections::HashMap<String, crate::stats::RankChange>>,
     ) -> Element<'a, Message> {
         use iced::Color;
 
@@ -831,23 +833,82 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
         } else {
             for (i, (name, mins, count)) in items.iter().enumerate() {
                 let rank = i + 1;
+
+                if i == 10 {
+                    col = col.push(
+                        container(Space::new(Length::Fill, Length::Fixed(1.0)))
+                            .style(|_| iced::widget::container::Style {
+                                background: Some(iced::Background::Color(theme::surface1())),
+                                ..Default::default()
+                            })
+                            .height(1.0)
+                            .width(Length::Fill)
+                    );
+                }
+
                 let rank_color = if rank == 1 {
                     Color::from_rgb(0.98, 0.80, 0.28)
                 } else if rank == 2 {
                     Color::from_rgb(0.70, 0.70, 0.70)
                 } else if rank == 3 {
                     Color::from_rgb(0.80, 0.52, 0.25)
+                } else if rank > 10 {
+                    theme::overlay0()
                 } else {
                     theme::subtext()
                 };
-                let name_color: iced::Color = if rank <= 3 { rank_color } else { theme::text() };
+
+                let name_color: iced::Color = if rank <= 3 {
+                    rank_color
+                } else if rank > 10 {
+                    theme::overlay0()
+                } else {
+                    theme::text()
+                };
+
+                let sub_color = if rank > 10 {
+                    theme::overlay0()
+                } else {
+                    theme::subtext()
+                };
+
+                let mut rank_row = row![
+                    text(format!("{:>2}", rank))
+                        .font(crate::ui::icons::NERD_FONT_MONO)
+                        .size(text_size)
+                        .color(rank_color)
+                ]
+                .spacing(2)
+                .align_y(Alignment::Center);
+
+                if is_all_time {
+                    if let Some(changes) = rank_changes {
+                        if let Some(change) = changes.get(name) {
+                            let now = chrono::Local::now().timestamp();
+                            if now - change.timestamp <= 300 {
+                                if change.direction == "up" {
+                                    rank_row = rank_row.push(
+                                        text("\u{f062}")
+                                            .font(crate::ui::icons::NERD_FONT_MONO)
+                                            .size(text_size - 4)
+                                            .color(Color::from_rgb(0.2, 0.8, 0.2))
+                                    );
+                                } else if change.direction == "down" {
+                                    rank_row = rank_row.push(
+                                        text("\u{f063}")
+                                            .font(crate::ui::icons::NERD_FONT_MONO)
+                                            .size(text_size - 4)
+                                            .color(Color::from_rgb(0.9, 0.2, 0.2))
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
 
                 let name_btn = button(
                     row![
-                        text(format!("{:>2}", rank))
-                            .font(crate::ui::icons::NERD_FONT_MONO)
-                            .size(text_size)
-                            .color(rank_color),
+                        rank_row,
                         Space::with_width(6),
                         text(icon_char)
                             .font(crate::ui::icons::NERD_FONT_MONO)
@@ -870,7 +931,7 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                     let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
                     iced::widget::button::Style {
                         background: None,
-                        text_color: if is_hovered { theme::accent() } else { theme::text() },
+                        text_color: if is_hovered { theme::accent() } else { name_color },
                         border: iced::Border::default(),
                         ..Default::default()
                     }
@@ -881,12 +942,12 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                     text(format!("({} Songs)", count))
                         .font(crate::ui::icons::UI_FONT)
                         .size(small_size)
-                        .color(theme::subtext()),
+                        .color(sub_color),
                     Space::with_width(8),
                     text(format_hours(*mins))
                         .font(crate::ui::icons::UI_FONT_BOLD)
                         .size(text_size)
-                        .color(theme::subtext())
+                        .color(sub_color)
                         .align_x(iced::alignment::Horizontal::Right),
                 ]
                 .spacing(4)
