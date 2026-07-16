@@ -1843,7 +1843,7 @@ pub fn song_breakdown_view(
     let inner = container(content)
         .padding(28)
         .max_width(1500)
-        .max_height(575)
+        .max_height(585)
         .style(|_| iced::widget::container::Style {
             background: Some(iced::Background::Color(theme::mantle())),
             border: iced::Border {
