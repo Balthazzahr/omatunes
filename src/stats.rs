@@ -39,6 +39,7 @@ pub struct EarnedAchievement {
 pub struct RankChange {
     pub direction: String, // "up" or "down"
     pub timestamp: i64,    // Unix timestamp in seconds
+    pub date: String,      // "YYYY-MM-DD"
 }
 
 pub type YearlyStats = DayStats;
