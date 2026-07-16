@@ -707,15 +707,19 @@ pub fn on_track_play(
                                 "{} has entered the Top 10 at #{}!",
                                 artist_name, new_pos
                             ));
+                            msg_parts.push(format!(
+                                "  \u{f062} {} \u{2192} #{}",
+                                artist_name, new_pos
+                            ));
                             match displaced_new_pos {
                                 Some(dp) => {
                                     msg_parts.push(format!(
-                                        "  {} has been pushed to #{}",
+                                        "  \u{f063} {} \u{2192} #{}",
                                         displaced, dp
                                     ));
                                 }
                                 None => {
-                                    msg_parts.push(format!("  {} has dropped out of Top 10", displaced));
+                                    msg_parts.push(format!("  \u{f063} {} out of Top 10", displaced));
                                 }
                             }
                             toasts.push((entry_title, msg_parts.join("\n"), Some(artist_name.to_string()), displaced.to_string(), new_pos));
