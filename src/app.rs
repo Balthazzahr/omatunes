@@ -5818,14 +5818,58 @@ impl AppState {
                     }
                 });
 
+                let toast_color = match n.kind {
+                    ToastKind::LadderClimb | ToastKind::EnteredTop10 => theme::green(),
+                    ToastKind::Achievement => {
+                        let text_to_check = format!("{} {}", n.title, n.message).to_lowercase();
+                        if text_to_check.contains("bronze") || text_to_check.contains("ribbon") {
+                            Color::from_rgb(0.80, 0.52, 0.25)
+                        } else if text_to_check.contains("silver") || text_to_check.contains("medal") {
+                            Color::from_rgb(0.70, 0.70, 0.70)
+                        } else if text_to_check.contains("gold") {
+                            Color::from_rgb(0.95, 0.78, 0.18)
+                        } else if text_to_check.contains("platinum") || text_to_check.contains("crown") {
+                            Color::from_rgb(0.48, 0.82, 0.88)
+                        } else if text_to_check.contains("legendary") || text_to_check.contains("gem") || text_to_check.contains("diamond") {
+                            Color::from_rgb(0.78, 0.47, 0.94)
+                        } else {
+                            theme::accent()
+                        }
+                    }
+                };
+
                 let msg_lines: Vec<&str> = n.message.split('\n').collect();
                 let mut msg_col = column![].spacing(2);
                 for line in msg_lines {
+                    let mut line_color = theme::text();
+                    let mut line_font = crate::ui::icons::UI_FONT;
+
+                    if line.contains('\u{f062}') {
+                        line_color = theme::green();
+                        line_font = crate::ui::icons::NERD_FONT;
+                    } else if line.contains('\u{f063}') {
+                        line_color = theme::red();
+                        line_font = crate::ui::icons::NERD_FONT;
+                    } else if n.kind == ToastKind::Achievement {
+                        let lower = line.to_lowercase();
+                        if lower.contains("bronze") || lower.contains("ribbon") {
+                            line_color = Color::from_rgb(0.80, 0.52, 0.25);
+                        } else if lower.contains("silver") || lower.contains("medal") {
+                            line_color = Color::from_rgb(0.70, 0.70, 0.70);
+                        } else if lower.contains("gold") {
+                            line_color = Color::from_rgb(0.95, 0.78, 0.18);
+                        } else if lower.contains("platinum") || lower.contains("crown") {
+                            line_color = Color::from_rgb(0.48, 0.82, 0.88);
+                        } else if lower.contains("legendary") || lower.contains("gem") || lower.contains("diamond") {
+                            line_color = Color::from_rgb(0.78, 0.47, 0.94);
+                        }
+                    }
+
                     msg_col = msg_col.push(
                         text(line)
                             .size(13)
-                            .font(crate::ui::icons::UI_FONT)
-                            .color(theme::text())
+                            .font(line_font)
+                            .color(line_color)
                     );
                 }
 
@@ -5849,12 +5893,12 @@ impl AppState {
                             text(toast_icon)
                                 .font(crate::ui::icons::NERD_FONT_MONO)
                                 .size(16)
-                                .color(theme::accent()),
+                                .color(toast_color),
                             Space::with_width(8),
                             text(&n.title)
                                 .size(14)
                                 .font(crate::ui::icons::UI_FONT_BOLD)
-                                .color(theme::accent())
+                                .color(toast_color)
                                 .width(Length::Fill),
                             close_btn,
                         ]
@@ -5866,10 +5910,10 @@ impl AppState {
                 )
                 .width(Length::Fixed(420.0))
                 .padding(12)
-                .style(|_| iced::widget::container::Style {
+                .style(move |_| iced::widget::container::Style {
                     background: Some(iced::Background::Color(theme::surface0())),
                     border: iced::Border {
-                        color: theme::accent(),
+                        color: toast_color,
                         width: 2.0,
                         radius: 8.0.into(),
                     },
