@@ -697,6 +697,25 @@ impl GroupByControlState {
 }
 
 impl AppState {
+    pub fn mark_all_time_changes_viewed(&self) {
+        if let Some(ref breakdown) = self.show_period_breakdown {
+            if breakdown.period_label == "All-Time" {
+                crate::stats::write(|db| {
+                    for (name, _, _) in &breakdown.artist_minutes {
+                        db.viewed_rank_changes.insert(name.clone());
+                    }
+                    for (name, _, _) in &breakdown.album_minutes {
+                        db.viewed_rank_changes.insert(name.clone());
+                    }
+                    for (name, _, _) in &breakdown.genre_minutes {
+                        db.viewed_rank_changes.insert(name.clone());
+                    }
+                });
+                crate::stats::flush();
+            }
+        }
+    }
+
     pub fn show_achievements_in_ui(&self) -> bool {
         crate::config::get().show_achievements_in_ui
     }
