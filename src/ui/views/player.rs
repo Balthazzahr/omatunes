@@ -974,25 +974,46 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
     };
 
     let is_all_time = breakdown.period_label == "All-Time";
-    let (artist_changes, album_changes, genre_changes) = if is_all_time {
-        crate::stats::get(|db| {
-            (Some(db.artist_rank_changes.clone()), Some(db.album_rank_changes.clone()), Some(db.genre_rank_changes.clone()))
-        })
+    let (artist_changes, album_changes, genre_changes, viewed_changes) = if is_all_time {
+        let (ac, alc, gc, vc) = crate::stats::get(|db| {
+            (
+                db.artist_rank_changes.clone(),
+                db.album_rank_changes.clone(),
+                db.genre_rank_changes.clone(),
+                db.viewed_rank_changes.clone(),
+            )
+        });
+
+        // Mark currently visible items as viewed immediately so they won't show next time
+        crate::stats::write(|db| {
+            for (name, _, _) in &breakdown.artist_minutes {
+                db.viewed_rank_changes.insert(name.clone());
+            }
+            for (name, _, _) in &breakdown.album_minutes {
+                db.viewed_rank_changes.insert(name.clone());
+            }
+            for (name, _, _) in &breakdown.genre_minutes {
+                db.viewed_rank_changes.insert(name.clone());
+            }
+        });
+        crate::stats::flush();
+
+        (Some(ac), Some(alc), Some(gc), Some(vc))
     } else {
-        (None, None, None)
+        (None, None, None, None)
     };
 
     let tables = row![
         Space::with_width(12),
-        build_col("Artist", '\u{f4ff}', &breakdown.artist_minutes, &format_hours, text_size, small_size, |name| Message::SelectArtistFromBreakdown(name), is_all_time, artist_changes.as_ref()),
+        build_col("Artist", '\u{f4ff}', &breakdown.artist_minutes, &format_hours, text_size, small_size, |name| Message::SelectArtistFromBreakdown(name), is_all_time, artist_changes.as_ref(), viewed_changes.as_ref()),
         Space::with_width(12),
         sep(),
         Space::with_width(12),
-        build_col("Album", '\u{e271}', &breakdown.album_minutes, &format_hours, text_size, small_size, |name| Message::SelectAlbumFromBreakdown(name), is_all_time, album_changes.as_ref()),
+        build_col("Album", '\u{e271}', &breakdown.album_minutes, &format_hours, text_size, small_size, |name| Message::SelectAlbumFromBreakdown(name), is_all_time, album_changes.as_ref(), viewed_changes.as_ref()),
         Space::with_width(12),
         sep(),
         Space::with_width(12),
-        build_col("Genre", '\u{f02b}', &breakdown.genre_minutes, &format_hours, text_size, small_size, |name| Message::SelectGenreFromBreakdown(name), is_all_time, genre_changes.as_ref()),
+        build_col("Genre", '\u{f02b}', &breakdown.genre_minutes, &format_hours, text_size, small_size, |name| Message::SelectGenreFromBreakdown(name), is_all_time, genre_changes.as_ref(), viewed_changes.as_ref()),
         Space::with_width(12),
     ]
     .spacing(0)
