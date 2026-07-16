@@ -927,7 +927,7 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                 )
                 .on_press(make_on_press(name.clone()))
                 .padding(0)
-                .style(|_theme: &iced::Theme, status: iced::widget::button::Status| {
+                .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
                     let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
                     iced::widget::button::Style {
                         background: None,
