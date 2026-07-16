@@ -983,21 +983,6 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                 db.viewed_rank_changes.clone(),
             )
         });
-
-        // Mark currently visible items as viewed immediately so they won't show next time
-        crate::stats::write(|db| {
-            for (name, _, _) in &breakdown.artist_minutes {
-                db.viewed_rank_changes.insert(name.clone());
-            }
-            for (name, _, _) in &breakdown.album_minutes {
-                db.viewed_rank_changes.insert(name.clone());
-            }
-            for (name, _, _) in &breakdown.genre_minutes {
-                db.viewed_rank_changes.insert(name.clone());
-            }
-        });
-        crate::stats::flush();
-
         (Some(ac), Some(alc), Some(gc), Some(vc))
     } else {
         (None, None, None, None)
