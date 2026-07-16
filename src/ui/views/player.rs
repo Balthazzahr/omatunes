@@ -810,6 +810,7 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
         make_on_press: impl Fn(String) -> Message + 'a,
         is_all_time: bool,
         rank_changes: Option<&std::collections::HashMap<String, crate::stats::RankChange>>,
+        viewed_changes: Option<&std::collections::HashSet<String>>,
     ) -> Element<'a, Message> {
         use iced::Color;
 
@@ -831,6 +832,8 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                     .color(theme::overlay0())
             );
         } else {
+            let dim_color = theme::lerp_color(theme::mantle(), theme::text(), 0.65);
+
             for (i, (name, mins, count)) in items.iter().enumerate() {
                 let rank = i + 1;
 
@@ -853,7 +856,7 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                 } else if rank == 3 {
                     Color::from_rgb(0.80, 0.52, 0.25)
                 } else if rank > 10 {
-                    theme::overlay0()
+                    dim_color
                 } else {
                     theme::subtext()
                 };
@@ -861,13 +864,13 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                 let name_color: iced::Color = if rank <= 3 {
                     rank_color
                 } else if rank > 10 {
-                    theme::overlay0()
+                    dim_color
                 } else {
                     theme::text()
                 };
 
                 let sub_color = if rank > 10 {
-                    theme::overlay0()
+                    dim_color
                 } else {
                     theme::subtext()
                 };
@@ -884,8 +887,9 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                 if is_all_time {
                     if let Some(changes) = rank_changes {
                         if let Some(change) = changes.get(name) {
-                            let now = chrono::Local::now().timestamp();
-                            if now - change.timestamp <= 300 {
+                            let today = chrono::Local::now().format("%Y-%m-%d").to_string();
+                            let is_unviewed = viewed_changes.map(|set| !set.contains(name)).unwrap_or(true);
+                            if change.date == today && is_unviewed {
                                 if change.direction == "up" {
                                     rank_row = rank_row.push(
                                         text("\u{f062}")
