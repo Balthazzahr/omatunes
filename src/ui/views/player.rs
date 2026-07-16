@@ -935,7 +935,7 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                             .size(text_size)
                             .color(name_color),
                         Space::with_width(4),
-                        text(display_name.as_str())
+                        text(display_name)
                             .font(crate::ui::icons::UI_FONT)
                             .size(text_size)
                             .color(name_color)
