@@ -1485,4 +1485,110 @@ pub fn get_restructured_stats(tracks: &[crate::library::models::Track]) -> Vec<R
     })
 }
 
+pub fn detect_all_time_rank_changes(db: &mut StatsDb) {
+    let now = chrono::Local::now().timestamp();
+
+    // 1. Calculate All-Time Artist minutes & sort
+    let mut artist_minutes = db.legacy_artist_minutes.clone();
+    for day in db.daily_buckets.values() {
+        for (a, m) in &day.artist_minutes {
+            *artist_minutes.entry(a.clone()).or_default() += m;
+        }
+    }
+    let mut sorted_artists: Vec<(String, f64)> = artist_minutes.into_iter().collect();
+    sorted_artists.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+    let mut new_artist_ranks = HashMap::new();
+    for (idx, (name, _)) in sorted_artists.iter().enumerate() {
+        new_artist_ranks.insert(name.clone(), idx + 1);
+    }
+
+    // Compare and record changes for Artists
+    if !db.previous_artist_ranks.is_empty() {
+        for (name, &new_rank) in &new_artist_ranks {
+            if let Some(&old_rank) = db.previous_artist_ranks.get(name) {
+                if new_rank < old_rank {
+                    db.artist_rank_changes.insert(name.clone(), RankChange {
+                        direction: "up".to_string(),
+                        timestamp: now,
+                    });
+                } else if new_rank > old_rank {
+                    db.artist_rank_changes.insert(name.clone(), RankChange {
+                        direction: "down".to_string(),
+                        timestamp: now,
+                    });
+                }
+            }
+        }
+    }
+    db.previous_artist_ranks = new_artist_ranks;
+
+    // 2. Calculate All-Time Album minutes & sort
+    let mut album_minutes = db.legacy_album_minutes.clone();
+    for day in db.daily_buckets.values() {
+        for (a, m) in &day.album_minutes {
+            *album_minutes.entry(a.clone()).or_default() += m;
+        }
+    }
+    let mut sorted_albums: Vec<(String, f64)> = album_minutes.into_iter().collect();
+    sorted_albums.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+    let mut new_album_ranks = HashMap::new();
+    for (idx, (name, _)) in sorted_albums.iter().enumerate() {
+        new_album_ranks.insert(name.clone(), idx + 1);
+    }
+
+    // Compare and record changes for Albums
+    if !db.previous_album_ranks.is_empty() {
+        for (name, &new_rank) in &new_album_ranks {
+            if let Some(&old_rank) = db.previous_album_ranks.get(name) {
+                if new_rank < old_rank {
+                    db.album_rank_changes.insert(name.clone(), RankChange {
+                        direction: "up".to_string(),
+                        timestamp: now,
+                    });
+                } else if new_rank > old_rank {
+                    db.album_rank_changes.insert(name.clone(), RankChange {
+                        direction: "down".to_string(),
+                        timestamp: now,
+                    });
+                }
+            }
+        }
+    }
+    db.previous_album_ranks = new_album_ranks;
+
+    // 3. Calculate All-Time Genre minutes & sort
+    let mut genre_minutes = db.legacy_genre_minutes.clone();
+    for day in db.daily_buckets.values() {
+        for (g, m) in &day.genre_minutes {
+            *genre_minutes.entry(g.clone()).or_default() += m;
+        }
+    }
+    let mut sorted_genres: Vec<(String, f64)> = genre_minutes.into_iter().collect();
+    sorted_genres.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+    let mut new_genre_ranks = HashMap::new();
+    for (idx, (name, _)) in sorted_genres.iter().enumerate() {
+        new_genre_ranks.insert(name.clone(), idx + 1);
+    }
+
+    // Compare and record changes for Genres
+    if !db.previous_genre_ranks.is_empty() {
+        for (name, &new_rank) in &new_genre_ranks {
+            if let Some(&old_rank) = db.previous_genre_ranks.get(name) {
+                if new_rank < old_rank {
+                    db.genre_rank_changes.insert(name.clone(), RankChange {
+                        direction: "up".to_string(),
+                        timestamp: now,
+                    });
+                } else if new_rank > old_rank {
+                    db.genre_rank_changes.insert(name.clone(), RankChange {
+                        direction: "down".to_string(),
+                        timestamp: now,
+                    });
+                }
+            }
+        }
+    }
+    db.previous_genre_ranks = new_genre_ranks;
+}
+
 
