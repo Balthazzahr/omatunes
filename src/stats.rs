@@ -35,6 +35,12 @@ pub struct EarnedAchievement {
     pub date_earned: String,     // "YYYY-MM-DD"
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct RankChange {
+    pub direction: String, // "up" or "down"
+    pub timestamp: i64,    // Unix timestamp in seconds
+}
+
 pub type YearlyStats = DayStats;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
