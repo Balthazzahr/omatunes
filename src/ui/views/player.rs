@@ -857,9 +857,9 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                             let is_unviewed = viewed_changes.map(|set| !set.contains(name)).unwrap_or(true);
                             if change.date == today && is_unviewed {
                                 if change.direction == "up" {
-                                    arrow_color = Some(Color::from_rgb(0.2, 0.8, 0.2));
+                                    arrow_color = Some(theme::green());
                                 } else if change.direction == "down" {
-                                    arrow_color = Some(Color::from_rgb(0.9, 0.2, 0.2));
+                                    arrow_color = Some(theme::red());
                                 }
                             }
                         }
