@@ -1491,7 +1491,9 @@ pub fn get_restructured_stats(tracks: &[crate::library::models::Track]) -> Vec<R
 }
 
 pub fn detect_all_time_rank_changes(db: &mut StatsDb) {
-    let now = chrono::Local::now().timestamp();
+    let now_dt = chrono::Local::now();
+    let now = now_dt.timestamp();
+    let date_str = now_dt.format("%Y-%m-%d").to_string();
 
     // 1. Calculate All-Time Artist minutes & sort
     let mut artist_minutes = db.legacy_artist_minutes.clone();
@@ -1515,12 +1517,16 @@ pub fn detect_all_time_rank_changes(db: &mut StatsDb) {
                     db.artist_rank_changes.insert(name.clone(), RankChange {
                         direction: "up".to_string(),
                         timestamp: now,
+                        date: date_str.clone(),
                     });
+                    db.viewed_rank_changes.remove(name);
                 } else if new_rank > old_rank {
                     db.artist_rank_changes.insert(name.clone(), RankChange {
                         direction: "down".to_string(),
                         timestamp: now,
+                        date: date_str.clone(),
                     });
+                    db.viewed_rank_changes.remove(name);
                 }
             }
         }
@@ -1549,12 +1555,16 @@ pub fn detect_all_time_rank_changes(db: &mut StatsDb) {
                     db.album_rank_changes.insert(name.clone(), RankChange {
                         direction: "up".to_string(),
                         timestamp: now,
+                        date: date_str.clone(),
                     });
+                    db.viewed_rank_changes.remove(name);
                 } else if new_rank > old_rank {
                     db.album_rank_changes.insert(name.clone(), RankChange {
                         direction: "down".to_string(),
                         timestamp: now,
+                        date: date_str.clone(),
                     });
+                    db.viewed_rank_changes.remove(name);
                 }
             }
         }
@@ -1583,12 +1593,16 @@ pub fn detect_all_time_rank_changes(db: &mut StatsDb) {
                     db.genre_rank_changes.insert(name.clone(), RankChange {
                         direction: "up".to_string(),
                         timestamp: now,
+                        date: date_str.clone(),
                     });
+                    db.viewed_rank_changes.remove(name);
                 } else if new_rank > old_rank {
                     db.genre_rank_changes.insert(name.clone(), RankChange {
                         direction: "down".to_string(),
                         timestamp: now,
+                        date: date_str.clone(),
                     });
+                    db.viewed_rank_changes.remove(name);
                 }
             }
         }
