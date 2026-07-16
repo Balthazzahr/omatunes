@@ -932,7 +932,8 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                             .font(crate::ui::icons::UI_FONT)
                             .size(text_size)
                             .color(name_color)
-                            .width(Length::Fill),
+                            .width(Length::Fill)
+                            .overflow(iced::widget::text::Overflow::Ellipsis),
                     ]
                     .spacing(0)
                     .align_y(Alignment::Start)
@@ -952,7 +953,7 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
 
                 let row_item = row![
                     name_btn.width(Length::Fill),
-                    text(format!("({} Songs)", count))
+                    text(format!("({})", count))
                         .font(crate::ui::icons::UI_FONT)
                         .size(small_size)
                         .color(sub_color),
