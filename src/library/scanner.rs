@@ -197,8 +197,13 @@ fn read_tags(path: &Path) -> Result<TrackInfo> {
         .unwrap_or_default();
 
     let liked = tags
-        .and_then(|t| t.get_string(&ItemKey::Unknown("xLIKE".to_string())))
-        .map(|s| s == "1")
+        .map(|t| {
+            t.get_string(&ItemKey::Unknown("xLIKE".to_string())) == Some("1")
+                || t.get_string(&ItemKey::Unknown("XLIKE".to_string())) == Some("1")
+                || t.get_string(&ItemKey::Unknown("xlike".to_string())) == Some("1")
+                || t.get_string(&ItemKey::Unknown("RATING".to_string())) == Some("100")
+                || t.get_string(&ItemKey::Unknown("rating".to_string())) == Some("100")
+        })
         .unwrap_or(false);
 
     Ok(TrackInfo { title, artist, album, track_number, disc_number, duration_ms, genre, year, lyrics, liked })
