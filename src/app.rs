@@ -2099,6 +2099,11 @@ impl AppState {
                 if let Some(t) = Arc::make_mut(&mut self.tracks).iter_mut().find(|t| t.path == track.path) {
                     t.liked = liked;
                 }
+                for t in self.queue.iter_mut() {
+                    if t.path == track.path {
+                        t.liked = liked;
+                    }
+                }
                 if let Some(ref mut ct) = self.current_track {
                     if ct.path == track.path {
                         ct.liked = liked;
@@ -6558,7 +6563,10 @@ impl AppState {
         }
     }
 
-    fn play_track_internal(&mut self, track: Track) -> Task<Message> {
+    fn play_track_internal(&mut self, mut track: Track) -> Task<Message> {
+        if let Some(t) = self.all_tracks.iter().find(|t| t.path == track.path) {
+            track.liked = t.liked;
+        }
         let cover_data = load_cover(&track.path);
         let track = Track { cover_data, ..track };
         self.audio.send(AudioCommand::Play(track.path.clone()));
