@@ -1759,6 +1759,15 @@ fn render_track_row(
         container(s).width(Length::Fill)
     } else if is_current {
         container(track_row).style(theme::selected_row).width(Length::Fill)
+    } else if idx % 2 == 1 {
+        container(track_row)
+            .style(|_| iced::widget::container::Style {
+                background: Some(iced::Background::Color(
+                    theme::lerp_color(theme::mantle(), theme::surface0(), 0.08)
+                )),
+                ..Default::default()
+            })
+            .width(Length::Fill)
     } else {
         container(track_row).width(Length::Fill)
     };
