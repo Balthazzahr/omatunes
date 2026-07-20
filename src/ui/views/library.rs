@@ -900,14 +900,26 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
 
     let all_category_row: Element<'_, Message> = Space::with_height(0.0).into();
 
+    let list_stack = stack![
+        container(sidebar_items_col)
+            .height(Length::Fill)
+            .padding(4)
+            .style(theme::sidebar_list),
+        container(search_widget)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .align_x(iced::alignment::Horizontal::Right)
+            .align_y(iced::alignment::Vertical::Bottom)
+            .padding(12.0)
+    ]
+    .width(Length::Fill)
+    .height(Length::Fill);
+
     container(
         column![
-            sidebar_search_input,
+            filter_tabs,
             Space::with_height(4),
-            container(sidebar_items_col)
-                .height(Length::Fill)
-                .padding(4)
-                .style(theme::sidebar_list),
+            list_stack,
             playlist_drag_handle,
             Space::with_height(8),
             container(
