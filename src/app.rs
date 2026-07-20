@@ -6158,19 +6158,20 @@ impl AppState {
                 ..Default::default()
             });
 
-        // Position: Anchored directly below the "Now Playing" tab
+        // Position: Anchored directly above the "Now Playing" tab at the bottom
         let panel_left_offset = (self.sidebar_width.round() + 6.0).max(0.0);
-        let panel_top_offset = self.player_height;
 
         let positioned_panel = container(panel)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .align_x(iced::alignment::Horizontal::Left)
+            .align_y(iced::alignment::Vertical::Bottom)
             .padding(iced::Padding {
-                top: panel_top_offset,
+                top: 0.0,
                 left: panel_left_offset,
                 right: 0.0,
-                bottom: 0.0,
-            })
-            .width(Length::Fill)
-            .height(Length::Fill);
+                bottom: 28.0,
+            });
 
         // Stack: dismiss layer behind, panel in front
         stack![
