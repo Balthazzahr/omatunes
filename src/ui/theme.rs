@@ -610,7 +610,7 @@ pub fn save_button_saved(_: &iced::Theme, _status: iced::widget::button::Status)
 
 pub fn sidebar_list(_: &iced::Theme) -> container::Style {
     container::Style {
-        background: Some(iced::Background::Color(lerp_color(mantle(), surface0(), 0.08))),
+        background: Some(iced::Background::Color(base())),
         border: Border {
             color: surface0(),
             width: 1.0,

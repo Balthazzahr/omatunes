@@ -866,7 +866,9 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             sidebar_search_input,
             Space::with_height(4),
             container(sidebar_items_col)
-                .height(Length::Fill),
+                .height(Length::Fill)
+                .padding(4)
+                .style(theme::sidebar_list),
             playlist_drag_handle,
             Space::with_height(8),
             container(
