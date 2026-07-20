@@ -5131,14 +5131,13 @@ impl AppState {
 
         let tab_strip_visible = self.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 450.0);
 
-        let main_left_content = stack![
+        let main_left_content = column![
             container(player_controls)
                 .width(Length::Fill)
                 .height(iced::Length::Fixed(self.player_height - 28.0)),
             container(library_tabs)
-                .padding(iced::Padding { top: self.player_height - 29.0, right: 0.0, bottom: 0.0, left: 0.0 })
                 .width(Length::Fill)
-                .height(iced::Length::Fixed(self.player_height)),
+                .height(iced::Length::Fixed(28.0)),
         ];
 
         let left_top: Element<'_, Message> = if tab_strip_visible {
