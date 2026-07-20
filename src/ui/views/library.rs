@@ -2179,6 +2179,12 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         .width(Length::Fill);
 
     column![
+        container(Space::new(Length::Fill, Length::Fixed(1.0)))
+            .style(|_| iced::widget::container::Style {
+                background: Some(iced::Background::Color(theme::surface0())),
+                ..Default::default()
+            })
+            .height(1.0),
         container(
             row![
                 left_space,
@@ -2187,7 +2193,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
             ]
             .spacing(0)
             .width(Length::Fill)
-            .align_y(Alignment::End)
+            .align_y(Alignment::Center)
         )
         .style(|_| iced::widget::container::Style {
             background: Some(iced::Background::Color(theme::mantle())),
@@ -2195,12 +2201,6 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         })
         .width(Length::Fill)
         .height(27.0),
-        container(Space::new(Length::Fill, Length::Fixed(1.0)))
-            .style(|_| iced::widget::container::Style {
-                background: Some(iced::Background::Color(theme::surface0())),
-                ..Default::default()
-            })
-            .height(1.0)
     ]
     .width(Length::Fill)
     .height(28.0)
