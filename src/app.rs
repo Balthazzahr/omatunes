@@ -5188,6 +5188,9 @@ impl AppState {
             top_row,
             player_drag_handle,
             views::library::view(self),
+            container(library_tabs)
+                .width(Length::Fill)
+                .height(iced::Length::Fixed(28.0)),
         ]
         .spacing(0)
         .width(Length::Fill)
