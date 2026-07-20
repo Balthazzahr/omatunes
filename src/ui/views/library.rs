@@ -1885,7 +1885,9 @@ pub fn table_col_to_sort_col(col: crate::db::TableColumn) -> SortColumn {
 }
 
 pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
-    let left_space = Space::with_width(state.sidebar_width.round());
+    let left_space = container(Space::new(Length::Fill, Length::Fill))
+        .width(state.sidebar_width.round())
+        .height(27.0);
 
     let is_now_playing_active = state.show_queue_popover;
 
