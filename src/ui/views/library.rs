@@ -1608,8 +1608,89 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
     .on_enter(Message::GroupByHoverEnter)
     .on_exit(Message::GroupByHoverExit);
 
+    let (h1, h2, h3) = if is_playing {
+        let tick = state.animation_tick;
+        (
+            ((tick as f32 * 0.15).sin().abs() * 12.0 + 3.0),
+            ((tick as f32 * 0.25).sin().abs() * 12.0 + 3.0),
+            ((tick as f32 * 0.1).sin().abs() * 12.0 + 3.0),
+        )
+    } else {
+        (5.0, 9.0, 7.0)
+    };
+
+    let bar = |h: f32| {
+        container(Space::new(Length::Fixed(3.0), Length::Fixed(h)))
+            .style(move |_| iced::widget::container::Style {
+                background: Some(iced::Background::Color(theme::accent())),
+                ..Default::default()
+            })
+    };
+
+    let eq = row![bar(h1), bar(h2), bar(h3)]
+        .spacing(3)
+        .align_y(Alignment::End)
+        .height(18.0);
+
+    let np_btn = button(container(eq).center_x(Length::Fill).center_y(Length::Fill))
+        .on_press(Message::ToggleQueuePopover)
+        .width(44.0)
+        .height(44.0)
+        .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+            iced::widget::button::Style {
+                background: Some(iced::Background::Color(if is_hovered {
+                    theme::with_alpha(theme::text(), 0.05)
+                } else {
+                    iced::Color::TRANSPARENT
+                })),
+                border: iced::Border {
+                    radius: 6.0.into(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            }
+        });
+
+    let np_tooltip_widget = tooltip(np_btn, "Now Playing Queue", iced::widget::tooltip::Position::Top)
+        .gap(4.0)
+        .style(|theme: &iced::Theme| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::surface0())),
+            border: iced::Border {
+                color: theme::overlay0(),
+                width: 1.0,
+                radius: 4.0.into(),
+            },
+            ..Default::default()
+        });
+
+    let now_playing_floating_control = mouse_area(
+        container(np_tooltip_widget)
+            .padding(6)
+            .style(move |_: &iced::Theme| iced::widget::container::Style {
+                background: Some(iced::Background::Color(theme::mantle())),
+                border: iced::Border {
+                    color: theme::surface0(),
+                    width: 1.0,
+                    radius: 8.0.into(),
+                },
+                shadow: iced::Shadow {
+                    color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.3),
+                    offset: [0.0, 2.0].into(),
+                    blur_radius: 6.0,
+                },
+                ..Default::default()
+            })
+    );
+
     let content_area: Element<'_, Message> = stack![
         content_area,
+        container(now_playing_floating_control)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .align_x(iced::alignment::Horizontal::Left)
+            .align_y(iced::alignment::Vertical::Bottom)
+            .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 12.0, left: 12.0 }),
         container(group_by_control)
             .width(Length::Fill)
             .height(Length::Fill)
