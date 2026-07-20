@@ -220,7 +220,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     let player_container = container(player_row)
         .style(theme::player_panel)
         .width(left_side_width)
-        .height(Length::Fixed(state.player_height - 28.0));
+        .height(Length::Fixed(state.player_height));
 
     let vol_step = crate::config::get().volume_step;
 
