@@ -4211,6 +4211,11 @@ impl AppState {
                 }
             }
 
+            Message::HoverSidebarSearch(hovered) => {
+                self.is_hovering_sidebar_search = hovered;
+                Task::none()
+            }
+
             Message::GlobalCursorMoved(pos) => {
                 self.cursor_position = pos;
                 Task::none()
