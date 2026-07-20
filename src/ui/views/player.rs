@@ -168,13 +168,27 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .step(0.01)
         .width(vol_slider_width);
 
+    let vol_percent = (state.volume * 100.0).round() as u32;
+    let vol_tooltip_text = format!("{}%", vol_percent);
+
+    let vol_slider_with_tooltip = tooltip(vol_slider, vol_tooltip_text, iced::widget::tooltip::Position::Top)
+        .style(|theme: &iced::Theme| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::surface0())),
+            border: iced::Border {
+                color: theme::overlay0(),
+                width: 1.0,
+                radius: 4.0.into(),
+            },
+            ..Default::default()
+        });
+
     let volume_control = row![
         text(icons::ICON_VOL_UP)
             .font(icons::NERD_FONT_MONO)
             .color(theme::subtext())
             .size(24),
         Space::with_width(8),
-        vol_slider,
+        vol_slider_with_tooltip,
     ]
     .align_y(Alignment::Center)
     .padding([0, 16]);
