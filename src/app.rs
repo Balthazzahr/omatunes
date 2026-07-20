@@ -5149,8 +5149,6 @@ impl AppState {
         let main_left_content = container(player_controls)
             .width(Length::Fill)
             .height(iced::Length::Fixed(self.player_height));
-        .width(Length::Fill)
-        .height(iced::Length::Fixed(self.player_height));
 
         let left_top: Element<'_, Message> = if tab_strip_visible {
             let tab_strip = views::player::tab_strip(self);
