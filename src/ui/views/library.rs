@@ -634,9 +634,10 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
     };
 
     let playlist_total_width = state.sidebar_width.round() - 16.0;
-    let playlist_tab_width_1 = (playlist_total_width / 3.0).floor();
-    let playlist_tab_width_2 = (playlist_total_width / 3.0).floor();
-    let playlist_tab_width_3 = playlist_total_width - playlist_tab_width_1 - playlist_tab_width_2;
+    let playlist_available_width = playlist_total_width - 12.0;
+    let playlist_tab_width_1 = (playlist_available_width / 3.0).floor();
+    let playlist_tab_width_2 = (playlist_available_width / 3.0).floor();
+    let playlist_tab_width_3 = playlist_available_width - playlist_tab_width_1 - playlist_tab_width_2;
 
     let playlist_tab_btn = |tab: crate::app::PlaylistTab, icon: &'static str, width: f32, tooltip_text: &'static str| {
         let is_active = state.playlist_tab == tab && (state.selected_playlist.is_some() || tab == crate::app::PlaylistTab::Smart);
@@ -651,20 +652,22 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
                 let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
                 iced::widget::button::Style {
-                    background: Some(iced::Background::Color(if is_active {
-                        theme::mantle()
-                    } else if is_hovered {
-                        theme::surface0()
+                    background: Some(iced::Background::Color(if is_hovered {
+                        theme::lerp_color(theme::mantle(), theme::surface0(), 0.65)
                     } else {
-                        iced::Color::TRANSPARENT
+                        theme::lerp_color(theme::mantle(), theme::surface0(), 0.30)
                     })),
                     border: iced::Border {
                         color: if is_active { theme::accent() } else { theme::surface0() },
                         width: 1.0,
-                        radius: 4.0.into(),
+                        radius: 8.0.into(),
                     },
                     text_color: if is_active { theme::accent() } else { theme::subtext() },
-                    ..Default::default()
+                    shadow: iced::Shadow {
+                        color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.3),
+                        offset: [0.0, 2.0].into(),
+                        blur_radius: 6.0,
+                    },
                 }
             })
             .padding(0);
@@ -694,7 +697,7 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
         playlist_tab_btn(crate::app::PlaylistTab::Autoplaylists, crate::ui::icons::ICON_BOLT, playlist_tab_width_2, "Auto Playlists"),
         playlist_tab_btn(crate::app::PlaylistTab::Smart, crate::ui::icons::ICON_WAND, playlist_tab_width_3, "Smart Playlists"),
     ]
-    .spacing(0)
+    .spacing(6.0)
     .align_y(Alignment::Center);
 
     let mut playlists_area_col = column![].spacing(6).height(Length::Fill).width(Length::Fill);
