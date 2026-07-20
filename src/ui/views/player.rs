@@ -122,7 +122,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     };
 
     // Cover art scales with player height resize split
-    let cover_size = state.player_height - 16.0;
+    let cover_size = state.player_height - 32.0;
 
     // Album cover (Click returns to active source)
     let cover_art: Element<Message> = if let Some(handle) = state.get_display_cover() {
