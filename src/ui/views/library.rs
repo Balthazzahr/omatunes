@@ -480,25 +480,28 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                             .size(13)
                             .color(label_color),
                         Space::with_width(6),
-                    label_row = label_row.push(badge_el);
-                    let label: Element<Message> = label_row.into();
+                        text("All Genres")
+                            .color(label_color)
+                            .size(13)
+                            .font(crate::ui::icons::UI_FONT_BOLD),
+                    ].align_y(Alignment::Center)
+                )
+                .on_press(Message::SelectAllGenres)
+                .style(iced::widget::button::text)
+                .width(Length::Fill)
+                .padding([6, 12])
+            ].align_y(Alignment::Center);
 
-                    let btn = button(label)
-                        .on_press(Message::SelectGenre(genre.clone()))
-                        .style(iced::widget::button::text)
-                        .width(Length::Fill)
-                        .padding([6, 12]);
+            let all_row_widget: Element<'_, Message> = if is_all_selected {
+                container(all_btn_row).style(theme::selected_row).width(Length::Fill).into()
+            } else {
+                container(all_btn_row).width(Length::Fill).into()
+            };
+            list_items.push(all_row_widget);
 
-                    if is_selected {
-                        container(btn).style(theme::selected_row).width(Length::Fill).into()
-                    } else {
-                        container(btn).width(Length::Fill).into()
-                    }
-                })
-                .collect::<Vec<_>>(),
-            )
-            .spacing(2)
-            .into()
+            column(list_items)
+                .spacing(2)
+                .into()
         }
     };
 
