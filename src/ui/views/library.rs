@@ -1882,77 +1882,7 @@ pub fn table_col_to_sort_col(col: crate::db::TableColumn) -> SortColumn {
 }
 
 pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
-    let total_width = state.sidebar_width.round() - 16.0;
-    let available_width = total_width - 12.0;
-    let tab_width_1 = (available_width / 3.0).floor();
-    let tab_width_2 = (available_width / 3.0).floor();
-    let tab_width_3 = available_width - tab_width_1 - tab_width_2;
-
-    let tab_btn = |mode: ViewMode, icon: &'static str, label: &'static str, width: f32| {
-        let is_active = state.view_mode == mode && state.selected_playlist.is_none();
-        let btn_icon = text(icon)
-            .size(18)
-            .font(crate::ui::icons::NERD_FONT_MONO);
-        
-        let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
-            .on_press(Message::SelectViewMode(mode))
-            .width(width)
-            .height(27.0)
-            .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
-                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-                iced::widget::button::Style {
-                    background: Some(iced::Background::Color(if is_hovered {
-                        theme::lerp_color(theme::mantle(), theme::surface0(), 0.65)
-                    } else {
-                        theme::lerp_color(theme::mantle(), theme::surface0(), 0.30)
-                    })),
-                    border: iced::Border {
-                        color: if is_active { theme::accent() } else { theme::surface0() },
-                        width: 1.0,
-                        radius: 8.0.into(),
-                    },
-                    text_color: if is_active { theme::accent() } else { theme::subtext() },
-                    shadow: iced::Shadow {
-                        color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.3),
-                        offset: [0.0, 2.0].into(),
-                        blur_radius: 6.0,
-                    },
-                }
-            })
-            .padding(0);
-
-        let tooltip_content = container(
-            text(label)
-                .size(11)
-                .font(crate::ui::icons::UI_FONT)
-                .color(theme::text())
-        )
-        .padding([4, 8])
-        .style(|_| iced::widget::container::Style {
-            background: Some(iced::Background::Color(theme::surface0())),
-            border: iced::Border {
-                color: theme::overlay0(),
-                width: 1.0,
-                radius: 4.0.into(),
-            },
-            ..Default::default()
-        });
-
-        tooltip(btn, tooltip_content, tooltip::Position::Top)
-    };
-
-    let left_tabs = row![
-        tab_btn(ViewMode::Artists, crate::ui::icons::ICON_PERSON, "Artists", tab_width_1),
-        tab_btn(ViewMode::Albums, crate::ui::icons::ICON_CD, "Albums", tab_width_2),
-        tab_btn(ViewMode::Genres, crate::ui::icons::ICON_TAG, "Genres", tab_width_3),
-    ]
-    .spacing(6.0)
-    .align_y(Alignment::Center);
-
-    let left_tabs_container = container(left_tabs)
-        .width(state.sidebar_width.round())
-        .padding([0, 8])
-        .height(27.0);
+    let left_space = Space::with_width(state.sidebar_width.round());
 
     let is_now_playing_active = state.show_queue_popover;
 
@@ -2215,7 +2145,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     column![
         container(
             row![
-                left_tabs_container,
+                left_space,
                 Space::with_width(6.0),
                 right_bar
             ]
