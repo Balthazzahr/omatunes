@@ -171,7 +171,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     let vol_percent = (state.volume * 100.0).round() as u32;
     let vol_tooltip_text = format!("{}%", vol_percent);
 
-    let vol_slider_with_tooltip = tooltip(vol_slider, vol_tooltip_text, iced::widget::tooltip::Position::Top)
+    let vol_slider_with_tooltip = tooltip(vol_slider, text(vol_tooltip_text), iced::widget::tooltip::Position::Top)
         .style(|theme: &iced::Theme| iced::widget::container::Style {
             background: Some(iced::Background::Color(theme::surface0())),
             border: iced::Border {
