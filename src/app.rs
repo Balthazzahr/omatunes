@@ -3692,7 +3692,7 @@ impl AppState {
                             return Task::done(Message::CloseSettings);
                         } else if self.show_song_search {
                             return Task::done(Message::ToggleSongSearch);
-                        } else if self.show_sidebar_search {
+                        } else if self.show_sidebar_search || !self.sidebar_search.is_empty() {
                             return Task::done(Message::ToggleSidebarSearch);
                         }
                     }
