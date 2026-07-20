@@ -2068,3 +2068,4 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     .width(Length::Fill)
     .height(28.0)
     .into()
+}
