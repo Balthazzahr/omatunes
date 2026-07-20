@@ -137,40 +137,55 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
     .align_y(Alignment::Center)
     .width(Length::Fill);
 
-    let is_search_expanded = state.is_hovering_sidebar_search 
-        || !state.sidebar_search.is_empty() 
-        || state.show_sidebar_search;
+    let is_search_expanded = state.show_sidebar_search || !state.sidebar_search.is_empty();
 
     let search_widget: Element<'_, Message> = if is_search_expanded {
-        let text_input_field = text_input("Search...", &state.sidebar_search)
+        let placeholder = match state.view_mode {
+            ViewMode::Artists | ViewMode::NowPlaying => "Search artists...",
+            ViewMode::Albums => "Search albums...",
+            ViewMode::Genres => "Search genres...",
+        };
+
+        let text_input_field = text_input(placeholder, &state.sidebar_search)
             .id(iced::widget::text_input::Id::new("sidebar_search_input"))
             .on_input(Message::SidebarSearchChanged)
-            .padding([4, 8])
-            .size(12)
+            .padding([6, 10])
+            .size(13)
             .width(Length::Fill);
 
         let clear_btn = button(
             text("\u{f00d}")
                 .font(crate::ui::icons::NERD_FONT_MONO)
-                .size(12)
-                .color(theme::red())
+                .size(14)
         )
         .on_press(Message::ToggleSidebarSearch)
-        .style(iced::widget::button::text)
+        .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+            iced::widget::button::Style {
+                background: Some(iced::Background::Color(iced::Color::TRANSPARENT)),
+                text_color: if is_hovered {
+                    theme::text()
+                } else {
+                    theme::red()
+                },
+                border: iced::Border::default(),
+                shadow: iced::Shadow::default(),
+            }
+        })
         .padding(4);
 
         let row_content = row![
-            text("\u{f002}").font(crate::ui::icons::NERD_FONT_MONO).size(12).color(theme::subtext()),
-            Space::with_width(6),
+            text("\u{f002}").font(crate::ui::icons::NERD_FONT_MONO).size(14).color(theme::subtext()),
+            Space::with_width(8),
             text_input_field,
             clear_btn
         ]
         .align_y(Alignment::Center)
-        .padding([4, 6]);
+        .padding([0, 10]);
 
         let container_widget = container(row_content)
-            .width(180.0)
-            .height(28.0)
+            .width(240.0)
+            .height(42.0)
             .style(|_| iced::widget::container::Style {
                 background: Some(iced::Background::Color(theme::mantle())),
                 border: iced::Border {
@@ -192,14 +207,14 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             .into()
     } else {
         let btn_icon = text("\u{f002}")
-            .size(13)
+            .size(18)
             .font(crate::ui::icons::NERD_FONT_MONO)
             .color(theme::subtext());
 
         let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
             .on_press(Message::ToggleSidebarSearch)
-            .width(28.0)
-            .height(28.0)
+            .width(42.0)
+            .height(42.0)
             .style(|_, _| iced::widget::button::Style {
                 background: Some(iced::Background::Color(theme::mantle())),
                 border: iced::Border {
@@ -216,7 +231,26 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             })
             .padding(0);
 
-        mouse_area(btn)
+        let tooltip_content = container(
+            text("Search")
+                .size(11)
+                .font(crate::ui::icons::UI_FONT)
+                .color(theme::text())
+        )
+        .padding([4, 8])
+        .style(|_| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::surface0())),
+            border: iced::Border {
+                color: theme::overlay0(),
+                width: 1.0,
+                radius: 4.0.into(),
+            },
+            ..Default::default()
+        });
+
+        let wrapped_btn = tooltip(btn, tooltip_content, tooltip::Position::Top);
+
+        mouse_area(wrapped_btn)
             .on_enter(Message::HoverSidebarSearch(true))
             .on_exit(Message::HoverSidebarSearch(false))
             .into()
