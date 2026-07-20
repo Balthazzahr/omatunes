@@ -813,22 +813,6 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                 .width(Length::Fill)
                 .height(Length::Fill)
         );
-
-        let add_playlist_btn = button(
-            container(
-                row![
-                    text("\u{f07b}\u{f067}").font(crate::ui::icons::NERD_FONT_MONO).size(11),
-                    Space::with_width(6),
-                    text("New Playlist").size(11).font(crate::ui::icons::UI_FONT_BOLD)
-                ].align_y(Alignment::Center)
-            ).center_x(Length::Fill)
-        )
-        .on_press(Message::OpenPlaylistDialog(PlaylistDialogMode::Create))
-        .style(theme::secondary_button)
-        .padding([4, 12])
-        .width(Length::Fill);
-
-        playlists_area_col = playlists_area_col.push(add_playlist_btn);
     } else if state.playlist_tab == crate::app::PlaylistTab::Autoplaylists {
         let mut auto_playlists_col = column![].spacing(2).width(Length::Fill);
         auto_playlists_col = auto_playlists_col.push(render_playlist_item("Liked Songs".to_string(), true));
