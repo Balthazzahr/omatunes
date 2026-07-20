@@ -2019,6 +2019,78 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         })
         .padding(0);
 
+    let add_btn: Element<'_, Message> = match state.playlist_tab {
+        crate::app::PlaylistTab::Playlists => {
+            let btn = button(
+                text("\u{f07b}\u{f067}")
+                    .font(crate::ui::icons::NERD_FONT_MONO)
+                    .size(13)
+            )
+            .on_press(Message::OpenPlaylistDialog(PlaylistDialogMode::Create))
+            .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                iced::widget::button::Style {
+                    text_color: if is_hovered { theme::text() } else { theme::subtext() },
+                    background: if is_hovered { Some(iced::Background::Color(theme::surface0())) } else { None },
+                    border: iced::Border { radius: 4.0.into(), ..Default::default() },
+                    ..Default::default()
+                }
+            })
+            .padding([4, 8]);
+            
+            tooltip(btn, "New Playlist", iced::widget::tooltip::Position::Top)
+                .style(|theme: &iced::Theme| iced::widget::container::Style {
+                    background: Some(iced::Background::Color(theme::surface0())),
+                    border: iced::Border { color: theme::overlay0(), width: 1.0, radius: 4.0.into() },
+                    ..Default::default()
+                })
+                .into()
+        }
+        crate::app::PlaylistTab::Smart => {
+            let btn = button(
+                text("\u{ebcf}")
+                    .font(crate::ui::icons::NERD_FONT_MONO)
+                    .size(13)
+            )
+            .on_press(Message::NewSmartPlaylist)
+            .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+                let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+                iced::widget::button::Style {
+                    text_color: if is_hovered { theme::text() } else { theme::subtext() },
+                    background: if is_hovered { Some(iced::Background::Color(theme::surface0())) } else { None },
+                    border: iced::Border { radius: 4.0.into(), ..Default::default() },
+                    ..Default::default()
+                }
+            })
+            .padding([4, 8]);
+            
+            tooltip(btn, "New Smart Playlist", iced::widget::tooltip::Position::Top)
+                .style(|theme: &iced::Theme| iced::widget::container::Style {
+                    background: Some(iced::Background::Color(theme::surface0())),
+                    border: iced::Border { color: theme::overlay0(), width: 1.0, radius: 4.0.into() },
+                    ..Default::default()
+                })
+                .into()
+        }
+        crate::app::PlaylistTab::Autoplaylists => {
+            Space::with_width(0.0).into()
+        }
+    };
+
+    let left_space = container(
+        row![
+            now_playing_tab,
+            Space::with_width(Length::Fill),
+            add_btn,
+            Space::with_width(6.0)
+        ]
+        .spacing(0)
+        .align_y(Alignment::Center)
+        .width(Length::Fill)
+    )
+    .width(state.sidebar_width.round())
+    .height(27.0);
+
     let song_clear_btn: Element<'_, Message> = if !state.search_query.is_empty() {
         button(
             text("\u{f00d}")
@@ -2060,7 +2132,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
 
     let settings_btn = button(
         text("\u{f013}")
-            .size(20)
+            .size(22)
             .font(crate::ui::icons::NERD_FONT_MONO)
     )
     .on_press(Message::OpenSettings)
@@ -2079,7 +2151,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
 
     let search_toggle_btn = button(
         text("\u{f002}")
-            .size(20)
+            .size(22)
             .font(crate::ui::icons::NERD_FONT_MONO)
     )
     .on_press(Message::ToggleSongSearch)
@@ -2100,7 +2172,7 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
 
     let stats_btn = button(
         text(crate::ui::icons::ICON_TROPHY)
-            .size(20)
+            .size(22)
             .font(crate::ui::icons::NERD_FONT_MONO)
     )
     .on_press(Message::ShowPeriodBreakdown(0))
@@ -2122,10 +2194,9 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     let clear_queue_spacer: Element<'_, Message> = Space::with_width(0.0).into();
 
     let mut right_bar_row = row![
-        now_playing_tab,
         Space::with_width(Length::Fill),
     ]
-    .align_y(Alignment::End);
+    .align_y(Alignment::Center);
 
     if state.show_song_search {
         right_bar_row = right_bar_row
