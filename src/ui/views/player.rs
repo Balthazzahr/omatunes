@@ -208,6 +208,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         .spacing(0),
     ]
     .spacing(0)
+    .align_y(Alignment::Center)
     .padding(iced::Padding { top: 16.0, right: 16.0, bottom: 0.0, left: 16.0 });
 
     let left_side_width = if state.right_panel_tab.is_some() {
