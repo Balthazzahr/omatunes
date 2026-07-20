@@ -6158,8 +6158,8 @@ impl AppState {
                 ..Default::default()
             });
 
-        // Position: Anchored directly above the "Now Playing" tab at the bottom
-        let panel_left_offset = (self.sidebar_width.round() + 6.0).max(0.0);
+        // Position: Anchored directly above the floating Now Playing button at the bottom
+        let panel_left_offset = (self.sidebar_width.round() + 18.0).max(0.0);
 
         let positioned_panel = container(panel)
             .width(Length::Fill)
@@ -6170,7 +6170,7 @@ impl AppState {
                 top: 0.0,
                 left: panel_left_offset,
                 right: 0.0,
-                bottom: 28.0,
+                bottom: 40.0,
             });
 
         // Stack: dismiss layer behind, panel in front
