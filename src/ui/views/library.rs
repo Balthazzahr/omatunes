@@ -863,22 +863,6 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                 .width(Length::Fill)
                 .height(Length::Fill)
         );
-
-        let add_smart_playlist_btn = button(
-            container(
-                row![
-                    text("\u{ebcf}").font(crate::ui::icons::NERD_FONT_MONO).size(11),
-                    Space::with_width(6),
-                    text("New Smart Playlist").size(11).font(crate::ui::icons::UI_FONT_BOLD)
-                ].align_y(Alignment::Center)
-            ).center_x(Length::Fill)
-        )
-        .on_press(Message::NewSmartPlaylist)
-        .style(theme::secondary_button)
-        .padding([4, 12])
-        .width(Length::Fill);
-
-        playlists_area_col = playlists_area_col.push(add_smart_playlist_btn);
     }
 
     let playlist_drag_handle = mouse_area(
