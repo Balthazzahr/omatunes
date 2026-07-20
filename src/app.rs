@@ -5143,12 +5143,19 @@ impl AppState {
 
     fn view(&self) -> Element<'_, Message> {
         let player_controls = views::player::view(self);
+        let library_tabs = views::library::library_top_bar(self);
 
         let tab_strip_visible = self.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 450.0);
 
-        let main_left_content = container(player_controls)
-            .width(Length::Fill)
-            .height(iced::Length::Fixed(self.player_height));
+        let main_left_content = stack![
+            container(player_controls)
+                .width(Length::Fill)
+                .height(iced::Length::Fixed(self.player_height - 28.0)),
+            container(library_tabs)
+                .padding(iced::Padding { top: self.player_height - 29.0, right: 0.0, bottom: 0.0, left: 0.0 })
+                .width(Length::Fill)
+                .height(iced::Length::Fixed(self.player_height)),
+        ];
 
         let left_top: Element<'_, Message> = if tab_strip_visible {
             let tab_strip = views::player::tab_strip(self);
