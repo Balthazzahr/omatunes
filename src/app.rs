@@ -6172,7 +6172,7 @@ impl AppState {
                 top: 0.0,
                 left: panel_left_offset,
                 right: 0.0,
-                bottom: 40.0,
+                bottom: 140.0,
             });
 
         // Stack: dismiss layer behind, panel in front
