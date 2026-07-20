@@ -2157,29 +2157,26 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
 
     let clear_queue_spacer: Element<'_, Message> = Space::with_width(0.0).into();
 
-    let mut right_controls = row![].align_y(Alignment::Center).width(Length::Fill);
-    right_controls = right_controls.push(Space::with_width(Length::Fill));
+    let mut right_bar_row = row![
+        now_playing_tab,
+        Space::with_width(Length::Fill),
+    ]
+    .align_y(Alignment::End);
+
     if state.show_song_search {
-        right_controls = right_controls
+        right_bar_row = right_bar_row
             .push(container(song_search_input).width(Length::Fixed(220.0)))
             .push(Space::with_width(8.0));
     }
-    right_controls = right_controls.push(search_toggle_btn);
-    let right_controls_el: Element<'_, Message> = right_controls
-        .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 0.0, left: 16.0 })
-        .into();
 
-    let right_bar = row![
-        now_playing_tab,
-        right_controls_el,
-        stats_btn,
-        settings_btn,
-        Space::with_width(12.0)
-    ]
-    .spacing(0)
-    .align_y(Alignment::End)
-    .height(27.0)
-    .width(Length::Fill);
+    let right_bar = right_bar_row
+        .push(search_toggle_btn)
+        .push(stats_btn)
+        .push(settings_btn)
+        .push(Space::with_width(12.0))
+        .spacing(0)
+        .height(27.0)
+        .width(Length::Fill);
 
     column![
         container(
