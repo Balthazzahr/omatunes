@@ -1721,7 +1721,9 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         mouse_area(
             container(search_input)
                 .width(Length::Fixed(360.0))
+                .height(Length::Fixed(56.0))
                 .padding(iced::Padding { top: 6.0, right: 10.0, bottom: 6.0, left: 10.0 })
+                .center_y(Length::Fill)
                 .style(move |_: &iced::Theme| iced::widget::container::Style {
                     background: Some(iced::Background::Color(theme::mantle())),
                     border: iced::Border {
@@ -1801,6 +1803,128 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         .into()
     };
 
+    // Settings floating button
+    let settings_btn = button(
+        container(
+            text("\u{f013}")
+                .font(crate::ui::icons::NERD_FONT_MONO)
+                .size(18)
+        )
+        .center_x(Length::Fill)
+        .center_y(Length::Fill)
+    )
+    .on_press(Message::OpenSettings)
+    .width(44.0)
+    .height(44.0)
+    .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+        let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+        iced::widget::button::Style {
+            background: Some(iced::Background::Color(if is_hovered {
+                theme::with_alpha(theme::text(), 0.05)
+            } else {
+                iced::Color::TRANSPARENT
+            })),
+            border: iced::Border {
+                radius: 6.0.into(),
+                ..Default::default()
+            },
+            text_color: if is_hovered { theme::text() } else { theme::subtext() },
+            ..Default::default()
+        }
+    });
+
+    let settings_tooltip_widget = tooltip(settings_btn, "Settings", iced::widget::tooltip::Position::Top)
+        .gap(4.0)
+        .style(|theme: &iced::Theme| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::surface0())),
+            border: iced::Border {
+                color: theme::overlay0(),
+                width: 1.0,
+                radius: 4.0.into(),
+            },
+            ..Default::default()
+        });
+
+    let floating_settings_control = mouse_area(
+        container(settings_tooltip_widget)
+            .padding(6)
+            .style(move |_: &iced::Theme| iced::widget::container::Style {
+                background: Some(iced::Background::Color(theme::mantle())),
+                border: iced::Border {
+                    color: theme::surface0(),
+                    width: 1.0,
+                    radius: 8.0.into(),
+                },
+                shadow: iced::Shadow {
+                    color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.3),
+                    offset: [0.0, 2.0].into(),
+                    blur_radius: 6.0,
+                },
+                ..Default::default()
+            })
+    );
+
+    // Achievements/Stats floating button
+    let stats_btn = button(
+        container(
+            text(crate::ui::icons::ICON_TROPHY)
+                .font(crate::ui::icons::NERD_FONT_MONO)
+                .size(18)
+        )
+        .center_x(Length::Fill)
+        .center_y(Length::Fill)
+    )
+    .on_press(Message::ShowPeriodBreakdown(0))
+    .width(44.0)
+    .height(44.0)
+    .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+        let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+        iced::widget::button::Style {
+            background: Some(iced::Background::Color(if is_hovered {
+                theme::with_alpha(theme::text(), 0.05)
+            } else {
+                iced::Color::TRANSPARENT
+            })),
+            border: iced::Border {
+                radius: 6.0.into(),
+                ..Default::default()
+            },
+            text_color: if is_hovered { theme::text() } else { theme::subtext() },
+            ..Default::default()
+        }
+    });
+
+    let stats_tooltip_widget = tooltip(stats_btn, "Achievements & Listening Stats", iced::widget::tooltip::Position::Top)
+        .gap(4.0)
+        .style(|theme: &iced::Theme| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme::surface0())),
+            border: iced::Border {
+                color: theme::overlay0(),
+                width: 1.0,
+                radius: 4.0.into(),
+            },
+            ..Default::default()
+        });
+
+    let floating_stats_control = mouse_area(
+        container(stats_tooltip_widget)
+            .padding(6)
+            .style(move |_: &iced::Theme| iced::widget::container::Style {
+                background: Some(iced::Background::Color(theme::mantle())),
+                border: iced::Border {
+                    color: theme::surface0(),
+                    width: 1.0,
+                    radius: 8.0.into(),
+                },
+                shadow: iced::Shadow {
+                    color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.3),
+                    offset: [0.0, 2.0].into(),
+                    blur_radius: 6.0,
+                },
+                ..Default::default()
+            })
+    );
+
     let content_area: Element<'_, Message> = stack![
         content_area,
         container(now_playing_floating_control)
@@ -1816,6 +1940,18 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             .align_y(iced::alignment::Vertical::Bottom)
             .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 12.0, left: 76.0 }),
         container(group_by_control)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .align_x(iced::alignment::Horizontal::Right)
+            .align_y(iced::alignment::Vertical::Bottom)
+            .padding(iced::Padding { top: 0.0, right: 140.0, bottom: 12.0, left: 0.0 }),
+        container(floating_stats_control)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .align_x(iced::alignment::Horizontal::Right)
+            .align_y(iced::alignment::Vertical::Bottom)
+            .padding(iced::Padding { top: 0.0, right: 76.0, bottom: 12.0, left: 0.0 }),
+        container(floating_settings_control)
             .width(Length::Fill)
             .height(Length::Fill)
             .align_x(iced::alignment::Horizontal::Right)
