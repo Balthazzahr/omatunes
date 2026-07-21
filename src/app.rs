@@ -6036,7 +6036,7 @@ impl AppState {
                     .color(title_color)
                     .width(Length::Fill);
                 let artist_txt = text(track.artist.clone())
-                    .size(11)
+                    .size(13)
                     .color(theme::subtext())
                     .width(Length::Fill);
 
@@ -6046,7 +6046,7 @@ impl AppState {
 
                 // Position number
                 let pos_txt = text(format!("{}", idx + 1))
-                    .size(11)
+                    .size(13)
                     .color(theme::overlay0())
                     .width(Length::Fixed(20.0));
 
@@ -6139,7 +6139,7 @@ impl AppState {
 
         let panel = container(panel_content)
             .width(Length::Fixed(468.0))
-            .max_height(588.0) // 40% taller: 420 * 1.4 = 588
+            .max_height(706.0) // 20% taller: 588 * 1.2 = 706
             .style(move |_| iced::widget::container::Style {
                 background: Some(iced::Background::Color(popover_bg)),
                 border: iced::Border {
@@ -6167,7 +6167,7 @@ impl AppState {
                 top: 0.0,
                 left: panel_left_offset,
                 right: 0.0,
-                bottom: 140.0,
+                bottom: 112.0,
             });
 
         // Stack: dismiss layer behind, panel in front
