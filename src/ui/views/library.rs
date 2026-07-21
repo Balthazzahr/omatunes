@@ -1552,16 +1552,16 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
     let (h1, h2, h3) = if is_playing {
         let tick = state.animation_tick;
         (
-            ((tick as f32 * 0.15).sin().abs() * 12.0 + 3.0),
-            ((tick as f32 * 0.25).sin().abs() * 12.0 + 3.0),
-            ((tick as f32 * 0.1).sin().abs() * 12.0 + 3.0),
+            ((tick as f32 * 0.15).sin().abs() * 10.0 + 3.0),
+            ((tick as f32 * 0.25).sin().abs() * 10.0 + 3.0),
+            ((tick as f32 * 0.1).sin().abs() * 10.0 + 3.0),
         )
     } else {
-        (5.0, 9.0, 7.0)
+        (3.0, 6.0, 4.0)
     };
 
     let bar = |h: f32| {
-        container(Space::new(Length::Fixed(3.0), Length::Fixed(h)))
+        container(Space::new(Length::Fixed(2.5), Length::Fixed(h)))
             .style(move |_| iced::widget::container::Style {
                 background: Some(iced::Background::Color(theme::accent())),
                 ..Default::default()
@@ -1569,14 +1569,14 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
     };
 
     let eq = row![bar(h1), bar(h2), bar(h3)]
-        .spacing(3)
+        .spacing(2.5)
         .align_y(Alignment::End)
-        .height(18.0);
+        .height(16.0);
 
     let np_btn = button(container(eq).center_x(Length::Fill).center_y(Length::Fill))
         .on_press(Message::ToggleQueuePopover)
-        .width(44.0)
-        .height(44.0)
+        .width(30.0)
+        .height(30.0)
         .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
             let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
             iced::widget::button::Style {
@@ -1586,7 +1586,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                     iced::Color::TRANSPARENT
                 })),
                 border: iced::Border {
-                    radius: 6.0.into(),
+                    radius: 4.0.into(),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -1607,13 +1607,13 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
 
     let now_playing_floating_control = mouse_area(
         container(np_tooltip_widget)
-            .padding(6)
+            .padding(4)
             .style(move |_: &iced::Theme| iced::widget::container::Style {
                 background: Some(iced::Background::Color(theme::mantle())),
                 border: iced::Border {
                     color: theme::surface0(),
                     width: 1.0,
-                    radius: 8.0.into(),
+                    radius: 6.0.into(),
                 },
                 shadow: iced::Shadow {
                     color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.3),
@@ -1628,7 +1628,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         let search_clear_btn: Element<'_, Message> = button(
             text("\u{f00d}")
                 .font(crate::ui::icons::NERD_FONT_MONO)
-                .size(14)
+                .size(13)
                 .color(theme::red())
         )
         .on_press(Message::ToggleSongSearch)
@@ -1643,34 +1643,34 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 ..Default::default()
             }
         })
-        .padding(4)
+        .padding(3)
         .into();
 
         let search_input = row![
             text_input("Search Songs...", &state.search_query)
                 .id(iced::widget::text_input::Id::new("song_search_input"))
                 .on_input(Message::SearchChanged)
-                .padding(6)
-                .size(13)
+                .padding(4)
+                .size(12)
                 .width(Length::Fill),
             search_clear_btn
         ]
         .align_y(Alignment::Center)
-        .spacing(6)
+        .spacing(4)
         .width(Length::Fill);
 
         mouse_area(
             container(search_input)
                 .width(Length::Fixed(360.0))
-                .height(Length::Fixed(56.0))
-                .padding(iced::Padding { top: 6.0, right: 10.0, bottom: 6.0, left: 10.0 })
+                .height(Length::Fixed(38.0))
+                .padding(iced::Padding { top: 4.0, right: 8.0, bottom: 4.0, left: 8.0 })
                 .align_y(iced::alignment::Vertical::Center)
                 .style(move |_: &iced::Theme| iced::widget::container::Style {
                     background: Some(iced::Background::Color(theme::mantle())),
                     border: iced::Border {
                         color: theme::surface0(),
                         width: 1.0,
-                        radius: 8.0.into(),
+                        radius: 6.0.into(),
                     },
                     shadow: iced::Shadow {
                         color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.3),
@@ -1686,14 +1686,14 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             container(
                 text("\u{f002}")
                     .font(crate::ui::icons::NERD_FONT_MONO)
-                    .size(32)
+                    .size(26)
             )
             .center_x(Length::Fill)
             .center_y(Length::Fill)
         )
         .on_press(Message::ToggleSongSearch)
-        .width(44.0)
-        .height(44.0)
+        .width(30.0)
+        .height(30.0)
         .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
             let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
             iced::widget::button::Style {
@@ -1703,7 +1703,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                     iced::Color::TRANSPARENT
                 })),
                 border: iced::Border {
-                    radius: 6.0.into(),
+                    radius: 4.0.into(),
                     ..Default::default()
                 },
                 text_color: if is_hovered { theme::text() } else { theme::subtext() },
@@ -1725,13 +1725,13 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
 
         mouse_area(
             container(search_tooltip_widget)
-                .padding(6)
+                .padding(4)
                 .style(move |_: &iced::Theme| iced::widget::container::Style {
                     background: Some(iced::Background::Color(theme::mantle())),
                     border: iced::Border {
                         color: theme::surface0(),
                         width: 1.0,
-                        radius: 8.0.into(),
+                        radius: 6.0.into(),
                     },
                     shadow: iced::Shadow {
                         color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.3),
@@ -1749,14 +1749,14 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         container(
             text("\u{f013}")
                 .font(crate::ui::icons::NERD_FONT_MONO)
-                .size(32)
+                .size(26)
         )
         .center_x(Length::Fill)
         .center_y(Length::Fill)
     )
     .on_press(Message::OpenSettings)
-    .width(44.0)
-    .height(44.0)
+    .width(30.0)
+    .height(30.0)
     .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
         let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
         iced::widget::button::Style {
@@ -1766,7 +1766,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 iced::Color::TRANSPARENT
             })),
             border: iced::Border {
-                radius: 6.0.into(),
+                radius: 4.0.into(),
                 ..Default::default()
             },
             text_color: if is_hovered { theme::text() } else { theme::subtext() },
@@ -1788,13 +1788,13 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
 
     let floating_settings_control = mouse_area(
         container(settings_tooltip_widget)
-            .padding(6)
+            .padding(4)
             .style(move |_: &iced::Theme| iced::widget::container::Style {
                 background: Some(iced::Background::Color(theme::mantle())),
                 border: iced::Border {
                     color: theme::surface0(),
                     width: 1.0,
-                    radius: 8.0.into(),
+                    radius: 6.0.into(),
                 },
                 shadow: iced::Shadow {
                     color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.3),
@@ -1810,14 +1810,14 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         container(
             text(crate::ui::icons::ICON_TROPHY)
                 .font(crate::ui::icons::NERD_FONT_MONO)
-                .size(32)
+                .size(26)
         )
         .center_x(Length::Fill)
         .center_y(Length::Fill)
     )
     .on_press(Message::ShowPeriodBreakdown(0))
-    .width(44.0)
-    .height(44.0)
+    .width(30.0)
+    .height(30.0)
     .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
         let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
         iced::widget::button::Style {
@@ -1827,7 +1827,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 iced::Color::TRANSPARENT
             })),
             border: iced::Border {
-                radius: 6.0.into(),
+                radius: 4.0.into(),
                 ..Default::default()
             },
             text_color: if is_hovered { theme::text() } else { theme::subtext() },
@@ -1849,13 +1849,13 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
 
     let floating_stats_control = mouse_area(
         container(stats_tooltip_widget)
-            .padding(6)
+            .padding(4)
             .style(move |_: &iced::Theme| iced::widget::container::Style {
                 background: Some(iced::Background::Color(theme::mantle())),
                 border: iced::Border {
                     color: theme::surface0(),
                     width: 1.0,
-                    radius: 8.0.into(),
+                    radius: 6.0.into(),
                 },
                 shadow: iced::Shadow {
                     color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.3),
@@ -1879,19 +1879,19 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             .height(Length::Fill)
             .align_x(iced::alignment::Horizontal::Left)
             .align_y(iced::alignment::Vertical::Bottom)
-            .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 12.0, left: 76.0 }),
+            .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 12.0, left: 58.0 }),
         container(group_by_control)
             .width(Length::Fill)
             .height(Length::Fill)
             .align_x(iced::alignment::Horizontal::Right)
             .align_y(iced::alignment::Vertical::Bottom)
-            .padding(iced::Padding { top: 0.0, right: 140.0, bottom: 12.0, left: 0.0 }),
+            .padding(iced::Padding { top: 0.0, right: 104.0, bottom: 12.0, left: 0.0 }),
         container(floating_stats_control)
             .width(Length::Fill)
             .height(Length::Fill)
             .align_x(iced::alignment::Horizontal::Right)
             .align_y(iced::alignment::Vertical::Bottom)
-            .padding(iced::Padding { top: 0.0, right: 76.0, bottom: 12.0, left: 0.0 }),
+            .padding(iced::Padding { top: 0.0, right: 58.0, bottom: 12.0, left: 0.0 }),
         container(floating_settings_control)
             .width(Length::Fill)
             .height(Length::Fill)
