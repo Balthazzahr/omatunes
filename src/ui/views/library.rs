@@ -2128,45 +2128,6 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         .width(state.sidebar_width.round())
         .height(27.0);
 
-    let song_clear_btn: Element<'_, Message> = if !state.search_query.is_empty() {
-        button(
-            text("\u{f00d}")
-                .font(crate::ui::icons::NERD_FONT_MONO)
-                .size(12)
-        )
-        .on_press(Message::ToggleSongSearch)
-        .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
-            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-            iced::widget::button::Style {
-                text_color: if is_hovered {
-                    theme::text()
-                } else {
-                    theme::subtext()
-                },
-                ..Default::default()
-            }
-        })
-        .padding(4)
-        .into()
-    } else {
-        Space::with_width(0.0).into()
-    };
-
-    let search_placeholder = "Search songs...";
-
-    let song_search_input = row![
-        text_input(search_placeholder, &state.search_query)
-            .id(iced::widget::text_input::Id::new("song_search_input"))
-            .on_input(Message::SearchChanged)
-            .padding(6)
-            .size(11)
-            .width(Length::Fill),
-        song_clear_btn
-    ]
-    .align_y(Alignment::Center)
-    .spacing(4)
-    .width(Length::Fill);
-
     let settings_btn = button(
         text("\u{f013}")
             .size(22)
@@ -2178,27 +2139,6 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
         iced::widget::button::Style {
             text_color: if is_hovered {
                 theme::text()
-            } else {
-                theme::subtext()
-            },
-            ..Default::default()
-        }
-    })
-    .padding([2, 8]);
-
-    let search_toggle_btn = button(
-        text("\u{f002}")
-            .size(22)
-            .font(crate::ui::icons::NERD_FONT_MONO)
-    )
-    .on_press(Message::ToggleSongSearch)
-    .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
-        let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
-        iced::widget::button::Style {
-            text_color: if is_hovered {
-                theme::text()
-            } else if state.show_song_search {
-                theme::accent()
             } else {
                 theme::subtext()
             },
@@ -2226,25 +2166,16 @@ pub fn library_top_bar(state: &AppState) -> Element<'_, Message> {
     })
     .padding([2, 8]);
 
-    let mut right_bar_row = row![
+    let right_bar = row![
         Space::with_width(Length::Fill),
+        stats_btn,
+        settings_btn,
+        Space::with_width(12.0)
     ]
-    .align_y(Alignment::Center);
-
-    if state.show_song_search {
-        right_bar_row = right_bar_row
-            .push(container(song_search_input).width(Length::Fixed(220.0)))
-            .push(Space::with_width(8.0));
-    }
-
-    let right_bar = right_bar_row
-        .push(search_toggle_btn)
-        .push(stats_btn)
-        .push(settings_btn)
-        .push(Space::with_width(12.0))
-        .spacing(0)
-        .height(27.0)
-        .width(Length::Fill);
+    .align_y(Alignment::Center)
+    .spacing(0)
+    .height(27.0)
+    .width(Length::Fill);
 
     column![
         container(Space::new(Length::Fill, Length::Fixed(1.0)))
