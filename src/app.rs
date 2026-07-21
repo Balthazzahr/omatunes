@@ -4225,10 +4225,10 @@ impl AppState {
 
             Message::GlobalClick => {
                 if self.show_song_search && self.search_query.is_empty() {
-                    let search_left = self.sidebar_width.round() + 58.0;
+                    let search_left = self.sidebar_width.round() + 64.0;
                     let search_right = search_left + 360.0;
                     let search_bottom = self.window_height - 12.0;
-                    let search_top = search_bottom - 38.0;
+                    let search_top = search_bottom - 44.0;
 
                     let px = self.cursor_position.x;
                     let py = self.cursor_position.y;
