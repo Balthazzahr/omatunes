@@ -1683,6 +1683,124 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             })
     );
 
+    let floating_search_control: Element<'_, Message> = if state.show_song_search {
+        let search_clear_btn: Element<'_, Message> = button(
+            text("\u{f00d}")
+                .font(crate::ui::icons::NERD_FONT_MONO)
+                .size(14)
+        )
+        .on_press(Message::ToggleSongSearch)
+        .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+            iced::widget::button::Style {
+                text_color: if is_hovered {
+                    theme::text()
+                } else {
+                    theme::subtext()
+                },
+                ..Default::default()
+            }
+        })
+        .padding(4);
+
+        let search_input = row![
+            text_input("Search Songs...", &state.search_query)
+                .id(iced::widget::text_input::Id::new("song_search_input"))
+                .on_input(Message::SearchChanged)
+                .padding(6)
+                .size(13)
+                .width(Length::Fill),
+            search_clear_btn
+        ]
+        .align_y(Alignment::Center)
+        .spacing(6)
+        .width(Length::Fill);
+
+        mouse_area(
+            container(search_input)
+                .width(Length::Fixed(240.0))
+                .height(Length::Fixed(44.0))
+                .padding(iced::Padding { top: 0.0, right: 10.0, bottom: 0.0, left: 10.0 })
+                .center_y(Length::Fill)
+                .style(move |_: &iced::Theme| iced::widget::container::Style {
+                    background: Some(iced::Background::Color(theme::mantle())),
+                    border: iced::Border {
+                        color: theme::surface0(),
+                        width: 1.0,
+                        radius: 8.0.into(),
+                    },
+                    shadow: iced::Shadow {
+                        color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.3),
+                        offset: [0.0, 2.0].into(),
+                        blur_radius: 6.0,
+                    },
+                    ..Default::default()
+                })
+        )
+        .into()
+    } else {
+        let search_btn = button(
+            container(
+                text("\u{f002}")
+                    .font(crate::ui::icons::NERD_FONT_MONO)
+                    .size(18)
+            )
+            .center_x(Length::Fill)
+            .center_y(Length::Fill)
+        )
+        .on_press(Message::ToggleSongSearch)
+        .width(44.0)
+        .height(44.0)
+        .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
+            let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
+            iced::widget::button::Style {
+                background: Some(iced::Background::Color(if is_hovered {
+                    theme::with_alpha(theme::text(), 0.05)
+                } else {
+                    iced::Color::TRANSPARENT
+                })),
+                border: iced::Border {
+                    radius: 6.0.into(),
+                    ..Default::default()
+                },
+                text_color: if is_hovered { theme::text() } else { theme::subtext() },
+                ..Default::default()
+            }
+        });
+
+        let search_tooltip_widget = tooltip(search_btn, "Search Songs", iced::widget::tooltip::Position::Top)
+            .gap(4.0)
+            .style(|theme: &iced::Theme| iced::widget::container::Style {
+                background: Some(iced::Background::Color(theme::surface0())),
+                border: iced::Border {
+                    color: theme::overlay0(),
+                    width: 1.0,
+                    radius: 4.0.into(),
+                },
+                ..Default::default()
+            });
+
+        mouse_area(
+            container(search_tooltip_widget)
+                .padding(6)
+                .style(move |_: &iced::Theme| iced::widget::container::Style {
+                    background: Some(iced::Background::Color(theme::mantle())),
+                    border: iced::Border {
+                        color: theme::surface0(),
+                        width: 1.0,
+                        radius: 8.0.into(),
+                    },
+                    shadow: iced::Shadow {
+                        color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.3),
+                        offset: [0.0, 2.0].into(),
+                        blur_radius: 6.0,
+                    },
+                    ..Default::default()
+                })
+        )
+        .into()
+    };
+
     let content_area: Element<'_, Message> = stack![
         content_area,
         container(now_playing_floating_control)
@@ -1691,6 +1809,12 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             .align_x(iced::alignment::Horizontal::Left)
             .align_y(iced::alignment::Vertical::Bottom)
             .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 12.0, left: 12.0 }),
+        container(floating_search_control)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .align_x(iced::alignment::Horizontal::Left)
+            .align_y(iced::alignment::Vertical::Bottom)
+            .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 12.0, left: 76.0 }),
         container(group_by_control)
             .width(Length::Fill)
             .height(Length::Fill)
