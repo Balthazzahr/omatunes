@@ -1723,7 +1723,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 .width(Length::Fixed(360.0))
                 .height(Length::Fixed(56.0))
                 .padding(iced::Padding { top: 6.0, right: 10.0, bottom: 6.0, left: 10.0 })
-                .center_y(Length::Fill)
+                .align_y(iced::alignment::Vertical::Center)
                 .style(move |_: &iced::Theme| iced::widget::container::Style {
                     background: Some(iced::Background::Color(theme::mantle())),
                     border: iced::Border {
@@ -1745,7 +1745,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             container(
                 text("\u{f002}")
                     .font(crate::ui::icons::NERD_FONT_MONO)
-                    .size(18)
+                    .size(32)
             )
             .center_x(Length::Fill)
             .center_y(Length::Fill)
@@ -1808,7 +1808,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         container(
             text("\u{f013}")
                 .font(crate::ui::icons::NERD_FONT_MONO)
-                .size(18)
+                .size(32)
         )
         .center_x(Length::Fill)
         .center_y(Length::Fill)
@@ -1869,7 +1869,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         container(
             text(crate::ui::icons::ICON_TROPHY)
                 .font(crate::ui::icons::NERD_FONT_MONO)
-                .size(18)
+                .size(32)
         )
         .center_x(Length::Fill)
         .center_y(Length::Fill)
