@@ -5124,12 +5124,10 @@ impl AppState {
                 Task::none()
             }
         }
-
     }
 
     fn view(&self) -> Element<'_, Message> {
         let player_controls = views::player::view(self);
-        let library_tabs = views::library::library_top_bar(self);
 
         let tab_strip_visible = self.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 450.0);
 
@@ -5190,9 +5188,6 @@ impl AppState {
             top_row,
             player_drag_handle,
             views::library::view(self),
-            container(library_tabs)
-                .width(Length::Fill)
-                .height(iced::Length::Fixed(28.0)),
         ]
         .spacing(0)
         .width(Length::Fill)
