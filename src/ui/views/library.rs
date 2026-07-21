@@ -1688,6 +1688,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             text("\u{f00d}")
                 .font(crate::ui::icons::NERD_FONT_MONO)
                 .size(14)
+                .color(theme::red())
         )
         .on_press(Message::ToggleSongSearch)
         .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
@@ -1696,7 +1697,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 text_color: if is_hovered {
                     theme::text()
                 } else {
-                    theme::subtext()
+                    theme::red()
                 },
                 ..Default::default()
             }
@@ -1719,9 +1720,8 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
 
         mouse_area(
             container(search_input)
-                .width(Length::Fixed(240.0))
-                .height(Length::Fixed(44.0))
-                .padding(iced::Padding { top: 0.0, right: 10.0, bottom: 0.0, left: 10.0 })
+                .width(Length::Fixed(360.0))
+                .padding(iced::Padding { top: 6.0, right: 10.0, bottom: 6.0, left: 10.0 })
                 .center_y(Length::Fill)
                 .style(move |_: &iced::Theme| iced::widget::container::Style {
                     background: Some(iced::Background::Color(theme::mantle())),
