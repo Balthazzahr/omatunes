@@ -137,28 +137,20 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
     .align_y(Alignment::Center)
     .width(Length::Fill);
 
-    let is_search_expanded = state.show_sidebar_search || !state.sidebar_search.is_empty();
+    let sidebar_search_placeholder = match state.view_mode {
+        ViewMode::Artists | ViewMode::NowPlaying => "Search Artists...",
+        ViewMode::Albums => "Search Albums...",
+        ViewMode::Genres => "Search Genres...",
+    };
 
-    let search_widget: Element<'_, Message> = if is_search_expanded {
-        let placeholder = match state.view_mode {
-            ViewMode::Artists | ViewMode::NowPlaying => "Search artists...",
-            ViewMode::Albums => "Search albums...",
-            ViewMode::Genres => "Search genres...",
-        };
-
-        let text_input_field = text_input(placeholder, &state.sidebar_search)
-            .id(iced::widget::text_input::Id::new("sidebar_search_input"))
-            .on_input(Message::SidebarSearchChanged)
-            .padding([6, 10])
-            .size(13)
-            .width(Length::Fill);
-
-        let clear_btn = button(
+    let sidebar_search_clear_btn: Element<'_, Message> = if !state.sidebar_search.is_empty() {
+        button(
             text("\u{f00d}")
                 .font(crate::ui::icons::NERD_FONT_MONO)
-                .size(14)
+                .size(13)
+                .color(theme::red())
         )
-        .on_press(Message::ToggleSidebarSearch)
+        .on_press(Message::SidebarSearchChanged(String::new()))
         .style(move |theme: &iced::Theme, status: iced::widget::button::Status| {
             let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
             iced::widget::button::Style {
@@ -172,89 +164,46 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
                 shadow: iced::Shadow::default(),
             }
         })
-        .padding(4);
+        .padding([2, 4])
+        .into()
+    } else {
+        Space::with_width(0.0).into()
+    };
 
-        let row_content = row![
-            text("\u{f002}").font(crate::ui::icons::NERD_FONT_MONO).size(14).color(theme::subtext()),
-            Space::with_width(8),
-            text_input_field,
-            clear_btn
+    let sidebar_search_input_field = text_input(sidebar_search_placeholder, &state.sidebar_search)
+        .id(iced::widget::text_input::Id::new("sidebar_search_input"))
+        .on_input(Message::SidebarSearchChanged)
+        .padding([4, 6])
+        .size(13)
+        .width(Length::Fill);
+
+    let permanent_sidebar_search_bar: Element<'_, Message> = container(
+        row![
+            text("\u{f002}")
+                .font(crate::ui::icons::NERD_FONT_MONO)
+                .size(14)
+                .color(theme::subtext()),
+            Space::with_width(6),
+            sidebar_search_input_field,
+            sidebar_search_clear_btn,
         ]
         .align_y(Alignment::Center)
-        .padding([0, 10]);
-
-        let container_widget = container(row_content)
-            .width(240.0)
-            .height(42.0)
-            .style(|_| iced::widget::container::Style {
-                background: Some(iced::Background::Color(theme::mantle())),
-                border: iced::Border {
-                    color: theme::surface0(),
-                    width: 1.0,
-                    radius: 8.0.into(),
-                },
-                shadow: iced::Shadow {
-                    color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.3),
-                    offset: [0.0, 2.0].into(),
-                    blur_radius: 6.0,
-                },
-                ..Default::default()
-            });
-
-        mouse_area(container_widget)
-            .on_enter(Message::HoverSidebarSearch(true))
-            .on_exit(Message::HoverSidebarSearch(false))
-            .into()
-    } else {
-        let btn_icon = text("\u{f002}")
-            .size(18)
-            .font(crate::ui::icons::NERD_FONT_MONO)
-            .color(theme::subtext());
-
-        let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
-            .on_press(Message::ToggleSidebarSearch)
-            .width(42.0)
-            .height(42.0)
-            .style(|_, _| iced::widget::button::Style {
-                background: Some(iced::Background::Color(theme::mantle())),
-                border: iced::Border {
-                    color: theme::surface0(),
-                    width: 1.0,
-                    radius: 8.0.into(),
-                },
-                shadow: iced::Shadow {
-                    color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.3),
-                    offset: [0.0, 2.0].into(),
-                    blur_radius: 6.0,
-                },
-                text_color: theme::subtext(),
-            })
-            .padding(0);
-
-        let tooltip_content = container(
-            text("Search")
-                .size(11)
-                .font(crate::ui::icons::UI_FONT)
-                .color(theme::text())
-        )
-        .padding([4, 8])
-        .style(|_| iced::widget::container::Style {
-            background: Some(iced::Background::Color(theme::surface0())),
-            border: iced::Border {
-                color: theme::overlay0(),
-                width: 1.0,
-                radius: 4.0.into(),
-            },
-            ..Default::default()
-        });
-
-        let wrapped_btn = tooltip(btn, tooltip_content, tooltip::Position::Top);
-
-        mouse_area(wrapped_btn)
-            .on_enter(Message::HoverSidebarSearch(true))
-            .on_exit(Message::HoverSidebarSearch(false))
-            .into()
-    };
+        .padding([2, 8])
+        .width(Length::Fill)
+    )
+    .width(Length::Fill)
+    .height(34.0)
+    .align_y(iced::alignment::Vertical::Center)
+    .style(|_| iced::widget::container::Style {
+        background: Some(iced::Background::Color(theme::mantle())),
+        border: iced::Border {
+            color: theme::surface0(),
+            width: 1.0,
+            radius: 6.0.into(),
+        },
+        ..Default::default()
+    })
+    .into();
 
     let sidebar_items: Element<Message> = match state.view_mode {
         ViewMode::Artists | ViewMode::NowPlaying => {
