@@ -4224,14 +4224,11 @@ impl AppState {
             }
 
             Message::GlobalClick => {
-                let tab_strip_visible = self.window_width >= (crate::app::MIN_NON_DRAWER_WIDTH + 450.0);
-                let tab_strip_offset = if tab_strip_visible { 56.0 } else { 0.0 };
-
                 if self.show_song_search && self.search_query.is_empty() {
-                    let search_right = self.window_width - tab_strip_offset - 12.0;
-                    let search_left = search_right - 220.0 - 40.0;
-                    let search_top = self.player_height - 28.0;
-                    let search_bottom = self.player_height;
+                    let search_left = self.sidebar_width.round() + 58.0;
+                    let search_right = search_left + 360.0;
+                    let search_bottom = self.window_height - 12.0;
+                    let search_top = search_bottom - 38.0;
 
                     let px = self.cursor_position.x;
                     let py = self.cursor_position.y;
