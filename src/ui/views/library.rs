@@ -1368,7 +1368,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             container(
                 text(icon)
                     .font(crate::ui::icons::NERD_FONT_MONO)
-                    .size(26)
+                    .size(22)
             )
             .center_x(Length::Fill)
             .center_y(Length::Fill)
@@ -1401,8 +1401,8 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             }
         })
         .padding(0)
-        .width(30.0)
-        .height(30.0);
+        .width(36.0)
+        .height(36.0);
 
         tooltip(btn, name, iced::widget::tooltip::Position::Top)
             .gap(4.0)
@@ -1428,19 +1428,19 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         .spacing(8.0 * hover_progress)
         .align_y(Alignment::Center);
 
-        let separator = container(Space::new(Length::Fixed(1.0), Length::Fixed(16.0)))
+        let separator = container(Space::new(Length::Fixed(1.0), Length::Fixed(20.0)))
             .style(|_| iced::widget::container::Style {
                 background: Some(iced::Background::Color(theme::overlay0())),
                 ..Default::default()
             })
             .width(1.0)
-            .height(16.0);
+            .height(20.0);
 
         row = row.push(separator);
         
         container(row)
             .align_y(iced::alignment::Vertical::Center)
-            .width(Length::Fixed(152.0 * hover_progress))
+            .width(Length::Fixed(184.0 * hover_progress))
             .into()
     } else {
         Space::with_width(0.0).into()
@@ -1474,7 +1474,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         container(
             text(base_icon)
                 .font(crate::ui::icons::NERD_FONT_MONO)
-                .size(26)
+                .size(22)
         )
         .center_x(Length::Fill)
         .center_y(Length::Fill)
@@ -1506,8 +1506,8 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         }
     })
     .padding(0)
-    .width(30.0)
-    .height(30.0);
+    .width(36.0)
+    .height(36.0);
 
     let base_tooltip_widget = tooltip(base_btn, base_tooltip, iced::widget::tooltip::Position::Top)
         .gap(4.0)
