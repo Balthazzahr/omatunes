@@ -1368,7 +1368,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             container(
                 text(icon)
                     .font(crate::ui::icons::NERD_FONT_MONO)
-                    .size(30)
+                    .size(26)
             )
             .center_x(Length::Fill)
             .center_y(Length::Fill)
@@ -1401,8 +1401,8 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             }
         })
         .padding(0)
-        .width(44.0)
-        .height(44.0);
+        .width(30.0)
+        .height(30.0);
 
         tooltip(btn, name, iced::widget::tooltip::Position::Top)
             .gap(4.0)
@@ -1428,19 +1428,19 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         .spacing(8.0 * hover_progress)
         .align_y(Alignment::Center);
 
-        let separator = container(Space::new(Length::Fixed(1.0), Length::Fixed(20.0)))
+        let separator = container(Space::new(Length::Fixed(1.0), Length::Fixed(16.0)))
             .style(|_| iced::widget::container::Style {
                 background: Some(iced::Background::Color(theme::overlay0())),
                 ..Default::default()
             })
             .width(1.0)
-            .height(20.0);
+            .height(16.0);
 
         row = row.push(separator);
         
         container(row)
             .align_y(iced::alignment::Vertical::Center)
-            .width(Length::Fixed(208.0 * hover_progress))
+            .width(Length::Fixed(152.0 * hover_progress))
             .into()
     } else {
         Space::with_width(0.0).into()
@@ -1474,7 +1474,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         container(
             text(base_icon)
                 .font(crate::ui::icons::NERD_FONT_MONO)
-                .size(32)
+                .size(26)
         )
         .center_x(Length::Fill)
         .center_y(Length::Fill)
@@ -1506,8 +1506,8 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         }
     })
     .padding(0)
-    .width(44.0)
-    .height(44.0);
+    .width(30.0)
+    .height(30.0);
 
     let base_tooltip_widget = tooltip(base_btn, base_tooltip, iced::widget::tooltip::Position::Top)
         .gap(4.0)
@@ -1530,13 +1530,13 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
             .align_y(Alignment::Center)
             .spacing(0)
         )
-        .padding(6)
+        .padding(4)
         .style(move |_: &iced::Theme| iced::widget::container::Style {
             background: Some(iced::Background::Color(theme::mantle())),
             border: iced::Border {
                 color: theme::surface0(),
                 width: 1.0,
-                radius: 8.0.into(),
+                radius: 6.0.into(),
             },
             shadow: iced::Shadow {
                 color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.3),
