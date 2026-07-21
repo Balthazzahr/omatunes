@@ -1701,7 +1701,8 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
                 ..Default::default()
             }
         })
-        .padding(4);
+        .padding(4)
+        .into();
 
         let search_input = row![
             text_input("Search Songs...", &state.search_query)
