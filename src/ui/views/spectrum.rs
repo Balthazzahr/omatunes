@@ -311,7 +311,7 @@ fn apply_ghost_style(c: Color, alpha: f32, shift: f32) -> Color {
 
 pub fn view<'a>(
     bands: &'a [f32; NUM_BANDS],
-    history: &'a [[f32; NUM_BANDS]],
+    history: &'a std::collections::VecDeque<[f32; NUM_BANDS]>,
     mode: usize,
     tick: u32,
     sensitivity: f32,
