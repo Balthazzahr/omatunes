@@ -561,6 +561,68 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
             .into()
         }
 
+        SettingsTab::Visualizer => {
+            let sensitivity_val = state.visualizer_sensitivity;
+            let sensitivity_label = format!("{:.1}x ({})", sensitivity_val, match sensitivity_val {
+                v if v < 0.6 => "Subtle",
+                v if v < 1.4 => "Dynamic",
+                _ => "High Energy",
+            });
+            let sensitivity_slider = slider(0.2..=2.5, sensitivity_val, Message::SettingsVisualizerSensitivityChanged).step(0.1);
+
+            let trail_val = state.ghost_trail_length;
+            let trail_label = format!("{} frames ({})", trail_val, match trail_val {
+                v if v <= 4 => "Short Trail",
+                v if v <= 9 => "Medium Trail",
+                _ => "Long Ghost Trail",
+            });
+            let trail_slider = slider(2..=16, trail_val, Message::SettingsGhostTrailLengthChanged).step(1);
+
+            let decay_val = state.ghost_decay;
+            let decay_label = format!("{:.0}% decay speed", decay_val * 100.0);
+            let decay_slider = slider(0.1..=0.9, decay_val, Message::SettingsGhostDecayChanged).step(0.05);
+
+            let shift_val = state.color_shift_speed;
+            let shift_label = format!("{:.1}x ({})", shift_val, match shift_val {
+                v if v < 0.1 => "Static Theme Colors",
+                v if v < 1.2 => "Smooth Spectrum Shift",
+                _ => "Fast Spectrum Shift",
+            });
+            let shift_slider = slider(0.0..=2.0, shift_val, Message::SettingsColorShiftSpeedChanged).step(0.1);
+
+            let panel = column![
+                section_header("Visualizer & Ghosting"),
+                Space::with_height(16),
+
+                field_label("Reaction Intensity / Sensitivity"),
+                row![text(sensitivity_label).size(13).color(theme::text())],
+                Space::with_height(4),
+                sensitivity_slider,
+
+                Space::with_height(16),
+                field_label("Ghost Trail Length"),
+                row![text(trail_label).size(13).color(theme::text())],
+                Space::with_height(4),
+                trail_slider,
+
+                Space::with_height(16),
+                field_label("Ghost Decay Speed"),
+                row![text(decay_label).size(13).color(theme::text())],
+                Space::with_height(4),
+                decay_slider,
+
+                Space::with_height(16),
+                field_label("Spectrum Color Shift Speed"),
+                row![text(shift_label).size(13).color(theme::text())],
+                Space::with_height(4),
+                shift_slider,
+            ]
+            .spacing(4)
+            .width(Length::Fill);
+
+            scrollable(panel).height(Length::Fill).into()
+        }
+
         SettingsTab::Shortcuts => {
             let row_item = |keys: &'static str, desc: &'static str| {
                 row![
