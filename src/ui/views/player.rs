@@ -480,12 +480,10 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                 .center_x(Length::Fill)
                 .padding(8);
 
-            let history_slice: Vec<[f32; crate::audio::spectrum::NUM_BANDS]> = state.spectrum_history.iter().cloned().collect();
-
             let visualizer_col = column![
                 container(crate::ui::views::spectrum::view(
                     &state.spectrum_bands,
-                    &history_slice,
+                    &state.spectrum_history,
                     state.visualizer_mode,
                     state.animation_tick,
                     state.visualizer_sensitivity,
