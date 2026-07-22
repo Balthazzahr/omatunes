@@ -330,7 +330,102 @@ pub fn check_and_award_new_system(
     }
 }
 
-pub fn add_playback_time(artist: &str, album: &str, genre: &str, secs: f64) -> Vec<EarnedAchievement> {
+pub fn check_ladder_changes(db: &mut StatsDb) -> Vec<(String, String, Option<String>, String, usize)> {
+    let mut toasts = Vec::new();
+
+    let mut all_artist_minutes: HashMap<String, f64> = db.legacy_artist_minutes.clone();
+    for (_, day) in &db.daily_buckets {
+        for (a, m) in &day.artist_minutes {
+            *all_artist_minutes.entry(a.clone()).or_default() += m;
+        }
+    }
+    let mut ranked: Vec<(String, f64)> = all_artist_minutes.into_iter().collect();
+    ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+    ranked.truncate(10);
+
+    if db.previous_top_10_snapshot.is_empty() {
+        db.previous_top_10_snapshot = ranked;
+        return toasts;
+    }
+
+    if db.previous_top_10_snapshot != ranked {
+        let prev_artists: Vec<&str> = db.previous_top_10_snapshot.iter().map(|(a, _)| a.as_str()).collect();
+        let cur_artists: Vec<&str> = ranked.iter().map(|(a, _)| a.as_str()).collect();
+
+        for (i, artist_name) in cur_artists.iter().enumerate() {
+            if i >= prev_artists.len() {
+                break;
+            }
+            if *artist_name != prev_artists[i] {
+                let new_pos = i + 1;
+                let displaced = prev_artists[i];
+
+                let old_pos = prev_artists.iter().position(|&a| a == *artist_name)
+                    .map(|p| p + 1);
+
+                let displaced_new_pos = cur_artists.iter().position(|&a| a == displaced)
+                    .map(|p| p + 1);
+
+                let mut msg_parts = Vec::new();
+
+                match old_pos {
+                    Some(_from) => {
+                        let ladder_title = "LADDER CHANGE".to_string();
+                        msg_parts.push(format!(
+                            "**{}** has knocked **{}** out of the #{} spot",
+                            artist_name, displaced, new_pos
+                        ));
+                        msg_parts.push(format!(
+                            "  \u{f062} **{}** \u{2192} #{}",
+                            artist_name, new_pos
+                        ));
+                        match displaced_new_pos {
+                            Some(dp) => {
+                                msg_parts.push(format!("  \u{f063} **{}** \u{2192} #{}", displaced, dp));
+                            }
+                            None => {
+                                msg_parts.push(format!("  \u{f063} **{}** out of Top 10", displaced));
+                            }
+                        }
+                        toasts.push((ladder_title, msg_parts.join("\n"), Some(artist_name.to_string()), displaced.to_string(), new_pos));
+                    }
+                    None => {
+                        let entry_title = "ENTERED TOP 10!".to_string();
+                        msg_parts.push(format!(
+                            "**{}** has entered the Top 10 at #{}!",
+                            artist_name, new_pos
+                        ));
+                        msg_parts.push(format!(
+                            "  \u{f062} **{}** \u{2192} #{}",
+                            artist_name, new_pos
+                        ));
+                        match displaced_new_pos {
+                            Some(dp) => {
+                                msg_parts.push(format!(
+                                    "  \u{f063} **{}** \u{2192} #{}",
+                                    displaced, dp
+                                ));
+                            }
+                            None => {
+                                msg_parts.push(format!(
+                                    "  \u{f063} **{}** out of Top 10",
+                                    displaced
+                                ));
+                            }
+                        }
+                        toasts.push((entry_title, msg_parts.join("\n"), Some(artist_name.to_string()), displaced.to_string(), new_pos));
+                    }
+                }
+                break; // Only one ladder toast per change
+            }
+        }
+        db.previous_top_10_snapshot = ranked;
+    }
+
+    toasts
+}
+
+pub fn add_playback_time(artist: &str, album: &str, genre: &str, secs: f64) -> (Vec<EarnedAchievement>, Vec<(String, String, Option<String>, String, usize)>) {
     let now_dt = chrono::Local::now();
     let date_str = now_dt.format("%Y-%m-%d").to_string();
     use chrono::Datelike;
@@ -339,6 +434,7 @@ pub fn add_playback_time(artist: &str, album: &str, genre: &str, secs: f64) -> V
     let minutes = secs / 60.0;
 
     let mut new_awards = Vec::new();
+    let mut ladder_toasts = Vec::new();
 
     write(|db| {
         // Handle Session Closing Check (30 minutes = 1800 seconds)
@@ -404,9 +500,10 @@ pub fn add_playback_time(artist: &str, album: &str, genre: &str, secs: f64) -> V
         }
 
         detect_all_time_rank_changes(db);
+        ladder_toasts = check_ladder_changes(db);
     });
 
-    new_awards
+    (new_awards, ladder_toasts)
 }
 
 // ── One-Time Album Data Backfill ────────────────────────────────────────────
