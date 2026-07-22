@@ -424,11 +424,11 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                 "Depth Tunnel",
             ];
 
-            let mut dots_row = row![].spacing(12).align_y(Alignment::Center);
+            let mut dots_row = row![].spacing(8).align_y(Alignment::Center);
 
             for idx in 0..5 {
                 let is_selected = state.visualizer_mode == idx;
-                let dot_size = if is_selected { 12.0 } else { 9.0 };
+                let dot_size = if is_selected { 6.0 } else { 4.5 };
                 let border_r = dot_size / 2.0;
 
                 let dot_btn = button(
@@ -437,7 +437,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                         .height(Length::Fixed(dot_size))
                 )
                 .on_press(crate::app::Message::SelectVisualizerMode(idx))
-                .padding(2)
+                .padding(1)
                 .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
                     let bg_color = match status {
                         iced::widget::button::Status::Hovered | iced::widget::button::Status::Pressed => {
@@ -478,13 +478,19 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
             let dots_container = container(dots_row)
                 .width(Length::Fill)
                 .center_x(Length::Fill)
-                .padding(12);
+                .padding(8);
+
+            let history_slice: Vec<[f32; crate::audio::spectrum::NUM_BANDS]> = state.spectrum_history.iter().cloned().collect();
 
             let visualizer_col = column![
                 container(crate::ui::views::spectrum::view(
-                    state.spectrum_bands,
+                    &state.spectrum_bands,
+                    &history_slice,
                     state.visualizer_mode,
-                    state.animation_tick
+                    state.animation_tick,
+                    state.visualizer_sensitivity,
+                    state.ghost_decay,
+                    state.color_shift_speed,
                 ))
                 .width(Length::Fill)
                 .height(Length::Fill)
