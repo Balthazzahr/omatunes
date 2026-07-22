@@ -7,7 +7,7 @@ use crate::ui::theme;
 
 pub struct SpectrumView<'a> {
     pub bands: &'a [f32; NUM_BANDS],
-    pub history: &'a [[f32; NUM_BANDS]],
+    pub history: &'a std::collections::VecDeque<[f32; NUM_BANDS]>,
     pub mode: usize,
     pub tick: u32,
     pub sensitivity: f32,
