@@ -3717,6 +3717,10 @@ impl AppState {
                     color_picker_b: 0.0,
                     show_achievements_in_ui: cfg.show_achievements_in_ui,
                     show_toasts: cfg.show_toasts,
+                    visualizer_sensitivity: cfg.visualizer_sensitivity,
+                    ghost_trail_length: cfg.ghost_trail_length,
+                    ghost_decay: cfg.ghost_decay,
+                    color_shift_speed: cfg.color_shift_speed,
                 });
                 self.show_shortcuts = false;
                 Task::none()
@@ -4545,6 +4549,10 @@ impl AppState {
                     color_picker_b: 0.0,
                     show_achievements_in_ui: cfg.show_achievements_in_ui,
                     show_toasts: cfg.show_toasts,
+                    visualizer_sensitivity: cfg.visualizer_sensitivity,
+                    ghost_trail_length: cfg.ghost_trail_length,
+                    ghost_decay: cfg.ghost_decay,
+                    color_shift_speed: cfg.color_shift_speed,
                 });
                 Task::none()
             }
