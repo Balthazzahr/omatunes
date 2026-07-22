@@ -1771,7 +1771,7 @@ impl AppState {
                                 let diff = position.saturating_sub(self.last_accumulated_position);
                                 if diff > Duration::ZERO && diff <= Duration::from_secs(1) {
                                     if let Some(ref track) = self.current_track {
-                                        let new_awards = crate::stats::add_playback_time(&track.artist, &track.album, &track.genre, diff.as_secs_f64());
+                                        let (new_awards, ladder_toasts) = crate::stats::add_playback_time(&track.artist, &track.album, &track.genre, diff.as_secs_f64());
                                         for award in new_awards {
                                             let nid = self.next_notification_id;
                                             self.next_notification_id += 1;
