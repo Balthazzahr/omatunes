@@ -4895,6 +4895,34 @@ impl AppState {
                 Task::none()
             }
 
+            Message::SettingsVisualizerSensitivityChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.visualizer_sensitivity = val;
+                }
+                Task::none()
+            }
+
+            Message::SettingsGhostTrailLengthChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.ghost_trail_length = val;
+                }
+                Task::none()
+            }
+
+            Message::SettingsGhostDecayChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.ghost_decay = val;
+                }
+                Task::none()
+            }
+
+            Message::SettingsColorShiftSpeedChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.color_shift_speed = val;
+                }
+                Task::none()
+            }
+
             Message::SettingsPlaybackDefaultChanged(context, field, value) => {
                 if let Some(ref mut state) = self.show_settings {
                     let entry = match context.as_str() {
