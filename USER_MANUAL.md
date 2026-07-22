@@ -55,13 +55,24 @@ The player section can be dragged taller if you want a bigger album art view. Gr
 
 ## Visualizer
 
-<p align="center">
-  <img src="assets/Visualiser.png" alt="OmaTUNES Visualizer" width="400">
-</p>
+A real-time audio spectrum analyzer lives in the slide-out drawer on the right side of the window, featuring 5 visually distinct canvas rendering modes and customizable ghosting motion trails:
 
-A real-time audio spectrum analyzer lives in the slide-out drawer on the right — 64 frequency bands computed live from the decoded audio, colored with a gradient that shifts as the amplitude moves.
+### Visualizer Modes
+- **Mode 0: Mirrored Spectrograph Bars**: Classical dual-mirrored frequency bars with floating peak caps.
+- **Mode 1: Radial Pulse & Orbital Spectrum**: Central pulsating bass core with 144 orbiting radial frequency spokes.
+- **Mode 2: Liquid Silk Rainbow Ribbon**: 3 overlapping fluid wave ribbons with multi-colored trailing rainbow streams.
+- **Mode 3: Particle Constellation Starburst**: Orbiting star nodes linked by energetic constellation webs and comet trails.
+- **Mode 4: Hyperdrive Waterfall Depth Tunnel**: Perspective depth rings with cascading waterfall streams flowing down into the center of the tunnel.
 
-Click the waveform tab on the right edge of the window to open it, click it again (or hit `Escape`) to close it. Drag the divider between the drawer and the library to resize it — it won't go narrower than about 450px, since much below that the visualizer and lyrics text stop having room to breathe. If your window gets too narrow overall (below roughly 1499px), the drawer hides itself automatically rather than cramping the rest of the UI.
+### Mode Selection & Visualizer Settings
+- **Dot Selector**: Switch between visualizer modes using the 5 indicator dots at the bottom of the visualizer window. The selected mode adopts your active theme's accent color.
+- **Visualizer Settings Tab**: Open App Settings (`Ctrl+,` or Settings icon) and select the **Visualizer** tab to customize:
+  - **Reaction Intensity / Sensitivity (`0.2x` to `2.5x`)**: Adjust how subtly or dynamically the visualizer responds to audio volume and frequencies.
+  - **Ghost Trail Length (`2` to `16` frames)**: Adjust how long historical ghost images trail behind live audio movement.
+  - **Ghost Decay Speed (`10%` to `90%`)**: Adjust how quickly trailing ghost images dissolve into the background.
+  - **Spectrum Color Shift (`0.0` to `2.0`)**: Adjust how dynamically historical ghost frames shift colors through your theme's palette over time.
+
+Click the waveform tab on the right edge of the window to open it, click it again (or hit `Escape`) to close it. Drag the divider between the drawer and the library to resize it.
 
 ---
 
