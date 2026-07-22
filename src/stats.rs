@@ -648,92 +648,10 @@ pub fn on_track_play(
             ));
         }
 
-        // 3. Top-10 ladder change check (listening minutes leaderboard)
-        let mut all_artist_minutes: HashMap<String, f64> = db.legacy_artist_minutes.clone();
-        for (_, day) in &db.daily_buckets {
-            for (a, m) in &day.artist_minutes {
-                *all_artist_minutes.entry(a.clone()).or_default() += m;
-            }
-        }
-        let mut ranked: Vec<(String, f64)> = all_artist_minutes.into_iter().collect();
-        ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
-        ranked.truncate(10);
+        // 3. Top-10 ladder change check
+        toasts.extend(check_ladder_changes(db));
 
-        let prev = &db.previous_top_10_snapshot;
-        if !prev.is_empty() && prev != &ranked {
-            let prev_artists: Vec<&str> = prev.iter().map(|(a, _)| a.as_str()).collect();
-            let cur_artists: Vec<&str> = ranked.iter().map(|(a, _)| a.as_str()).collect();
-
-            for (i, artist_name) in cur_artists.iter().enumerate() {
-                if i >= prev_artists.len() {
-                    break;
-                }
-                if *artist_name != prev_artists[i] {
-                    let new_pos = i + 1;
-                    let displaced = prev_artists[i];
-
-                    let old_pos = prev_artists.iter().position(|&a| a == *artist_name)
-                        .map(|p| p + 1);
-
-                    let displaced_new_pos = cur_artists.iter().position(|&a| a == displaced)
-                        .map(|p| p + 1);
-
-                    let mut msg_parts = Vec::new();
-
-                    match old_pos {
-                        Some(_from) => {
-                            let ladder_title = "LADDER CHANGE".to_string();
-                            msg_parts.push(format!(
-                                "**{}** has knocked **{}** out of the #{} spot",
-                                artist_name, displaced, new_pos
-                            ));
-                            msg_parts.push(format!(
-                                "  \u{f062} **{}** \u{2192} #{}",
-                                artist_name, new_pos
-                            ));
-                            match displaced_new_pos {
-                                Some(dp) => {
-                                    msg_parts.push(format!("  \u{f063} **{}** \u{2192} #{}", displaced, dp));
-                                }
-                                None => {
-                                    msg_parts.push(format!("  \u{f063} **{}** out of Top 10", displaced));
-                                }
-                            }
-                            toasts.push((ladder_title, msg_parts.join("\n"), Some(artist_name.to_string()), displaced.to_string(), new_pos));
-                        }
-                        None => {
-                            let entry_title = "ENTERED TOP 10!".to_string();
-                            msg_parts.push(format!(
-                                "**{}** has entered the Top 10 at #{}!",
-                                artist_name, new_pos
-                            ));
-                            msg_parts.push(format!(
-                                "  \u{f062} **{}** \u{2192} #{}",
-                                artist_name, new_pos
-                            ));
-                            match displaced_new_pos {
-                                Some(dp) => {
-                                    msg_parts.push(format!(
-                                        "  \u{f063} **{}** \u{2192} #{}",
-                                        displaced, dp
-                                    ));
-                                }
-                                None => {
-                                    msg_parts.push(format!(
-                                        "  \u{f063} **{}** out of Top 10",
-                                        displaced
-                                    ));
-                                }
-                            }
-                            toasts.push((entry_title, msg_parts.join("\n"), Some(artist_name.to_string()), displaced.to_string(), new_pos));
-                        }
-                    }
-                    break; // Only one ladder toast per track play
-                }
-            }
-        }
         detect_all_time_rank_changes(db);
-        db.previous_top_10_snapshot = ranked;
     });
 
     toasts
