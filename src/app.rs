@@ -2084,6 +2084,11 @@ impl AppState {
                     && matches!(self.playback_state, PlaybackState::Playing)
                 {
                     self.spectrum_bands = self.spectrum_analyzer.compute();
+                    self.spectrum_history.push_back(self.spectrum_bands);
+                    let max_len = self.ghost_trail_length.clamp(2, 16);
+                    while self.spectrum_history.len() > max_len {
+                        self.spectrum_history.pop_front();
+                    }
                 }
 
                 if tasks.is_empty() {
@@ -2101,8 +2106,14 @@ impl AppState {
                 if self.right_panel_tab == Some(RightPanelTab::Visualizer) {
                     if matches!(self.playback_state, PlaybackState::Playing) {
                         self.spectrum_bands = self.spectrum_analyzer.compute();
+                        self.spectrum_history.push_back(self.spectrum_bands);
+                        let max_len = self.ghost_trail_length.clamp(2, 16);
+                        while self.spectrum_history.len() > max_len {
+                            self.spectrum_history.pop_front();
+                        }
                     } else {
                         self.spectrum_bands = [0.0; crate::audio::spectrum::NUM_BANDS];
+                        self.spectrum_history.clear();
                     }
                 }
                 Task::none()
