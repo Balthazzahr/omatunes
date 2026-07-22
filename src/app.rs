@@ -277,6 +277,7 @@ pub enum Message {
     ContextColumnDragEnd,
     SelectPlaylistTab(PlaylistTab),
     ToggleRightPanelTab(RightPanelTab),
+    SelectVisualizerMode(usize),
     ToggleSongSearch,
     ToggleSidebarSearch,
     HoverSidebarSearch(bool),
@@ -607,6 +608,7 @@ pub struct AppState {
 
     pub playlist_tab: PlaylistTab,
     pub right_panel_tab: Option<RightPanelTab>,
+    pub visualizer_mode: usize,
     pub right_panel_tab_user_scrolled: bool,
     pub show_song_search: bool,
     pub show_sidebar_search: bool,
