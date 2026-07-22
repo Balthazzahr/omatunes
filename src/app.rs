@@ -4646,6 +4646,15 @@ impl AppState {
                     cfg.auto_scan = state.auto_scan.clone();
                     cfg.show_achievements_in_ui = state.show_achievements_in_ui;
                     cfg.show_toasts = state.show_toasts;
+                    cfg.visualizer_sensitivity = state.visualizer_sensitivity;
+                    cfg.ghost_trail_length = state.ghost_trail_length;
+                    cfg.ghost_decay = state.ghost_decay;
+                    cfg.color_shift_speed = state.color_shift_speed;
+                    
+                    self.visualizer_sensitivity = state.visualizer_sensitivity;
+                    self.ghost_trail_length = state.ghost_trail_length;
+                    self.ghost_decay = state.ghost_decay;
+                    self.color_shift_speed = state.color_shift_speed;
                     
                     cfg.theme_source = state.theme_source.clone();
                     cfg.theme_preset = state.theme_preset.clone();
