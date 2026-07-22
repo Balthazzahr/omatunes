@@ -5851,12 +5851,36 @@ impl AppState {
                         }
                     }
 
-                    msg_col = msg_col.push(
-                        text(line)
-                            .size(13)
-                            .font(line_font)
-                            .color(line_color)
-                    );
+                    let segments: Vec<&str> = line.split("**").collect();
+                    if segments.len() > 1 {
+                        let mut spans = Vec::new();
+                        for (idx, seg) in segments.iter().enumerate() {
+                            if seg.is_empty() {
+                                continue;
+                            }
+                            let font = if idx % 2 == 1 {
+                                crate::ui::icons::UI_FONT_BOLD
+                            } else {
+                                line_font
+                            };
+                            spans.push(
+                                iced::widget::span(*seg)
+                                    .font(font)
+                                    .color(line_color)
+                            );
+                        }
+                        msg_col = msg_col.push(
+                            iced::widget::rich_text(spans)
+                                .size(13)
+                        );
+                    } else {
+                        msg_col = msg_col.push(
+                            text(line)
+                                .size(13)
+                                .font(line_font)
+                                .color(line_color)
+                        );
+                    }
                 }
 
                 let toast_icon = match n.kind {
@@ -5913,7 +5937,7 @@ impl AppState {
                 .height(Length::Fill)
                 .align_x(iced::alignment::Horizontal::Right)
                 .align_y(iced::alignment::Vertical::Bottom)
-                .padding(iced::Padding { top: 0.0, right: 24.0, bottom: 24.0, left: 0.0 });
+                .padding(iced::Padding { top: 0.0, right: 24.0, bottom: 68.0, left: 0.0 });
                 
             view_stack = view_stack.push(toasts_overlay);
         }
