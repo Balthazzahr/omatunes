@@ -86,6 +86,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
         tab_button(ICON_SLIDERS, "Playback", SettingsTab::Playback, state.selected_tab == SettingsTab::Playback),
         tab_button(ICON_MONITOR, "Display", SettingsTab::Display, state.selected_tab == SettingsTab::Display),
         tab_button(ICON_PALETTE, "Theme", SettingsTab::Theme, state.selected_tab == SettingsTab::Theme),
+        tab_button(crate::ui::icons::ICON_VISUALIZER, "Visualizer", SettingsTab::Visualizer, state.selected_tab == SettingsTab::Visualizer),
         tab_button(ICON_KEYBOARD, "Shortcuts", SettingsTab::Shortcuts, state.selected_tab == SettingsTab::Shortcuts),
     ]
     .spacing(4)
