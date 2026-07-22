@@ -641,7 +641,7 @@ pub fn on_track_play(
         for award in new_awards {
             toasts.push((
                 "ACHIEVEMENT UNLOCKED!".to_string(),
-                format!("You've earned the {} for {}!", award.tier, award.entity_name),
+                format!("You've earned the {} for **{}**!", award.tier, award.entity_name),
                 None,
                 String::new(),
                 0,
@@ -684,19 +684,19 @@ pub fn on_track_play(
                         Some(_from) => {
                             let ladder_title = "LADDER CHANGE".to_string();
                             msg_parts.push(format!(
-                                "{} has knocked {} out of the #{} spot",
+                                "**{}** has knocked **{}** out of the #{} spot",
                                 artist_name, displaced, new_pos
                             ));
                             msg_parts.push(format!(
-                                "  \u{f062} {} \u{2192} #{}",
+                                "  \u{f062} **{}** \u{2192} #{}",
                                 artist_name, new_pos
                             ));
                             match displaced_new_pos {
                                 Some(dp) => {
-                                    msg_parts.push(format!("  \u{f063} {} \u{2192} #{}", displaced, dp));
+                                    msg_parts.push(format!("  \u{f063} **{}** \u{2192} #{}", displaced, dp));
                                 }
                                 None => {
-                                    msg_parts.push(format!("  \u{f063} {} out of Top 10", displaced));
+                                    msg_parts.push(format!("  \u{f063} **{}** out of Top 10", displaced));
                                 }
                             }
                             toasts.push((ladder_title, msg_parts.join("\n"), Some(artist_name.to_string()), displaced.to_string(), new_pos));
@@ -704,22 +704,25 @@ pub fn on_track_play(
                         None => {
                             let entry_title = "ENTERED TOP 10!".to_string();
                             msg_parts.push(format!(
-                                "{} has entered the Top 10 at #{}!",
+                                "**{}** has entered the Top 10 at #{}!",
                                 artist_name, new_pos
                             ));
                             msg_parts.push(format!(
-                                "  \u{f062} {} \u{2192} #{}",
+                                "  \u{f062} **{}** \u{2192} #{}",
                                 artist_name, new_pos
                             ));
                             match displaced_new_pos {
                                 Some(dp) => {
                                     msg_parts.push(format!(
-                                        "  \u{f063} {} \u{2192} #{}",
+                                        "  \u{f063} **{}** \u{2192} #{}",
                                         displaced, dp
                                     ));
                                 }
                                 None => {
-                                    msg_parts.push(format!("  \u{f063} {} out of Top 10", displaced));
+                                    msg_parts.push(format!(
+                                        "  \u{f063} **{}** out of Top 10",
+                                        displaced
+                                    ));
                                 }
                             }
                             toasts.push((entry_title, msg_parts.join("\n"), Some(artist_name.to_string()), displaced.to_string(), new_pos));
@@ -748,22 +751,23 @@ pub fn ladder_title_for_tier(positions: u32) -> String {
 
 pub fn generate_ladder_message(artist: &str, positions: u32, new_pos: usize, overtaken: &[String]) -> String {
     let movement = match positions {
-        1 => format!("{} has climbed to #{}", artist, new_pos),
-        2 => format!("{} is on the move! Up 2 to #{}", artist, new_pos),
-        3 => format!("{} is climbing fast! Up 3 to #{}", artist, new_pos),
-        4 => format!("{} is on a rampage! Up 4 to #{}", artist, new_pos),
-        _ => format!("{} is TAKING OVER! Up {} to #{}", artist, positions, new_pos),
+        1 => format!("**{}** has climbed to #{}", artist, new_pos),
+        2 => format!("**{}** is on the move! Up 2 to #{}", artist, new_pos),
+        3 => format!("**{}** is climbing fast! Up 3 to #{}", artist, new_pos),
+        4 => format!("**{}** is on a rampage! Up 4 to #{}", artist, new_pos),
+        _ => format!("**{}** is TAKING OVER! Up {} to #{}", artist, positions, new_pos),
     };
 
     if overtaken.is_empty() {
         return movement;
     }
 
-    let overtaken_list = match overtaken.len() {
-        1 => format!("overtaking {}", overtaken[0]),
-        2 => format!("overtaking {} and {}", overtaken[0], overtaken[1]),
+    let bold_overtaken: Vec<String> = overtaken.iter().map(|s| format!("**{}**", s)).collect();
+    let overtaken_list = match bold_overtaken.len() {
+        1 => format!("overtaking {}", bold_overtaken[0]),
+        2 => format!("overtaking {} and {}", bold_overtaken[0], bold_overtaken[1]),
         _ => {
-            let (last, rest) = overtaken.split_last().unwrap();
+            let (last, rest) = bold_overtaken.split_last().unwrap();
             let prefix: Vec<&str> = rest.iter().map(|s| s.as_str()).collect();
             format!("overtaking {}, and {}", prefix.join(", "), last)
         }
