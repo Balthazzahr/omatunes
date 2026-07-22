@@ -1788,7 +1788,7 @@ impl AppState {
                                                     id: nid,
                                                     title: format!("{} Earned!", award_name),
                                                     message: format!(
-                                                        "You've unlocked a {} {} ({}) for {}!",
+                                                        "You've unlocked a {} {} ({}) for **{}**!",
                                                         award.tier, award_name, award.period, award.entity_name
                                                     ),
                                                     created_at: std::time::Instant::now(),
