@@ -994,6 +994,7 @@ impl AppState {
             hidden_artists_albums: crate::db::get(|db| db.hidden_artists_albums.clone()),
             playlist_tab: PlaylistTab::Playlists,
             right_panel_tab: db_right_panel_tab.and_then(|t| if t == RightPanelTab::Statistics { None } else { Some(t) }),
+            visualizer_mode: cfg.visualizer_mode,
             right_panel_tab_user_scrolled: false,
             show_song_search: false,
             show_sidebar_search: false,
@@ -4242,6 +4243,14 @@ impl AppState {
                     self.right_panel_tab = Some(tab);
                 }
                 crate::db::write(|db| db.right_panel_tab = self.right_panel_tab);
+                Task::none()
+            }
+
+            Message::SelectVisualizerMode(mode) => {
+                self.visualizer_mode = mode % 5;
+                let mut cfg = crate::config::get();
+                cfg.visualizer_mode = self.visualizer_mode;
+                crate::config::save(cfg);
                 Task::none()
             }
 
