@@ -568,7 +568,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                 v if v < 1.4 => "Dynamic",
                 _ => "High Energy",
             });
-            let sensitivity_slider = slider(0.2..=2.5, sensitivity_val, Message::SettingsVisualizerSensitivityChanged).step(0.1);
+            let sensitivity_slider = slider(0.2_f32..=2.5_f32, sensitivity_val, Message::SettingsVisualizerSensitivityChanged).step(0.1_f32);
 
             let trail_val = state.ghost_trail_length;
             let trail_label = format!("{} frames ({})", trail_val, match trail_val {
@@ -576,11 +576,11 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                 v if v <= 9 => "Medium Trail",
                 _ => "Long Ghost Trail",
             });
-            let trail_slider = slider(2..=16, trail_val, Message::SettingsGhostTrailLengthChanged).step(1);
+            let trail_slider = slider(2.0_f32..=16.0_f32, trail_val as f32, |val| Message::SettingsGhostTrailLengthChanged(val as usize)).step(1.0_f32);
 
             let decay_val = state.ghost_decay;
             let decay_label = format!("{:.0}% decay speed", decay_val * 100.0);
-            let decay_slider = slider(0.1..=0.9, decay_val, Message::SettingsGhostDecayChanged).step(0.05);
+            let decay_slider = slider(0.1_f32..=0.9_f32, decay_val, Message::SettingsGhostDecayChanged).step(0.05_f32);
 
             let shift_val = state.color_shift_speed;
             let shift_label = format!("{:.1}x ({})", shift_val, match shift_val {
@@ -588,7 +588,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                 v if v < 1.2 => "Smooth Spectrum Shift",
                 _ => "Fast Spectrum Shift",
             });
-            let shift_slider = slider(0.0..=2.0, shift_val, Message::SettingsColorShiftSpeedChanged).step(0.1);
+            let shift_slider = slider(0.0_f32..=2.0_f32, shift_val, Message::SettingsColorShiftSpeedChanged).step(0.1_f32);
 
             let panel = column![
                 section_header("Visualizer & Ghosting"),
