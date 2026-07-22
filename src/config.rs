@@ -105,6 +105,8 @@ pub struct Config {
     pub show_achievements_in_ui: bool,
     #[serde(default = "default_show_toasts")]
     pub show_toasts: bool,
+    #[serde(default)]
+    pub visualizer_mode: usize,
 }
 
 impl Default for Config {
@@ -123,6 +125,7 @@ impl Default for Config {
             auto_scan: AutoScanConfig::default(),
             show_achievements_in_ui: true,
             show_toasts: true,
+            visualizer_mode: 0,
         }
     }
 }
