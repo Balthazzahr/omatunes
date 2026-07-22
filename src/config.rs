@@ -260,3 +260,19 @@ fn default_show_achievements_in_ui() -> bool {
 fn default_show_toasts() -> bool {
     true
 }
+
+fn default_visualizer_sensitivity() -> f32 {
+    1.0
+}
+
+fn default_ghost_trail_length() -> usize {
+    8
+}
+
+fn default_ghost_decay() -> f32 {
+    0.45
+}
+
+fn default_color_shift_speed() -> f32 {
+    1.0
+}

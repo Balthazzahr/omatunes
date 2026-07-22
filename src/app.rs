@@ -364,6 +364,7 @@ pub enum SettingsTab {
     Playback,
     Display,
     Theme,
+    Visualizer,
     Shortcuts,
 }
 
@@ -389,6 +390,10 @@ pub struct SettingsState {
     pub color_picker_b: f32,
     pub show_achievements_in_ui: bool,
     pub show_toasts: bool,
+    pub visualizer_sensitivity: f32,
+    pub ghost_trail_length: usize,
+    pub ghost_decay: f32,
+    pub color_shift_speed: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
