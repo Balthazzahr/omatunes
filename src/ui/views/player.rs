@@ -416,14 +416,89 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
     let tab = state.right_panel_tab?;
     let pane_content: Element<'_, Message> = match tab {
         crate::app::RightPanelTab::Visualizer => {
-            container(
-                crate::ui::views::spectrum::view(state.spectrum_bands)
-            )
+            let mode_names = [
+                "Mirrored Spectrograph",
+                "Radial Pulse",
+                "Liquid Ribbon",
+                "Particle Constellation",
+                "Depth Tunnel",
+            ];
+
+            let mut dots_row = row![].spacing(12).align_y(Alignment::Center);
+
+            for idx in 0..5 {
+                let is_selected = state.visualizer_mode == idx;
+                let dot_size = if is_selected { 12.0 } else { 9.0 };
+                let border_r = dot_size / 2.0;
+
+                let dot_btn = button(
+                    container(Space::new(0, 0))
+                        .width(Length::Fixed(dot_size))
+                        .height(Length::Fixed(dot_size))
+                )
+                .on_press(crate::app::Message::SelectVisualizerMode(idx))
+                .padding(2)
+                .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
+                    let bg_color = match status {
+                        iced::widget::button::Status::Hovered | iced::widget::button::Status::Pressed => {
+                            if is_selected {
+                                theme::accent()
+                            } else {
+                                iced::Color::WHITE
+                            }
+                        }
+                        _ => {
+                            if is_selected {
+                                theme::accent()
+                            } else {
+                                iced::Color::from_rgba(1.0, 1.0, 1.0, 0.45)
+                            }
+                        }
+                    };
+
+                    iced::widget::button::Style {
+                        background: Some(iced::Background::Color(bg_color)),
+                        border: iced::Border {
+                            radius: border_r.into(),
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    }
+                });
+
+                let dot_tooltip = tooltip(
+                    dot_btn,
+                    text(mode_names[idx]).size(12),
+                    tooltip::Position::Top,
+                );
+
+                dots_row = dots_row.push(dot_tooltip);
+            }
+
+            let dots_container = container(dots_row)
+                .width(Length::Fill)
+                .center_x(Length::Fill)
+                .padding(12);
+
+            let visualizer_col = column![
+                container(crate::ui::views::spectrum::view(
+                    state.spectrum_bands,
+                    state.visualizer_mode,
+                    state.animation_tick
+                ))
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .center_x(Length::Fill)
+                .center_y(Length::Fill),
+                dots_container,
+            ]
             .width(Length::Fill)
-            .height(Length::Fill)
-            .center_x(Length::Fill)
-            .center_y(Length::Fill)
-            .into()
+            .height(Length::Fill);
+
+            container(visualizer_col)
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .into()
         }
         crate::app::RightPanelTab::Statistics => {
             container(Space::new(Length::Fill, Length::Fill))
