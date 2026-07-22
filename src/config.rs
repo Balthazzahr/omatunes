@@ -107,6 +107,14 @@ pub struct Config {
     pub show_toasts: bool,
     #[serde(default)]
     pub visualizer_mode: usize,
+    #[serde(default = "default_visualizer_sensitivity")]
+    pub visualizer_sensitivity: f32,
+    #[serde(default = "default_ghost_trail_length")]
+    pub ghost_trail_length: usize,
+    #[serde(default = "default_ghost_decay")]
+    pub ghost_decay: f32,
+    #[serde(default = "default_color_shift_speed")]
+    pub color_shift_speed: f32,
 }
 
 impl Default for Config {
@@ -126,6 +134,10 @@ impl Default for Config {
             show_achievements_in_ui: true,
             show_toasts: true,
             visualizer_mode: 0,
+            visualizer_sensitivity: 1.0,
+            ghost_trail_length: 8,
+            ghost_decay: 0.45,
+            color_shift_speed: 1.0,
         }
     }
 }
