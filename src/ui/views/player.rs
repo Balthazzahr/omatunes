@@ -422,13 +422,42 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                 "Liquid Ribbon",
                 "Particle Constellation",
                 "Depth Tunnel",
-                "3D Wireframe Grid",
+                "Rolling Plains",
                 "Kaleidoscope Mirror",
                 "Cosmic Aurora",
                 "Synthwave Horizon",
             ];
 
             let mut dots_row = row![].spacing(6).align_y(Alignment::Center);
+
+            // Random Visualizer Selector Dice Button (\ue270)
+            let dice_btn = button(
+                text("\u{e270}")
+                    .font(crate::ui::icons::NERD_FONT)
+                    .size(13)
+                    .color(theme::subtext())
+            )
+            .on_press(crate::app::Message::SelectRandomVisualizerMode)
+            .padding(2)
+            .style(|_, status| {
+                let color = match status {
+                    iced::widget::button::Status::Hovered | iced::widget::button::Status::Pressed => theme::accent(),
+                    _ => iced::Color::TRANSPARENT,
+                };
+                iced::widget::button::Style {
+                    background: Some(iced::Background::Color(color)),
+                    border: iced::Border { radius: 4.0.into(), ..Default::default() },
+                    ..Default::default()
+                }
+            });
+
+            let dice_tooltip = tooltip(
+                dice_btn,
+                text("Random Visualizer Mode").size(12),
+                tooltip::Position::Top,
+            );
+
+            dots_row = dots_row.push(dice_tooltip).push(Space::with_width(4));
 
             for idx in 0..9 {
                 let is_selected = state.visualizer_mode == idx;
