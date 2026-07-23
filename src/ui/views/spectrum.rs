@@ -511,8 +511,7 @@ impl<'a> SpectrumView<'a> {
     fn draw_kaleidoscope(&self, frame: &mut Frame, bounds: Rectangle, bands: &[f32; NUM_BANDS], alpha: f32, shift: f32, tick: u32) {
         let cx = bounds.width / 2.0;
         let cy = bounds.height / 2.0;
-        let max_r = cx.min(cy) * 0.85;
-        let num_axes = 8;
+        let num_axes = self.kaleidoscope_axes.clamp(4, 16);
         let tick_f = tick as f32;
 
         for axis in 0..num_axes {
