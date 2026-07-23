@@ -4281,7 +4281,7 @@ impl AppState {
             }
 
             Message::SelectVisualizerMode(mode) => {
-                self.visualizer_mode = mode % 5;
+                self.visualizer_mode = mode % 9;
                 let mut cfg = crate::config::get();
                 cfg.visualizer_mode = self.visualizer_mode;
                 crate::config::save(cfg);

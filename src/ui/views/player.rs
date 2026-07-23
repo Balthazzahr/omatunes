@@ -422,13 +422,17 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                 "Liquid Ribbon",
                 "Particle Constellation",
                 "Depth Tunnel",
+                "3D Wireframe Grid",
+                "Kaleidoscope Mirror",
+                "Cosmic Aurora",
+                "Synthwave Horizon",
             ];
 
-            let mut dots_row = row![].spacing(8).align_y(Alignment::Center);
+            let mut dots_row = row![].spacing(6).align_y(Alignment::Center);
 
-            for idx in 0..5 {
+            for idx in 0..9 {
                 let is_selected = state.visualizer_mode == idx;
-                let dot_size = if is_selected { 6.0 } else { 4.5 };
+                let dot_size = if is_selected { 6.0 } else { 4.0 };
                 let border_r = dot_size / 2.0;
 
                 let dot_btn = button(
