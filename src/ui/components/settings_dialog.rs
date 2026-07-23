@@ -612,6 +612,31 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                 }
             );
 
+            // Background Mode Pick List (Theme, Custom RGB, Muted Reactive)
+            let bg_modes = vec![
+                "Theme Default (Transparent)",
+                "Custom RGB Color",
+                "Muted Reactive Pulse",
+            ];
+            let current_bg_mode_name = match state.visualizer_bg_mode {
+                1 => "Custom RGB Color",
+                2 => "Muted Reactive Pulse",
+                _ => "Theme Default (Transparent)",
+            };
+
+            let bg_mode_picker = pick_list(
+                bg_modes,
+                Some(current_bg_mode_name),
+                |chosen| {
+                    let idx = match chosen {
+                        "Custom RGB Color" => 1,
+                        "Muted Reactive Pulse" => 2,
+                        _ => 0,
+                    };
+                    Message::SettingsVisualizerBgModeChanged(idx)
+                }
+            );
+
             // Contextual mode-specific settings
             let mode_settings_panel: Element<'static, Message> = match state.selected_visualizer_settings_mode {
                 0 => {
@@ -622,40 +647,108 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                         row![text(format!("{} spectrum bars", bar_cnt)).size(13).color(theme::text())],
                         Space::with_height(4),
                         bar_slider,
+                        Space::with_height(6),
+                        text("Floating peak limiters bounce under simulated gravity and dynamically match zenith bar height color.").size(12).color(theme::subtext()),
                     ].spacing(4).into()
                 }
                 1 => {
+                    let trail_val = state.ghost_trail_length;
+                    let trail_slider = slider(2.0_f32..=16.0_f32, trail_val as f32, |val| Message::SettingsGhostTrailLengthChanged(val as usize)).step(1.0_f32);
                     column![
-                        field_label("Radial Pulse Behavior"),
-                        text("Clean energy shockwave burst launching into infinity. (Center core removed)").size(13).color(theme::subtext()),
+                        field_label("Radial Pulse Shockwave Ring Trails"),
+                        row![text(format!("{} trailing shockwaves", trail_val)).size(13).color(theme::text())],
+                        Space::with_height(4),
+                        trail_slider,
                     ].spacing(4).into()
                 }
                 2 => {
                     let trail_val = state.ghost_trail_length;
                     let trail_slider = slider(2.0_f32..=16.0_f32, trail_val as f32, |val| Message::SettingsGhostTrailLengthChanged(val as usize)).step(1.0_f32);
                     column![
-                        field_label("Liquid Ribbon Trail Length"),
-                        row![text(format!("{} ghost frames", trail_val)).size(13).color(theme::text())],
+                        field_label("Liquid Ribbon Stream Layering"),
+                        row![text(format!("{} ghost ribbon frames", trail_val)).size(13).color(theme::text())],
                         Space::with_height(4),
                         trail_slider,
                     ].spacing(4).into()
                 }
                 3 => {
+                    let trail_val = state.ghost_trail_length;
+                    let trail_slider = slider(2.0_f32..=16.0_f32, trail_val as f32, |val| Message::SettingsGhostTrailLengthChanged(val as usize)).step(1.0_f32);
                     column![
-                        field_label("Particle Constellation Web"),
-                        text("Multi-loop Lissajous path with extended node connection reach.").size(13).color(theme::subtext()),
+                        field_label("Particle Constellation Trail Persistence"),
+                        row![text(format!("{} trail nodes", trail_val)).size(13).color(theme::text())],
+                        Space::with_height(4),
+                        trail_slider,
+                        Space::with_height(6),
+                        text("Renders 3x Lissajous winding loops with 120px node reach.").size(12).color(theme::subtext()),
                     ].spacing(4).into()
                 }
                 4 => {
+                    let warp_speed = state.depth_warp_speed;
+                    let warp_slider = slider(0.2_f32..=2.5_f32, warp_speed, Message::SettingsDepthWarpSpeedChanged).step(0.1_f32);
                     column![
-                        field_label("Hyperdrive Depth Tunnel Flight"),
-                        text("Continuous forward warp tunnel flight with audio-reactive rings.").size(13).color(theme::subtext()),
+                        field_label("Hyperdrive Warp Speed"),
+                        row![text(format!("{:.1}x forward velocity", warp_speed)).size(13).color(theme::text())],
+                        Space::with_height(4),
+                        warp_slider,
+                        Space::with_height(6),
+                        text("Renders unconstrained forward perspective expanding beyond visualizer bounds.").size(12).color(theme::subtext()),
+                    ].spacing(4).into()
+                }
+                5 => {
+                    let decay_val = state.ghost_decay;
+                    let decay_slider = slider(0.1_f32..=0.9_f32, decay_val, Message::SettingsGhostDecayChanged).step(0.05_f32);
+                    column![
+                        field_label("3D Wireframe Grid Fade Decay"),
+                        row![text(format!("{:.2} grid decay", decay_val)).size(13).color(theme::text())],
+                        Space::with_height(4),
+                        decay_slider,
+                    ].spacing(4).into()
+                }
+                6 => {
+                    let axes_val = state.kaleidoscope_axes;
+                    let axes_slider = slider(4.0_f32..=16.0_f32, axes_val as f32, |val| Message::SettingsKaleidoscopeAxesChanged(val as usize)).step(2.0_f32);
+                    column![
+                        field_label("Kaleidoscope Mirror Symmetry Axes"),
+                        row![text(format!("{} symmetry axes", axes_val)).size(13).color(theme::text())],
+                        Space::with_height(4),
+                        axes_slider,
+                    ].spacing(4).into()
+                }
+                7 => {
+                    let aurora_presets = vec![
+                        "Emerald Glow & Aurora Magenta",
+                        "Solar Flare (Warm Orange & Gold)",
+                        "Polar Pink & Ice Blue",
+                    ];
+                    let current_aurora_name = match state.aurora_preset {
+                        1 => "Solar Flare (Warm Orange & Gold)",
+                        2 => "Polar Pink & Ice Blue",
+                        _ => "Emerald Glow & Aurora Magenta",
+                    };
+
+                    let aurora_picker = pick_list(
+                        aurora_presets,
+                        Some(current_aurora_name),
+                        |chosen| {
+                            let idx = match chosen {
+                                "Solar Flare (Warm Orange & Gold)" => 1,
+                                "Polar Pink & Ice Blue" => 2,
+                                _ => 0,
+                            };
+                            Message::SettingsAuroraPresetChanged(idx)
+                        }
+                    );
+
+                    column![
+                        field_label("Cosmic Aurora Color Palette Theme"),
+                        aurora_picker,
                     ].spacing(4).into()
                 }
                 8 => {
                     column![
                         field_label("Retro Synthwave Horizon Aesthetics"),
-                        text("Neon fluorescence palette, silhouette mountains, horizon equalizer, & forward grid.").size(13).color(theme::subtext()),
+                        text("Featured: 3-stop sky gradient, static valley notch mountains, true sun cutouts, & matched magenta grid.").size(13).color(theme::subtext()),
                     ].spacing(4).into()
                 }
                 _ => {
