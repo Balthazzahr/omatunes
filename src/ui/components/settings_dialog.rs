@@ -774,6 +774,10 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                 Space::with_height(4),
                 shift_slider,
 
+                Space::with_height(16),
+                field_label("Visualizer Background Mode"),
+                bg_mode_picker,
+
                 Space::with_height(20),
                 section_header("Customize Mode Parameters"),
                 Space::with_height(8),
