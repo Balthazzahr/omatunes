@@ -4594,6 +4594,11 @@ impl AppState {
                     color_shift_speed: cfg.color_shift_speed,
                     spectrograph_bar_count: cfg.spectrograph_bar_count,
                     selected_visualizer_settings_mode: cfg.visualizer_mode,
+                    visualizer_bg_mode: cfg.visualizer_bg_mode,
+                    visualizer_bg_color: cfg.visualizer_bg_color.clone(),
+                    aurora_preset: cfg.aurora_preset,
+                    depth_warp_speed: cfg.depth_warp_speed,
+                    kaleidoscope_axes: cfg.kaleidoscope_axes,
                 });
                 Task::none()
             }
