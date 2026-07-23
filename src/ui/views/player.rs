@@ -494,6 +494,11 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     state.ghost_decay,
                     state.color_shift_speed,
                     state.spectrograph_bar_count,
+                    state.visualizer_bg_mode,
+                    &state.visualizer_bg_color,
+                    state.aurora_preset,
+                    state.depth_warp_speed,
+                    state.kaleidoscope_axes,
                 ))
                 .width(Length::Fill)
                 .height(Length::Fill)
