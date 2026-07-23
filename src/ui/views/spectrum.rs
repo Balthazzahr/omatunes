@@ -34,10 +34,26 @@ impl<'a, Message> canvas::Program<Message> for SpectrumView<'a> {
     ) -> Vec<Geometry> {
         let mut frame = Frame::new(renderer, bounds.size());
 
+        let bg_fill = match self.bg_mode {
+            1 => parse_hex_color(self.bg_color).unwrap_or(Color::TRANSPARENT),
+            2 => {
+                let bass = (self.bands[..10].iter().sum::<f32>() / 10.0 * self.sensitivity).clamp(0.0, 1.0);
+                let mid = (self.bands[10..50].iter().sum::<f32>() / 40.0 * self.sensitivity).clamp(0.0, 1.0);
+                let t_shift = (self.tick as f32 * 0.005) % 1.0;
+
+                // Subtle muted shifting palette
+                let r = (0.05 + bass * 0.12 + (t_shift * 0.05)).clamp(0.02, 0.25);
+                let g = (0.05 + mid * 0.10 + ((1.0 - t_shift) * 0.05)).clamp(0.02, 0.22);
+                let b = (0.12 + bass * 0.15).clamp(0.05, 0.30);
+                Color::from_rgb(r, g, b)
+            }
+            _ => Color::TRANSPARENT,
+        };
+
         frame.fill_rectangle(
             Point::ORIGIN,
             bounds.size(),
-            Color::TRANSPARENT,
+            bg_fill,
         );
 
         // Render historical ghost frames ONLY for modes where ghosting is active (modes other than 0 and 1)
