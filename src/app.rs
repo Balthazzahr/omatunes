@@ -326,6 +326,7 @@ pub enum Message {
     SettingsGhostTrailLengthChanged(usize),
     SettingsGhostDecayChanged(f32),
     SettingsColorShiftSpeedChanged(f32),
+    SettingsSpectrographBarCountChanged(usize),
     PickMusicFolder,
     MusicFolderPicked(Option<std::path::PathBuf>),
 
@@ -622,6 +623,7 @@ pub struct AppState {
     pub ghost_trail_length: usize,
     pub ghost_decay: f32,
     pub color_shift_speed: f32,
+    pub spectrograph_bar_count: usize,
     pub spectrum_history: std::collections::VecDeque<[f32; crate::audio::spectrum::NUM_BANDS]>,
     pub right_panel_tab_user_scrolled: bool,
     pub show_song_search: bool,
