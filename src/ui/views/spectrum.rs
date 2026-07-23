@@ -520,60 +520,155 @@ impl<'a> SpectrumView<'a> {
         }
     }
 
-    // Mode 7: NEW - Cosmic Aurora Borealis & Flowing Waves
+    // Mode 7: Cosmic Aurora Borealis & Draped Plasma Curtains
     fn draw_cosmic_aurora(&self, frame: &mut Frame, bounds: Rectangle, bands: &[f32; NUM_BANDS], alpha: f32, shift: f32, tick: u32) {
         let width = bounds.width;
         let height = bounds.height;
         let tick_f = tick as f32;
 
-        let num_waves = 4;
-        for w in 0..num_waves {
-            let mut builder = iced::widget::canvas::path::Builder::new();
-            let base_y = height * (0.3 + w as f32 * 0.15);
+        let num_curtains = 6;
+        let num_points = 32;
 
-            for i in 0..40 {
-                let x = i as f32 * (width / 39.0);
-                let band_idx = (i * 3 + w * 10) % NUM_BANDS;
+        for c in 0..num_curtains {
+            let curtain_t = (c as f32 + 1.0) / num_curtains as f32;
+            let curtain_x_start = (c as f32 / num_curtains as f32) * width;
+            let curtain_width = width * 0.35;
+
+            // Plasma curtain color palette (Polar Emerald #00ff88 & Aurora Magenta #ff00c8)
+            let base_aurora_color = if c % 2 == 0 {
+                Color::from_rgb(0.0, 0.95, 0.55) // Emerald
+            } else {
+                Color::from_rgb(0.95, 0.10, 0.75) // Magenta
+            };
+
+            for i in 0..num_points {
+                let pt_t = i as f32 / num_points as f32;
+                let band_idx = (c * 20 + i * 2) % NUM_BANDS;
                 let amp = (bands[band_idx] * self.sensitivity).clamp(0.0, 1.0);
 
-                let wave_y = base_y + ((x * 0.01 + tick_f * 0.03 + w as f32).sin() * 25.0) - (amp * 45.0);
+                let x = curtain_x_start + pt_t * curtain_width + ((tick_f * 0.02 + c as f32).sin() * 20.0);
+                let top_y = height * 0.05 + ((pt_t * 5.0 + tick_f * 0.03).cos() * 15.0);
+                let curtain_h = height * 0.55 + amp * 120.0;
+                let bot_y = top_y + curtain_h;
 
-                if i == 0 {
-                    builder.move_to(Point::new(x, wave_y));
-                } else {
-                    builder.line_to(Point::new(x, wave_y));
-                }
+                let curtain_alpha = (0.30 + amp * 0.55) * alpha * (1.0 - (c as f32 * 0.1));
+                let line_color = apply_ghost_style(base_aurora_color, curtain_alpha, shift + c as f32 * 0.15);
+
+                let ray = Path::line(Point::new(x, top_y), Point::new(x, bot_y));
+                frame.stroke(
+                    &ray,
+                    Stroke::default()
+                        .with_color(line_color)
+                        .with_width(2.5 + amp * 3.0),
+                );
             }
-
-            let color = apply_ghost_style(theme::spectrum_bar_color(0.7 - w as f32 * 0.15), alpha * 0.75, shift + w as f32 * 0.25);
-            frame.stroke(&builder.build(), Stroke::default().with_color(color).with_width(3.0 - w as f32 * 0.5));
         }
     }
 
-    // Mode 8: NEW - Retro Synthwave Horizon
-    fn draw_synthwave_horizon(&self, frame: &mut Frame, bounds: Rectangle, bands: &[f32; NUM_BANDS], alpha: f32, shift: f32, _tick: u32) {
+    // Mode 8: Retro Synthwave Horizon (Neon Fluorescence, Clipped Sun, Mountains, & Forward Grid)
+    fn draw_synthwave_horizon(&self, frame: &mut Frame, bounds: Rectangle, bands: &[f32; NUM_BANDS], alpha: f32, _shift: f32, tick: u32) {
         let width = bounds.width;
         let height = bounds.height;
         let horizon_y = height * 0.55;
         let cx = width / 2.0;
+        let tick_f = tick as f32;
 
-        let bass = (bands[..8].iter().sum::<f32>() / 8.0 * self.sensitivity).clamp(0.0, 1.0);
+        let bass = (bands[..10].iter().sum::<f32>() / 10.0 * self.sensitivity).clamp(0.0, 1.0);
+        let mid = (bands[10..50].iter().sum::<f32>() / 40.0 * self.sensitivity).clamp(0.0, 1.0);
 
-        // Synthwave Sunset Sun
-        let sun_r = (height * 0.22) + bass * 15.0;
-        let sun_path = Path::circle(Point::new(cx, horizon_y - 10.0), sun_r);
-        let sun_color = apply_ghost_style(theme::accent(), alpha * 0.85, shift);
-        frame.fill(&sun_path, Color { a: sun_color.a * 0.45, ..sun_color });
+        // Neon Fluorescence Synthwave Color Palette
+        let neon_magenta = Color::from_rgb(1.0, 0.0, 0.50); // #ff007f
+        let neon_cyan = Color::from_rgb(0.0, 0.95, 1.0);     // #00f3ff
+        let neon_purple = Color::from_rgb(0.60, 0.0, 1.0);   // #9d00ff
+        let sunset_yellow = Color::from_rgb(1.0, 0.80, 0.0); // #ffcc00
 
-        // Perspective Horizon Grid Lines
-        let num_lines = 12;
+        // 1. Synthwave Pulsing Sky Skygradient
+        let sky_color = Color { a: 0.15 + mid * 0.10, ..neon_purple };
+        let sky_path = Path::rectangle(Point::ORIGIN, Size::new(width, horizon_y));
+        frame.fill(&sky_path, sky_color);
+
+        // 2. Synthwave Sunset Sun (CLIPPED STRICTLY ABOVE HORIZON)
+        let sun_r = (height * 0.22) + bass * 18.0;
+        let sun_cy = horizon_y - 15.0;
+
+        // Render sun circles with horizontal blind cuts
+        for r_step in (0..=20).rev() {
+            let step_r = sun_r * (r_step as f32 / 20.0);
+            let y_pos = sun_cy - step_r;
+            
+            // Only draw portions strictly above horizon line
+            if y_pos < horizon_y {
+                let sun_path = Path::circle(Point::new(cx, sun_cy), step_r);
+                let sun_blend = r_step as f32 / 20.0;
+                let c_r = neon_magenta.r * (1.0 - sun_blend) + sunset_yellow.r * sun_blend;
+                let c_g = neon_magenta.g * (1.0 - sun_blend) + sunset_yellow.g * sun_blend;
+                let c_b = neon_magenta.b * (1.0 - sun_blend) + sunset_yellow.b * sun_blend;
+                
+                frame.fill(&sun_path, Color { r: c_r, g: c_g, b: c_b, a: alpha * 0.75 });
+            }
+        }
+
+        // Horizontal Blind Cut lines across the sun
+        let cut_count = 6;
+        for c in 0..cut_count {
+            let cut_y = sun_cy - sun_r * 0.6 + (c as f32 * 12.0);
+            if cut_y < horizon_y && cut_y > (sun_cy - sun_r) {
+                let cut_line = Path::line(Point::new(cx - sun_r, cut_y), Point::new(cx + sun_r, cut_y));
+                frame.stroke(&cut_line, Stroke::default().with_color(Color::BLACK).with_width(2.5));
+            }
+        }
+
+        // 3. Horizon Mountain Silhouettes (Pulsing with mid audio frequencies)
+        let mut mountain_builder = iced::widget::canvas::path::Builder::new();
+        mountain_builder.move_to(Point::new(0.0, horizon_y));
+
+        let mtn_pts = 16;
+        for m in 0..=mtn_pts {
+            let mx = (m as f32 / mtn_pts as f32) * width;
+            let m_amp = bands[(m * 8) % NUM_BANDS] * self.sensitivity;
+            let mtn_h = 25.0 + (m % 3) as f32 * 15.0 + (m_amp * 30.0) + (mid * 15.0);
+            mountain_builder.line_to(Point::new(mx, horizon_y - mtn_h));
+        }
+        mountain_builder.line_to(Point::new(width, horizon_y));
+        mountain_builder.close();
+
+        let mtn_color = Color::from_rgb(0.08, 0.04, 0.15);
+        frame.fill(&mountain_builder.build(), mtn_color);
+
+        // 4. Horizon Equalizer Spectrum Rays
+        let eq_count = 32;
+        let eq_step = width / eq_count as f32;
+        for e in 0..eq_count {
+            let ex = e as f32 * eq_step;
+            let e_amp = (bands[(e * 4) % NUM_BANDS] * self.sensitivity).clamp(0.0, 1.0);
+            let bar_h = e_amp * 45.0;
+
+            let eq_line = Path::line(Point::new(ex, horizon_y), Point::new(ex, horizon_y - bar_h));
+            frame.stroke(&eq_line, Stroke::default().with_color(neon_cyan).with_width(2.0));
+        }
+
+        // 5. Perspective Horizon Ground Floor Grid with Forward Scrolling Motion
+        let num_lines = 16;
         for i in 0..num_lines {
-            let t = i as f32 / num_lines as f32;
-            let start_x = cx + (t - 0.5) * width * 0.2;
-            let end_x = cx + (t - 0.5) * width * 1.5;
+            let t = i as f32 / (num_lines - 1) as f32;
+            let start_x = cx + (t - 0.5) * width * 0.15;
+            let end_x = cx + (t - 0.5) * width * 1.6;
 
             let line_path = Path::line(Point::new(start_x, horizon_y), Point::new(end_x, height));
-            frame.stroke(&line_path, Stroke::default().with_color(sun_color).with_width(1.2));
+            frame.stroke(&line_path, Stroke::default().with_color(neon_magenta).with_width(1.3));
+        }
+
+        // Horizontal forward moving grid lines
+        let num_h_lines = 10;
+        let scroll_phase = (tick_f * 0.03 * (1.0 + bass * 0.5)) % 1.0;
+
+        for h in 0..num_h_lines {
+            let row_t = ((h as f32 + scroll_phase) / num_h_lines as f32) % 1.0;
+            let hy = horizon_y + (row_t * row_t) * (height - horizon_y);
+
+            let row_line = Path::line(Point::new(0.0, hy), Point::new(width, hy));
+            let h_alpha = row_t * alpha;
+            frame.stroke(&row_line, Stroke::default().with_color(Color { a: h_alpha, ..neon_cyan }).with_width(1.0 + row_t * 1.5));
         }
     }
 }
