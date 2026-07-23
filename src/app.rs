@@ -328,6 +328,11 @@ pub enum Message {
     SettingsColorShiftSpeedChanged(f32),
     SettingsSpectrographBarCountChanged(usize),
     SettingsVisualizerSettingsModeSelected(usize),
+    SettingsVisualizerBgModeChanged(usize),
+    SettingsVisualizerBgColorChanged(String),
+    SettingsAuroraPresetChanged(usize),
+    SettingsDepthWarpSpeedChanged(f32),
+    SettingsKaleidoscopeAxesChanged(usize),
     PickMusicFolder,
     MusicFolderPicked(Option<std::path::PathBuf>),
 
