@@ -170,7 +170,8 @@ impl<'a> SpectrumView<'a> {
             let cap_y_top = cy - peak_half_h - 2.5;
             let cap_y_bot = cy + peak_half_h + 0.5;
 
-            let cap_color = apply_ghost_style(theme::accent(), alpha * 0.95, shift + 0.1);
+            let cap_base_color = theme::spectrum_bar_color(final_peak_amp);
+            let cap_color = apply_ghost_style(cap_base_color, alpha * 0.95, shift + 0.1);
             let cap_top = Path::rectangle(Point::new(x, cap_y_top), Size::new(bar_width.max(1.0), 2.5));
             let cap_bot = Path::rectangle(Point::new(x, cap_y_bot), Size::new(bar_width.max(1.0), 2.5));
 
