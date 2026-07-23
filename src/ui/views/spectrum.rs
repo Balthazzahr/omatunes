@@ -589,7 +589,7 @@ impl<'a> SpectrumView<'a> {
         }
     }
 
-    // Mode 8: Retro Synthwave Horizon (Gradient Sky, Static Notch Mountains, Sun Blind Cuts & Matching Grid)
+    // Mode 8: Retro Synthwave Horizon (Smooth Progressive Sky Gradient, Sun Occlusion, Progressive Blind Cuts)
     fn draw_synthwave_horizon(&self, frame: &mut Frame, bounds: Rectangle, bands: &[f32; NUM_BANDS], alpha: f32, _shift: f32, tick: u32) {
         let width = bounds.width;
         let height = bounds.height;
@@ -602,64 +602,79 @@ impl<'a> SpectrumView<'a> {
         // Neon Synthwave Color Tokens
         let neon_magenta = Color::from_rgb(1.0, 0.0, 0.50); // #ff007f
         let neon_cyan = Color::from_rgb(0.0, 0.95, 1.0);     // #00f3ff
-        let neon_purple = Color::from_rgb(0.55, 0.0, 0.90);   // #8c00e6
+        let neon_purple = Color::from_rgb(0.50, 0.0, 0.85);   // #8000d9
+        let sunset_orange = Color::from_rgb(1.0, 0.40, 0.0); // #ff6600
         let sunset_yellow = Color::from_rgb(1.0, 0.85, 0.10); // #ffdc1a
 
-        // 1. Sky Gradient (Black at top -> Deep Purple in middle -> Warm Sunset Orange near horizon)
-        let sky_steps = 30;
+        // 1. Smooth Progressive Sky Gradient (Black & Dark Blue at top -> Deep Purple in middle -> Warm Sunset Orange near horizon)
+        let sky_steps = 40;
         let step_h = horizon_y / sky_steps as f32;
         for s in 0..sky_steps {
-            let t = s as f32 / sky_steps as f32;
+            let t = s as f32 / (sky_steps - 1) as f32; // 0.0 at top, 1.0 at horizon
             let sy = s as f32 * step_h;
 
-            let c = if t < 0.45 {
-                let blend = t / 0.45;
-                Color {
-                    r: neon_purple.r * blend * 0.4,
-                    g: 0.0,
-                    b: neon_purple.b * blend * 0.6,
-                    a: alpha * 0.9,
-                }
+            let c = if t < 0.35 {
+                // Top: Black -> Midnight Blue (#030218)
+                let blend = t / 0.35;
+                Color::from_rgb(
+                    0.01 + 0.04 * blend,
+                    0.01 + 0.03 * blend,
+                    0.05 + 0.18 * blend,
+                )
+            } else if t < 0.70 {
+                // Middle: Midnight Blue -> Deep Synthwave Purple (#550088)
+                let blend = (t - 0.35) / 0.35;
+                Color::from_rgb(
+                    0.05 + 0.28 * blend,
+                    0.04 * (1.0 - blend),
+                    0.23 + 0.30 * blend,
+                )
             } else {
-                let blend = (t - 0.45) / 0.55;
-                Color {
-                    r: (neon_purple.r * (1.0 - blend) + 0.9 * blend) * 0.7,
-                    g: (0.1 * (1.0 - blend) + 0.35 * blend) * 0.7,
-                    b: (neon_purple.b * (1.0 - blend) + 0.05 * blend) * 0.7,
-                    a: alpha * 0.95,
-                }
+                // Near Horizon: Deep Purple -> Sunset Orange / Yellow
+                let blend = (t - 0.70) / 0.30;
+                Color::from_rgb(
+                    0.33 + 0.55 * blend,
+                    0.0 + 0.25 * blend,
+                    0.53 * (1.0 - blend) + 0.05 * blend,
+                )
             };
 
             let rect = Path::rectangle(Point::new(0.0, sy), Size::new(width, step_h + 0.5));
-            frame.fill(&rect, c);
+            frame.fill(&rect, Color { a: alpha * 0.95, ..c });
         }
 
-        // 2. Synthwave Sunset Sun (CLIPPED STRICTLY ABOVE HORIZON)
+        // 2. Synthwave Sunset Sun (STRICTLY CLIPPED ABOVE HORIZON)
         let sun_r = (height * 0.22) + bass * 12.0;
         let sun_cy = horizon_y - 12.0;
 
         // Draw sun circle
-        for r_step in (0..=24).rev() {
-            let step_r = sun_r * (r_step as f32 / 24.0);
+        for r_step in (0..=28).rev() {
+            let step_r = sun_r * (r_step as f32 / 28.0);
             let y_top = sun_cy - step_r;
             
             // Only draw portion strictly above horizon
             if y_top < horizon_y {
                 let sun_path = Path::circle(Point::new(cx, sun_cy), step_r);
-                let sun_blend = r_step as f32 / 24.0;
+                let sun_blend = r_step as f32 / 28.0;
                 let c_r = neon_magenta.r * (1.0 - sun_blend) + sunset_yellow.r * sun_blend;
                 let c_g = neon_magenta.g * (1.0 - sun_blend) + sunset_yellow.g * sun_blend;
                 let c_b = neon_magenta.b * (1.0 - sun_blend) + sunset_yellow.b * sun_blend;
                 
-                frame.fill(&sun_path, Color { r: c_r, g: c_g, b: c_b, a: alpha * 0.90 });
+                frame.fill(&sun_path, Color { r: c_r, g: c_g, b: c_b, a: alpha * 0.95 });
             }
         }
 
-        // True Sun Blind Cuts (Reveals background sky color cutouts inside sun bounds)
-        let cut_count = 5;
+        // True Progressive Sun Blind Cuts (From top of sun to horizon: thin at top, progressively thicker towards bottom)
+        let cut_count = 8;
+        let sun_top_y = sun_cy - sun_r + 4.0;
+        let sun_visible_height = horizon_y - sun_top_y;
+
         for c in 0..cut_count {
-            let cut_y = sun_cy - sun_r * 0.4 + (c as f32 * 14.0);
-            let cut_thickness = 2.5 + c as f32 * 0.8;
+            let cut_t = (c as f32 + 1.0) / (cut_count as f32 + 1.0);
+            let cut_y = sun_top_y + cut_t * sun_visible_height;
+            
+            // Progressive thickness: thin at top (1.0px), thicker near bottom (4.5px)
+            let cut_thickness = 1.0 + cut_t * 3.5;
             
             if cut_y + cut_thickness < horizon_y && cut_y > (sun_cy - sun_r) {
                 // Calculate horizontal chord length across sun at cut_y
@@ -669,32 +684,37 @@ impl<'a> SpectrumView<'a> {
                     let cut_start_x = cx - dx;
                     let cut_width = dx * 2.0;
 
-                    // Compute background sky color at cut_y to cut cleanly through
+                    // Compute matching sky gradient color at cut_y for seamless cutout
                     let sky_t = (cut_y / horizon_y).clamp(0.0, 1.0);
-                    let bg_cut_color = Color {
-                        r: (neon_purple.r * (1.0 - sky_t) + 0.8 * sky_t) * 0.5,
-                        g: (0.1 * (1.0 - sky_t) + 0.3 * sky_t) * 0.5,
-                        b: (neon_purple.b * (1.0 - sky_t) + 0.05 * sky_t) * 0.5,
-                        a: alpha,
+                    let bg_cut_color = if sky_t < 0.70 {
+                        let blend = (sky_t - 0.35).max(0.0) / 0.35;
+                        Color::from_rgb(0.05 + 0.28 * blend, 0.02, 0.23 + 0.30 * blend)
+                    } else {
+                        let blend = (sky_t - 0.70) / 0.30;
+                        Color::from_rgb(0.33 + 0.55 * blend, 0.25 * blend, 0.53 * (1.0 - blend))
                     };
 
                     let cut_rect = Path::rectangle(Point::new(cut_start_x, cut_y), Size::new(cut_width, cut_thickness));
-                    frame.fill(&cut_rect, bg_cut_color);
+                    frame.fill(&cut_rect, Color { a: alpha, ..bg_cut_color });
                 }
             }
         }
 
-        // 3. Static Notch Mountain Silhouette (Does NOT move with music, center valley framing sun)
+        // 3. Lower Half Occlusion Layer (Ensures no sun graphics bled below horizon line)
+        let ground_bg = Path::rectangle(Point::new(0.0, horizon_y), Size::new(width, height - horizon_y));
+        frame.fill(&ground_bg, Color::from_rgb(0.04, 0.01, 0.08));
+
+        // 4. Static Notch Mountain Silhouette (Center valley framing sun)
         let mut mountain_builder = iced::widget::canvas::path::Builder::new();
         mountain_builder.move_to(Point::new(0.0, horizon_y));
 
-        let mtn_pts = 20;
+        let mtn_pts = 24;
         for m in 0..=mtn_pts {
             let mx = (m as f32 / mtn_pts as f32) * width;
             let center_dist = ((mx - cx) / width).abs(); // 0.0 at center, 0.5 at edges
             
             // Low notch in center, higher peaks on far left/right
-            let base_h = 10.0 + (center_dist * 2.5) * 45.0;
+            let base_h = 12.0 + (center_dist * 2.5) * 48.0;
             let ridge = ((m as f32 * 1.7).sin().abs()) * 18.0;
             let mtn_h = base_h + ridge;
 
@@ -706,7 +726,7 @@ impl<'a> SpectrumView<'a> {
         let mtn_color = Color::from_rgb(0.06, 0.02, 0.12);
         frame.fill(&mountain_builder.build(), mtn_color);
 
-        // 4. Horizon Equalizer Spectrum Rays (Behind mountains, moving with music)
+        // 5. Horizon Equalizer Spectrum Rays (Behind mountains, moving with music)
         let eq_count = 32;
         let eq_step = width / eq_count as f32;
         for e in 0..eq_count {
@@ -718,7 +738,7 @@ impl<'a> SpectrumView<'a> {
             frame.stroke(&eq_line, Stroke::default().with_color(neon_cyan).with_width(2.0));
         }
 
-        // 5. Perspective Horizon Ground Floor Grid (Matched Magenta Color)
+        // 6. Perspective Horizon Ground Floor Grid (Matched Magenta Color)
         let num_lines = 16;
         for i in 0..num_lines {
             let t = i as f32 / (num_lines - 1) as f32;
@@ -729,7 +749,7 @@ impl<'a> SpectrumView<'a> {
             frame.stroke(&line_path, Stroke::default().with_color(neon_magenta).with_width(1.3));
         }
 
-        // Horizontal forward moving grid lines (Reduced count & matching magenta color)
+        // Horizontal forward moving grid lines
         let num_h_lines = 6;
         let scroll_phase = (tick_f * 0.025 * (1.0 + bass * 0.4)) % 1.0;
 
