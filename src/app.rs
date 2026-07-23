@@ -399,6 +399,8 @@ pub struct SettingsState {
     pub ghost_trail_length: usize,
     pub ghost_decay: f32,
     pub color_shift_speed: f32,
+    pub spectrograph_bar_count: usize,
+    pub selected_visualizer_settings_mode: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
