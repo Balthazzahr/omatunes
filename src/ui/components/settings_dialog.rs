@@ -570,18 +570,6 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
             });
             let sensitivity_slider = slider(0.2_f32..=2.5_f32, sensitivity_val, Message::SettingsVisualizerSensitivityChanged).step(0.1_f32);
 
-            let trail_val = state.ghost_trail_length;
-            let trail_label = format!("{} frames ({})", trail_val, match trail_val {
-                v if v <= 4 => "Short Trail",
-                v if v <= 9 => "Medium Trail",
-                _ => "Long Ghost Trail",
-            });
-            let trail_slider = slider(2.0_f32..=16.0_f32, trail_val as f32, |val| Message::SettingsGhostTrailLengthChanged(val as usize)).step(1.0_f32);
-
-            let decay_val = state.ghost_decay;
-            let decay_label = format!("{:.0}% decay speed", decay_val * 100.0);
-            let decay_slider = slider(0.1_f32..=0.9_f32, decay_val, Message::SettingsGhostDecayChanged).step(0.05_f32);
-
             let shift_val = state.color_shift_speed;
             let shift_label = format!("{:.1}x ({})", shift_val, match shift_val {
                 v if v < 0.1 => "Static Theme Colors",
@@ -590,8 +578,96 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
             });
             let shift_slider = slider(0.0_f32..=2.0_f32, shift_val, Message::SettingsColorShiftSpeedChanged).step(0.1_f32);
 
+            let mode_names = vec![
+                "0: Mirrored Spectrograph",
+                "1: Radial Pulse",
+                "2: Liquid Ribbon",
+                "3: Particle Constellation",
+                "4: Depth Tunnel",
+                "5: 3D Wireframe Grid",
+                "6: Kaleidoscope Mirror",
+                "7: Cosmic Aurora",
+                "8: Retro Synthwave Horizon",
+            ];
+
+            let selected_mode_name = mode_names.get(state.selected_visualizer_settings_mode.min(8)).cloned();
+
+            let mode_picker = pick_list(
+                mode_names,
+                selected_mode_name,
+                |chosen| {
+                    let idx = match chosen {
+                        "0: Mirrored Spectrograph" => 0,
+                        "1: Radial Pulse" => 1,
+                        "2: Liquid Ribbon" => 2,
+                        "3: Particle Constellation" => 3,
+                        "4: Depth Tunnel" => 4,
+                        "5: 3D Wireframe Grid" => 5,
+                        "6: Kaleidoscope Mirror" => 6,
+                        "7: Cosmic Aurora" => 7,
+                        "8: Retro Synthwave Horizon" => 8,
+                        _ => 0,
+                    };
+                    Message::SettingsVisualizerSettingsModeSelected(idx)
+                }
+            );
+
+            // Contextual mode-specific settings
+            let mode_settings_panel: Element<'static, Message> = match state.selected_visualizer_settings_mode {
+                0 => {
+                    let bar_cnt = state.spectrograph_bar_count;
+                    let bar_slider = slider(10.0_f32..=144.0_f32, bar_cnt as f32, |val| Message::SettingsSpectrographBarCountChanged(val as usize)).step(2.0_f32);
+                    column![
+                        field_label("Spectrograph Bar Count (10 - 144)"),
+                        row![text(format!("{} spectrum bars", bar_cnt)).size(13).color(theme::text())],
+                        Space::with_height(4),
+                        bar_slider,
+                    ].spacing(4).into()
+                }
+                1 => {
+                    column![
+                        field_label("Radial Pulse Behavior"),
+                        text("Clean energy shockwave burst launching into infinity. (Center core removed)").size(13).color(theme::subtext()),
+                    ].spacing(4).into()
+                }
+                2 => {
+                    let trail_val = state.ghost_trail_length;
+                    let trail_slider = slider(2.0_f32..=16.0_f32, trail_val as f32, |val| Message::SettingsGhostTrailLengthChanged(val as usize)).step(1.0_f32);
+                    column![
+                        field_label("Liquid Ribbon Trail Length"),
+                        row![text(format!("{} ghost frames", trail_val)).size(13).color(theme::text())],
+                        Space::with_height(4),
+                        trail_slider,
+                    ].spacing(4).into()
+                }
+                3 => {
+                    column![
+                        field_label("Particle Constellation Web"),
+                        text("Multi-loop Lissajous path with extended node connection reach.").size(13).color(theme::subtext()),
+                    ].spacing(4).into()
+                }
+                4 => {
+                    column![
+                        field_label("Hyperdrive Depth Tunnel Flight"),
+                        text("Continuous forward warp tunnel flight with audio-reactive rings.").size(13).color(theme::subtext()),
+                    ].spacing(4).into()
+                }
+                8 => {
+                    column![
+                        field_label("Retro Synthwave Horizon Aesthetics"),
+                        text("Neon fluorescence palette, silhouette mountains, horizon equalizer, & forward grid.").size(13).color(theme::subtext()),
+                    ].spacing(4).into()
+                }
+                _ => {
+                    column![
+                        field_label("General Mode Settings"),
+                        text("Uses global reaction sensitivity & spectrum color shift.").size(13).color(theme::subtext()),
+                    ].spacing(4).into()
+                }
+            };
+
             let panel = column![
-                section_header("Visualizer & Ghosting"),
+                section_header("Visualizer Global & Mode Settings"),
                 Space::with_height(16),
 
                 field_label("Reaction Intensity / Sensitivity"),
@@ -600,22 +676,18 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                 sensitivity_slider,
 
                 Space::with_height(16),
-                field_label("Ghost Trail Length"),
-                row![text(trail_label).size(13).color(theme::text())],
-                Space::with_height(4),
-                trail_slider,
-
-                Space::with_height(16),
-                field_label("Ghost Decay Speed"),
-                row![text(decay_label).size(13).color(theme::text())],
-                Space::with_height(4),
-                decay_slider,
-
-                Space::with_height(16),
                 field_label("Spectrum Color Shift Speed"),
                 row![text(shift_label).size(13).color(theme::text())],
                 Space::with_height(4),
                 shift_slider,
+
+                Space::with_height(20),
+                section_header("Customize Mode Parameters"),
+                Space::with_height(8),
+                field_label("Select Visualizer Mode to Customize"),
+                mode_picker,
+                Space::with_height(12),
+                mode_settings_panel,
             ]
             .spacing(4)
             .width(Length::Fill);

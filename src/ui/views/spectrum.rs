@@ -13,6 +13,7 @@ pub struct SpectrumView<'a> {
     pub sensitivity: f32,
     pub decay: f32,
     pub color_shift: f32,
+    pub bar_count: usize,
 }
 
 impl<'a, Message> canvas::Program<Message> for SpectrumView<'a> {
@@ -583,6 +584,7 @@ pub fn view<'a>(
     sensitivity: f32,
     decay: f32,
     color_shift: f32,
+    bar_count: usize,
 ) -> Element<'a, Message> {
     Canvas::new(SpectrumView {
         bands,
@@ -592,6 +594,7 @@ pub fn view<'a>(
         sensitivity,
         decay,
         color_shift,
+        bar_count,
     })
     .width(Length::Fill)
     .height(Length::Fill)
