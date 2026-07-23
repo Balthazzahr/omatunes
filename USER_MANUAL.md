@@ -55,22 +55,27 @@ The player section can be dragged taller if you want a bigger album art view. Gr
 
 ## Visualizer
 
-A real-time audio spectrum analyzer lives in the slide-out drawer on the right side of the window, featuring 5 visually distinct canvas rendering modes and customizable ghosting motion trails:
+A real-time audio spectrum analyzer lives in the slide-out drawer on the right side of the window, featuring 9 visually distinct canvas rendering modes, custom background styles, and tailored mode settings:
 
 ### Visualizer Modes
-- **Mode 0: Mirrored Spectrograph Bars**: Classical dual-mirrored frequency bars with floating peak caps.
-- **Mode 1: Radial Pulse & Orbital Spectrum**: Central pulsating bass core with 144 orbiting radial frequency spokes.
-- **Mode 2: Liquid Silk Rainbow Ribbon**: 3 overlapping fluid wave ribbons with multi-colored trailing rainbow streams.
-- **Mode 3: Particle Constellation Starburst**: Orbiting star nodes linked by energetic constellation webs and comet trails.
-- **Mode 4: Hyperdrive Waterfall Depth Tunnel**: Perspective depth rings with cascading waterfall streams flowing down into the center of the tunnel.
+- **Mode 0: Mirrored Spectrograph Bars**: Classical dual-mirrored frequency bars with realistic gravity-bouncing peak limiters that dynamically match zenith bar height colors and downsample from 10 to 144 bars.
+- **Mode 1: Radial Pulse**: Clean energy shockwave ring bursts launching into infinity with radial bass spark explosions (center core removed).
+- **Mode 2: Liquid Ribbon**: 3 overlapping fluid wave ribbons with customizable trail layering.
+- **Mode 3: Particle Constellation**: 3x Lissajous winding loops with 120px node connection reach and star node trails.
+- **Mode 4: Hyperdrive Depth Tunnel**: Perspective depth rings with unconstrained forward warp velocity expansion extending beyond screen bounds.
+- **Mode 5: Rolling Plains**: Dense 36-column rolling audio wave fields set against a twilight sky backdrop with distant stars and mountain silhouettes.
+- **Mode 6: Kaleidoscope Mirror**: Sacred geometry mirror symmetry with customizable 4 to 16 symmetry axes.
+- **Mode 7: Cosmic Aurora**: Twisting vertical plasma light curtains with 3 selectable color themes (*Emerald Glow*, *Solar Flare*, *Polar Pink & Ice Blue*).
+- **Mode 8: Retro Synthwave Horizon**: 40-step progressive vertical sky gradient (Black $\to$ Purple $\to$ Sunset Orange), static valley notch mountains, true progressive sun blind cuts, and matched neon magenta perspective grid.
 
 ### Mode Selection & Visualizer Settings
-- **Dot Selector**: Switch between visualizer modes using the 5 indicator dots at the bottom of the visualizer window. The selected mode adopts your active theme's accent color.
+- **Random Mode Dice Selector Button (`\ue270`)**: Click the dice button on the far left of the bottom indicator panel to instantly pick a random visualizer mode distinct from the active one.
+- **Dot Selector**: Switch between visualizer modes using the 9 indicator dots at the bottom of the visualizer window. The selected mode adopts your active theme's accent color.
 - **Visualizer Settings Tab**: Open App Settings (`Ctrl+,` or Settings icon) and select the **Visualizer** tab to customize:
   - **Reaction Intensity / Sensitivity (`0.2x` to `2.5x`)**: Adjust how subtly or dynamically the visualizer responds to audio volume and frequencies.
-  - **Ghost Trail Length (`2` to `16` frames)**: Adjust how long historical ghost images trail behind live audio movement.
-  - **Ghost Decay Speed (`10%` to `90%`)**: Adjust how quickly trailing ghost images dissolve into the background.
   - **Spectrum Color Shift (`0.0` to `2.0`)**: Adjust how dynamically historical ghost frames shift colors through your theme's palette over time.
+  - **Visualizer Background Mode**: Pick between **Theme Default (Transparent)**, **Custom RGB Color** (with live hex input `#RRGGBB` and interactive R/G/B sliders), or **Muted Reactive Pulse** (subtle audio-reactive ambient background).
+  - **Customize Mode Parameters**: Select any of the 9 modes from the dropdown to fine-tune mode-specific parameters (Bar count, Warp speed, Aurora themes, Symmetry axes, Ghost trails, Grid decay).
 
 Click the waveform tab on the right edge of the window to open it, click it again (or hit `Escape`) to close it. Drag the divider between the drawer and the library to resize it.
 
