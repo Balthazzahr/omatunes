@@ -839,7 +839,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                         Space::with_height(0).into()
                     };
 
-                    column![
+                    let bg_block: Element<'static, Message> = column![
                         Space::with_height(6),
                         row![
                             text("Custom RGB Color:").size(12).color(theme::text()),
@@ -849,7 +849,8 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                             swatch_btn,
                         ].align_y(Alignment::Center),
                         bg_picker_ui,
-                    ].into()
+                    ].into();
+                    bg_block
                 } else {
                     column![].into()
                 },
