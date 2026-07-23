@@ -310,35 +310,35 @@ impl<'a> SpectrumView<'a> {
         }
     }
 
-    // Mode 3: Extended Lissajous Organic Constellation (Longer, Dynamic Curve)
+    // Mode 3: Extended Multi-Loop Lissajous Constellation Web
     fn draw_particle_constellation_extended(&self, frame: &mut Frame, bounds: Rectangle, bands: &[f32; NUM_BANDS], alpha: f32, shift: f32, tick: u32, age: usize, age_factor: f32) {
         let cx = bounds.width / 2.0;
         let cy = bounds.height / 2.0;
         let tick_f = tick as f32;
         let bass = (bands[..8].iter().sum::<f32>() / 8.0 * self.sensitivity).clamp(0.0, 1.0);
 
-        let num_particles = 64;
+        let num_particles = 80;
         let mut points: Vec<(Point, f32, Color)> = Vec::with_capacity(num_particles);
 
         for i in 0..num_particles {
             let band_idx = (i * 2) % NUM_BANDS;
             let amp = (bands[band_idx] * self.sensitivity).clamp(0.0, 1.0);
 
-            let t = (i as f32 / num_particles as f32) * std::f32::consts::TAU * 2.0 + (tick_f * 0.006) - (age_factor * 0.2);
+            // 3x Lissajous winding loops across full canvas
+            let t = (i as f32 / num_particles as f32) * std::f32::consts::TAU * 3.0 + (tick_f * 0.008) - (age_factor * 0.2);
 
-            // Extended organic Lissajous curve parameters
-            let scale_x = bounds.width * 0.38 + amp * 35.0;
-            let scale_y = bounds.height * 0.35 + bass * 25.0;
+            let scale_x = bounds.width * 0.42 + amp * 40.0;
+            let scale_y = bounds.height * 0.38 + bass * 30.0;
 
-            let px = cx + scale_x * (t * 0.5).sin() * (t * 0.3 + tick_f * 0.002).cos();
-            let py = cy + scale_y * (t * 0.7).cos() + (amp * 20.0 * (t * 3.0).sin());
+            let px = cx + scale_x * (t * 0.6).sin() * (t * 0.4 + tick_f * 0.003).cos();
+            let py = cy + scale_y * (t * 0.8).cos() + (amp * 25.0 * (t * 4.0).sin());
 
-            let particle_shift = shift + (i as f32 * 0.04);
+            let particle_shift = shift + (i as f32 * 0.03);
             let color = apply_ghost_style(theme::spectrum_bar_color(amp), alpha, particle_shift);
             points.push((Point::new(px, py), amp, color));
         }
 
-        // Draw connecting constellation lines
+        // Intertwined web connections with long reach (120px reach threshold)
         for i in 0..points.len() {
             for j in (i + 1)..points.len() {
                 let (p1, a1, c1) = points[i];
@@ -348,15 +348,15 @@ impl<'a> SpectrumView<'a> {
                 let dy = p1.y - p2.y;
                 let dist_sq = dx * dx + dy * dy;
 
-                if dist_sq < 4900.0 {
-                    let line_alpha = (1.0 - (dist_sq.sqrt() / 70.0)) * ((a1 + a2) * 0.5) * 0.65 * alpha;
+                if dist_sq < 14400.0 {
+                    let line_alpha = (1.0 - (dist_sq.sqrt() / 120.0)) * ((a1 + a2) * 0.5) * 0.55 * alpha;
                     if line_alpha > 0.02 {
                         let line_path = Path::line(p1, p2);
                         frame.stroke(
                             &line_path,
                             Stroke::default()
                                 .with_color(Color { a: line_alpha, ..c1 })
-                                .with_width(if age > 0 { 0.9 } else { 1.2 }),
+                                .with_width(if age > 0 { 0.8 } else { 1.1 }),
                         );
                     }
                 }
@@ -366,38 +366,43 @@ impl<'a> SpectrumView<'a> {
         // Draw particle nodes
         for (pt, amp, color) in points {
             let radius = if age > 0 { (1.8 + amp * 3.0) * (1.0 - age_factor * 0.4) } else { 2.5 + amp * 4.5 };
-            let particle_path = Path::circle(pt, radius.max(1.0));
+        let particle_path = Path::circle(pt, radius.max(1.0));
             frame.fill(&particle_path, color);
         }
     }
 
-    // Mode 4: Hyperdrive Depth Tunnel Waterfall
+    // Mode 4: Hyperdrive Warp Depth Tunnel Flight
     fn draw_depth_tunnel(&self, frame: &mut Frame, bounds: Rectangle, bands: &[f32; NUM_BANDS], alpha: f32, shift: f32, tick: u32, age: usize, age_factor: f32) {
         let cx = bounds.width / 2.0;
         let cy = bounds.height / 2.0;
-        let max_r = (cx.min(cy) * 0.85).max(20.0);
+        let max_r = (cx.min(cy) * 0.90).max(20.0);
         let tick_f = tick as f32;
 
-        let ring_count = 7;
-        let num_vertices = 24;
-        let tunnel_contraction = 1.0 - (age_factor * 0.60);
+        let ring_count = 9;
+        let num_vertices = 28;
+
+        // Continuous forward warp motion offset based on tick
+        let warp_phase = (tick_f * 0.035) % 1.0;
 
         let mut ring_pts: Vec<Vec<Point>> = Vec::with_capacity(ring_count);
 
         for k in 0..ring_count {
-            let depth = (k as f32 + 1.0) / ring_count as f32;
-            let scale_r = base_perspective(depth) * max_r * tunnel_contraction;
-            let ring_alpha = (0.25 + (depth * 0.75)) * alpha;
+            // Forward z-motion: rings move continuously outward from depth 0.0 to 1.0
+            let depth = ((k as f32 + warp_phase) / ring_count as f32) % 1.0;
+            if depth < 0.05 { continue; } // Skip rings spawning right at center point
+
+            let scale_r = base_perspective(depth) * max_r * (1.0 - age_factor * 0.4);
+            let ring_alpha = (depth * 0.85) * alpha;
 
             let mut builder = iced::widget::canvas::path::Builder::new();
             let mut current_ring_pts = Vec::with_capacity(num_vertices);
 
             for v in 0..num_vertices {
-                let angle = (v as f32 / num_vertices as f32) * std::f32::consts::TAU + (tick_f * 0.01 * (k as f32 + 1.0)) - (age_factor * 0.1);
+                let angle = (v as f32 / num_vertices as f32) * std::f32::consts::TAU + (tick_f * 0.008 * (k as f32 + 1.0));
                 let band_idx = (v * (NUM_BANDS / num_vertices)) % NUM_BANDS;
                 let amp = (bands[band_idx] * self.sensitivity).clamp(0.0, 1.0);
 
-                let r_mod = scale_r + (amp * 22.0 * depth * tunnel_contraction);
+                let r_mod = scale_r + (amp * 26.0 * depth);
                 let vx = cx + r_mod * angle.cos();
                 let vy = cy + r_mod * angle.sin();
 
@@ -413,15 +418,15 @@ impl<'a> SpectrumView<'a> {
             builder.close();
 
             let path = builder.build();
-            let avg_amp = bands[k * 15 % NUM_BANDS] * self.sensitivity;
+            let avg_amp = bands[k * 12 % NUM_BANDS] * self.sensitivity;
             let base_color = theme::spectrum_bar_color(avg_amp);
-            let color = apply_ghost_style(base_color, ring_alpha, shift + (k as f32 * 0.15));
+            let color = apply_ghost_style(base_color, ring_alpha, shift + (k as f32 * 0.12));
 
             frame.stroke(
                 &path,
                 Stroke::default()
                     .with_color(color)
-                    .with_width(if age > 0 { 1.2 } else { 1.8 + depth * 1.5 }),
+                    .with_width(if age > 0 { 1.0 } else { 1.2 + depth * 2.2 }),
             );
 
             ring_pts.push(current_ring_pts);
@@ -432,19 +437,21 @@ impl<'a> SpectrumView<'a> {
                 let outer_pts = &ring_pts[k + 1];
                 let inner_pts = &ring_pts[k];
 
-                let waterfall_shift = shift + (k as f32 * 0.2) + (age as f32 * 0.25);
-                let waterfall_color = apply_ghost_style(theme::accent(), alpha * 0.45, waterfall_shift);
+                let waterfall_shift = shift + (k as f32 * 0.18);
+                let waterfall_color = apply_ghost_style(theme::accent(), alpha * 0.35, waterfall_shift);
 
                 for v in (0..num_vertices).step_by(2) {
-                    let p1 = outer_pts[v];
-                    let p2 = inner_pts[v];
-                    let line_path = Path::line(p1, p2);
-                    frame.stroke(
-                        &line_path,
-                        Stroke::default()
-                            .with_color(waterfall_color)
-                            .with_width(1.0),
-                    );
+                    if v < outer_pts.len() && v < inner_pts.len() {
+                        let p1 = outer_pts[v];
+                        let p2 = inner_pts[v];
+                        let line_path = Path::line(p1, p2);
+                        frame.stroke(
+                            &line_path,
+                            Stroke::default()
+                                .with_color(waterfall_color)
+                                .with_width(1.0),
+                        );
+                    }
                 }
             }
         }
