@@ -4322,6 +4322,20 @@ impl AppState {
                 Task::none()
             }
 
+            Message::SelectRandomVisualizerMode => {
+                use rand::Rng;
+                let mut rng = rand::thread_rng();
+                let next_mode = loop {
+                    let r = rng.gen_range(0..9);
+                    if r != self.visualizer_mode { break r; }
+                };
+                self.visualizer_mode = next_mode;
+                let mut cfg = crate::config::get();
+                cfg.visualizer_mode = self.visualizer_mode;
+                crate::config::save(cfg);
+                Task::none()
+            }
+
             Message::ToggleSongSearch => {
                 self.show_song_search = !self.show_song_search;
                 if !self.show_song_search {
