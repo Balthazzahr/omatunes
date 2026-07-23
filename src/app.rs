@@ -4951,6 +4951,13 @@ impl AppState {
                 Task::none()
             }
 
+            Message::SettingsVisualizerSettingsModeSelected(idx) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.selected_visualizer_settings_mode = idx;
+                }
+                Task::none()
+            }
+
             Message::SettingsPlaybackDefaultChanged(context, field, value) => {
                 if let Some(ref mut state) = self.show_settings {
                     let entry = match context.as_str() {

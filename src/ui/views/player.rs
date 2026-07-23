@@ -493,6 +493,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     state.visualizer_sensitivity,
                     state.ghost_decay,
                     state.color_shift_speed,
+                    state.spectrograph_bar_count,
                 ))
                 .width(Length::Fill)
                 .height(Length::Fill)
