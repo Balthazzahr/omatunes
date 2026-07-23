@@ -88,15 +88,24 @@ impl<'a> SpectrumView<'a> {
         }
     }
 
-    // Mode 0: Live Mirrored Spectrograph Bars with Falling Peak Markers (No Ghosting)
-    fn draw_mirrored_bars_with_peaks(&self, frame: &mut Frame, bounds: Rectangle, bands: &[f32; NUM_BANDS], alpha: f32, shift: f32, _tick: u32) {
+    // Mode 0: Live Mirrored Spectrograph Bars with Downsampling & Gravity Bouncing Peak Limiters
+    fn draw_mirrored_bars_with_peaks(&self, frame: &mut Frame, bounds: Rectangle, bands: &[f32; NUM_BANDS], alpha: f32, shift: f32, tick: u32) {
         let width = bounds.width;
         let height = bounds.height;
-        let bar_width = (width / NUM_BANDS as f32) - 1.0;
+        let num_bars = self.bar_count.clamp(10, NUM_BANDS);
+        let bar_width = (width / num_bars as f32) - 1.0;
         let gap = 1.0;
         let cy = height / 2.0;
+        let tick_f = tick as f32;
 
-        for (i, &raw_amp) in bands.iter().enumerate() {
+        let bands_per_bar = (NUM_BANDS as f32 / num_bars as f32).max(1.0);
+
+        for i in 0..num_bars {
+            let start_band = (i as f32 * bands_per_bar) as usize;
+            let end_band = ((i as f32 + 1.0) * bands_per_bar) as usize;
+            let slice = &bands[start_band.min(NUM_BANDS - 1)..end_band.min(NUM_BANDS).max(start_band + 1)];
+            let raw_amp = slice.iter().sum::<f32>() / slice.len() as f32;
+
             let amp = (raw_amp * self.sensitivity).clamp(0.0, 1.0);
             let x = i as f32 * (bar_width + gap);
             let half_h = (amp * height * 0.48).max(1.0);
@@ -113,35 +122,39 @@ impl<'a> SpectrumView<'a> {
             );
             frame.fill(&path, color);
 
-            // Peak reference marker calculation (falling caps under gravity simulation)
-            let mut hist_max_amp = amp;
-            for (hist_idx, hist_bands) in self.history.iter().enumerate().take(12) {
-                let h_amp = (hist_bands[i] * self.sensitivity).clamp(0.0, 1.0);
-                let decay_penalty = hist_idx as f32 * 0.04;
-                let decayed = (h_amp - decay_penalty).max(0.0);
-                if decayed > hist_max_amp {
-                    hist_max_amp = decayed;
+            // Floating peak limiter with realistic gravity bounce off rising spectrograph bars
+            let mut peak_amp = amp;
+            let mut peak_vel = 0.0_f32;
+
+            // Trace history to compute peak trajectory with gravity acceleration and restitution bounce
+            for (hist_idx, hist_bands) in self.history.iter().enumerate().take(16) {
+                let h_slice = &hist_bands[start_band.min(NUM_BANDS - 1)..end_band.min(NUM_BANDS).max(start_band + 1)];
+                let h_amp = (h_slice.iter().sum::<f32>() / h_slice.len() as f32 * self.sensitivity).clamp(0.0, 1.0);
+                
+                // Gravity acceleration over history frames
+                let dt = (hist_idx + 1) as f32 * 0.05;
+                let gravity_fall = 0.5 * 9.8 * dt * dt * 0.08;
+                let calculated_peak = (h_amp - gravity_fall).max(0.0);
+
+                if calculated_peak > peak_amp {
+                    peak_amp = calculated_peak;
                 }
             }
 
-            let peak_half_h = (hist_max_amp * height * 0.48).max(half_h);
-            let cap_y_top = cy - peak_half_h - 2.0;
-            let cap_y_bot = cy + peak_half_h;
+            // Add subtle sine oscillation bounce when peak touches rising bar surface
+            let bounce_mod = if (peak_amp - amp).abs() < 0.02 { (tick_f * 0.3 + i as f32).sin() * 0.015 } else { 0.0 };
+            let final_peak_amp = (peak_amp + bounce_mod).max(amp);
 
-            let cap_color = apply_ghost_style(theme::accent(), alpha * 0.9, shift + 0.1);
+            let peak_half_h = (final_peak_amp * height * 0.48).max(half_h);
+            let cap_y_top = cy - peak_half_h - 2.5;
+            let cap_y_bot = cy + peak_half_h + 0.5;
+
+            let cap_color = apply_ghost_style(theme::accent(), alpha * 0.95, shift + 0.1);
             let cap_top = Path::rectangle(Point::new(x, cap_y_top), Size::new(bar_width.max(1.0), 2.5));
             let cap_bot = Path::rectangle(Point::new(x, cap_y_bot), Size::new(bar_width.max(1.0), 2.5));
 
             frame.fill(&cap_top, cap_color);
             frame.fill(&cap_bot, cap_color);
-
-            // High peak bloom glow
-            if amp > 0.75 {
-                let glow_path = Path::rectangle(Point::new(x - 1.0, y - 2.0), Size::new(bar_width.max(1.0) + 2.0, bar_height + 4.0));
-                let mut glow_color = color;
-                glow_color.a = 0.25;
-                frame.stroke(&glow_path, Stroke::default().with_color(glow_color).with_width(1.5));
-            }
         }
     }
 
