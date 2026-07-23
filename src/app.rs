@@ -3760,6 +3760,11 @@ impl AppState {
                     color_shift_speed: cfg.color_shift_speed,
                     spectrograph_bar_count: cfg.spectrograph_bar_count,
                     selected_visualizer_settings_mode: cfg.visualizer_mode,
+                    visualizer_bg_mode: cfg.visualizer_bg_mode,
+                    visualizer_bg_color: cfg.visualizer_bg_color.clone(),
+                    aurora_preset: cfg.aurora_preset,
+                    depth_warp_speed: cfg.depth_warp_speed,
+                    kaleidoscope_axes: cfg.kaleidoscope_axes,
                 });
                 self.show_shortcuts = false;
                 Task::none()
@@ -4981,6 +4986,41 @@ impl AppState {
             Message::SettingsVisualizerSettingsModeSelected(idx) => {
                 if let Some(ref mut state) = self.show_settings {
                     state.selected_visualizer_settings_mode = idx;
+                }
+                Task::none()
+            }
+
+            Message::SettingsVisualizerBgModeChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.visualizer_bg_mode = val;
+                }
+                Task::none()
+            }
+
+            Message::SettingsVisualizerBgColorChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.visualizer_bg_color = val;
+                }
+                Task::none()
+            }
+
+            Message::SettingsAuroraPresetChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.aurora_preset = val;
+                }
+                Task::none()
+            }
+
+            Message::SettingsDepthWarpSpeedChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.depth_warp_speed = val;
+                }
+                Task::none()
+            }
+
+            Message::SettingsKaleidoscopeAxesChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.kaleidoscope_axes = val;
                 }
                 Task::none()
             }
