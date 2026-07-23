@@ -4702,12 +4702,22 @@ impl AppState {
                     cfg.ghost_decay = state.ghost_decay;
                     cfg.color_shift_speed = state.color_shift_speed;
                     cfg.spectrograph_bar_count = state.spectrograph_bar_count;
+                    cfg.visualizer_bg_mode = state.visualizer_bg_mode;
+                    cfg.visualizer_bg_color = state.visualizer_bg_color.clone();
+                    cfg.aurora_preset = state.aurora_preset;
+                    cfg.depth_warp_speed = state.depth_warp_speed;
+                    cfg.kaleidoscope_axes = state.kaleidoscope_axes;
                     
                     self.visualizer_sensitivity = state.visualizer_sensitivity;
                     self.ghost_trail_length = state.ghost_trail_length;
                     self.ghost_decay = state.ghost_decay;
                     self.color_shift_speed = state.color_shift_speed;
                     self.spectrograph_bar_count = state.spectrograph_bar_count;
+                    self.visualizer_bg_mode = state.visualizer_bg_mode;
+                    self.visualizer_bg_color = state.visualizer_bg_color.clone();
+                    self.aurora_preset = state.aurora_preset;
+                    self.depth_warp_speed = state.depth_warp_speed;
+                    self.kaleidoscope_axes = state.kaleidoscope_axes;
                     
                     cfg.theme_source = state.theme_source.clone();
                     cfg.theme_preset = state.theme_preset.clone();
