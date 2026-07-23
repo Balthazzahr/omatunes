@@ -115,6 +115,8 @@ pub struct Config {
     pub ghost_decay: f32,
     #[serde(default = "default_color_shift_speed")]
     pub color_shift_speed: f32,
+    #[serde(default = "default_spectrograph_bar_count")]
+    pub spectrograph_bar_count: usize,
 }
 
 impl Default for Config {
@@ -138,6 +140,7 @@ impl Default for Config {
             ghost_trail_length: 8,
             ghost_decay: 0.45,
             color_shift_speed: 1.0,
+            spectrograph_bar_count: 64,
         }
     }
 }
@@ -275,4 +278,8 @@ fn default_ghost_decay() -> f32 {
 
 fn default_color_shift_speed() -> f32 {
     1.0
+}
+
+fn default_spectrograph_bar_count() -> usize {
+    64
 }
