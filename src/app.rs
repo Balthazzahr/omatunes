@@ -327,6 +327,7 @@ pub enum Message {
     SettingsGhostDecayChanged(f32),
     SettingsColorShiftSpeedChanged(f32),
     SettingsSpectrographBarCountChanged(usize),
+    SettingsVisualizerSettingsModeSelected(usize),
     PickMusicFolder,
     MusicFolderPicked(Option<std::path::PathBuf>),
 
@@ -4569,6 +4570,8 @@ impl AppState {
                     ghost_trail_length: cfg.ghost_trail_length,
                     ghost_decay: cfg.ghost_decay,
                     color_shift_speed: cfg.color_shift_speed,
+                    spectrograph_bar_count: cfg.spectrograph_bar_count,
+                    selected_visualizer_settings_mode: cfg.visualizer_mode,
                 });
                 Task::none()
             }
