@@ -35,7 +35,7 @@ impl<'a, Message> canvas::Program<Message> for SpectrumView<'a> {
         let mut frame = Frame::new(renderer, bounds.size());
 
         let bg_fill = match self.bg_mode {
-            1 => parse_hex_color(self.bg_color).unwrap_or(Color::TRANSPARENT),
+            1 => theme::hex_to_color(self.bg_color).unwrap_or(Color::TRANSPARENT),
             2 => {
                 let bass = (self.bands[..10].iter().sum::<f32>() / 10.0 * self.sensitivity).clamp(0.0, 1.0);
                 let mid = (self.bands[10..50].iter().sum::<f32>() / 40.0 * self.sensitivity).clamp(0.0, 1.0);
