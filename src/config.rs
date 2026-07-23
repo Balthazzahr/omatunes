@@ -117,6 +117,16 @@ pub struct Config {
     pub color_shift_speed: f32,
     #[serde(default = "default_spectrograph_bar_count")]
     pub spectrograph_bar_count: usize,
+    #[serde(default)]
+    pub visualizer_bg_mode: usize, // 0 = Theme, 1 = Custom RGB, 2 = Muted Reactive
+    #[serde(default = "default_visualizer_bg_color")]
+    pub visualizer_bg_color: String,
+    #[serde(default)]
+    pub aurora_preset: usize, // 0 = Emerald Glow, 1 = Solar Flare, 2 = Polar Pink & Blue
+    #[serde(default = "default_depth_warp_speed")]
+    pub depth_warp_speed: f32,
+    #[serde(default = "default_kaleidoscope_axes")]
+    pub kaleidoscope_axes: usize,
 }
 
 impl Default for Config {
@@ -141,6 +151,11 @@ impl Default for Config {
             ghost_decay: 0.45,
             color_shift_speed: 1.0,
             spectrograph_bar_count: 64,
+            visualizer_bg_mode: 0,
+            visualizer_bg_color: "#0f0f1a".into(),
+            aurora_preset: 0,
+            depth_warp_speed: 1.0,
+            kaleidoscope_axes: 8,
         }
     }
 }
@@ -282,4 +297,16 @@ fn default_color_shift_speed() -> f32 {
 
 fn default_spectrograph_bar_count() -> usize {
     64
+}
+
+fn default_visualizer_bg_color() -> String {
+    "#0f0f1a".to_string()
+}
+
+fn default_depth_warp_speed() -> f32 {
+    1.0
+}
+
+fn default_kaleidoscope_axes() -> usize {
+    8
 }
