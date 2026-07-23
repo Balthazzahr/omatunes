@@ -278,6 +278,7 @@ pub enum Message {
     SelectPlaylistTab(PlaylistTab),
     ToggleRightPanelTab(RightPanelTab),
     SelectVisualizerMode(usize),
+    SelectRandomVisualizerMode,
     ToggleSongSearch,
     ToggleSidebarSearch,
     HoverSidebarSearch(bool),
