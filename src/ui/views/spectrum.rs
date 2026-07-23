@@ -472,15 +472,55 @@ impl<'a> SpectrumView<'a> {
         }
     }
 
-    // Mode 5: NEW - 3D Wireframe Depth Grid
-    fn draw_3d_wireframe_grid(&self, frame: &mut Frame, bounds: Rectangle, bands: &[f32; NUM_BANDS], alpha: f32, shift: f32, _tick: u32) {
+    // Mode 5: Rolling Plains (Dense Rolling Audio Fields with Twilight Sky Backdrop)
+    fn draw_3d_wireframe_grid(&self, frame: &mut Frame, bounds: Rectangle, bands: &[f32; NUM_BANDS], alpha: f32, shift: f32, tick: u32) {
         let width = bounds.width;
         let height = bounds.height;
         let horizon_y = height * 0.45;
+        let tick_f = tick as f32;
 
-        let num_cols = 28;
-        let num_rows = 14;
+        let num_cols = 36;
+        let num_rows = 18;
 
+        // 1. Twilight Sky Backdrop (Atmospheric Gradient with Shifting Stars)
+        let sky_gradient = Path::rectangle(Point::ORIGIN, Size::new(width, horizon_y));
+        let sky_color = Color::from_rgb(0.04, 0.06, 0.14);
+        frame.fill(&sky_gradient, Color { a: alpha * 0.9, ..sky_color });
+
+        // Distant twinkling sky stars
+        for i in 0..25 {
+            let sx = (i as f32 * 47.0 + tick_f * 0.2) % width;
+            let sy = (i as f32 * 23.0) % (horizon_y * 0.85);
+            let s_alpha = (0.3 + (tick_f * 0.05 + i as f32).sin() * 0.2) * alpha;
+            let star = Path::circle(Point::new(sx, sy), 1.2);
+            frame.fill(&star, Color { a: s_alpha.clamp(0.1, 0.8), ..Color::WHITE });
+        }
+
+        // Distant horizon mountain silhouette for Rolling Plains
+        let mut dist_mtn = iced::widget::canvas::path::Builder::new();
+        dist_mtn.move_to(Point::new(0.0, horizon_y));
+        for m in 0..=12 {
+            let mx = m as f32 * (width / 12.0);
+            let mh = 15.0 + (m % 4) as f32 * 12.0;
+            dist_mtn.line_to(Point::new(mx, horizon_y - mh));
+        }
+        dist_mtn.line_to(Point::new(width, horizon_y));
+        dist_mtn.close();
+        frame.fill(&dist_mtn.build(), Color::from_rgb(0.07, 0.09, 0.18));
+
+        // 2. Vertical Perspective Grid Lines extending from horizon down to foreground
+        let cx = width / 2.0;
+        for c in 0..num_cols {
+            let col_t = c as f32 / (num_cols - 1) as f32;
+            let start_x = cx + (col_t - 0.5) * width * 0.20;
+            let end_x = cx + (col_t - 0.5) * width * 1.50;
+
+            let col_line = Path::line(Point::new(start_x, horizon_y), Point::new(end_x, height));
+            let col_color = apply_ghost_style(theme::accent(), alpha * 0.40, shift + col_t * 0.2);
+            frame.stroke(&col_line, Stroke::default().with_color(col_color).with_width(0.9));
+        }
+
+        // 3. Dense Rolling Audio Field Waves
         for r in 0..num_rows {
             let row_t = (r as f32 + 1.0) / num_rows as f32;
             let y = horizon_y + (row_t * row_t) * (height - horizon_y);
@@ -488,12 +528,12 @@ impl<'a> SpectrumView<'a> {
             let mut builder = iced::widget::canvas::path::Builder::new();
             for c in 0..num_cols {
                 let col_t = c as f32 / (num_cols - 1) as f32;
-                let x_spread = (col_t - 0.5) * width * (0.2 + row_t * 1.1);
+                let x_spread = (col_t - 0.5) * width * (0.2 + row_t * 1.3);
                 let x = width * 0.5 + x_spread;
 
-                let band_idx = (c * (NUM_BANDS / num_cols)) % NUM_BANDS;
+                let band_idx = (c * (NUM_BANDS / num_cols) + r * 2) % NUM_BANDS;
                 let amp = (bands[band_idx] * self.sensitivity).clamp(0.0, 1.0);
-                let ridge_y = y - (amp * 40.0 * row_t);
+                let ridge_y = y - (amp * 48.0 * row_t);
 
                 if c == 0 {
                     builder.move_to(Point::new(x, ridge_y));
@@ -502,8 +542,8 @@ impl<'a> SpectrumView<'a> {
                 }
             }
 
-            let line_color = apply_ghost_style(theme::accent(), alpha * row_t, shift + (r as f32 * 0.08));
-            frame.stroke(&builder.build(), Stroke::default().with_color(line_color).with_width(1.2 * row_t + 0.5));
+            let line_color = apply_ghost_style(theme::accent(), alpha * row_t * 0.95, shift + (r as f32 * 0.06));
+            frame.stroke(&builder.build(), Stroke::default().with_color(line_color).with_width(1.3 * row_t + 0.6));
         }
     }
 
