@@ -1015,6 +1015,7 @@ impl AppState {
             ghost_trail_length: cfg.ghost_trail_length,
             ghost_decay: cfg.ghost_decay,
             color_shift_speed: cfg.color_shift_speed,
+            spectrograph_bar_count: cfg.spectrograph_bar_count,
             spectrum_history: std::collections::VecDeque::with_capacity(16),
             right_panel_tab_user_scrolled: false,
             show_song_search: false,
@@ -4932,6 +4933,13 @@ impl AppState {
             Message::SettingsColorShiftSpeedChanged(val) => {
                 if let Some(ref mut state) = self.show_settings {
                     state.color_shift_speed = val;
+                }
+                Task::none()
+            }
+
+            Message::SettingsSpectrographBarCountChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.spectrograph_bar_count = val;
                 }
                 Task::none()
             }
