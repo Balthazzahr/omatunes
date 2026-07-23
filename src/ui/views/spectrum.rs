@@ -249,15 +249,6 @@ impl<'a> SpectrumView<'a> {
                     .with_line_cap(LineCap::Round),
             );
         }
-            let path = Path::line(Point::new(inner_x, inner_y), Point::new(outer_x, outer_y));
-            frame.stroke(
-                &path,
-                Stroke::default()
-                    .with_color(spoke_color)
-                    .with_width(2.0)
-                    .with_line_cap(LineCap::Round),
-            );
-        }
     }
 
     // Mode 2: Liquid Rainbow Ribbon Stream
