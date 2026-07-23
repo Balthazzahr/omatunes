@@ -584,7 +584,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                 "2: Liquid Ribbon",
                 "3: Particle Constellation",
                 "4: Depth Tunnel",
-                "5: 3D Wireframe Grid",
+                "5: Rolling Plains",
                 "6: Kaleidoscope Mirror",
                 "7: Cosmic Aurora",
                 "8: Retro Synthwave Horizon",
@@ -602,7 +602,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                         "2: Liquid Ribbon" => 2,
                         "3: Particle Constellation" => 3,
                         "4: Depth Tunnel" => 4,
-                        "5: 3D Wireframe Grid" => 5,
+                        "5: Rolling Plains" => 5,
                         "6: Kaleidoscope Mirror" => 6,
                         "7: Cosmic Aurora" => 7,
                         "8: Retro Synthwave Horizon" => 8,
@@ -777,6 +777,82 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                 Space::with_height(16),
                 field_label("Visualizer Background Mode"),
                 bg_mode_picker,
+                if state.visualizer_bg_mode == 1 {
+                    let bg_hex = &state.visualizer_bg_color;
+                    let parsed = crate::ui::theme::hex_to_color(bg_hex).unwrap_or(iced::Color::from_rgb(0.06, 0.06, 0.10));
+                    let is_expanded = state.color_picker_token.as_deref() == Some("visualizer_bg");
+                    let (pr, pg, pb) = if is_expanded {
+                        (state.color_picker_r, state.color_picker_g, state.color_picker_b)
+                    } else {
+                        ((parsed.r * 255.0).round(), (parsed.g * 255.0).round(), (parsed.b * 255.0).round())
+                    };
+
+                    let swatch = container(Space::new(Length::Fixed(20.0), Length::Fixed(20.0)))
+                        .style(move |_| iced::widget::container::Style {
+                            background: Some(iced::Background::Color(parsed)),
+                            border: iced::Border {
+                                color: if is_expanded { theme::accent() } else { theme::surface0() },
+                                width: 1.0,
+                                radius: 4.0.into(),
+                            },
+                            ..Default::default()
+                        })
+                        .width(20.0)
+                        .height(20.0);
+
+                    let swatch_btn = button(swatch)
+                        .on_press(Message::SettingsColorPickerToggle("visualizer_bg".to_string()))
+                        .padding(0)
+                        .style(|_, _| iced::widget::button::Style {
+                            background: None,
+                            border: iced::Border { width: 0.0, ..Default::default() },
+                            shadow: iced::Shadow::default(),
+                            text_color: iced::Color::TRANSPARENT,
+                        });
+
+                    let bg_input = text_input("#RRGGBB", bg_hex)
+                        .on_input(|v| Message::SettingsVisualizerBgColorChanged(v))
+                        .padding(6)
+                        .size(12)
+                        .width(Length::Fixed(120.0));
+
+                    let bg_picker_ui: Element<'static, Message> = if is_expanded {
+                        column![
+                            Space::with_height(4),
+                            row![
+                                text("R").size(11).width(14).color(theme::subtext()),
+                                slider(0.0..=255.0, pr, Message::SettingsColorPickerRChanged).width(Length::Fill),
+                                text(format!("{}", pr.round() as u8)).size(11).width(24).color(theme::text()),
+                            ].spacing(6).align_y(Alignment::Center),
+                            row![
+                                text("G").size(11).width(14).color(theme::subtext()),
+                                slider(0.0..=255.0, pg, Message::SettingsColorPickerGChanged).width(Length::Fill),
+                                text(format!("{}", pg.round() as u8)).size(11).width(24).color(theme::text()),
+                            ].spacing(6).align_y(Alignment::Center),
+                            row![
+                                text("B").size(11).width(14).color(theme::subtext()),
+                                slider(0.0..=255.0, pb, Message::SettingsColorPickerBChanged).width(Length::Fill),
+                                text(format!("{}", pb.round() as u8)).size(11).width(24).color(theme::text()),
+                            ].spacing(6).align_y(Alignment::Center),
+                        ].spacing(4).into()
+                    } else {
+                        Space::with_height(0).into()
+                    };
+
+                    column![
+                        Space::with_height(6),
+                        row![
+                            text("Custom RGB Color:").size(12).color(theme::text()),
+                            Space::with_width(12),
+                            bg_input,
+                            Space::with_width(8),
+                            swatch_btn,
+                        ].align_y(Alignment::Center),
+                        bg_picker_ui,
+                    ].into()
+                } else {
+                    column![].into()
+                },
 
                 Space::with_height(20),
                 section_header("Customize Mode Parameters"),
