@@ -14,6 +14,11 @@ pub struct SpectrumView<'a> {
     pub decay: f32,
     pub color_shift: f32,
     pub bar_count: usize,
+    pub bg_mode: usize,
+    pub bg_color: &'a str,
+    pub aurora_preset: usize,
+    pub depth_warp_speed: f32,
+    pub kaleidoscope_axes: usize,
 }
 
 impl<'a, Message> canvas::Program<Message> for SpectrumView<'a> {
@@ -692,6 +697,11 @@ pub fn view<'a>(
     decay: f32,
     color_shift: f32,
     bar_count: usize,
+    bg_mode: usize,
+    bg_color: &'a str,
+    aurora_preset: usize,
+    depth_warp_speed: f32,
+    kaleidoscope_axes: usize,
 ) -> Element<'a, Message> {
     Canvas::new(SpectrumView {
         bands,
@@ -702,6 +712,11 @@ pub fn view<'a>(
         decay,
         color_shift,
         bar_count,
+        bg_mode,
+        bg_color,
+        aurora_preset,
+        depth_warp_speed,
+        kaleidoscope_axes,
     })
     .width(Length::Fill)
     .height(Length::Fill)
