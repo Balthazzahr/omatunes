@@ -158,15 +158,14 @@ impl<'a> SpectrumView<'a> {
         }
     }
 
-    // Mode 1: Radial Pulse with 4-Group Expanding Circles into Infinity & Music-Reactive Core
+    // Mode 1: Radial Pulse with Clean Spike-Triggered Infinite Shockwaves & Radial Bass Sparks
     fn draw_radial_pulse_expanding_waves(&self, frame: &mut Frame, bounds: Rectangle, bands: &[f32; NUM_BANDS], alpha: f32, shift: f32, tick: u32) {
         let cx = bounds.width / 2.0;
         let cy = bounds.height / 2.0;
         let max_r = (cx.min(cy) * 0.85).max(20.0);
-        let base_r = max_r * 0.22;
+        let base_r = max_r * 0.20;
         let tick_f = tick as f32;
 
-        // 4 Frequency Band Energy Groups (Bass, Low-Mid, High-Mid, Treble)
         let bass_energy = (bands[..10].iter().sum::<f32>() / 10.0 * self.sensitivity).clamp(0.0, 1.0);
         let low_mid_energy = (bands[10..35].iter().sum::<f32>() / 25.0 * self.sensitivity).clamp(0.0, 1.0);
         let high_mid_energy = (bands[35..75].iter().sum::<f32>() / 40.0 * self.sensitivity).clamp(0.0, 1.0);
@@ -179,11 +178,12 @@ impl<'a> SpectrumView<'a> {
             (treble_energy, theme::spectrum_bar_color(0.35), 0.6_f32),
         ];
 
-        // Render expanding shockwave circles launched into infinity based on group spikes
+        // 1. Render expanding shockwave circles launched into infinity ONLY on genuine energy spikes
         let hist_len = self.history.len();
         if hist_len > 0 {
             for (group_idx, &(energy, color, color_offset)) in group_energies.iter().enumerate() {
-                if energy > 0.2 {
+                // High threshold trigger so rings only spawn on spikes rather than continuously
+                if energy > 0.45 {
                     for (idx, hist_bands) in self.history.iter().enumerate() {
                         let age = hist_len - idx;
                         let range_energy = match group_idx {
@@ -193,15 +193,15 @@ impl<'a> SpectrumView<'a> {
                             _ => hist_bands[75..144].iter().sum::<f32>() / 69.0,
                         } * self.sensitivity;
 
-                        if range_energy > 0.3 {
-                            let ring_r = base_r + (age as f32 * 18.0 * (1.0 + group_idx as f32 * 0.25));
-                            let opacity = (1.0 - (ring_r / (cx.max(cy) * 1.2))).clamp(0.0, 0.85) * alpha;
+                        if range_energy > 0.50 {
+                            let ring_r = base_r + (age as f32 * 24.0 * (1.0 + group_idx as f32 * 0.2));
+                            let opacity = (1.0 - (ring_r / (cx.max(cy) * 1.3))).clamp(0.0, 0.90) * alpha;
                             if opacity > 0.02 {
                                 let ring_path = Path::circle(Point::new(cx, cy), ring_r);
                                 let ring_color = apply_ghost_style(color, opacity, shift + color_offset);
                                 frame.stroke(
                                     &ring_path,
-                                    Stroke::default().with_color(ring_color).with_width(1.5 + range_energy * 2.0),
+                                    Stroke::default().with_color(ring_color).with_width(2.0 + range_energy * 3.0),
                                 );
                             }
                         }
@@ -210,32 +210,24 @@ impl<'a> SpectrumView<'a> {
             }
         }
 
-        // Dynamic Inner Core: Reactive Flower / Star Polygon
-        let core_r = base_r + bass_energy * 14.0;
-        let num_petals = 8;
-        let mut core_builder = iced::widget::canvas::path::Builder::new();
+        // 2. Radial Bass Spark Explosions shooting out on bass hits
+        if bass_energy > 0.6 {
+            let spark_count = 12;
+            for s in 0..spark_count {
+                let spark_angle = (s as f32 / spark_count as f32) * std::f32::consts::TAU + (tick_f * 0.05);
+                let spark_dist = base_r + bass_energy * max_r * 0.65;
+                let sx = cx + spark_dist * spark_angle.cos();
+                let sy = cy + spark_dist * spark_angle.sin();
 
-        for p in 0..(num_petals * 2) {
-            let angle = (p as f32 / (num_petals * 2) as f32) * std::f32::consts::TAU + (tick_f * 0.02);
-            let petal_mod = if p % 2 == 0 { core_r * (1.0 + low_mid_energy * 0.35) } else { core_r * 0.65 };
-            let px = cx + petal_mod * angle.cos();
-            let py = cy + petal_mod * angle.sin();
-
-            if p == 0 {
-                core_builder.move_to(Point::new(px, py));
-            } else {
-                core_builder.line_to(Point::new(px, py));
+                let spark_path = Path::circle(Point::new(sx, sy), 2.5 + bass_energy * 3.5);
+                let spark_color = apply_ghost_style(theme::accent(), alpha * 0.85, shift + s as f32 * 0.05);
+                frame.fill(&spark_path, spark_color);
             }
         }
-        core_builder.close();
-        let core_path = core_builder.build();
 
-        let core_color = apply_ghost_style(theme::accent(), alpha * 0.6, shift);
-        frame.fill(&core_path, Color { a: core_color.a * 0.35, ..core_color });
-        frame.stroke(&core_path, Stroke::default().with_color(core_color).with_width(2.0));
-
-        // Radial Spectrum Spokes
+        // 3. Radial Spectrum Spokes emanating cleanly from base_r
         let num = NUM_BANDS;
+        let core_r = base_r;
         for (i, &raw_amp) in bands.iter().enumerate() {
             let amp = (raw_amp * self.sensitivity).clamp(0.0, 1.0);
             let angle = (i as f32 / num as f32) * std::f32::consts::TAU - (std::f32::consts::FRAC_PI_2);
@@ -248,6 +240,15 @@ impl<'a> SpectrumView<'a> {
             let outer_y = cy + (core_r + spoke_len) * angle.sin();
 
             let spoke_color = apply_ghost_style(theme::spectrum_bar_color(amp), alpha, shift);
+            let path = Path::line(Point::new(inner_x, inner_y), Point::new(outer_x, outer_y));
+            frame.stroke(
+                &path,
+                Stroke::default()
+                    .with_color(spoke_color)
+                    .with_width(2.0)
+                    .with_line_cap(LineCap::Round),
+            );
+        }
             let path = Path::line(Point::new(inner_x, inner_y), Point::new(outer_x, outer_y));
             frame.stroke(
                 &path,
