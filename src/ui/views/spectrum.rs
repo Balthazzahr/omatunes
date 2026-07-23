@@ -384,38 +384,40 @@ impl<'a> SpectrumView<'a> {
         }
     }
 
-    // Mode 4: Hyperdrive Warp Depth Tunnel Flight
+    // Mode 4: Hyperdrive Warp Depth Tunnel Flight (Infinite Unconstrained Perspective)
     fn draw_depth_tunnel(&self, frame: &mut Frame, bounds: Rectangle, bands: &[f32; NUM_BANDS], alpha: f32, shift: f32, tick: u32, age: usize, age_factor: f32) {
         let cx = bounds.width / 2.0;
         let cy = bounds.height / 2.0;
-        let max_r = (cx.min(cy) * 0.90).max(20.0);
+        let diag_corner = (cx * cx + cy * cy).sqrt();
+        let max_r = diag_corner * 1.35; // Expand beyond corner bounds
         let tick_f = tick as f32;
 
-        let ring_count = 9;
+        let ring_count = 12;
         let num_vertices = 28;
 
-        // Continuous forward warp motion offset based on tick
-        let warp_phase = (tick_f * 0.035) % 1.0;
+        // Continuous forward warp motion with speed parameter
+        let speed_factor = self.depth_warp_speed.clamp(0.2, 3.0);
+        let warp_phase = (tick_f * 0.030 * speed_factor) % 1.0;
 
         let mut ring_pts: Vec<Vec<Point>> = Vec::with_capacity(ring_count);
 
         for k in 0..ring_count {
-            // Forward z-motion: rings move continuously outward from depth 0.0 to 1.0
-            let depth = ((k as f32 + warp_phase) / ring_count as f32) % 1.0;
-            if depth < 0.05 { continue; } // Skip rings spawning right at center point
+            // Unconstrained z-depth: expand smoothly from 0.02 out to 1.15
+            let depth = ((k as f32 + warp_phase) / ring_count as f32) * 1.15;
+            if depth < 0.03 { continue; } // Center tunnel spawn point
 
             let scale_r = base_perspective(depth) * max_r * (1.0 - age_factor * 0.4);
-            let ring_alpha = (depth * 0.85) * alpha;
+            let ring_alpha = (depth * 0.95).min(1.0) * alpha;
 
             let mut builder = iced::widget::canvas::path::Builder::new();
             let mut current_ring_pts = Vec::with_capacity(num_vertices);
 
             for v in 0..num_vertices {
-                let angle = (v as f32 / num_vertices as f32) * std::f32::consts::TAU + (tick_f * 0.008 * (k as f32 + 1.0));
+                let angle = (v as f32 / num_vertices as f32) * std::f32::consts::TAU + (tick_f * 0.006 * (k as f32 + 1.0));
                 let band_idx = (v * (NUM_BANDS / num_vertices)) % NUM_BANDS;
                 let amp = (bands[band_idx] * self.sensitivity).clamp(0.0, 1.0);
 
-                let r_mod = scale_r + (amp * 26.0 * depth);
+                let r_mod = scale_r + (amp * 35.0 * depth);
                 let vx = cx + r_mod * angle.cos();
                 let vy = cy + r_mod * angle.sin();
 
@@ -431,15 +433,15 @@ impl<'a> SpectrumView<'a> {
             builder.close();
 
             let path = builder.build();
-            let avg_amp = bands[k * 12 % NUM_BANDS] * self.sensitivity;
+            let avg_amp = bands[k * 10 % NUM_BANDS] * self.sensitivity;
             let base_color = theme::spectrum_bar_color(avg_amp);
-            let color = apply_ghost_style(base_color, ring_alpha, shift + (k as f32 * 0.12));
+            let color = apply_ghost_style(base_color, ring_alpha, shift + (k as f32 * 0.10));
 
             frame.stroke(
                 &path,
                 Stroke::default()
                     .with_color(color)
-                    .with_width(if age > 0 { 1.0 } else { 1.2 + depth * 2.2 }),
+                    .with_width(if age > 0 { 1.0 } else { 1.2 + depth * 3.5 }),
             );
 
             ring_pts.push(current_ring_pts);
@@ -547,11 +549,20 @@ impl<'a> SpectrumView<'a> {
             let curtain_x_start = (c as f32 / num_curtains as f32) * width;
             let curtain_width = width * 0.35;
 
-            // Plasma curtain color palette (Polar Emerald #00ff88 & Aurora Magenta #ff00c8)
-            let base_aurora_color = if c % 2 == 0 {
-                Color::from_rgb(0.0, 0.95, 0.55) // Emerald
-            } else {
-                Color::from_rgb(0.95, 0.10, 0.75) // Magenta
+            // Plasma curtain color palette based on aurora_preset setting
+            let base_aurora_color = match self.aurora_preset {
+                1 => {
+                    // Preset 1: Solar Flare (Warm Orange & Gold)
+                    if c % 2 == 0 { Color::from_rgb(1.0, 0.45, 0.0) } else { Color::from_rgb(1.0, 0.80, 0.0) }
+                }
+                2 => {
+                    // Preset 2: Polar Pink & Ice Blue
+                    if c % 2 == 0 { Color::from_rgb(1.0, 0.05, 0.65) } else { Color::from_rgb(0.0, 0.80, 1.0) }
+                }
+                _ => {
+                    // Preset 0 (Default): Emerald Glow & Aurora Magenta
+                    if c % 2 == 0 { Color::from_rgb(0.0, 0.95, 0.55) } else { Color::from_rgb(0.95, 0.10, 0.75) }
+                }
             };
 
             for i in 0..num_points {
