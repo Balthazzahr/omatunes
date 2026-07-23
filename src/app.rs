@@ -4876,6 +4876,7 @@ impl AppState {
                             "red" => &state.custom_theme.red,
                             "yellow" => &state.custom_theme.yellow,
                             "blue" => &state.custom_theme.blue,
+                            "visualizer_bg" => &state.visualizer_bg_color,
                             _ => "#000000",
                         };
                         let clean = hex.trim_start_matches('#');
@@ -4885,6 +4886,27 @@ impl AppState {
                             state.color_picker_b = u8::from_str_radix(&clean[4..6], 16).unwrap_or(0) as f32;
                         }
                         state.color_picker_token = Some(token);
+                    }
+                }
+                Task::none()
+            }
+
+            Message::SettingsCustomColorChanged(token, val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    if token == "visualizer_bg" {
+                        state.visualizer_bg_color = val;
+                    } else {
+                        state.confirm_save_anyway = false;
+                        match token.as_str() {
+                            "base" => state.custom_theme.base = val,
+                            "text" => state.custom_theme.text = val,
+                            "accent" => state.custom_theme.accent = val,
+                            "green" => state.custom_theme.green = val,
+                            "red" => state.custom_theme.red = val,
+                            "yellow" => state.custom_theme.yellow = val,
+                            "blue" => state.custom_theme.blue = val,
+                            _ => {}
+                        }
                     }
                 }
                 Task::none()
