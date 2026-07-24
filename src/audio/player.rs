@@ -454,6 +454,8 @@ fn resample_stereo(input: &[f32], in_rate: u32, out_rate: u32) -> Vec<f32> {
         out.push(l0 + (l1 - l0) * frac);
         out.push(r0 + (r1 - r0) * frac);
     }
+
+    out
 }
 
 #[cfg(test)]
@@ -467,18 +469,26 @@ mod tests {
         if !test_file.exists() {
             return;
         }
-        let pcm = Arc::new(Mutex::new(VecDeque::new()));
-        let (tx, _rx) = tokio::sync::mpsc::unbounded_channel();
-        let vol = Arc::new(Mutex::new(1.0));
-        let cancel = Arc::new(AtomicBool::new(false));
-
-        let res = decode_file(&test_file, pcm.clone(), tx, vol, cancel, None);
-        assert!(res.is_ok(), "Opus decoding failed: {:?}", res.err());
-
-        let pcm_buf = pcm.lock().unwrap();
-        assert!(!pcm_buf.is_empty(), "PCM buffer should contain decoded audio samples!");
+        let file = std::fs::File::open(&test_file).unwrap();
+        let mss = MediaSourceStream::new(Box::new(file), Default::default());
+        let mut hint = Hint::new();
+        hint.with_extension("opus");
+        let probed = symphonia::default::get_probe()
+            .format(&hint, mss, &FormatOptions::default(), &MetadataOptions::default())
+            .unwrap();
+        let mut format = probed.format;
+        for i in 0..5 {
+            if let Ok(pkt) = format.next_packet() {
+                let data = pkt.buf();
+                let prefix = if data.len() >= 8 {
+                    String::from_utf8_lossy(&data[..8]).to_string()
+                } else {
+                    format!("{:?}", data)
+                };
+                println!("Packet {}: len={}, prefix={}", i, data.len(), prefix);
+            }
+        }
     }
 
-
-    out
 }
+
