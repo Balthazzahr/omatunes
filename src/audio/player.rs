@@ -454,6 +454,31 @@ fn resample_stereo(input: &[f32], in_rate: u32, out_rate: u32) -> Vec<f32> {
         out.push(l0 + (l1 - l0) * frac);
         out.push(r0 + (r1 - r0) * frac);
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    #[test]
+    fn test_opus_decoding() {
+        let test_file = PathBuf::from("/tmp/test_opus.opus");
+        if !test_file.exists() {
+            return;
+        }
+        let pcm = Arc::new(Mutex::new(VecDeque::new()));
+        let (tx, _rx) = tokio::sync::mpsc::unbounded_channel();
+        let vol = Arc::new(Mutex::new(1.0));
+        let cancel = Arc::new(AtomicBool::new(false));
+
+        let res = decode_file(&test_file, pcm.clone(), tx, vol, cancel, None);
+        assert!(res.is_ok(), "Opus decoding failed: {:?}", res.err());
+
+        let pcm_buf = pcm.lock().unwrap();
+        assert!(!pcm_buf.is_empty(), "PCM buffer should contain decoded audio samples!");
+    }
+
 
     out
 }
