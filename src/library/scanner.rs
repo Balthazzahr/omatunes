@@ -287,3 +287,32 @@ pub fn write_tags(
     Ok(())
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_embed_cover() {
+        let opus_path = Path::new("/home/user/Music/At The Drive-In/Acrobatic Tenement/01 Star Slight (Opus).opus");
+        let cover_path = "/tmp/cover.jpg";
+        if opus_path.exists() && Path::new(cover_path).exists() {
+            let res = write_tags(
+                opus_path,
+                "Star Slight (Opus)",
+                "At The Drive-In",
+                "Acrobatic Tenement",
+                "Post-Hardcore; Alternative-Rock",
+                Some(1),
+                None,
+                Some(cover_path),
+                Some(1996),
+                None,
+            );
+            assert!(res.is_ok(), "Failed to embed cover in Opus: {:?}", res.err());
+            println!("Embedded cover art into Opus file!");
+            let loaded = load_cover(opus_path);
+            assert!(loaded.is_some(), "Embedded cover art should be readable by load_cover!");
+        }
+    }
+}
+
