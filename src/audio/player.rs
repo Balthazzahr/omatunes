@@ -344,7 +344,10 @@ fn decode_file(
     let n_frames  = track.codec_params.n_frames;
     let file_rate = track.codec_params.sample_rate.unwrap_or(44100);
 
-    let mut decoder = symphonia::default::get_codecs()
+    let mut codecs = symphonia::default::get_codecs();
+    codecs.register_all::<moosicbox_opus::OpusDecoder>();
+
+    let mut decoder = codecs
         .make(&track.codec_params, &DecoderOptions::default())
         .map_err(|e| anyhow!("Decoder: {e}"))?;
 
