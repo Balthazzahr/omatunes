@@ -9,7 +9,7 @@ iced = { version = "0.13", features = ["image", "canvas", "tokio", "lazy"] }
 
 # Audio — decode
 symphonia = { version = "0.5", features = ["all"] }
-moosicbox_opus = "0.4.0"
+opus = "0.3.1"
 
 # Audio — output
 cpal = "0.15"

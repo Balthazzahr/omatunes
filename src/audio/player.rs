@@ -344,13 +344,23 @@ fn decode_file(
     let n_frames  = track.codec_params.n_frames;
     let file_rate = track.codec_params.sample_rate.unwrap_or(44100);
 
-    let mut decoder = if track.codec_params.codec == symphonia::core::codecs::CODEC_TYPE_OPUS {
-        let mut codecs = symphonia::core::codecs::CodecRegistry::new();
-        codecs.register_all::<moosicbox_opus::OpusDecoder>();
-        codecs.make(&track.codec_params, &DecoderOptions::default())
+    let is_opus = track.codec_params.codec == symphonia::core::codecs::CODEC_TYPE_OPUS;
+    let n_channels_param = track.codec_params.channels.map(|c| c.count()).unwrap_or(2);
+
+    let mut symphonia_decoder = if !is_opus {
+        Some(symphonia::default::get_codecs()
+            .make(&track.codec_params, &DecoderOptions::default())
+            .map_err(|e| anyhow!("Decoder: {e}"))?)
     } else {
-        symphonia::default::get_codecs().make(&track.codec_params, &DecoderOptions::default())
-    }.map_err(|e| anyhow!("Decoder: {e}"))?;
+        None
+    };
+
+    let channels_mode = if n_channels_param == 1 { opus::Channels::Mono } else { opus::Channels::Stereo };
+    let mut opus_decoder = if is_opus {
+        opus::Decoder::new(file_rate, channels_mode).ok()
+    } else {
+        None
+    };
 
     let mut sample_count = if let Some(pos) = seek_to {
         let seek_time = SymphoniaTime {
@@ -358,7 +368,9 @@ fn decode_file(
             frac: pos.subsec_nanos() as f64 / 1_000_000_000.0,
         };
         format.seek(SeekMode::Accurate, SeekTo::Time { time: seek_time, track_id: None }).ok();
-        decoder.reset();
+        if let Some(ref mut dec) = symphonia_decoder {
+            dec.reset();
+        }
         (pos.as_secs_f64() * OUTPUT_RATE as f64) as u64
     } else {
         0u64
@@ -372,34 +384,59 @@ fn decode_file(
         let packet = match format.next_packet() {
             Ok(p) => p,
             Err(SymphoniaError::IoError(_)) => break,
-            Err(SymphoniaError::ResetRequired) => { decoder.reset(); continue; }
+            Err(SymphoniaError::ResetRequired) => {
+                if let Some(ref mut dec) = symphonia_decoder {
+                    dec.reset();
+                }
+                continue;
+            }
             Err(e) => return Err(anyhow!("Packet: {e}")),
         };
 
         if packet.track_id() != track_id { continue; }
 
-        let decoded = match decoder.decode(&packet) {
-            Ok(d) => d,
-            Err(SymphoniaError::DecodeError(_)) => continue,
-            Err(e) => return Err(anyhow!("Decode: {e}")),
-        };
+        let stereo: Vec<f32> = if is_opus {
+            if let Some(ref mut dec) = opus_decoder {
+                let mut pcm_buf = vec![0.0f32; 5760 * n_channels_param];
+                match dec.decode_float(packet.buf(), &mut pcm_buf, false) {
+                    Ok(samples_per_ch) => {
+                        let total = samples_per_ch * n_channels_param;
+                        pcm_buf.truncate(total);
+                        match n_channels_param {
+                            1 => pcm_buf.iter().flat_map(|&s| [s, s]).collect(),
+                            2 => pcm_buf,
+                            n => pcm_buf.chunks(n).flat_map(|ch| [ch[0], ch.get(1).copied().unwrap_or(ch[0])]).collect(),
+                        }
+                    }
+                    Err(_) => continue,
+                }
+            } else {
+                continue;
+            }
+        } else {
+            let dec = symphonia_decoder.as_mut().unwrap();
+            let decoded = match dec.decode(&packet) {
+                Ok(d) => d,
+                Err(SymphoniaError::DecodeError(_)) => continue,
+                Err(e) => return Err(anyhow!("Decode: {e}")),
+            };
 
-        let spec       = *decoded.spec();
-        let n_channels = spec.channels.count();
+            let spec       = *decoded.spec();
+            let n_channels = spec.channels.count();
 
-        let mut conv = SampleBuffer::<f32>::new(decoded.capacity() as u64, spec);
-        conv.copy_interleaved_ref(decoded);
-        let raw = conv.samples();
+            let mut conv = SampleBuffer::<f32>::new(decoded.capacity() as u64, spec);
+            conv.copy_interleaved_ref(decoded);
+            let raw = conv.samples();
 
-
-        let stereo: Vec<f32> = match n_channels {
-            1 => raw.iter().flat_map(|&s| [s, s]).collect(),
-            2 => raw.to_vec(),
-            n => raw.chunks(n).flat_map(|ch| {
-                let l = ch.first().copied().unwrap_or(0.0);
-                let r = ch.get(1).copied().unwrap_or(0.0);
-                [l, r]
-            }).collect(),
+            match n_channels {
+                1 => raw.iter().flat_map(|&s| [s, s]).collect(),
+                2 => raw.to_vec(),
+                n => raw.chunks(n).flat_map(|ch| {
+                    let l = ch.first().copied().unwrap_or(0.0);
+                    let r = ch.get(1).copied().unwrap_or(0.0);
+                    [l, r]
+                }).collect(),
+            }
         };
 
         let samples = if file_rate != OUTPUT_RATE {
@@ -409,6 +446,7 @@ fn decode_file(
         };
 
         sample_count += samples.len() as u64 / 2;
+
 
         let position = Duration::from_secs_f64(sample_count as f64 / OUTPUT_RATE as f64);
         let duration = if let (Some(tb), Some(nf)) = (time_base, n_frames) {
