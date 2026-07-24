@@ -344,12 +344,13 @@ fn decode_file(
     let n_frames  = track.codec_params.n_frames;
     let file_rate = track.codec_params.sample_rate.unwrap_or(44100);
 
-    let mut codecs = symphonia::default::get_codecs();
-    codecs.register_all::<moosicbox_opus::OpusDecoder>();
-
-    let mut decoder = codecs
-        .make(&track.codec_params, &DecoderOptions::default())
-        .map_err(|e| anyhow!("Decoder: {e}"))?;
+    let mut decoder = if track.codec_params.codec == symphonia::core::codecs::CODEC_TYPE_OPUS {
+        let mut codecs = symphonia::core::codecs::CodecRegistry::new();
+        codecs.register_all::<moosicbox_opus::OpusDecoder>();
+        codecs.make(&track.codec_params, &DecoderOptions::default())
+    } else {
+        symphonia::default::get_codecs().make(&track.codec_params, &DecoderOptions::default())
+    }.map_err(|e| anyhow!("Decoder: {e}"))?;
 
     let mut sample_count = if let Some(pos) = seek_to {
         let seek_time = SymphoniaTime {
