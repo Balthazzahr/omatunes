@@ -944,8 +944,9 @@ impl AppState {
 
         let db_group_by = crate::db::get(|db| db.group_by.unwrap_or(crate::db::GroupBy::None));
 
-        let state = AppState {
+        let mut state = AppState {
             playback_state: PlaybackState::Stopped,
+
             current_track: None,
             queue: Vec::new(),
             position: Duration::ZERO,
