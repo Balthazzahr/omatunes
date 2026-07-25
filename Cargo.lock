@@ -3307,6 +3307,7 @@ dependencies = [
  "mpris-server",
  "opus",
  "rand 0.8.6",
+ "rayon",
  "rfd",
  "rustfft",
  "serde",
