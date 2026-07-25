@@ -83,6 +83,26 @@ chmod +x ~/.local/bin/omatunes_scripts/omatunes_volume.sh
 
 Full Waybar config below, and CSS styling details in the [User Manual](USER_MANUAL.md#waybar-integration).
 
+### 3. Add omaTUNES to your app launcher (optional)
+
+Drop in a desktop entry and its icon, and omaTUNES shows up in your launcher — `Super + Space` on Omarchy, or the app grid on GNOME/KDE:
+
+```bash
+mkdir -p ~/.local/share/applications ~/.local/share/icons/hicolor/256x256/apps
+
+# From a clone
+cp scripts/omatunes.desktop ~/.local/share/applications/omatunes.desktop
+cp assets/omatunes.png ~/.local/share/icons/hicolor/256x256/apps/omatunes.png
+
+# Or straight from GitHub, if you installed the pre-built binary
+curl -L -o ~/.local/share/applications/omatunes.desktop https://raw.githubusercontent.com/Balthazzahr/omatunes/master/scripts/omatunes.desktop
+curl -L -o ~/.local/share/icons/hicolor/256x256/apps/omatunes.png https://raw.githubusercontent.com/Balthazzahr/omatunes/master/assets/omatunes.png
+```
+
+If the entry doesn't appear right away, log out and back in — some launchers only rescan `applications/` at session start.
+
+The entry assumes `omatunes` is on your `PATH`. If you put the binary somewhere unusual, change `Exec=` to the full path.
+
 ---
 
 ## Configuration and Settings

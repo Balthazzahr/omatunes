@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=omaTUNES
+GenericName=Music Player
+Comment=Native Wayland music player and library manager
+Exec=omatunes
+Icon=omatunes
+Terminal=false
+StartupNotify=true
+StartupWMClass=omatunes
+Categories=AudioVideo;Audio;Player;
+Keywords=music;player;audio;library;playlist;mpris;omatunes;
