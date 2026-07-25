@@ -57,20 +57,25 @@ pub fn write_like_status(path: &Path, is_liked: bool) -> Result<()> {
 /// Scan `dir` recursively and return tracks sorted by album/number/title.
 /// `cover_data` is always `None` — loaded on demand via `load_cover`.
 pub fn scan_folder(dir: &Path) -> Vec<Track> {
-    let mut pairs: Vec<(PathBuf, TrackInfo)> = WalkDir::new(dir)
-        .follow_links(true)
+    use rayon::prelude::*;
+
+    let paths: Vec<PathBuf> = WalkDir::new(dir)
         .into_iter()
         .filter_entry(|e| !e.file_name().to_string_lossy().starts_with('.'))
         .filter_map(|e| e.ok())
         .filter(|e| e.file_type().is_file())
-        .filter_map(|entry| {
-            let path = entry.path().to_path_buf();
-            let ext = path.extension()?.to_str()?.to_lowercase();
-            if !AUDIO_EXTENSIONS.contains(&ext.as_str()) {
-                return None;
-            }
-            read_tags(&path).ok().map(|info| (path, info))
+        .map(|entry| entry.path().to_path_buf())
+        .filter(|path| {
+            path.extension()
+                .and_then(|ext| ext.to_str())
+                .map(|ext| AUDIO_EXTENSIONS.contains(&ext.to_lowercase().as_str()))
+                .unwrap_or(false)
         })
+        .collect();
+
+    let mut pairs: Vec<(PathBuf, TrackInfo)> = paths
+        .into_par_iter()
+        .filter_map(|path| read_tags(&path).ok().map(|info| (path, info)))
         .collect();
 
     pairs.sort_by(|(_, a), (_, b)| {
@@ -79,6 +84,7 @@ pub fn scan_folder(dir: &Path) -> Vec<Track> {
             .then(a.track_number.cmp(&b.track_number))
             .then(a.title.cmp(&b.title))
     });
+
 
     pairs.into_iter().enumerate().map(|(_i, (path, info))| {
         let play_count = crate::db::get(|db| db.play_counts.get(&path).copied().unwrap_or(0));
