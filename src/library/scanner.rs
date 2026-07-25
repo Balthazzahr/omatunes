@@ -113,6 +113,24 @@ pub fn scan_folder(dir: &Path) -> Vec<Track> {
     }).collect()
 }
 
+pub fn load_cache() -> Option<Vec<Track>> {
+    let p = crate::paths::library_cache();
+    if p.exists() {
+        let content = std::fs::read_to_string(p).ok()?;
+        serde_json::from_str(&content).ok()
+    } else {
+        None
+    }
+}
+
+pub fn save_cache(tracks: &[Track]) {
+    let p = crate::paths::library_cache();
+    if let Ok(json) = serde_json::to_string(tracks) {
+        std::fs::write(p, json).ok();
+    }
+}
+
+
 /// Load cover art for a track: embedded tag first, then cover.jpg in the folder.
 pub fn load_cover(path: &Path) -> Option<Vec<u8>> {
     let tagged = Probe::open(path).ok()?.read().ok()?;

@@ -16,3 +16,8 @@ pub fn stats() -> PathBuf {
 pub fn config_toml() -> PathBuf {
     config_dir().join("config.toml")
 }
+
+pub fn library_cache() -> PathBuf {
+    config_dir().join("library_cache.json")
+}
+
