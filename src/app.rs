@@ -1085,8 +1085,26 @@ impl AppState {
             achievements_items: Vec::new(),
         };
 
+        if let Some(cached_tracks) = crate::library::load_cache() {
+            if !cached_tracks.is_empty() {
+                state.all_tracks = Arc::new(cached_tracks);
+                let mut cache: std::collections::HashMap<PathBuf, Vec<Track>> = std::collections::HashMap::new();
+                for track in state.all_tracks.iter() {
+                    if let Some(parent) = track.path.parent() {
+                        cache.entry(parent.to_path_buf()).or_default().push(track.clone());
+                    }
+                }
+                state.folder_cache = cache;
+                let mut keys: Vec<PathBuf> = state.folder_cache.keys().cloned().collect();
+                keys.sort();
+                state.folders = keys;
+                state.update_filtered_tracks();
+            }
+        }
+
         (state, scan_task)
     }
+
 
 
     fn send_mpris(&self, update: MprisUpdate) {
