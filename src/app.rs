@@ -3012,7 +3012,9 @@ impl AppState {
             }
 
             Message::LibraryScanned(tracks) => {
+                crate::library::save_cache(&tracks);
                 self.all_tracks = Arc::new(tracks);
+
                 crate::stats::backfill_album_data(&self.all_tracks);
                 crate::stats::backfill_achievements(&self.all_tracks);
                 self.update_live_smart_playlists();
