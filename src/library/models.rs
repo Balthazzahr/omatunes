@@ -1,9 +1,9 @@
-use std::path::PathBuf;
-use std::time::Duration;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[allow(dead_code)]
 pub struct Track {
+
     pub id: i64,
     pub path: PathBuf,
     pub title: String,
