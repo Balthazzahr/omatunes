@@ -25,6 +25,8 @@ rustfft = "6.2"
 
 # Directory scanner
 walkdir = "2"
+rayon = "1.10"
+
 
 # Async runtime
 tokio = { version = "1", features = ["full"] }
