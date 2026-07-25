@@ -3,6 +3,10 @@ name = "omatunes"
 version = "1.0.6"
 edition = "2021"
 
+[lib]
+path = "src/lib.rs"
+
+
 [dependencies]
 # GUI
 iced = { version = "0.13", features = ["image", "canvas", "tokio", "lazy"] }
