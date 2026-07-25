@@ -287,3 +287,28 @@ pub fn write_tags(
     Ok(())
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_scan_media_dir() {
+        let media_path = Path::new("/home/davepople/Drives/Media/Music");
+        let tracks = scan_folder(media_path);
+        println!("scan_folder returned {} tracks from MediaDrive!", tracks.len());
+        if tracks.is_empty() {
+            // Check why read_tags fails on sample track
+            for entry in WalkDir::new(media_path).into_iter().filter_map(|e| e.ok()) {
+                let p = entry.path();
+                if p.extension().and_then(|e| e.to_str()) == Some("opus") {
+                    let err = read_tags(p).err();
+                    println!("Failed to read_tags for {:?}: {:?}", p, err);
+                    break;
+                }
+            }
+        }
+        assert!(!tracks.is_empty(), "scan_folder should find tracks!");
+    }
+}
+
+
