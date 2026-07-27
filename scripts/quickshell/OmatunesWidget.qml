@@ -52,9 +52,13 @@ Rectangle {
         Text {
             text: {
                 if (!root.activePlayer) return "OmaTUNES Offline";
-                var artist = root.activePlayer.trackArtists ? root.activePlayer.trackArtists.join(", ") : "";
+                var artist = root.activePlayer.trackArtists;
+                var artistStr = "";
+                if (artist) {
+                    artistStr = Array.isArray(artist) ? artist.join(", ") : String(artist);
+                }
                 var title = root.activePlayer.trackTitle || "No Track";
-                var fullText = artist ? artist + " - " + title : title;
+                var fullText = artistStr ? artistStr + " - " + title : title;
                 return fullText.length > 35 ? fullText.substring(0, 35) + "…" : fullText;
             }
             color: Theme.fg

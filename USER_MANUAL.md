@@ -296,12 +296,31 @@ isn't running:
 | Scroll up | Volume +5% |
 | Scroll down | Volume −5% |
 
-### Notifications
 
-The Waybar script also handles a few nice-to-haves on its own: a desktop notification at your 10th,
-50th, and every 100th track of the day, and an hourly "time flies" nudge for each active listening
-hour. It reads your active Alacritty/Omarchy theme colors to keep the bar and tooltip visually in
-sync with the rest of your setup.
+---
+
+## Quickshell Player Module
+
+OmaTUNES includes a native **Quickshell** player module (`OmatunesWidget.qml` & `OmatunesPopup.qml`).
+
+### Features & Interactions
+- **Bar Display**: Shows current Play/Pause icon with `Artist - Track Title`.
+- **Left click**: Play / Pause toggle.
+- **Scroll up / down**: Adjust volume up / down (+5% / -5%).
+- **Right click**: Opens a floating **Mini Player Pop-up** with full player controls, album artwork, track seek bar, volume control slider, and like button.
+
+### Installation
+Run the installer script included in the repository:
+```bash
+./scripts/quickshell/install.sh
+```
+Then add the module to your `~/.config/quickshell/shell.qml`:
+```qml
+import "./modules/omatunes"
+
+// Inside your bar layout RowLayout:
+OmatunesWidget {}
+```
 
 ---
 
