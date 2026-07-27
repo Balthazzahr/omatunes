@@ -1114,12 +1114,27 @@ impl AppState {
 
     fn notify_mpris_track(&self, status: PlaybackStatus) {
         if let Some(track) = &self.current_track {
+            let art_url = if let Some(parent) = track.path.parent() {
+                let mut found = None;
+                for name in &["cover.jpg", "Cover.jpg", "cover.png", "Cover.png", "cover.webp", "Cover.webp", "folder.jpg", "Folder.jpg"] {
+                    let p = parent.join(name);
+                    if p.exists() {
+                        found = Some(format!("file://{}", p.to_string_lossy()));
+                        break;
+                    }
+                }
+                found.unwrap_or_default()
+            } else {
+                String::new()
+            };
+
             self.send_mpris(MprisUpdate::Metadata {
                 title: track.title.clone(),
                 artist: track.artist.clone(),
                 album: track.album.clone(),
                 duration_us: track.duration.as_micros() as i64,
                 url: track.path.to_string_lossy().to_string(),
+                art_url,
             });
         }
         self.send_mpris(MprisUpdate::Status(status));
