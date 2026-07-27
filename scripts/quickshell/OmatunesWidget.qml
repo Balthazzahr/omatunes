@@ -77,8 +77,8 @@ Rectangle {
 
         onClicked: (mouse) => {
             if (mouse.button === Qt.LeftButton) {
-                if (root.activePlayer) {
-                    root.activePlayer.playPause();
+                if (root.activePlayer && root.activePlayer.togglePlaying) {
+                    root.activePlayer.togglePlaying();
                 } else {
                     root.runCmd("playerctl --player=omatunes play-pause");
                 }

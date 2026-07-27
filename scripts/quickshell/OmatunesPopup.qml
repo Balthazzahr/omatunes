@@ -234,7 +234,7 @@ PopupWindow {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            if (popup.player) popup.player.playPause();
+                            if (popup.player && popup.player.togglePlaying) popup.player.togglePlaying();
                             else popup.runCmd("playerctl --player=omatunes play-pause");
                         }
                     }
