@@ -2103,6 +2103,11 @@ impl AppState {
                             self.audio.send(AudioCommand::SetVolume(clamped));
                             self.send_mpris(MprisUpdate::Volume(v));
                         }
+                        MprisCommand::SeekTo(dur) => {
+                            self.audio.send(AudioCommand::Seek(dur));
+                            self.position = dur;
+                            self.send_mpris(MprisUpdate::Position(dur));
+                        }
                     }
                 }
 
