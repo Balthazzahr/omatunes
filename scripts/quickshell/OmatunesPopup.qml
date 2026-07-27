@@ -24,7 +24,28 @@ PopupWindow {
     }
 
     function focusOmatunes() {
-        runCmd("hyprctl dispatch focuswindow class:omatunes || hyprctl dispatch focuswindow title:OmaTUNES || omarchy-launch-or-focus omatunes");
+        runCmd("hyprctl dispatch focuswindow class:^omatunes$ || hyprctl dispatch focuswindow title:OmaTUNES || omarchy-launch-or-focus omatunes");
+    }
+
+    property bool isLiked: false
+
+    Process {
+        id: likedCheckProcess
+        command: ["cat", "/home/user/.cache/omatunes_current_liked"]
+        stdout: SplitParser {
+            onRead: data => {
+                popup.isLiked = (data.trim() === "1");
+            }
+        }
+    }
+
+    Timer {
+        interval: 500
+        running: popup.visible
+        repeat: true
+        onTriggered: {
+            likedCheckProcess.running = true;
+        }
     }
 
     readonly property string artistName: {
@@ -48,10 +69,11 @@ PopupWindow {
     }
 
     property double trackPosition: popup.player ? popup.player.position : 0
+    property bool isDraggingSeek: false
 
     Timer {
         interval: 500
-        running: popup.visible && popup.player && popup.player.playbackState === MprisPlaybackState.Playing
+        running: popup.visible && popup.player && popup.player.playbackState === MprisPlaybackState.Playing && !popup.isDraggingSeek
         repeat: true
         onTriggered: {
             if (popup.player) {
@@ -62,8 +84,8 @@ PopupWindow {
 
     Rectangle {
         id: card
-        implicitWidth: 320
-        implicitHeight: 360
+        implicitWidth: 390
+        implicitHeight: 520
         color: Theme.bg
         border.color: Theme.border
         border.width: 1
@@ -74,12 +96,12 @@ PopupWindow {
             anchors.margins: 16
             spacing: 12
 
-            // Artwork (Clickable -> Focus App)
+            // Artwork (90% width of window, 1:1 square) -> Clickable to focus OmaTUNES
             Rectangle {
                 Layout.alignment: Qt.AlignHCenter
-                implicitWidth: 160
-                implicitHeight: 160
-                radius: 10
+                implicitWidth: parent.width * 0.90
+                implicitHeight: parent.width * 0.90
+                radius: 12
                 color: Theme.hover
                 clip: true
 
@@ -94,10 +116,10 @@ PopupWindow {
                 Text {
                     anchors.centerIn: parent
                     visible: albumArt.status !== Image.Ready
-                    text: "󰎈"
+                    text: "" // nf-fa-music
                     color: Theme.muted
                     font.family: Theme.fontFamily
-                    font.pixelSize: 54
+                    font.pixelSize: 64
                 }
 
                 MouseArea {
@@ -107,7 +129,7 @@ PopupWindow {
                 }
             }
 
-            // Track Info & Like Button (Clickable -> Focus App)
+            // Track Info & Red Heart Button (Clickable -> Focus App)
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 4
@@ -120,10 +142,10 @@ PopupWindow {
                         text: popup.player ? (popup.player.trackTitle || "No Track Playing") : "OmaTUNES Offline"
                         color: Theme.fg
                         font.family: Theme.fontFamily
-                        font.pixelSize: 15
+                        font.pixelSize: 17
                         font.bold: true
                         elide: Text.ElideRight
-                        Layout.maximumWidth: 240
+                        Layout.maximumWidth: 280
 
                         MouseArea {
                             anchors.fill: parent
@@ -133,17 +155,20 @@ PopupWindow {
                     }
 
                     Text {
-                        text: "󰋑"
-                        color: likeArea.containsMouse ? Theme.accent : Theme.fg
+                        text: "" // nf-fa-heart
+                        color: popup.isLiked ? "#e67e80" : (likeArea.containsMouse ? Theme.accent : Theme.muted)
                         font.family: Theme.fontFamily
-                        font.pixelSize: 18
+                        font.pixelSize: 20
 
                         MouseArea {
                             id: likeArea
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: popup.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click like")
+                            onClicked: {
+                                popup.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click like");
+                                popup.isLiked = !popup.isLiked;
+                            }
                         }
                     }
                 }
@@ -161,7 +186,7 @@ PopupWindow {
                     }
                     color: Theme.muted
                     font.family: Theme.fontFamily
-                    font.pixelSize: 12
+                    font.pixelSize: 13
                     elide: Text.ElideRight
                     horizontalAlignment: Text.AlignHCenter
 
@@ -173,7 +198,7 @@ PopupWindow {
                 }
             }
 
-            // Progress Slider (Scrubbing Dragging + Live Timer)
+            // Progress Slider (Live Dragging & Scrubbing)
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 4
@@ -181,8 +206,8 @@ PopupWindow {
                 Rectangle {
                     id: progressBg
                     Layout.fillWidth: true
-                    implicitHeight: 6
-                    radius: 3
+                    implicitHeight: 8
+                    radius: 4
                     color: Theme.hover
 
                     Rectangle {
@@ -192,7 +217,7 @@ PopupWindow {
                             var frac = popup.trackPosition / popup.player.length;
                             return Math.min(parent.width, Math.max(0, parent.width * frac));
                         }
-                        radius: 3
+                        radius: 4
                         color: Theme.accent
                     }
 
@@ -200,7 +225,15 @@ PopupWindow {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
 
-                        function scrub(mouseX) {
+                        function updatePos(mouseX) {
+                            if (popup.player && popup.player.length > 0) {
+                                var ratio = Math.min(1.0, Math.max(0.0, mouseX / width));
+                                var targetSecs = Math.floor(ratio * popup.player.length);
+                                popup.trackPosition = targetSecs;
+                            }
+                        }
+
+                        function applySeek(mouseX) {
                             if (popup.player && popup.player.length > 0) {
                                 var ratio = Math.min(1.0, Math.max(0.0, mouseX / width));
                                 var targetSecs = Math.floor(ratio * popup.player.length);
@@ -209,8 +242,17 @@ PopupWindow {
                             }
                         }
 
-                        onClicked: function(mouse) { scrub(mouse.x); }
-                        onPositionChanged: function(mouse) { if (pressed) scrub(mouse.x); }
+                        onPressed: function(mouse) {
+                            popup.isDraggingSeek = true;
+                            updatePos(mouse.x);
+                        }
+                        onPositionChanged: function(mouse) {
+                            if (pressed) updatePos(mouse.x);
+                        }
+                        onReleased: function(mouse) {
+                            applySeek(mouse.x);
+                            popup.isDraggingSeek = false;
+                        }
                     }
                 }
 
@@ -235,28 +277,28 @@ PopupWindow {
             // Transport Controls: [Shuffle] [Prev] [Play/Pause] [Next] [Repeat]
             RowLayout {
                 Layout.alignment: Qt.AlignHCenter
-                spacing: 14
+                spacing: 20
 
                 Text {
-                    text: "󰒹"
+                    text: "" // nf-fa-random / shuffle
                     color: shuffleArea.containsMouse ? Theme.accent : Theme.muted
                     font.family: Theme.fontFamily
-                    font.pixelSize: 18
+                    font.pixelSize: 20
 
                     MouseArea {
                         id: shuffleArea
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: popup.runCmd("playerctl --player=omatunes shuffle toggle")
+                        onClicked: popup.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click shuffle")
                     }
                 }
 
                 Text {
-                    text: "󰒮"
+                    text: "" // nf-fa-backward
                     color: prevArea.containsMouse ? Theme.accent : Theme.fg
                     font.family: Theme.fontFamily
-                    font.pixelSize: 22
+                    font.pixelSize: 24
 
                     MouseArea {
                         id: prevArea
@@ -271,17 +313,17 @@ PopupWindow {
                 }
 
                 Rectangle {
-                    implicitWidth: 38
-                    implicitHeight: 38
-                    radius: 19
+                    implicitWidth: 44
+                    implicitHeight: 44
+                    radius: 22
                     color: playArea.containsMouse ? Theme.accent : Theme.fg
 
                     Text {
                         anchors.centerIn: parent
-                        text: (popup.player && popup.player.playbackState === MprisPlaybackState.Playing) ? "󰏤" : "󰐊"
+                        text: (popup.player && popup.player.playbackState === MprisPlaybackState.Playing) ? "" : ""
                         color: Theme.bg
                         font.family: Theme.fontFamily
-                        font.pixelSize: 18
+                        font.pixelSize: 20
                     }
 
                     MouseArea {
@@ -297,10 +339,10 @@ PopupWindow {
                 }
 
                 Text {
-                    text: "󰒭"
+                    text: "" // nf-fa-forward
                     color: nextArea.containsMouse ? Theme.accent : Theme.fg
                     font.family: Theme.fontFamily
-                    font.pixelSize: 22
+                    font.pixelSize: 24
 
                     MouseArea {
                         id: nextArea
@@ -315,38 +357,38 @@ PopupWindow {
                 }
 
                 Text {
-                    text: "󰑖"
+                    text: "" // nf-fa-repeat
                     color: repeatArea.containsMouse ? Theme.accent : Theme.muted
                     font.family: Theme.fontFamily
-                    font.pixelSize: 18
+                    font.pixelSize: 20
 
                     MouseArea {
                         id: repeatArea
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: popup.runCmd("playerctl --player=omatunes loop Track || playerctl --player=omatunes loop None")
+                        onClicked: popup.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click repeat")
                     }
                 }
             }
 
-            // Volume Control (Scrubbing + Dragging)
+            // Volume Control (Clicking + Smooth Dragging)
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 8
+                spacing: 10
 
                 Text {
-                    text: "󰕾"
+                    text: "" // nf-fa-volume_up
                     color: Theme.muted
                     font.family: Theme.fontFamily
-                    font.pixelSize: 14
+                    font.pixelSize: 16
                 }
 
                 Rectangle {
                     id: volumeBg
                     Layout.fillWidth: true
-                    implicitHeight: 6
-                    radius: 3
+                    implicitHeight: 8
+                    radius: 4
                     color: Theme.hover
 
                     Rectangle {
@@ -355,7 +397,7 @@ PopupWindow {
                             var vol = (popup.player && popup.player.volume !== undefined) ? popup.player.volume : 1.0;
                             return Math.min(parent.width, Math.max(0, parent.width * vol));
                         }
-                        radius: 3
+                        radius: 4
                         color: Theme.accent
                     }
 

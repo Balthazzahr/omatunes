@@ -25,7 +25,7 @@ Rectangle {
     }
 
     function focusOmatunes() {
-        runCmd("hyprctl dispatch focuswindow class:omatunes || hyprctl dispatch focuswindow title:OmaTUNES || omarchy-launch-or-focus omatunes");
+        runCmd("hyprctl dispatch focuswindow class:^omatunes$ || hyprctl dispatch focuswindow title:OmaTUNES || omarchy-launch-or-focus omatunes");
     }
 
     property var activePlayer: {
@@ -42,6 +42,27 @@ Rectangle {
         return players.length > 0 ? players[0] : null;
     }
 
+    property bool isLiked: false
+
+    Process {
+        id: likedCheckProcess
+        command: ["cat", "/home/user/.cache/omatunes_current_liked"]
+        stdout: SplitParser {
+            onRead: data => {
+                root.isLiked = (data.trim() === "1");
+            }
+        }
+    }
+
+    Timer {
+        interval: 500
+        running: true
+        repeat: true
+        onTriggered: {
+            likedCheckProcess.running = true;
+        }
+    }
+
     readonly property string artworkUrl: {
         if (activePlayer && activePlayer.trackArtUrl && activePlayer.trackArtUrl.length > 0) {
             return activePlayer.trackArtUrl;
@@ -55,10 +76,11 @@ Rectangle {
     }
 
     property double trackPosition: activePlayer ? activePlayer.position : 0
+    property bool isDraggingSeek: false
 
     Timer {
         interval: 500
-        running: root.popupVisible && activePlayer && activePlayer.playbackState === MprisPlaybackState.Playing
+        running: root.popupVisible && activePlayer && activePlayer.playbackState === MprisPlaybackState.Playing && !root.isDraggingSeek
         repeat: true
         onTriggered: {
             if (activePlayer) {
@@ -74,7 +96,7 @@ Rectangle {
 
         Text {
             text: {
-                if (!root.activePlayer) return "🎵";
+                if (!root.activePlayer) return ""; // Music note glyph only when offline
                 return root.activePlayer.playbackState === MprisPlaybackState.Playing ? "󰏤" : "󰐊";
             }
             color: Theme.accent
@@ -83,8 +105,9 @@ Rectangle {
         }
 
         Text {
+            visible: root.activePlayer !== null
             text: {
-                if (!root.activePlayer) return "OmaTUNES Offline";
+                if (!root.activePlayer) return "";
                 var artist = root.activePlayer.trackArtists;
                 var artistStr = "";
                 if (artist) {
@@ -92,7 +115,9 @@ Rectangle {
                 }
                 var title = root.activePlayer.trackTitle || "No Track";
                 var fullText = artistStr ? artistStr + " - " + title : title;
-                return fullText.length > 35 ? fullText.substring(0, 35) + "…" : fullText;
+                var displayStr = fullText.length > 35 ? fullText.substring(0, 35) + "…" : fullText;
+                if (root.isLiked) displayStr += "  ";
+                return displayStr;
             }
             color: Theme.fg
             font.family: Theme.fontFamily
@@ -105,7 +130,7 @@ Rectangle {
         id: mouseArea
         anchors.fill: parent
         hoverEnabled: true
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
         cursorShape: Qt.PointingHandCursor
 
         onClicked: (mouse) => {
@@ -117,6 +142,8 @@ Rectangle {
                 }
             } else if (mouse.button === Qt.RightButton) {
                 root.popupVisible = !root.popupVisible;
+            } else if (mouse.button === Qt.MiddleButton) {
+                root.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click like");
             }
         }
 
