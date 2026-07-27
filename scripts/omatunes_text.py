@@ -242,12 +242,18 @@ if len(sys.argv) > 1:
         import socket
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            if button == "play":
+            if button in ("play", "play-pause"):
                 s.sendto(b"play-pause", ("127.0.0.1", 18888))
             elif button == "next":
                 s.sendto(b"next", ("127.0.0.1", 18888))
+            elif button in ("prev", "previous"):
+                s.sendto(b"prev", ("127.0.0.1", 18888))
             elif button == "like":
                 s.sendto(b"like", ("127.0.0.1", 18888))
+            elif button == "shuffle":
+                s.sendto(b"shuffle", ("127.0.0.1", 18888))
+            elif button == "repeat":
+                s.sendto(b"repeat", ("127.0.0.1", 18888))
             s.close()
         except:
             pass
