@@ -206,8 +206,20 @@ fn read_tags(path: &Path) -> Result<TrackInfo> {
         .map(|s| s.to_string())
         .unwrap_or(folder_album);
 
-    let track_number = tags.and_then(|t| t.track());
-    let disc_number = tags.and_then(|t| t.disk());
+    let track_number = tags.and_then(|t| {
+        t.track().or_else(|| {
+            t.get_string(&lofty::tag::ItemKey::TrackNumber)
+                .and_then(|s| s.split('/').next())
+                .and_then(|s| s.trim().parse::<u32>().ok())
+        })
+    });
+    let disc_number = tags.and_then(|t| {
+        t.disk().or_else(|| {
+            t.get_string(&lofty::tag::ItemKey::DiscNumber)
+                .and_then(|s| s.split('/').next())
+                .and_then(|s| s.trim().parse::<u32>().ok())
+        })
+    });
     let year = tags.and_then(|t| t.year());
 
     let genre = tags
