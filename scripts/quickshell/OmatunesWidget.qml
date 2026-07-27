@@ -1,9 +1,9 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import Quickshell
 import Quickshell.Services.Mpris
 import Quickshell.Io
-import Quickshell.Wayland
 import "../../theme"
 
 Rectangle {
@@ -16,22 +16,55 @@ Rectangle {
     property bool popupVisible: false
 
     Process {
-        id: volProcess
+        id: execProcess
     }
 
     function runCmd(cmdStr) {
-        volProcess.command = ["bash", "-c", cmdStr];
-        volProcess.running = true;
+        execProcess.command = ["bash", "-c", cmdStr];
+        execProcess.running = true;
+    }
+
+    function focusOmatunes() {
+        runCmd("hyprctl dispatch focuswindow class:omatunes || hyprctl dispatch focuswindow title:OmaTUNES || omarchy-launch-or-focus omatunes");
     }
 
     property var activePlayer: {
-        var players = Mpris.players.values;
+        var players = Mpris.players ? Mpris.players.values : [];
         for (var i = 0; i < players.length; i++) {
-            if (players[i].busName.indexOf("omatunes") !== -1 || players[i].identity.toLowerCase().indexOf("omatunes") !== -1) {
-                return players[i];
+            var p = players[i];
+            if (!p) continue;
+            var bus = p.busName || "";
+            var id = p.identity || "";
+            if (bus.indexOf("omatunes") !== -1 || id.toLowerCase().indexOf("omatunes") !== -1) {
+                return p;
             }
         }
         return players.length > 0 ? players[0] : null;
+    }
+
+    readonly property string artworkUrl: {
+        if (activePlayer && activePlayer.trackArtUrl && activePlayer.trackArtUrl.length > 0) {
+            return activePlayer.trackArtUrl;
+        }
+        if (activePlayer && activePlayer.url && activePlayer.url.length > 0) {
+            var u = activePlayer.url;
+            var dir = u.substring(0, u.lastIndexOf("/"));
+            return dir + "/cover.jpg";
+        }
+        return "";
+    }
+
+    property double trackPosition: activePlayer ? activePlayer.position : 0
+
+    Timer {
+        interval: 500
+        running: root.popupVisible && activePlayer && activePlayer.playbackState === MprisPlaybackState.Playing
+        repeat: true
+        onTriggered: {
+            if (activePlayer) {
+                root.trackPosition = activePlayer.position;
+            }
+        }
     }
 
     RowLayout {
