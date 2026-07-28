@@ -133,7 +133,7 @@ Rectangle {
                 var title = root.activePlayer.trackTitle || "";
                 var fullText = (artistStr && title) ? artistStr + " - " + title : (title || artistStr);
                 if (!fullText) return "";
-                var displayStr = fullText.length > 35 ? fullText.substring(0, 35) + "…" : fullText;
+                var displayStr = fullText.length > 53 ? fullText.substring(0, 53) + "…" : fullText;
                 if (root.isLiked) displayStr += "  ";
                 return displayStr;
             }
