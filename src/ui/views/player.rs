@@ -430,9 +430,9 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
 
             let mut dots_row = row![].spacing(6).align_y(Alignment::Center);
 
-            // Random Visualizer Selector Dice Button (nf-fa-dice_five: \u{f527})
+            // Random Visualizer Selector Dice Button (fa-dice_five in Nerd Font: \u{eded})
             let dice_btn = button(
-                text("\u{f527}")
+                text("\u{eded}")
                     .font(crate::ui::icons::NERD_FONT)
                     .size(13)
             )
