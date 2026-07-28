@@ -1138,14 +1138,22 @@ impl AppState {
             });
         }
         self.send_mpris(MprisUpdate::Status(status));
+        self.send_mpris(MprisUpdate::Shuffle(self.shuffle));
+        self.send_mpris(MprisUpdate::Loop(if self.repeat { mpris_server::LoopStatus::Track } else { mpris_server::LoopStatus::None }));
         self.write_current_liked_status();
     }
 
     fn write_current_liked_status(&self) {
         let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
-        let path = PathBuf::from(home).join(".cache/omatunes_current_liked");
+        let path = PathBuf::from(&home).join(".cache/omatunes_current_liked");
         let status = self.current_track.as_ref().map(|t| t.liked).unwrap_or(false);
         let _ = std::fs::write(&path, if status { "1" } else { "0" });
+
+        let state_path = PathBuf::from(&home).join(".cache/omatunes_current_state.json");
+        let _ = std::fs::write(&state_path, format!(
+            "{{\"liked\":{},\"shuffle\":{},\"repeat\":{}}}",
+            status, self.shuffle, self.repeat
+        ));
     }
 
     pub fn artists(&self) -> Vec<String> {
