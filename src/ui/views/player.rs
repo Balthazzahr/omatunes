@@ -445,7 +445,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     _ => theme::subtext(),
                 };
                 iced::widget::button::Style {
-                    text_color: Some(color),
+                    text_color: color,
                     background: Some(iced::Background::Color(iced::Color::TRANSPARENT)),
                     border: iced::Border { radius: 4.0.into(), ..Default::default() },
                     ..Default::default()
@@ -489,7 +489,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                     };
 
                     iced::widget::button::Style {
-                        text_color: Some(icon_color),
+                        text_color: icon_color,
                         background: Some(iced::Background::Color(iced::Color::TRANSPARENT)),
                         border: iced::Border { radius: 2.0.into(), ..Default::default() },
                         ..Default::default()
