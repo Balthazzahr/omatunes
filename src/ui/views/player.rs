@@ -435,7 +435,6 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                 text("\u{f527}")
                     .font(crate::ui::icons::NERD_FONT)
                     .size(13)
-                    .color(theme::subtext())
             )
             .on_press(crate::app::Message::SelectRandomVisualizerMode)
             .padding(2)
@@ -462,11 +461,12 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
 
             for idx in 0..9 {
                 let is_selected = state.visualizer_mode == idx;
+                let icon_glyph = if is_selected { "\u{f192}" } else { "\u{f10c}" }; // nf-fa-dot_circle_o / nf-fa-circle_o
 
                 let dot_btn = button(
-                    text("\u{f0c5a}") // nf-md-square_rounded
+                    text(icon_glyph)
                         .font(crate::ui::icons::NERD_FONT)
-                        .size(if is_selected { 11 } else { 9 })
+                        .size(12)
                 )
                 .on_press(crate::app::Message::SelectVisualizerMode(idx))
                 .padding(2)
