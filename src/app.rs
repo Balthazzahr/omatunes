@@ -2106,6 +2106,7 @@ impl AppState {
                         MprisCommand::SeekTo(dur) => {
                             self.audio.send(AudioCommand::Seek(dur));
                             self.position = dur;
+                            self.last_accumulated_position = dur;
                             self.send_mpris(MprisUpdate::Position(dur));
                         }
                     }
@@ -6726,7 +6727,13 @@ impl AppState {
                     loop {
                         if let Ok((len, _)) = s.recv_from(&mut buf).await {
                             let msg = String::from_utf8_lossy(&buf[..len]);
-                            match msg.trim() {
+                            let msg_str = msg.trim();
+                            if msg_str.starts_with("seek ") {
+                                if let Ok(secs) = msg_str[5..].trim().parse::<u64>() {
+                                    return Some((Message::Seek(std::time::Duration::from_secs(secs)), Some(s)));
+                                }
+                            }
+                            match msg_str {
                                 "like" => return Some((Message::ToggleLikeCurrent, Some(s))),
                                 "play-pause" => return Some((Message::PlayPause, Some(s))),
                                 "next" => return Some((Message::NextTrack, Some(s))),
