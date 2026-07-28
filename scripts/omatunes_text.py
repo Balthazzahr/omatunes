@@ -254,6 +254,9 @@ if len(sys.argv) > 1:
                 s.sendto(b"shuffle", ("127.0.0.1", 18888))
             elif button == "repeat":
                 s.sendto(b"repeat", ("127.0.0.1", 18888))
+            elif button == "seek" and len(sys.argv) > 3:
+                secs = sys.argv[3]
+                s.sendto(f"seek {secs}".encode(), ("127.0.0.1", 18888))
             s.close()
         except:
             pass
