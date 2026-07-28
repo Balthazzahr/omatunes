@@ -430,9 +430,9 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
 
             let mut dots_row = row![].spacing(6).align_y(Alignment::Center);
 
-            // Random Visualizer Selector Dice Button (\ue270)
+            // Random Visualizer Selector Dice Button (nf-fa-dice_five: \u{f527})
             let dice_btn = button(
-                text("\u{e270}")
+                text("\u{f527}")
                     .font(crate::ui::icons::NERD_FONT)
                     .size(13)
                     .color(theme::subtext())
@@ -441,11 +441,12 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
             .padding(2)
             .style(|_, status| {
                 let color = match status {
-                    iced::widget::button::Status::Hovered | iced::widget::button::Status::Pressed => theme::accent(),
-                    _ => iced::Color::TRANSPARENT,
+                    iced::widget::button::Status::Hovered | iced::widget::button::Status::Pressed => theme::text(),
+                    _ => theme::subtext(),
                 };
                 iced::widget::button::Style {
-                    background: Some(iced::Background::Color(color)),
+                    text_color: Some(color),
+                    background: Some(iced::Background::Color(iced::Color::TRANSPARENT)),
                     border: iced::Border { radius: 4.0.into(), ..Default::default() },
                     ..Default::default()
                 }
@@ -461,40 +462,36 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
 
             for idx in 0..9 {
                 let is_selected = state.visualizer_mode == idx;
-                let dot_size = if is_selected { 6.0 } else { 4.0 };
-                let border_r = dot_size / 2.0;
 
                 let dot_btn = button(
-                    container(Space::new(0, 0))
-                        .width(Length::Fixed(dot_size))
-                        .height(Length::Fixed(dot_size))
+                    text("\u{f0c5a}") // nf-md-square_rounded
+                        .font(crate::ui::icons::NERD_FONT)
+                        .size(if is_selected { 11 } else { 9 })
                 )
                 .on_press(crate::app::Message::SelectVisualizerMode(idx))
-                .padding(1)
+                .padding(2)
                 .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
-                    let bg_color = match status {
+                    let icon_color = match status {
                         iced::widget::button::Status::Hovered | iced::widget::button::Status::Pressed => {
                             if is_selected {
                                 theme::accent()
                             } else {
-                                iced::Color::WHITE
+                                theme::text()
                             }
                         }
                         _ => {
                             if is_selected {
                                 theme::accent()
                             } else {
-                                iced::Color::from_rgba(1.0, 1.0, 1.0, 0.45)
+                                theme::subtext()
                             }
                         }
                     };
 
                     iced::widget::button::Style {
-                        background: Some(iced::Background::Color(bg_color)),
-                        border: iced::Border {
-                            radius: border_r.into(),
-                            ..Default::default()
-                        },
+                        text_color: Some(icon_color),
+                        background: Some(iced::Background::Color(iced::Color::TRANSPARENT)),
+                        border: iced::Border { radius: 2.0.into(), ..Default::default() },
                         ..Default::default()
                     }
                 });
