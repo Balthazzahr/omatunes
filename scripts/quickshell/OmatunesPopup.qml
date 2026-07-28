@@ -29,7 +29,7 @@ PopupWindow {
 
     property bool isLiked: false
     property bool isShuffleOn: player ? (player.shuffle || false) : false
-    property bool isRepeatOn: player ? (player.loopStatus === MprisLoopStatus.Track || player.loopStatus === MprisLoopStatus.Playlist) : false
+    property bool isRepeatOn: false
 
     Process {
         id: likedCheckProcess
