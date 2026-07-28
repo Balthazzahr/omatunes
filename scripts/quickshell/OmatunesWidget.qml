@@ -28,28 +28,37 @@ Rectangle {
         runCmd("hyprctl dispatch focuswindow class:^omatunes$ || hyprctl dispatch focuswindow title:OmaTUNES || omarchy-launch-or-focus omatunes");
     }
 
+    // STRICT OmaTUNES matching ONLY
     property var activePlayer: {
         var players = Mpris.players ? Mpris.players.values : [];
         for (var i = 0; i < players.length; i++) {
             var p = players[i];
             if (!p) continue;
-            var bus = p.busName || "";
-            var id = p.identity || "";
-            if (bus.indexOf("omatunes") !== -1 || id.toLowerCase().indexOf("omatunes") !== -1) {
+            var bus = (p.busName || "").toLowerCase();
+            var id = (p.identity || "").toLowerCase();
+            var entry = (p.desktopEntry || "").toLowerCase();
+            if (bus.indexOf("omatunes") !== -1 || id.indexOf("omatunes") !== -1 || entry.indexOf("omatunes") !== -1) {
                 return p;
             }
         }
-        return players.length > 0 ? players[0] : null;
+        return null;
     }
 
     property bool isLiked: false
+    property bool isShuffleOn: false
+    property bool isRepeatOn: false
 
     Process {
-        id: likedCheckProcess
-        command: ["cat", "/home/user/.cache/omatunes_current_liked"]
+        id: stateCheckProcess
+        command: ["cat", "/home/user/.cache/omatunes_current_state.json"]
         stdout: SplitParser {
             onRead: data => {
-                root.isLiked = (data.trim() === "1");
+                try {
+                    var obj = JSON.parse(data.trim());
+                    if (obj.liked !== undefined) root.isLiked = (obj.liked === true);
+                    if (obj.shuffle !== undefined) root.isShuffleOn = (obj.shuffle === true);
+                    if (obj.repeat !== undefined) root.isRepeatOn = (obj.repeat === true);
+                } catch(e) {}
             }
         }
     }
@@ -59,7 +68,14 @@ Rectangle {
         running: true
         repeat: true
         onTriggered: {
-            likedCheckProcess.running = true;
+            stateCheckProcess.running = true;
+            if (activePlayer) {
+                if (activePlayer.shuffle !== undefined) root.isShuffleOn = activePlayer.shuffle;
+                if (activePlayer.loopStatus !== undefined) {
+                    var ls = String(activePlayer.loopStatus);
+                    root.isRepeatOn = (ls !== "None" && ls !== "0");
+                }
+            }
         }
     }
 
@@ -113,8 +129,9 @@ Rectangle {
                 if (artist) {
                     artistStr = Array.isArray(artist) ? artist.join(", ") : String(artist);
                 }
-                var title = root.activePlayer.trackTitle || "No Track";
-                var fullText = artistStr ? artistStr + " - " + title : title;
+                var title = root.activePlayer.trackTitle || "";
+                var fullText = (artistStr && title) ? artistStr + " - " + title : (title || artistStr);
+                if (!fullText) return "";
                 var displayStr = fullText.length > 35 ? fullText.substring(0, 35) + "…" : fullText;
                 if (root.isLiked) displayStr += "  ";
                 return displayStr;
@@ -138,7 +155,7 @@ Rectangle {
                 if (root.activePlayer && root.activePlayer.togglePlaying) {
                     root.activePlayer.togglePlaying();
                 } else {
-                    root.runCmd("playerctl --player=omatunes play-pause");
+                    root.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click play");
                 }
             } else if (mouse.button === Qt.RightButton) {
                 root.popupVisible = !root.popupVisible;

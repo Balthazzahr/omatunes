@@ -28,15 +28,20 @@ PopupWindow {
     }
 
     property bool isLiked: false
-    property bool isShuffleOn: player ? (player.shuffle || false) : false
+    property bool isShuffleOn: false
     property bool isRepeatOn: false
 
     Process {
-        id: likedCheckProcess
-        command: ["cat", "/home/user/.cache/omatunes_current_liked"]
+        id: stateCheckProcess
+        command: ["cat", "/home/user/.cache/omatunes_current_state.json"]
         stdout: SplitParser {
             onRead: data => {
-                popup.isLiked = (data.trim() === "1");
+                try {
+                    var obj = JSON.parse(data.trim());
+                    if (obj.liked !== undefined) popup.isLiked = (obj.liked === true);
+                    if (obj.shuffle !== undefined) popup.isShuffleOn = (obj.shuffle === true);
+                    if (obj.repeat !== undefined) popup.isRepeatOn = (obj.repeat === true);
+                } catch(e) {}
             }
         }
     }
@@ -46,9 +51,13 @@ PopupWindow {
         running: popup.visible
         repeat: true
         onTriggered: {
-            likedCheckProcess.running = true;
+            stateCheckProcess.running = true;
             if (player) {
-                popup.isShuffleOn = player.shuffle || popup.isShuffleOn;
+                if (player.shuffle !== undefined) popup.isShuffleOn = player.shuffle;
+                if (player.loopStatus !== undefined) {
+                    var ls = String(player.loopStatus);
+                    popup.isRepeatOn = (ls !== "None" && ls !== "0");
+                }
             }
         }
     }
@@ -144,13 +153,14 @@ PopupWindow {
                     spacing: 8
 
                     Text {
-                        text: popup.player ? (popup.player.trackTitle || "No Track Playing") : "OmaTUNES Offline"
+                        text: popup.player ? (popup.player.trackTitle || "") : ""
                         color: Theme.fg
                         font.family: Theme.fontFamily
                         font.pixelSize: 17
                         font.bold: true
                         elide: Text.ElideRight
                         Layout.maximumWidth: 260
+                        visible: text !== ""
 
                         MouseArea {
                             anchors.fill: parent
@@ -164,6 +174,7 @@ PopupWindow {
                         color: popup.isLiked ? "#e67e80" : (likeArea.containsMouse ? Theme.accent : Theme.muted)
                         font.family: Theme.fontFamily
                         font.pixelSize: 20
+                        visible: popup.player !== null
 
                         MouseArea {
                             id: likeArea
@@ -181,19 +192,20 @@ PopupWindow {
                 Text {
                     Layout.fillWidth: true
                     text: {
-                        if (!popup.player) return "Start OmaTUNES to play music";
+                        if (!popup.player) return "";
                         var a = popup.artistName;
                         var alb = popup.player.trackAlbum || "";
                         if (a && alb) return a + " — " + alb;
                         if (a) return a;
                         if (alb) return alb;
-                        return "Unknown Artist";
+                        return "";
                     }
                     color: Theme.muted
                     font.family: Theme.fontFamily
                     font.pixelSize: 13
                     elide: Text.ElideRight
                     horizontalAlignment: Text.AlignHCenter
+                    visible: text !== ""
 
                     MouseArea {
                         anchors.fill: parent
@@ -315,7 +327,7 @@ PopupWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             if (popup.player) popup.player.previous();
-                            else popup.runCmd("playerctl --player=omatunes previous");
+                            else popup.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click prev");
                         }
                     }
                 }
@@ -341,7 +353,7 @@ PopupWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             if (popup.player && popup.player.togglePlaying) popup.player.togglePlaying();
-                            else popup.runCmd("playerctl --player=omatunes play-pause");
+                            else popup.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click play");
                         }
                     }
                 }
@@ -359,7 +371,7 @@ PopupWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             if (popup.player) popup.player.next();
-                            else popup.runCmd("playerctl --player=omatunes next");
+                            else popup.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click next");
                         }
                     }
                 }
