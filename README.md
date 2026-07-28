@@ -26,7 +26,7 @@ omaTUNES is a native Wayland music player and library manager built in Rust for 
 - **Audio Visualizer 2.0 & Motion Trails.** Real-time FFT spectrum analysis with 9 visually distinct canvas rendering modes (Mirrored Spectrograph with gravity-bouncing peak limiters, Radial Pulse, Liquid Ribbon, Particle Constellation web, Hyperdrive Depth Tunnel flight, Rolling Plains, Kaleidoscope Mirror, Cosmic Aurora plasma curtains, and Retro Synthwave Horizon). Features customizable visualizer background modes (Theme Default, Custom RGB with interactive sliders, Muted Reactive Pulse), mode-specific customization settings, random mode dice selector button (`\ue270`), decaying ghost motion trails, audio sensitivity, and spectrum color shifting via Settings.
 - **Theming System.** Follow your Omarchy system theme live, pick from built-in presets (Nord, Catppuccin, Dracula, Gruvbox, Everforest, Monokai), or build your own — omaTUNES derives the supporting shades automatically using proper WCAG contrast math, so your custom theme never ends up with unreadable text.
 - **Bulk Metadata Editing.** Select a stack of tracks, check only the fields you want to change, and apply edits across an entire album in one go — with autocomplete pulled straight from your existing library tags.
-- **Desktop Integration.** Full MPRIS2 support and a ready-to-go Waybar module with playback controls, live track info, and listening-history stats baked right into your bar.
+- **Desktop & Quickshell Integration.** Full MPRIS2 D-Bus support, a ready-to-go Waybar module, and a native **Quickshell Player Module** featuring an interactive mini-player pop-up window with live timeline scrubbing, volume controls, liked status tracking, and active shuffle/repeat highlights.
 - **Non-Destructive Library Handling.** No forced re-organization, no renaming your folders, no importing into some walled-off library format. omaTUNES reads your music exactly where it already lives.
 
 ---
@@ -184,6 +184,41 @@ Add this to `~/.config/waybar/config.jsonc`:
 > Replace `/home/yourname/` with your actual home path — Waybar requires fully expanded paths.
 
 For CSS styling, see the [Waybar Integration section](USER_MANUAL.md#waybar-integration) in the User Manual.
+
+---
+
+## Quickshell Player Module (Alternative to Waybar)
+
+omaTUNES includes a native **Quickshell Player Module** with an interactive pop-up control card.
+
+> **FYI for Omarchy Users**: The Quickshell module is prepared and tested for **Omarchy v4**. Future minor adjustments may be published once Omarchy v4 is finalized. Note that omaTUNES remains 100% independent and works standard on any Linux / Wayland desktop with Quickshell.
+
+### Quick Install
+
+```bash
+# Clone or navigate to the repository
+git clone https://github.com/Balthazzahr/omatunes.git
+cd omatunes
+
+# Run the automated installer for Quickshell / Omarchy
+bash scripts/quickshell/install.sh
+```
+
+### Module Features & Mouse Controls
+
+- **Bar Widget Display**:
+  - **Offline**: Shows a clean music note glyph (``).
+  - **Playing**: Shows play state, `Artist - Song Title`, and a red heart icon (``) if liked.
+  - **Left Click**: Play / Pause track.
+  - **Right Click**: Toggle interactive mini-player pop-up window.
+  - **Middle Click**: Toggle Like / Unlike for the current track.
+  - **Scroll Wheel Up / Down**: Adjust volume smoothly.
+
+- **Pop-up Mini-Player**:
+  - **Album Cover**: High-res album art (75% width). Click artwork or title to bring the main omaTUNES window to the foreground.
+  - **Timeline Scrubbing**: Interactive seek bar — drag and release to scrub directly to any point in the track.
+  - **Transport Controls**: Shuffle (``), Previous (``), Play/Pause (``/``), Next (``), and Repeat (``). Active mode buttons illuminate in your system accent color.
+  - **Volume Slider**: Interactive volume control bar.
 
 ---
 

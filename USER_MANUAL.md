@@ -301,26 +301,42 @@ isn't running:
 
 ## Quickshell Player Module
 
-OmaTUNES includes a native **Quickshell** player module (`OmatunesWidget.qml` & `OmatunesPopup.qml`).
+OmaTUNES includes a native **Quickshell** player module (`OmatunesWidget.qml` & `OmatunesPopup.qml`) as an interactive alternative to Waybar.
 
-### Features & Interactions
-- **Bar Display**: Shows current Play/Pause icon with `Artist - Track Title`.
-- **Left click**: Play / Pause toggle.
-- **Scroll up / down**: Adjust volume up / down (+5% / -5%).
-- **Right click**: Opens a floating **Mini Player Pop-up** with full player controls, album artwork, track seek bar, volume control slider, and like button.
+> **Note for Omarchy Users**: The Quickshell module is prepared and tested for **Omarchy v4**. Minor adjustments may be published once Omarchy v4 is finalized. OmaTUNES remains 100% independent and works standard on any Linux / Wayland desktop with Quickshell.
+
+### Mouse Controls
+
+| Input | Location | Action |
+|---|---|---|
+| Left click | Bar Widget | Play / Pause toggle |
+| Right click | Bar Widget | Open interactive mini-player pop-up window |
+| Middle click | Bar Widget | Toggle Like (``) for the current track |
+| Scroll up / down | Bar Widget | Adjust volume (+5% / −5%) |
+| Click artwork / title | Pop-up Card | Focus and bring main omaTUNES window to foreground |
+| Drag & Release slider | Pop-up Card | Live track timeline scrubbing / seeking |
+| Click Shuffle (``) / Repeat (``) | Pop-up Card | Toggle Shuffle / Repeat with live accent highlight |
 
 ### Installation
-Run the installer script included in the repository:
+
+Run the automated installer script included in the repository:
 ```bash
 ./scripts/quickshell/install.sh
 ```
-Then add the module to your `~/.config/quickshell/shell.qml`:
-```qml
-import "./modules/omatunes"
 
-// Inside your bar layout RowLayout:
-OmatunesWidget {}
+Or manually copy the module files:
+```bash
+# Standalone Quickshell module
+mkdir -p ~/.config/quickshell/modules/omatunes
+cp scripts/quickshell/*.qml ~/.config/quickshell/modules/omatunes/
+
+# Omarchy Shell plugin
+mkdir -p ~/.config/omarchy/plugins/omatunes
+cp scripts/quickshell/BarWidget.qml ~/.config/omarchy/plugins/omatunes/
+cp scripts/quickshell/manifest.json ~/.config/omarchy/plugins/omatunes/
 ```
+
+Then add `"omatunes"` to your bar layout configuration (`~/.config/omarchy/shell.json` or `~/.config/quickshell/shell.qml`).
 
 ---
 
