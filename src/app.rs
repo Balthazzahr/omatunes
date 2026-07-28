@@ -1123,7 +1123,19 @@ impl AppState {
                         break;
                     }
                 }
-                found.unwrap_or_default()
+                if let Some(url) = found {
+                    url
+                } else if let Some(cover_bytes) = crate::library::scanner::load_cover(&track.path) {
+                    let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
+                    let cache_art = PathBuf::from(home).join(".cache/omatunes_current_art.jpg");
+                    if std::fs::write(&cache_art, cover_bytes).is_ok() {
+                        format!("file://{}", cache_art.to_string_lossy())
+                    } else {
+                        String::new()
+                    }
+                } else {
+                    String::new()
+                }
             } else {
                 String::new()
             };
