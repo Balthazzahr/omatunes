@@ -99,7 +99,7 @@ PopupWindow {
     Rectangle {
         id: card
         implicitWidth: 380
-        implicitHeight: 560
+        implicitHeight: 490
         color: Theme.bg
         border.color: Theme.border
         border.width: 1
