@@ -8,8 +8,9 @@ import "../../theme"
 
 Rectangle {
     id: root
-    implicitWidth: contentRow.implicitWidth + 16
-    implicitHeight: 30
+    visible: root.activePlayer !== null
+    implicitWidth: visible ? (contentRow.implicitWidth + 16) : 0
+    implicitHeight: visible ? 30 : 0
     color: mouseArea.containsMouse ? Theme.hover : "transparent"
     radius: 4
 

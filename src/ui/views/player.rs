@@ -430,9 +430,9 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
 
             let mut dots_row = row![].spacing(6).align_y(Alignment::Center);
 
-            // Random Visualizer Selector Dice Button (fa-dice_five in Nerd Font: \u{eded})
+            // Random Visualizer Selector Button (Shuffle / Random icon)
             let dice_btn = button(
-                text("\u{eded}")
+                text(crate::ui::icons::ICON_SHUFFLE)
                     .font(crate::ui::icons::NERD_FONT)
                     .size(13)
             )
@@ -505,37 +505,37 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                 dots_row = dots_row.push(dot_tooltip);
             }
 
-            let dots_container = container(dots_row)
-                .width(Length::Fill)
-                .center_x(Length::Fill)
-                .padding(8);
+            let spectrum_canvas = crate::ui::views::spectrum::view(
+                &state.spectrum_bands,
+                &state.spectrum_history,
+                state.visualizer_mode,
+                state.animation_tick,
+                state.visualizer_sensitivity,
+                state.ghost_decay,
+                state.color_shift_speed,
+                state.spectrograph_bar_count,
+                state.visualizer_bg_mode,
+                &state.visualizer_bg_color,
+                state.aurora_preset,
+                state.depth_warp_speed,
+                state.kaleidoscope_axes,
+            );
 
-            let visualizer_col = column![
-                container(crate::ui::views::spectrum::view(
-                    &state.spectrum_bands,
-                    &state.spectrum_history,
-                    state.visualizer_mode,
-                    state.animation_tick,
-                    state.visualizer_sensitivity,
-                    state.ghost_decay,
-                    state.color_shift_speed,
-                    state.spectrograph_bar_count,
-                    state.visualizer_bg_mode,
-                    &state.visualizer_bg_color,
-                    state.aurora_preset,
-                    state.depth_warp_speed,
-                    state.kaleidoscope_axes,
-                ))
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .center_x(Length::Fill)
-                .center_y(Length::Fill),
-                dots_container,
+            let overlay_stack = stack![
+                container(spectrum_canvas)
+                    .width(Length::Fill)
+                    .height(Length::Fill),
+                container(dots_row)
+                    .width(Length::Fill)
+                    .height(Length::Fill)
+                    .align_x(iced::alignment::Horizontal::Center)
+                    .align_y(iced::alignment::Vertical::Bottom)
+                    .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 8.0, left: 0.0 }),
             ]
             .width(Length::Fill)
             .height(Length::Fill);
 
-            container(visualizer_col)
+            container(overlay_stack)
                 .width(Length::Fill)
                 .height(Length::Fill)
                 .into()
