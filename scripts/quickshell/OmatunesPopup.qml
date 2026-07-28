@@ -28,6 +28,8 @@ PopupWindow {
     }
 
     property bool isLiked: false
+    property bool isShuffleOn: player ? (player.shuffle || false) : false
+    property bool isRepeatOn: player ? (player.loopStatus === MprisLoopStatus.Track || player.loopStatus === MprisLoopStatus.Playlist) : false
 
     Process {
         id: likedCheckProcess
@@ -45,6 +47,9 @@ PopupWindow {
         repeat: true
         onTriggered: {
             likedCheckProcess.running = true;
+            if (player) {
+                popup.isShuffleOn = player.shuffle || popup.isShuffleOn;
+            }
         }
     }
 
@@ -84,8 +89,8 @@ PopupWindow {
 
     Rectangle {
         id: card
-        implicitWidth: 390
-        implicitHeight: 520
+        implicitWidth: 380
+        implicitHeight: 560
         color: Theme.bg
         border.color: Theme.border
         border.width: 1
@@ -94,13 +99,13 @@ PopupWindow {
         ColumnLayout {
             anchors.fill: parent
             anchors.margins: 16
-            spacing: 12
+            spacing: 14
 
-            // Artwork (90% width of window, 1:1 square) -> Clickable to focus OmaTUNES
+            // Artwork (75% width of window, 1:1 square) -> Clickable to focus OmaTUNES
             Rectangle {
                 Layout.alignment: Qt.AlignHCenter
-                implicitWidth: parent.width * 0.90
-                implicitHeight: parent.width * 0.90
+                implicitWidth: parent.width * 0.75
+                implicitHeight: parent.width * 0.75
                 radius: 12
                 color: Theme.hover
                 clip: true
@@ -119,7 +124,7 @@ PopupWindow {
                     text: "" // nf-fa-music
                     color: Theme.muted
                     font.family: Theme.fontFamily
-                    font.pixelSize: 64
+                    font.pixelSize: 56
                 }
 
                 MouseArea {
@@ -145,7 +150,7 @@ PopupWindow {
                         font.pixelSize: 17
                         font.bold: true
                         elide: Text.ElideRight
-                        Layout.maximumWidth: 280
+                        Layout.maximumWidth: 260
 
                         MouseArea {
                             anchors.fill: parent
@@ -238,7 +243,7 @@ PopupWindow {
                                 var ratio = Math.min(1.0, Math.max(0.0, mouseX / width));
                                 var targetSecs = Math.floor(ratio * popup.player.length);
                                 popup.trackPosition = targetSecs;
-                                popup.runCmd("playerctl --player=omatunes position " + targetSecs);
+                                popup.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click seek " + targetSecs);
                             }
                         }
 
@@ -281,7 +286,7 @@ PopupWindow {
 
                 Text {
                     text: "" // nf-fa-random / shuffle
-                    color: shuffleArea.containsMouse ? Theme.accent : Theme.muted
+                    color: popup.isShuffleOn ? Theme.accent : (shuffleArea.containsMouse ? Theme.accent : Theme.muted)
                     font.family: Theme.fontFamily
                     font.pixelSize: 20
 
@@ -290,7 +295,10 @@ PopupWindow {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: popup.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click shuffle")
+                        onClicked: {
+                            popup.isShuffleOn = !popup.isShuffleOn;
+                            popup.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click shuffle");
+                        }
                     }
                 }
 
@@ -358,7 +366,7 @@ PopupWindow {
 
                 Text {
                     text: "" // nf-fa-repeat
-                    color: repeatArea.containsMouse ? Theme.accent : Theme.muted
+                    color: popup.isRepeatOn ? Theme.accent : (repeatArea.containsMouse ? Theme.accent : Theme.muted)
                     font.family: Theme.fontFamily
                     font.pixelSize: 20
 
@@ -367,7 +375,10 @@ PopupWindow {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: popup.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click repeat")
+                        onClicked: {
+                            popup.isRepeatOn = !popup.isRepeatOn;
+                            popup.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click repeat");
+                        }
                     }
                 }
             }
