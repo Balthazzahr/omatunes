@@ -309,12 +309,18 @@ pub fn write_tags(
                 lofty::picture::PictureType::CoverFront,
                 Some(lofty::picture::MimeType::Unknown(mime)),
                 None,
-                cover_data,
+                cover_data.clone(),
             );
             while !tag.pictures().is_empty() {
                 tag.remove_picture(0);
             }
             tag.push_picture(picture);
+
+            // Also write a copy to parent folder as cover.jpg for quick filesystem access
+            if let Some(parent) = path.parent() {
+                let folder_cover = parent.join("cover.jpg");
+                let _ = std::fs::write(folder_cover, cover_data);
+            }
         }
     }
 
