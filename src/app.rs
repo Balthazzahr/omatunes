@@ -1764,6 +1764,7 @@ impl AppState {
                         db.last_queue_paths = queue_paths;
                     });
                 }
+                self.write_current_liked_status();
                 Task::none()
             }
 
@@ -1771,6 +1772,7 @@ impl AppState {
                 self.repeat = !self.repeat;
                 let loop_status = if self.repeat { LoopStatus::Playlist } else { LoopStatus::None };
                 self.send_mpris(MprisUpdate::Loop(loop_status));
+                self.write_current_liked_status();
                 Task::none()
             }
 
