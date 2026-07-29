@@ -335,8 +335,8 @@ mod tests {
 
     #[test]
     fn test_scan_media_dir() {
-        let media_path = Path::new("/home/user/Drives/Media/Music");
-        let tracks = scan_folder(media_path);
+        let music_dir = dirs::audio_dir().unwrap_or_else(|| PathBuf::from("."));
+        let tracks = scan_folder(&music_dir);
         println!("scan_folder returned {} tracks from MediaDrive!", tracks.len());
         if tracks.is_empty() {
             // Check why read_tags fails on sample track

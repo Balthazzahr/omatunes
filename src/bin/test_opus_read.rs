@@ -3,8 +3,8 @@ use std::path::Path;
 use lofty::probe::Probe;
 use lofty::prelude::*;
 
-fn main() {
-    let p = Path::new("/home/user/Drives/Media/Music/John Mayer/Born And Raised/01 Queen of California.opus");
+    let music_dir = dirs::audio_dir().unwrap_or_else(|| std::path::PathBuf::from("."));
+    let p = music_dir.join("sample.opus");
     match Probe::open(p) {
         Ok(probe) => {
             match probe.read() {
