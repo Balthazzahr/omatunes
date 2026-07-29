@@ -205,6 +205,24 @@ bash scripts/quickshell/install.sh
 ```
 Then add "omatunes" to your bar layout configuration (~/.config/omarchy/shell.json or ~/.config/quickshell/shell.qml).
 
+### Enabling the Module
+
+- **For Omarchy v4 Users**:
+  Add `"omatunes"` to your bar layout in `~/.config/omarchy/shell.json`:
+  ```json
+  "modules": [
+    "omatunes"
+  ]
+  ```
+
+- **For Standalone Quickshell Users**:
+  Import and place `OmatunesWidget` in your `~/.config/quickshell/shell.qml`:
+  ```qml
+  import "./modules/omatunes"
+
+  OmatunesWidget {}
+  ```
+
 ### Module Features & Mouse Controls
 
 - **Bar Widget Display**:

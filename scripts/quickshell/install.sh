@@ -24,8 +24,13 @@ fi
 echo "Files copied to $DEST_DIR"
 echo ""
 echo "Installation complete!"
-echo "Add the following lines to your ~/.config/quickshell/shell.qml:"
 echo ""
-echo '  import "./modules/omatunes"'
-echo '  ...'
-echo '  OmatunesWidget {}'
+echo "Configuration Instructions:"
+echo "• For Omarchy v4 Users:"
+echo "  Add \"omatunes\" to the bar layout array in ~/.config/omarchy/shell.json (e.g. under \"modules\")."
+echo ""
+echo "• For Standalone Quickshell Users:"
+echo "  Include the widget in your ~/.config/quickshell/shell.qml layout:"
+echo '    import "./modules/omatunes"'
+echo '    ...'
+echo '    OmatunesWidget {}'

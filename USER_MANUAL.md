@@ -276,6 +276,11 @@ Running `install.sh` automatically detects your environment and copies the neces
 - **Quickshell Module**: Installed to `~/.config/quickshell/modules/omatunes/` (`OmatunesWidget.qml` & `OmatunesPopup.qml`).
 - **Omarchy v4 Bar Plugin**: Installed to `~/.config/omarchy/plugins/omatunes/` (`BarWidget.qml` & `manifest.json`).
 
+### Enabling the Module
+
+- **Omarchy v4**: Add `"omatunes"` to the bar layout list in `~/.config/omarchy/shell.json`.
+- **Standalone Quickshell**: Import `./modules/omatunes` and instantiate `OmatunesWidget {}` in `~/.config/quickshell/shell.qml`.
+
 ### Module Features & Mouse Controls
 
 - **Offline Auto-Hide**: When OmaTUNES is closed, the bar widget dynamically hides (`visible: false`), leaving `0` empty space on your status bar.
