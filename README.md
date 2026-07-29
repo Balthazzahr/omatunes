@@ -187,11 +187,11 @@ For CSS styling, see the [Waybar Integration section](USER_MANUAL.md#waybar-inte
 
 ---
 
-## Quickshell Player Module (Alternative to Waybar)
+## Quickshell Player Module & Omarchy v4 Bar Plugin
 
-omaTUNES includes a native **Quickshell Player Module** with an interactive pop-up control card.
+omaTUNES includes a native **Quickshell Player Module** and an **Omarchy v4 Bar Plugin** with an interactive pop-up control card.
 
-> **FYI for Omarchy Users**: The Quickshell module is prepared and tested for **Omarchy v4**. Future minor adjustments may be published once Omarchy v4 is finalized. Note that omaTUNES remains 100% independent and works standard on any Linux / Wayland desktop with Quickshell.
+> **FYI for Omarchy v4 Users**: `install.sh` automatically copies the required `BarWidget.qml` & `manifest.json` files directly into `~/.config/omarchy/plugins/omatunes/`.
 
 ### Quick Install
 
@@ -200,15 +200,15 @@ omaTUNES includes a native **Quickshell Player Module** with an interactive pop-
 git clone https://github.com/Balthazzahr/omatunes.git
 cd omatunes
 
-# Run the automated installer for Quickshell / Omarchy
+# Run the automated installer for Quickshell & Omarchy v4
 bash scripts/quickshell/install.sh
 ```
 
 ### Module Features & Mouse Controls
 
 - **Bar Widget Display**:
-  - **Offline**: Shows a clean music note glyph (``).
-  - **Playing**: Shows play state, `Artist - Song Title`, and a red heart icon (``) if liked.
+  - **Offline (OmaTUNES closed)**: Automatically hides from your bar (`visible: false`) to keep your panel clean.
+  - **Playing / Open**: Appears on your bar with play state (`󰐊`/`󰏤`), `Artist - Song Title`, and a red heart icon (``) if liked.
   - **Left Click**: Play / Pause track.
   - **Right Click**: Toggle interactive mini-player pop-up window.
   - **Middle Click**: Toggle Like / Unlike for the current track.
@@ -216,8 +216,8 @@ bash scripts/quickshell/install.sh
 
 - **Pop-up Mini-Player**:
   - **Album Cover**: High-res album art (75% width). Click artwork or title to bring the main omaTUNES window to the foreground.
-  - **Timeline Scrubbing**: Interactive seek bar — drag and release to scrub directly to any point in the track.
   - **Transport Controls**: Shuffle (``), Previous (``), Play/Pause (``/``), Next (``), and Repeat (``). Active mode buttons illuminate in your system accent color.
+  - **Volume Slider**: Interactive volume control bar.
   - **Volume Slider**: Interactive volume control bar.
 
 ---
