@@ -182,7 +182,7 @@ PopupWindow {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                popup.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_text.py --click like");
+                                popup.runCmd("playerctl --player=omatunes play-pause");
                                 popup.isLiked = !popup.isLiked;
                             }
                         }
@@ -215,15 +215,12 @@ PopupWindow {
                 }
             }
 
-
-
-            // Transport Controls: [Shuffle] [Prev] [Play/Pause] [Next] [Repeat]
             RowLayout {
                 Layout.alignment: Qt.AlignHCenter
                 spacing: 20
 
                 Text {
-                    text: "" // nf-fa-random / shuffle
+                    text: ""
                     color: popup.isShuffleOn ? Theme.accent : (shuffleArea.containsMouse ? Theme.accent : Theme.muted)
                     font.family: Theme.fontFamily
                     font.pixelSize: 20
@@ -234,14 +231,15 @@ PopupWindow {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
+                            if (popup.player && popup.player.shuffle !== undefined) popup.player.shuffle = !popup.isShuffleOn;
+                            else popup.runCmd("playerctl --player=omatunes shuffle toggle");
                             popup.isShuffleOn = !popup.isShuffleOn;
-                            popup.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_text.py --click shuffle");
                         }
                     }
                 }
 
                 Text {
-                    text: "" // nf-fa-backward
+                    text: ""
                     color: prevArea.containsMouse ? Theme.accent : Theme.fg
                     font.family: Theme.fontFamily
                     font.pixelSize: 24
@@ -253,7 +251,7 @@ PopupWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             if (popup.player) popup.player.previous();
-                            else popup.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_text.py --click prev");
+                            else popup.runCmd("playerctl --player=omatunes previous");
                         }
                     }
                 }
@@ -279,13 +277,13 @@ PopupWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             if (popup.player && popup.player.togglePlaying) popup.player.togglePlaying();
-                            else popup.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_text.py --click play");
+                            else popup.runCmd("playerctl --player=omatunes play-pause");
                         }
                     }
                 }
 
                 Text {
-                    text: "" // nf-fa-forward
+                    text: ""
                     color: nextArea.containsMouse ? Theme.accent : Theme.fg
                     font.family: Theme.fontFamily
                     font.pixelSize: 24
@@ -297,13 +295,13 @@ PopupWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             if (popup.player) popup.player.next();
-                            else popup.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_text.py --click next");
+                            else popup.runCmd("playerctl --player=omatunes next");
                         }
                     }
                 }
 
                 Text {
-                    text: "" // nf-fa-repeat
+                    text: ""
                     color: popup.isRepeatOn ? Theme.accent : (repeatArea.containsMouse ? Theme.accent : Theme.muted)
                     font.family: Theme.fontFamily
                     font.pixelSize: 20
@@ -315,13 +313,12 @@ PopupWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             popup.isRepeatOn = !popup.isRepeatOn;
-                            popup.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_text.py --click repeat");
+                            popup.runCmd("playerctl --player=omatunes loop " + (popup.isRepeatOn ? "Playlist" : "None"));
                         }
                     }
                 }
             }
 
-            // Volume Control (Clicking + Smooth Dragging)
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 10
