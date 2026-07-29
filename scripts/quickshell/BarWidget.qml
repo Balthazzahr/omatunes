@@ -57,7 +57,7 @@ BarWidget {
 
     Process {
         id: stateCheckProcess
-        command: ["cat", "/home/user/.cache/omatunes_current_state.json"]
+        command: ["cat", "~/.cache/omatunes_current_state.json"]
         stdout: SplitParser {
             onRead: data => {
                 try {
@@ -146,10 +146,10 @@ BarWidget {
                 if (root.activePlayer && root.activePlayer.togglePlaying) {
                     root.activePlayer.togglePlaying();
                 } else {
-                    root.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click play");
+                    root.runCmd("~/.local/bin/omatunes_scripts/omatunes_text.py --click play");
                 }
             } else if (btn === Qt.MiddleButton) {
-                root.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click like");
+                root.runCmd("~/.local/bin/omatunes_scripts/omatunes_text.py --click like");
             }
         }
 
@@ -158,9 +158,9 @@ BarWidget {
             acceptedButtons: Qt.NoButton
             onWheel: function(wheel) {
                 if (wheel.angleDelta.y > 0) {
-                    root.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_volume.sh up");
+                    root.runCmd("~/.local/bin/omatunes_scripts/omatunes_volume.sh up");
                 } else if (wheel.angleDelta.y < 0) {
-                    root.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_volume.sh down");
+                    root.runCmd("~/.local/bin/omatunes_scripts/omatunes_volume.sh down");
                 }
             }
         }
@@ -257,7 +257,7 @@ BarWidget {
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
-                                    root.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click like");
+                                    root.runCmd("~/.local/bin/omatunes_scripts/omatunes_text.py --click like");
                                     root.isLiked = !root.isLiked;
                                 }
                             }
@@ -311,7 +311,7 @@ BarWidget {
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 root.isShuffleOn = !root.isShuffleOn;
-                                root.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click shuffle");
+                                root.runCmd("~/.local/bin/omatunes_scripts/omatunes_text.py --click shuffle");
                             }
                         }
                     }
@@ -330,7 +330,7 @@ BarWidget {
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 if (root.activePlayer) root.activePlayer.previous();
-                                else root.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click prev");
+                                else root.runCmd("~/.local/bin/omatunes_scripts/omatunes_text.py --click prev");
                             }
                         }
                     }
@@ -359,7 +359,7 @@ BarWidget {
                                 if (root.activePlayer && root.activePlayer.togglePlaying) {
                                     root.activePlayer.togglePlaying();
                                 } else {
-                                    root.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click play");
+                                    root.runCmd("~/.local/bin/omatunes_scripts/omatunes_text.py --click play");
                                 }
                             }
                         }
@@ -379,7 +379,7 @@ BarWidget {
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 if (root.activePlayer) root.activePlayer.next();
-                                else root.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click next");
+                                else root.runCmd("~/.local/bin/omatunes_scripts/omatunes_text.py --click next");
                             }
                         }
                     }
@@ -398,7 +398,7 @@ BarWidget {
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 root.isRepeatOn = !root.isRepeatOn;
-                                root.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click repeat");
+                                root.runCmd("~/.local/bin/omatunes_scripts/omatunes_text.py --click repeat");
                             }
                         }
                     }

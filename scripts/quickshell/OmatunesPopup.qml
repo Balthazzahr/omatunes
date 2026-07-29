@@ -33,7 +33,7 @@ PopupWindow {
 
     Process {
         id: stateCheckProcess
-        command: ["cat", "/home/user/.cache/omatunes_current_state.json"]
+        command: ["cat", "~/.cache/omatunes_current_state.json"]
         stdout: SplitParser {
             onRead: data => {
                 try {
@@ -182,7 +182,7 @@ PopupWindow {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                popup.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click like");
+                                popup.runCmd("~/.local/bin/omatunes_scripts/omatunes_text.py --click like");
                                 popup.isLiked = !popup.isLiked;
                             }
                         }
@@ -235,7 +235,7 @@ PopupWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             popup.isShuffleOn = !popup.isShuffleOn;
-                            popup.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click shuffle");
+                            popup.runCmd("~/.local/bin/omatunes_scripts/omatunes_text.py --click shuffle");
                         }
                     }
                 }
@@ -253,7 +253,7 @@ PopupWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             if (popup.player) popup.player.previous();
-                            else popup.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click prev");
+                            else popup.runCmd("~/.local/bin/omatunes_scripts/omatunes_text.py --click prev");
                         }
                     }
                 }
@@ -279,7 +279,7 @@ PopupWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             if (popup.player && popup.player.togglePlaying) popup.player.togglePlaying();
-                            else popup.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click play");
+                            else popup.runCmd("~/.local/bin/omatunes_scripts/omatunes_text.py --click play");
                         }
                     }
                 }
@@ -297,7 +297,7 @@ PopupWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             if (popup.player) popup.player.next();
-                            else popup.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click next");
+                            else popup.runCmd("~/.local/bin/omatunes_scripts/omatunes_text.py --click next");
                         }
                     }
                 }
@@ -315,7 +315,7 @@ PopupWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             popup.isRepeatOn = !popup.isRepeatOn;
-                            popup.runCmd("/home/user/.local/bin/omatunes_scripts/omatunes_text.py --click repeat");
+                            popup.runCmd("~/.local/bin/omatunes_scripts/omatunes_text.py --click repeat");
                         }
                     }
                 }
