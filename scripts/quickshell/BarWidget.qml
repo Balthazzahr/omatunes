@@ -146,10 +146,10 @@ BarWidget {
                 if (root.activePlayer && root.activePlayer.togglePlaying) {
                     root.activePlayer.togglePlaying();
                 } else {
-                    root.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_text.py --click play");
+                    root.runCmd("playerctl --player=omatunes play-pause");
                 }
             } else if (btn === Qt.MiddleButton) {
-                root.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_text.py --click like");
+                root.runCmd("playerctl --player=omatunes play-pause");
             }
         }
 
@@ -158,9 +158,11 @@ BarWidget {
             acceptedButtons: Qt.NoButton
             onWheel: function(wheel) {
                 if (wheel.angleDelta.y > 0) {
-                    root.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_volume.sh up");
+                    if (root.activePlayer && root.activePlayer.volume !== undefined) root.activePlayer.volume = Math.min(1.0, root.activePlayer.volume + 0.05);
+                    else root.runCmd("playerctl --player=omatunes volume 0.05+");
                 } else if (wheel.angleDelta.y < 0) {
-                    root.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_volume.sh down");
+                    if (root.activePlayer && root.activePlayer.volume !== undefined) root.activePlayer.volume = Math.max(0.0, root.activePlayer.volume - 0.05);
+                    else root.runCmd("playerctl --player=omatunes volume 0.05-");
                 }
             }
         }
