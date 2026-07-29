@@ -51,7 +51,7 @@ The [USER_MANUAL.md](USER_MANUAL.md) covers everything in detail — every keybi
 
 ## Install Instructions
 
-### 1. Get the binary
+### 1. Install the binary
 
 **Easiest: grab a pre-built release.**
 ```bash
@@ -69,7 +69,7 @@ mkdir -p ~/.local/bin
 cp target/release/omatunes ~/.local/bin/omatunes
 ```
 
-### 2. Wire up the Waybar module (optional)
+### 2. Install the Waybar module (optional)
 
 If you want the Waybar integration — playback controls, track info, and listening stats right in your bar — copy the scripts over and make them executable:
 
@@ -83,7 +83,7 @@ chmod +x ~/.local/bin/omatunes_scripts/omatunes_volume.sh
 
 Full Waybar config below, and CSS styling details in the [User Manual](USER_MANUAL.md#waybar-integration).
 
-### 3. Install the Quickshell / Omarchy v4 Module (optional, recommended)
+### 3. Install the Quickshell widget (optional)
 
 If you use **Quickshell** or **Omarchy v4**, run the automated installer script to copy the widget and pop-up card files into place:
 
@@ -118,53 +118,6 @@ The entry assumes `omatunes` is on your `PATH`. If you put the binary somewhere 
 
 ---
 
-## Configuration and Settings
-
-omaTUNES writes out `~/.config/omatunes/config.toml` the first time you run it. Open it up and point it at your music:
-
-```toml
-# ~/.config/omatunes/config.toml
-
-# Path to your music library
-music_dir = "~/Music"
-
-# Initial volume (0.0 = mute, 1.0 = 100%)
-volume = 0.8
-
-# Start session with shuffle/repeat
-shuffle = false
-repeat = false
-
-# Seek / Volume steps
-seek_step = 5
-volume_step = 0.05
-
-# Scale factor for UI text sizes (float)
-font_scale = 1.0
-
-# Theming source: "System", "Preset", or "Custom"
-theme_source = "Preset"
-
-# Selected built-in preset theme name
-theme_preset = "Nord"
-
-# Custom theme colors (used when theme_source = "Custom")
-[custom_theme]
-base = "#1e1e2e"       # Background
-text = "#cdd6f4"       # Primary Text
-accent = "#cba6f7"     # Accent
-green = "#a6e3a1"      # Green highlight
-red = "#f38ba8"        # Red highlight
-yellow = "#f9e2af"     # Yellow highlight
-blue = "#89b4fa"       # Blue highlight
-# mantle, surface0, overlay0, and subtext are derived automatically from
-# the colors above using WCAG contrast targets, and get written back to
-# this file when you save your theme in-app.
-```
-
-Most of this is also editable straight from the in-app Settings panel — you don't need to touch this file by hand unless you want to.
-
----
 
 ## Waybar Integration
 
