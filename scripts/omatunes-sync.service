@@ -3,7 +3,7 @@ Description=Omatunes Local to GitHub Auto Sync Service
 After=network.target
 
 [Service]
-ExecStart=/home/user/.local/bin/omatunes_scripts/git_sync.sh
+ExecStart=%h/.local/bin/omatunes_scripts/git_sync.sh
 Restart=on-failure
 RestartSec=10
 
