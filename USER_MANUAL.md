@@ -20,7 +20,8 @@ If you just want to get playing, the short version is: point `music_dir` in your
 13. [Playlists & Smart Playlists](#playlists--smart-playlists)
 14. [Theming](#theming)
 15. [Waybar Integration](#waybar-integration)
-16. [Keybinding Reference](#keybinding-reference)
+16. [Quickshell Integration](#Quickshell-Player-Module) 
+17. [Keybinding Reference](#keybinding-reference)
 
 ---
 
