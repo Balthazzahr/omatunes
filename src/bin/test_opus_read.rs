@@ -3,6 +3,7 @@ use std::path::Path;
 use lofty::probe::Probe;
 use lofty::prelude::*;
 
+fn main() {
     let music_dir = dirs::audio_dir().unwrap_or_else(|| std::path::PathBuf::from("."));
     let p = music_dir.join("sample.opus");
     match Probe::open(p) {
