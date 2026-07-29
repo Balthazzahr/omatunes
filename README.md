@@ -69,7 +69,7 @@ mkdir -p ~/.local/bin
 cp target/release/omatunes ~/.local/bin/omatunes
 ```
 
-### 2. Wire up the Waybar module (optional, but worth it)
+### 2. Wire up the Waybar module (optional)
 
 If you want the Waybar integration — playback controls, track info, and listening stats right in your bar — copy the scripts over and make them executable:
 
@@ -83,7 +83,20 @@ chmod +x ~/.local/bin/omatunes_scripts/omatunes_volume.sh
 
 Full Waybar config below, and CSS styling details in the [User Manual](USER_MANUAL.md#waybar-integration).
 
-### 3. Add omaTUNES to your app launcher (optional)
+### 3. Install the Quickshell / Omarchy v4 Module (optional, recommended)
+
+If you use **Quickshell** or **Omarchy v4**, run the automated installer script to copy the widget and pop-up card files into place:
+
+```bash
+# Clone or navigate to the repository
+git clone https://github.com/Balthazzahr/omatunes.git
+cd omatunes
+bash scripts/quickshell/install.sh
+```
+
+For full details on enabling the plugin in Omarchy's `shell.json` or standalone Quickshell's `shell.qml`, see the [Quickshell Player Module section](#quickshell-player-module--omarchy-v4-bar-plugin) below.
+
+### 4. Add omaTUNES to your app launcher (optional)
 
 Drop in a desktop entry and its icon, and omaTUNES shows up in your launcher — `Super + Space` on Omarchy, or the app grid on GNOME/KDE:
 
@@ -207,21 +220,30 @@ Then add "omatunes" to your bar layout configuration (~/.config/omarchy/shell.js
 
 ### Enabling the Module
 
-- **For Omarchy v4 Users**:
-  Add `"omatunes"` to your bar layout in `~/.config/omarchy/shell.json`:
-  ```json
-  "modules": [
-    "omatunes"
-  ]
-  ```
+#### For Omarchy v4 / Omarchy Shell Users (`~/.config/omarchy/shell.json`)
+Open your `~/.config/omarchy/shell.json` configuration file and add `"omatunes"` to your desired panel bar section (e.g. `modules`, `modules-left`, `modules-center`, or `modules-right` depending on your layout style, such as Pure or Default):
 
-- **For Standalone Quickshell Users**:
-  Import and place `OmatunesWidget` in your `~/.config/quickshell/shell.qml`:
-  ```qml
-  import "./modules/omatunes"
+```json
+{
+  "panel": {
+    "modules-center": [
+      "omatunes"
+    ]
+  }
+}
+```
 
-  OmatunesWidget {}
-  ```
+> **Note**: Omarchy v4 plugin manifests auto-register the plugin named `omatunes` when installed via `install.sh`. Adding `"omatunes"` to any module array in your `shell.json` renders the bar widget.
+
+#### For Standalone Quickshell Users (`~/.config/quickshell/shell.qml`)
+If you use standard Quickshell without Omarchy, import the module directory and place `OmatunesWidget {}` into your bar layout:
+
+```qml
+import "./modules/omatunes"
+
+// Inside your Bar / Panel component:
+OmatunesWidget {}
+```
 
 ### Module Features & Mouse Controls
 

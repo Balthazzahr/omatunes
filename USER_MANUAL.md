@@ -278,7 +278,7 @@ Running `install.sh` automatically detects your environment and copies the neces
 
 ### Enabling the Module
 
-- **Omarchy v4**: Add `"omatunes"` to the bar layout list in `~/.config/omarchy/shell.json`.
+- **Omarchy v4**: Add `"omatunes"` to your panel module list (`modules`, `modules-left`, `modules-center`, or `modules-right`) in `~/.config/omarchy/shell.json`.
 - **Standalone Quickshell**: Import `./modules/omatunes` and instantiate `OmatunesWidget {}` in `~/.config/quickshell/shell.qml`.
 
 ### Module Features & Mouse Controls
@@ -370,7 +370,34 @@ cp scripts/quickshell/BarWidget.qml ~/.config/omarchy/plugins/omatunes/
 cp scripts/quickshell/manifest.json ~/.config/omarchy/plugins/omatunes/
 ```
 
-Then add `"omatunes"` to your bar layout configuration (`~/.config/omarchy/shell.json` or `~/.config/quickshell/shell.qml`).
+### Enabling the Module
+
+#### For Omarchy v4 / Omarchy Shell Users (`~/.config/omarchy/shell.json`)
+Open your `~/.config/omarchy/shell.json` file in a text editor. Add `"omatunes"` to your preferred panel module array (`modules`, `modules-left`, `modules-center`, or `modules-right` depending on your theme style, such as Pure or Default):
+
+```json
+{
+  "panel": {
+    "modules-center": [
+      "clock",
+      "omatunes",
+      "system-tray"
+    ]
+  }
+}
+```
+
+> **Omarchy v4 Note**: `install.sh` registers `BarWidget.qml` under `~/.config/omarchy/plugins/omatunes/`. Omarchy automatically resolves `"omatunes"` in `shell.json` to this plugin.
+
+#### For Standalone Quickshell Users (`~/.config/quickshell/shell.qml`)
+If you are using custom Quickshell without Omarchy, add the import statement and place `OmatunesWidget {}` into your bar structure:
+
+```qml
+import "./modules/omatunes"
+
+// Inside your main bar row/container:
+OmatunesWidget {}
+```
 
 ---
 
