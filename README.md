@@ -203,6 +203,7 @@ cd omatunes
 # Run the automated installer for Quickshell & Omarchy v4
 bash scripts/quickshell/install.sh
 ```
+Then add "omatunes" to your bar layout configuration (~/.config/omarchy/shell.json or ~/.config/quickshell/shell.qml).
 
 ### Module Features & Mouse Controls
 
