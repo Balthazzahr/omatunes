@@ -73,10 +73,24 @@ pub fn scan_folder(dir: &Path) -> Vec<Track> {
         })
         .collect();
 
-    let mut pairs: Vec<(PathBuf, TrackInfo)> = paths
-        .into_par_iter()
-        .filter_map(|path| read_tags(&path).ok().map(|info| (path, info)))
-        .collect();
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(4)
+        .build()
+        .ok();
+
+    let mut pairs: Vec<(PathBuf, TrackInfo)> = if let Some(p) = pool {
+        p.install(|| {
+            paths
+                .into_par_iter()
+                .filter_map(|path| read_tags(&path).ok().map(|info| (path, info)))
+                .collect()
+        })
+    } else {
+        paths
+            .into_par_iter()
+            .filter_map(|path| read_tags(&path).ok().map(|info| (path, info)))
+            .collect()
+    };
 
     pairs.sort_by(|(_, a), (_, b)| {
         a.album.cmp(&b.album)
@@ -341,7 +355,7 @@ mod tests {
         println!("scan_folder returned {} tracks from MediaDrive!", tracks.len());
         if tracks.is_empty() {
             // Check why read_tags fails on sample track
-            for entry in WalkDir::new(media_path).into_iter().filter_map(|e| e.ok()) {
+            for entry in WalkDir::new(&music_dir).into_iter().filter_map(|e| e.ok()) {
                 let p = entry.path();
                 if p.extension().and_then(|e| e.to_str()) == Some("opus") {
                     let err = read_tags(p).err();

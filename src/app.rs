@@ -942,6 +942,18 @@ impl AppState {
             Message::LibraryScanned,
         );
 
+        let cached_tracks = crate::library::load_cache().unwrap_or_default();
+        let initial_all_tracks = Arc::new(cached_tracks);
+
+        let mut initial_folder_cache: HashMap<PathBuf, Vec<Track>> = HashMap::new();
+        for track in initial_all_tracks.iter() {
+            if let Some(parent) = track.path.parent() {
+                initial_folder_cache.entry(parent.to_path_buf()).or_default().push(track.clone());
+            }
+        }
+        let mut initial_folders: Vec<PathBuf> = initial_folder_cache.keys().cloned().collect();
+        initial_folders.sort();
+
         let db_group_by = crate::db::get(|db| db.group_by.unwrap_or(crate::db::GroupBy::None));
 
         let mut state = AppState {
@@ -954,10 +966,10 @@ impl AppState {
             volume: cfg.volume.clamp(0.0, 1.0),
             shuffle: cfg.playback_defaults.album.shuffle,
             repeat: cfg.playback_defaults.album.repeat,
-            folders,
+            folders: if initial_folders.is_empty() { folders } else { initial_folders },
             selected_folder: None,
             tracks: Arc::new(Vec::new()),
-            folder_cache: HashMap::new(),
+            folder_cache: initial_folder_cache,
 
             sidebar_width: db_sidebar_width.unwrap_or(200.0).clamp(MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH),
             dragging_sidebar: false,
@@ -972,7 +984,7 @@ impl AppState {
             iced_theme,
             loaded_theme_name,
             strings: crate::locale::get(),
-            all_tracks: Arc::new(Vec::new()),
+            all_tracks: initial_all_tracks,
             search_query: String::new(),
             filter_title: true,
             filter_artist: true,
@@ -1099,7 +1111,70 @@ impl AppState {
                 let mut keys: Vec<PathBuf> = state.folder_cache.keys().cloned().collect();
                 keys.sort();
                 state.folders = keys;
-                state.update_filtered_tracks();
+
+                let saved = crate::db::get(|db| (
+                    db.last_view_mode,
+                    db.last_selected_playlist.clone(),
+                    db.last_selected_folder.clone(),
+                    db.last_selected_artist.clone(),
+                    db.last_selected_album.clone(),
+                    db.last_selected_genre.clone(),
+                    db.last_track_path.clone(),
+                    db.last_queue_paths.clone(),
+                    db.last_position_secs,
+                ));
+
+                if let (Some(vm), sel_playlist, sel_folder, sel_artist, sel_album, sel_genre, last_track, last_queue, last_pos) = saved {
+                    let restore_vm = if vm == ViewMode::NowPlaying { ViewMode::Artists } else { vm };
+                    state.view_mode = restore_vm;
+                    state.last_browsing_view = restore_vm;
+                    state.selected_playlist = sel_playlist;
+                    state.selected_folder = sel_folder;
+                    state.selected_artist = sel_artist;
+                    state.selected_album = sel_album;
+                    state.selected_genre = sel_genre;
+
+                    if state.selected_artist.is_none() {
+                        let artists_list = state.artists();
+                        if !artists_list.is_empty() {
+                            state.selected_artist = Some(artists_list[0].clone());
+                        }
+                    }
+
+                    state.update_filtered_tracks();
+
+                    let mut restored_queue = Vec::new();
+                    for path in last_queue {
+                        if let Some(t) = state.all_tracks.iter().find(|track| track.path == path) {
+                            restored_queue.push(t.clone());
+                        }
+                    }
+                    if !restored_queue.is_empty() {
+                        state.queue = restored_queue;
+                    } else {
+                        state.queue = (*state.tracks).clone();
+                    }
+
+                    if let Some(track_path) = last_track {
+                        if let Some(track) = state.all_tracks.iter().find(|t| t.path == track_path) {
+                            let cover_data = load_cover(&track.path);
+                            let t = Track { cover_data, ..track.clone() };
+                            state.current_track = Some(t.clone());
+                            state.selected_track = Some(t.clone());
+                            state.playback_state = PlaybackState::Paused;
+                            state.position = Duration::from_secs(last_pos);
+                            state.duration = t.duration;
+                            state.current_track_play_counted = false;
+                            state.notify_mpris_track(PlaybackStatus::Paused);
+
+                            state.audio.send(AudioCommand::Play(t.path.clone()));
+                            state.audio.send(AudioCommand::Seek(Duration::from_secs(last_pos)));
+                            state.audio.send(AudioCommand::Pause);
+                        }
+                    }
+                } else {
+                    state.update_filtered_tracks();
+                }
             }
         }
 
@@ -3057,6 +3132,7 @@ impl AppState {
 
             Message::LibraryScanned(tracks) => {
                 crate::library::save_cache(&tracks);
+                let had_existing_tracks = !self.all_tracks.is_empty();
                 self.all_tracks = Arc::new(tracks);
 
                 crate::stats::backfill_album_data(&self.all_tracks);
@@ -3073,68 +3149,70 @@ impl AppState {
                 keys.sort();
                 self.folders = keys;
 
-                let saved = crate::db::get(|db| (
-                    db.last_view_mode,
-                    db.last_selected_playlist.clone(),
-                    db.last_selected_folder.clone(),
-                    db.last_selected_artist.clone(),
-                    db.last_selected_album.clone(),
-                    db.last_selected_genre.clone(),
-                    db.last_track_path.clone(),
-                    db.last_queue_paths.clone(),
-                    db.last_position_secs,
-                ));
+                self.update_filtered_tracks();
 
-                if let (Some(vm), sel_playlist, sel_folder, sel_artist, sel_album, sel_genre, last_track, last_queue, last_pos) = saved {
-                    let restore_vm = if vm == ViewMode::NowPlaying { ViewMode::Artists } else { vm };
-                    self.view_mode = restore_vm;
-                    self.last_browsing_view = restore_vm;
-                    self.selected_playlist = sel_playlist;
-                    self.selected_folder = sel_folder;
-                    self.selected_artist = sel_artist;
-                    self.selected_album = sel_album;
-                    self.selected_genre = sel_genre;
+                if !had_existing_tracks {
+                    let saved = crate::db::get(|db| (
+                        db.last_view_mode,
+                        db.last_selected_playlist.clone(),
+                        db.last_selected_folder.clone(),
+                        db.last_selected_artist.clone(),
+                        db.last_selected_album.clone(),
+                        db.last_selected_genre.clone(),
+                        db.last_track_path.clone(),
+                        db.last_queue_paths.clone(),
+                        db.last_position_secs,
+                    ));
 
-                    if self.selected_artist.is_none() {
-                        let artists_list = self.artists();
-                        if !artists_list.is_empty() {
-                            self.selected_artist = Some(artists_list[0].clone());
+                    if let (Some(vm), sel_playlist, sel_folder, sel_artist, sel_album, sel_genre, last_track, last_queue, last_pos) = saved {
+                        let restore_vm = if vm == ViewMode::NowPlaying { ViewMode::Artists } else { vm };
+                        self.view_mode = restore_vm;
+                        self.last_browsing_view = restore_vm;
+                        self.selected_playlist = sel_playlist;
+                        self.selected_folder = sel_folder;
+                        self.selected_artist = sel_artist;
+                        self.selected_album = sel_album;
+                        self.selected_genre = sel_genre;
+
+                        if self.selected_artist.is_none() {
+                            let artists_list = self.artists();
+                            if !artists_list.is_empty() {
+                                self.selected_artist = Some(artists_list[0].clone());
+                            }
+                        }
+
+                        self.update_filtered_tracks();
+
+                        let mut restored_queue = Vec::new();
+                        for path in last_queue {
+                            if let Some(t) = self.all_tracks.iter().find(|track| track.path == path) {
+                                restored_queue.push(t.clone());
+                            }
+                        }
+                        if !restored_queue.is_empty() {
+                            self.queue = restored_queue;
+                        } else {
+                            self.queue = (*self.tracks).clone();
+                        }
+
+                        if let Some(track_path) = last_track {
+                            if let Some(track) = self.all_tracks.iter().find(|t| t.path == track_path) {
+                                let cover_data = load_cover(&track.path);
+                                let t = Track { cover_data, ..track.clone() };
+                                self.current_track = Some(t.clone());
+                                self.selected_track = Some(t.clone());
+                                self.playback_state = PlaybackState::Paused;
+                                self.position = Duration::from_secs(last_pos);
+                                self.duration = t.duration;
+                                self.current_track_play_counted = false;
+                                self.notify_mpris_track(PlaybackStatus::Paused);
+
+                                self.audio.send(AudioCommand::Play(t.path.clone()));
+                                self.audio.send(AudioCommand::Seek(Duration::from_secs(last_pos)));
+                                self.audio.send(AudioCommand::Pause);
+                            }
                         }
                     }
-
-                    self.update_filtered_tracks();
-
-                    let mut restored_queue = Vec::new();
-                    for path in last_queue {
-                        if let Some(t) = self.all_tracks.iter().find(|track| track.path == path) {
-                            restored_queue.push(t.clone());
-                        }
-                    }
-                    if !restored_queue.is_empty() {
-                        self.queue = restored_queue;
-                    } else {
-                        self.queue = (*self.tracks).clone();
-                    }
-
-                    if let Some(track_path) = last_track {
-                        if let Some(track) = self.all_tracks.iter().find(|t| t.path == track_path) {
-                            let cover_data = load_cover(&track.path);
-                            let t = Track { cover_data, ..track.clone() };
-                            self.current_track = Some(t.clone());
-                            self.selected_track = Some(t.clone());
-                            self.playback_state = PlaybackState::Paused;
-                            self.position = Duration::from_secs(last_pos);
-                            self.duration = t.duration;
-                            self.current_track_play_counted = false;
-                            self.notify_mpris_track(PlaybackStatus::Paused);
-
-                            self.audio.send(AudioCommand::Play(t.path.clone()));
-                            self.audio.send(AudioCommand::Seek(Duration::from_secs(last_pos)));
-                            self.audio.send(AudioCommand::Pause);
-                        }
-                    }
-                } else {
-                    self.update_filtered_tracks();
                 }
 
                 Task::none()
