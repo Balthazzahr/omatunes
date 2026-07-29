@@ -4,8 +4,8 @@ use lofty::probe::Probe;
 use lofty::prelude::*;
 
 fn main() {
-    let music_dir = dirs::audio_dir().unwrap_or_else(|| std::path::PathBuf::from("."));
-    let p = music_dir.join("sample.opus");
+    let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+    let p = std::path::PathBuf::from(home).join("sample.opus");
     match Probe::open(p) {
         Ok(probe) => {
             match probe.read() {

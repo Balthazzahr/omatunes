@@ -3,7 +3,8 @@ use std::path::Path;
 use omatunes::library::scanner::scan_folder;
 
 fn main() {
-    let music_dir = dirs::audio_dir().unwrap_or_else(|| std::path::PathBuf::from("."));
+    let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+    let music_dir = std::path::PathBuf::from(home).join("Music");
     let tracks = scan_folder(&music_dir);
     println!("scan_folder returned {} tracks!", tracks.len());
     if let Some(t) = tracks.first() {
