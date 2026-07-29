@@ -218,7 +218,6 @@ bash scripts/quickshell/install.sh
   - **Album Cover**: High-res album art (75% width). Click artwork or title to bring the main omaTUNES window to the foreground.
   - **Transport Controls**: Shuffle (``), Previous (``), Play/Pause (``/``), Next (``), and Repeat (``). Active mode buttons illuminate in your system accent color.
   - **Volume Slider**: Interactive volume control bar.
-  - **Volume Slider**: Interactive volume control bar.
 
 ---
 

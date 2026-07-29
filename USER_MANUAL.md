@@ -259,6 +259,34 @@ Open Settings (the gear icon at the far right of the library tab row) to get to 
 
 ---
 
+## Quickshell Player Module & Omarchy v4 Bar Plugin
+
+OmaTUNES includes both a standalone **Quickshell Player Module** and a native **Omarchy v4 Bar Plugin** with interactive pop-up control cards.
+
+### Installation
+
+```bash
+git clone https://github.com/Balthazzahr/omatunes.git
+cd omatunes
+bash scripts/quickshell/install.sh
+```
+
+Running `install.sh` automatically detects your environment and copies the necessary files:
+- **Quickshell Module**: Installed to `~/.config/quickshell/modules/omatunes/` (`OmatunesWidget.qml` & `OmatunesPopup.qml`).
+- **Omarchy v4 Bar Plugin**: Installed to `~/.config/omarchy/plugins/omatunes/` (`BarWidget.qml` & `manifest.json`).
+
+### Module Features & Mouse Controls
+
+- **Offline Auto-Hide**: When OmaTUNES is closed, the bar widget dynamically hides (`visible: false`), leaving `0` empty space on your status bar.
+- **Active Player Display**: When OmaTUNES is open, the bar widget appears displaying playback status (`󰐊`/`󰏤`), `Artist - Title`, and a heart icon (``) if liked.
+- **Mouse Controls**:
+  - **Left Click**: Toggle Play / Pause.
+  - **Right Click**: Toggle the pop-up mini-player control card.
+  - **Middle Click**: Toggle Like / Heart status.
+  - **Scroll Wheel Up / Down**: Adjust system volume.
+
+---
+
 ## Waybar Integration
 
 OmaTUNES listens on UDP port `18888` for commands, which the Waybar script talks to.
