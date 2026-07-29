@@ -259,7 +259,7 @@ BarWidget {
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
-                                    root.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_text.py --click like");
+                                    root.runCmd("playerctl --player=omatunes play-pause");
                                     root.isLiked = !root.isLiked;
                                 }
                             }
@@ -312,8 +312,9 @@ BarWidget {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
+                                if (root.activePlayer && root.activePlayer.shuffle !== undefined) root.activePlayer.shuffle = !root.isShuffleOn;
+                                else root.runCmd("playerctl --player=omatunes shuffle toggle");
                                 root.isShuffleOn = !root.isShuffleOn;
-                                root.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_text.py --click shuffle");
                             }
                         }
                     }
@@ -332,7 +333,7 @@ BarWidget {
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 if (root.activePlayer) root.activePlayer.previous();
-                                else root.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_text.py --click prev");
+                                else root.runCmd("playerctl --player=omatunes previous");
                             }
                         }
                     }
@@ -361,7 +362,7 @@ BarWidget {
                                 if (root.activePlayer && root.activePlayer.togglePlaying) {
                                     root.activePlayer.togglePlaying();
                                 } else {
-                                    root.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_text.py --click play");
+                                    root.runCmd("playerctl --player=omatunes play-pause");
                                 }
                             }
                         }
@@ -381,7 +382,7 @@ BarWidget {
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 if (root.activePlayer) root.activePlayer.next();
-                                else root.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_text.py --click next");
+                                else root.runCmd("playerctl --player=omatunes next");
                             }
                         }
                     }
@@ -400,7 +401,7 @@ BarWidget {
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 root.isRepeatOn = !root.isRepeatOn;
-                                root.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_text.py --click repeat");
+                                root.runCmd("playerctl --player=omatunes loop " + (root.isRepeatOn ? "Playlist" : "None"));
                             }
                         }
                     }
