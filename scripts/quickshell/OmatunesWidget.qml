@@ -51,7 +51,7 @@ Rectangle {
 
     Process {
         id: stateCheckProcess
-        command: ["cat", "~/.cache/omatunes_current_state.json"]
+        command: ["cat", "$HOME/.cache/omatunes_current_state.json"]
         stdout: SplitParser {
             onRead: data => {
                 try {
@@ -156,20 +156,20 @@ Rectangle {
                 if (root.activePlayer && root.activePlayer.togglePlaying) {
                     root.activePlayer.togglePlaying();
                 } else {
-                    root.runCmd("~/.local/bin/omatunes_scripts/omatunes_text.py --click play");
+                    root.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_text.py --click play");
                 }
             } else if (mouse.button === Qt.RightButton) {
                 root.popupVisible = !root.popupVisible;
             } else if (mouse.button === Qt.MiddleButton) {
-                root.runCmd("~/.local/bin/omatunes_scripts/omatunes_text.py --click like");
+                root.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_text.py --click like");
             }
         }
 
         onWheel: (wheel) => {
             if (wheel.angleDelta.y > 0) {
-                root.runCmd("~/.local/bin/omatunes_scripts/omatunes_volume.sh up");
+                root.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_volume.sh up");
             } else if (wheel.angleDelta.y < 0) {
-                root.runCmd("~/.local/bin/omatunes_scripts/omatunes_volume.sh down");
+                root.runCmd("$HOME/.local/bin/omatunes_scripts/omatunes_volume.sh down");
             }
         }
     }
