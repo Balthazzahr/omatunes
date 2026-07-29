@@ -335,7 +335,8 @@ mod tests {
 
     #[test]
     fn test_scan_media_dir() {
-        let music_dir = dirs::audio_dir().unwrap_or_else(|| PathBuf::from("."));
+        let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+        let music_dir = PathBuf::from(home).join("Music");
         let tracks = scan_folder(&music_dir);
         println!("scan_folder returned {} tracks from MediaDrive!", tracks.len());
         if tracks.is_empty() {
