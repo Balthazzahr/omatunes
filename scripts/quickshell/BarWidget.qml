@@ -149,7 +149,7 @@ BarWidget {
                     root.runCmd("playerctl --player=omatunes play-pause");
                 }
             } else if (btn === Qt.MiddleButton) {
-                root.runCmd("echo -n 'like' | nc -u -w0 127.0.0.1 18888 || true");
+                root.runCmd("python3 -c \"import socket; s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.sendto(b'like', ('127.0.0.1', 18888))\"");
             }
         }
 

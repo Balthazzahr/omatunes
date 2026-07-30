@@ -182,7 +182,7 @@ PopupWindow {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                popup.runCmd("playerctl --player=omatunes play-pause");
+                                popup.runCmd("echo -n 'like' | nc -u -w0 127.0.0.1 18888 || true");
                                 popup.isLiked = !popup.isLiked;
                             }
                         }
