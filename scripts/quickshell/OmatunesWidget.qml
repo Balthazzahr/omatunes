@@ -51,7 +51,7 @@ Rectangle {
 
     Process {
         id: stateCheckProcess
-        command: ["cat", "$HOME/.cache/omatunes_current_state.json"]
+        command: ["bash", "-c", "cat \"$HOME/.cache/omatunes_current_state.json\""]
         stdout: SplitParser {
             onRead: data => {
                 try {
