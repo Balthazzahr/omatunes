@@ -182,7 +182,7 @@ PopupWindow {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                popup.runCmd("echo -n 'like' | nc -u -w0 127.0.0.1 18888 || true");
+                                popup.runCmd("python3 -c \"import socket; s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.sendto(b'like', ('127.0.0.1', 18888))\"");
                                 popup.isLiked = !popup.isLiked;
                             }
                         }
