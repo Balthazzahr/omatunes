@@ -23,31 +23,24 @@ const OUTPUT_CHANNELS: u16 = 2;
 fn sync_system_volume(volume: f32) {
     let vol_pct = format!("{}%", (volume * 100.0).round() as u32);
     std::thread::spawn(move || {
-        for delay in &[10, 50, 150, 300, 600] {
-            std::thread::sleep(std::time::Duration::from_millis(*delay));
-            if let Ok(out) = std::process::Command::new("pactl").arg("list").arg("sink-inputs").output() {
-                let text = String::from_utf8_lossy(&out.stdout);
-                let mut current_id = None;
-                let mut found = false;
-                for line in text.lines() {
-                    let line = line.trim();
-                    if line.starts_with("Sink Input #") {
-                        if let Some(id_str) = line.strip_prefix("Sink Input #") {
-                            current_id = id_str.parse::<u32>().ok();
-                        }
-                    } else if line.contains("omatunes") {
-                        if let Some(id) = current_id {
-                            let _ = std::process::Command::new("pactl")
-                                .arg("set-sink-input-volume")
-                                .arg(id.to_string())
-                                .arg(&vol_pct)
-                                .spawn();
-                            found = true;
-                        }
+        if let Ok(out) = std::process::Command::new("pactl").arg("list").arg("sink-inputs").output() {
+            let text = String::from_utf8_lossy(&out.stdout);
+            let mut current_id = None;
+            for line in text.lines() {
+                let line = line.trim();
+                if line.starts_with("Sink Input #") {
+                    if let Some(id_str) = line.strip_prefix("Sink Input #") {
+                        current_id = id_str.parse::<u32>().ok();
                     }
-                }
-                if found {
-                    break;
+                } else if line.contains("omatunes") {
+                    if let Some(id) = current_id {
+                        let _ = std::process::Command::new("pactl")
+                            .arg("set-sink-input-volume")
+                            .arg(id.to_string())
+                            .arg(&vol_pct)
+                            .status();
+                        break;
+                    }
                 }
             }
         }
