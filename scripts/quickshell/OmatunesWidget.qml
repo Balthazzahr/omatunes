@@ -161,7 +161,7 @@ Rectangle {
             } else if (mouse.button === Qt.RightButton) {
                 root.popupVisible = !root.popupVisible;
             } else if (mouse.button === Qt.MiddleButton) {
-                root.runCmd("playerctl --player=omatunes play-pause");
+                root.runCmd("echo -n 'like' | nc -u -w0 127.0.0.1 18888 || true");
             }
         }
 

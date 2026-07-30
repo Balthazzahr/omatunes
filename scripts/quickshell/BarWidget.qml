@@ -149,7 +149,7 @@ BarWidget {
                     root.runCmd("playerctl --player=omatunes play-pause");
                 }
             } else if (btn === Qt.MiddleButton) {
-                root.runCmd("playerctl --player=omatunes play-pause");
+                root.runCmd("echo -n 'like' | nc -u -w0 127.0.0.1 18888 || true");
             }
         }
 
