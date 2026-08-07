@@ -226,14 +226,16 @@ fn try_load_omarchy_theme() -> Option<Palette> {
     let theme_name = std::fs::read_to_string(
         home.join(".config/omarchy/current/theme.name"),
     )
-    .ok()?
-    .trim()
-    .to_string();
+    .ok()
+    .map(|s| s.trim().to_string())
+    .unwrap_or_else(|| "current".to_string());
 
-    let user_path   = home.join(format!(".config/omarchy/themes/{}/colors.toml",      theme_name));
-    let system_path = home.join(format!(".local/share/omarchy/themes/{}/colors.toml", theme_name));
+    let current_path = home.join(".config/omarchy/current/theme/colors.toml");
+    let user_path    = home.join(format!(".config/omarchy/themes/{}/colors.toml",      theme_name));
+    let system_path  = home.join(format!(".local/share/omarchy/themes/{}/colors.toml", theme_name));
 
-    let content = std::fs::read_to_string(&user_path)
+    let content = std::fs::read_to_string(&current_path)
+        .or_else(|_| std::fs::read_to_string(&user_path))
         .or_else(|_| std::fs::read_to_string(&system_path))
         .ok()?;
 
