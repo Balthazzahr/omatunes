@@ -2206,6 +2206,21 @@ impl AppState {
                             self.last_accumulated_position = dur;
                             self.send_mpris(MprisUpdate::Position(dur));
                         }
+                        MprisCommand::SeekRelative(offset_micros) => {
+                            let new_pos = if offset_micros >= 0 {
+                                self.position
+                                    .saturating_add(Duration::from_micros(offset_micros as u64))
+                                    .min(self.duration)
+                            } else {
+                                self.position.saturating_sub(Duration::from_micros(
+                                    (-offset_micros) as u64,
+                                ))
+                            };
+                            self.audio.send(AudioCommand::Seek(new_pos));
+                            self.position = new_pos;
+                            self.last_accumulated_position = new_pos;
+                            self.send_mpris(MprisUpdate::Position(new_pos));
+                        }
                     }
                 }
 
