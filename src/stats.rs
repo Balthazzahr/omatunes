@@ -6,6 +6,7 @@ use serde::{Serialize, Deserialize};
 
 static STATS: std::sync::OnceLock<Mutex<StatsDb>> = std::sync::OnceLock::new();
 static STATS_DIRTY: AtomicBool = AtomicBool::new(false);
+static STATS_FLUSH_IN_PROGRESS: AtomicBool = AtomicBool::new(false);
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct DayStats {
@@ -129,12 +130,22 @@ impl StatsDb {
 
     pub fn save(&self) {
         let path = crate::paths::stats();
+        Self::save_to_path(&path, self);
+    }
+
+    pub fn save_to_path(path: &std::path::Path, stats: &StatsDb) {
+        let start = std::time::Instant::now();
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent).ok();
         }
-        if let Ok(json) = serde_json::to_string_pretty(self) {
-            std::fs::write(path, json).ok();
+        if let Ok(json) = serde_json::to_string(stats) {
+            let tmp_path = path.with_extension("tmp");
+            if std::fs::write(&tmp_path, json).is_ok() {
+                let _ = std::fs::rename(&tmp_path, path);
+            }
         }
+        let duration = start.elapsed();
+        eprintln!("[stats::flush] Background save completed in {:?}", duration);
     }
 }
 
@@ -220,10 +231,43 @@ where
 }
 
 pub fn flush() {
-    if STATS_DIRTY.swap(false, Ordering::Acquire) {
+    if !STATS_DIRTY.load(Ordering::Acquire) {
+        return;
+    }
+    if STATS_FLUSH_IN_PROGRESS
+        .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
+        .is_err()
+    {
+        return;
+    }
+    let json_data = {
         if let Ok(guard) = STATS.get_or_init(|| Mutex::new(StatsDb::load())).lock() {
-            guard.save();
+            STATS_DIRTY.store(false, Ordering::Release);
+            serde_json::to_string(&*guard).ok()
+        } else {
+            None
         }
+    };
+    if let Some(json) = json_data {
+        std::thread::spawn(move || {
+            let start = std::time::Instant::now();
+            let path = crate::paths::stats();
+            if let Some(parent) = path.parent() {
+                std::fs::create_dir_all(parent).ok();
+            }
+            let tmp_path = path.with_extension("tmp");
+            if std::fs::write(&tmp_path, &json).is_ok() {
+                let _ = std::fs::rename(&tmp_path, &path);
+            }
+            let duration = start.elapsed();
+            eprintln!("[stats::flush] Background save completed in {:?}", duration);
+            STATS_FLUSH_IN_PROGRESS.store(false, Ordering::Release);
+            if STATS_DIRTY.load(Ordering::Acquire) {
+                flush();
+            }
+        });
+    } else {
+        STATS_FLUSH_IN_PROGRESS.store(false, Ordering::Release);
     }
 }
 
