@@ -1,2 +1,9 @@
 # Ignore build artifacts from Cargo
 target/
+
+# Private development docs — keep local only, not on public GitHub
+AGENTS.md
+ARCHITECTURE.md
+CHANGELOG.md
+PROJECT_SPEC.md
+ROADMAP.md
