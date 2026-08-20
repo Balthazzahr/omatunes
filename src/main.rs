@@ -20,5 +20,10 @@ fn main() -> iced::Result {
     stats::init();    // initialize listening statistics
     locale::load();
     ui::theme::load_system_theme();
-    app::run()
+    let res = app::run();
+    // Best-effort synchronous flush on normal exit (covers close via window X, SIGTERM, etc.).
+    // Does not cover SIGKILL (kill -9) — for that, high-value writes now flush() immediately (see db.rs).
+    db::flush_sync();
+    stats::flush_sync();
+    res
 }

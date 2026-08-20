@@ -271,6 +271,15 @@ pub fn flush() {
     }
 }
 
+pub fn flush_sync() {
+    if STATS_DIRTY.swap(false, Ordering::AcqRel) {
+        if let Ok(guard) = STATS.get_or_init(|| Mutex::new(StatsDb::load())).lock() {
+            guard.save();
+        }
+    }
+    STATS_FLUSH_IN_PROGRESS.store(false, Ordering::Release);
+}
+
 pub const ARTIST_THRESHOLDS: [u32; 5] = [50, 150, 300, 500, 1000];
 pub const ALBUM_THRESHOLDS: [u32; 5] = [50, 150, 300, 500, 1000];
 pub const GENRE_THRESHOLDS: [u32; 5] = [100, 300, 600, 1000, 2000];

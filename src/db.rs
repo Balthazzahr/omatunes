@@ -302,11 +302,13 @@ pub fn flush() {
 }
 
 pub fn increment_play_count(path: PathBuf) -> u32 {
-    write(|db| {
+    let c = write(|db| {
         let count = db.play_counts.entry(path).or_insert(0);
         *count += 1;
         *count
-    })
+    });
+    flush();
+    c
 }
 
 pub fn add_to_playlist(name: String, path: PathBuf) {
@@ -316,6 +318,7 @@ pub fn add_to_playlist(name: String, path: PathBuf) {
             list.push(path);
         }
     });
+    flush();
 }
 
 pub fn remove_from_playlist(name: String, path: PathBuf) {
@@ -324,6 +327,7 @@ pub fn remove_from_playlist(name: String, path: PathBuf) {
             list.retain(|p| p != &path);
         }
     });
+    flush();
 }
 
 pub fn create_playlist(name: String) {
@@ -333,6 +337,7 @@ pub fn create_playlist(name: String) {
             db.playlist_order.push(name);
         }
     });
+    flush();
 }
 
 pub fn delete_playlist(name: String) {
@@ -340,6 +345,7 @@ pub fn delete_playlist(name: String) {
         db.playlists.remove(&name);
         db.playlist_order.retain(|n| n != &name);
     });
+    flush();
 }
 
 pub fn rename_playlist(old_name: String, new_name: String) {
@@ -351,6 +357,7 @@ pub fn rename_playlist(old_name: String, new_name: String) {
             }
         }
     });
+    flush();
 }
 
 pub fn add_to_recently_played(path: PathBuf) {
@@ -362,6 +369,7 @@ pub fn add_to_recently_played(path: PathBuf) {
             db.recently_played.truncate(100);
         }
     });
+    flush();
 }
 
 pub fn save_smart_playlist(name: String, playlist: crate::library::smart_playlist::SmartPlaylist) {
@@ -371,6 +379,7 @@ pub fn save_smart_playlist(name: String, playlist: crate::library::smart_playlis
             db.smart_playlist_order.push(name);
         }
     });
+    flush();
 }
 
 pub fn delete_smart_playlist(name: String) {
@@ -378,5 +387,15 @@ pub fn delete_smart_playlist(name: String) {
         db.smart_playlists.remove(&name);
         db.smart_playlist_order.retain(|n| n != &name);
     });
+    flush();
+}
+
+pub fn flush_sync() {
+    if DB_DIRTY.swap(false, Ordering::AcqRel) {
+        if let Ok(guard) = DB.get_or_init(|| Mutex::new(OmatunesDb::load())).lock() {
+            guard.save();
+        }
+    }
+    DB_FLUSH_IN_PROGRESS.store(false, Ordering::Release);
 }
 
