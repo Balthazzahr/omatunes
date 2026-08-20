@@ -364,6 +364,9 @@ fn decode_file(
         if let Some(ref mut dec) = symphonia_decoder {
             dec.reset();
         }
+        if is_opus {
+            opus_decoder = opus::Decoder::new(file_rate, channels_mode).ok();
+        }
         (pos.as_secs_f64() * OUTPUT_RATE as f64) as u64
     } else {
         0u64
@@ -380,6 +383,9 @@ fn decode_file(
             Err(SymphoniaError::ResetRequired) => {
                 if let Some(ref mut dec) = symphonia_decoder {
                     dec.reset();
+                }
+                if is_opus {
+                    opus_decoder = opus::Decoder::new(file_rate, channels_mode).ok();
                 }
                 continue;
             }

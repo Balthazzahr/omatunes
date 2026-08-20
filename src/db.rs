@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 static DB: std::sync::OnceLock<Mutex<OmatunesDb>> = std::sync::OnceLock::new();
 static DB_DIRTY: AtomicBool = AtomicBool::new(false);
+static DB_FLUSH_IN_PROGRESS: AtomicBool = AtomicBool::new(false);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -217,12 +218,22 @@ impl OmatunesDb {
 
     pub fn save(&self) {
         let path = crate::paths::db();
+        Self::save_to_path(&path, self);
+    }
+
+    pub fn save_to_path(path: &std::path::Path, db: &OmatunesDb) {
+        let start = std::time::Instant::now();
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent).ok();
         }
-        if let Ok(json) = serde_json::to_string_pretty(self) {
-            std::fs::write(path, json).ok();
+        if let Ok(json) = serde_json::to_string(db) {
+            let tmp_path = path.with_extension("tmp");
+            if std::fs::write(&tmp_path, json).is_ok() {
+                let _ = std::fs::rename(&tmp_path, path);
+            }
         }
+        let duration = start.elapsed();
+        eprintln!("[db::flush] Background save completed in {:?}", duration);
     }
 }
 
@@ -250,19 +261,54 @@ where
 }
 
 pub fn flush() {
-    if DB_DIRTY.swap(false, Ordering::Acquire) {
+    if !DB_DIRTY.load(Ordering::Acquire) {
+        return;
+    }
+    if DB_FLUSH_IN_PROGRESS
+        .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
+        .is_err()
+    {
+        return;
+    }
+    let json_data = {
         if let Ok(guard) = DB.get_or_init(|| Mutex::new(OmatunesDb::load())).lock() {
-            guard.save();
+            DB_DIRTY.store(false, Ordering::Release);
+            serde_json::to_string(&*guard).ok()
+        } else {
+            None
         }
+    };
+    if let Some(json) = json_data {
+        std::thread::spawn(move || {
+            let start = std::time::Instant::now();
+            let path = crate::paths::db();
+            if let Some(parent) = path.parent() {
+                std::fs::create_dir_all(parent).ok();
+            }
+            let tmp_path = path.with_extension("tmp");
+            if std::fs::write(&tmp_path, &json).is_ok() {
+                let _ = std::fs::rename(&tmp_path, &path);
+            }
+            let duration = start.elapsed();
+            eprintln!("[db::flush] Background save completed in {:?}", duration);
+            DB_FLUSH_IN_PROGRESS.store(false, Ordering::Release);
+            if DB_DIRTY.load(Ordering::Acquire) {
+                flush();
+            }
+        });
+    } else {
+        DB_FLUSH_IN_PROGRESS.store(false, Ordering::Release);
     }
 }
 
 pub fn increment_play_count(path: PathBuf) -> u32 {
-    write(|db| {
+    let c = write(|db| {
         let count = db.play_counts.entry(path).or_insert(0);
         *count += 1;
         *count
-    })
+    });
+    flush();
+    c
 }
 
 pub fn add_to_playlist(name: String, path: PathBuf) {
@@ -272,6 +318,7 @@ pub fn add_to_playlist(name: String, path: PathBuf) {
             list.push(path);
         }
     });
+    flush();
 }
 
 pub fn remove_from_playlist(name: String, path: PathBuf) {
@@ -280,6 +327,7 @@ pub fn remove_from_playlist(name: String, path: PathBuf) {
             list.retain(|p| p != &path);
         }
     });
+    flush();
 }
 
 pub fn create_playlist(name: String) {
@@ -289,6 +337,7 @@ pub fn create_playlist(name: String) {
             db.playlist_order.push(name);
         }
     });
+    flush();
 }
 
 pub fn delete_playlist(name: String) {
@@ -296,6 +345,7 @@ pub fn delete_playlist(name: String) {
         db.playlists.remove(&name);
         db.playlist_order.retain(|n| n != &name);
     });
+    flush();
 }
 
 pub fn rename_playlist(old_name: String, new_name: String) {
@@ -307,6 +357,7 @@ pub fn rename_playlist(old_name: String, new_name: String) {
             }
         }
     });
+    flush();
 }
 
 pub fn add_to_recently_played(path: PathBuf) {
@@ -318,6 +369,7 @@ pub fn add_to_recently_played(path: PathBuf) {
             db.recently_played.truncate(100);
         }
     });
+    flush();
 }
 
 pub fn save_smart_playlist(name: String, playlist: crate::library::smart_playlist::SmartPlaylist) {
@@ -327,6 +379,7 @@ pub fn save_smart_playlist(name: String, playlist: crate::library::smart_playlis
             db.smart_playlist_order.push(name);
         }
     });
+    flush();
 }
 
 pub fn delete_smart_playlist(name: String) {
@@ -334,5 +387,15 @@ pub fn delete_smart_playlist(name: String) {
         db.smart_playlists.remove(&name);
         db.smart_playlist_order.retain(|n| n != &name);
     });
+    flush();
+}
+
+pub fn flush_sync() {
+    if DB_DIRTY.swap(false, Ordering::AcqRel) {
+        if let Ok(guard) = DB.get_or_init(|| Mutex::new(OmatunesDb::load())).lock() {
+            guard.save();
+        }
+    }
+    DB_FLUSH_IN_PROGRESS.store(false, Ordering::Release);
 }
 

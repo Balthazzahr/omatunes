@@ -11,6 +11,7 @@ pub enum MprisCommand {
     Stop,
     SetVolume(f64),
     SeekTo(std::time::Duration),
+    SeekRelative(i64),
 }
 
 #[derive(Debug)]
@@ -89,10 +90,8 @@ pub fn launch(
 
             let tx = cmd_tx.clone();
             player.connect_seek(move |_, offset| {
-                let micros = offset.as_micros();
-                if micros >= 0 {
-                    let _ = tx.send(MprisCommand::SeekTo(std::time::Duration::from_micros(micros as u64)));
-                }
+                let micros = offset.as_micros() as i64;
+                let _ = tx.send(MprisCommand::SeekRelative(micros));
             });
 
             // Run the player's D-Bus loop in parallel with the update loop.
