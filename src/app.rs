@@ -63,6 +63,7 @@ pub enum ToastKind {
     LadderClimb,
     EnteredTop10,
     Achievement,
+    ThemeError,
 }
 
 #[derive(Debug, Clone)]
@@ -1176,6 +1177,20 @@ impl AppState {
                     state.update_filtered_tracks();
                 }
             }
+        }
+
+        if crate::ui::theme::did_theme_load_fail() && crate::config::get().theme_source == "System" {
+            state.active_notifications.push(StatsNotification {
+                id: state.next_notification_id,
+                title: "System Theme Unavailable".to_string(),
+                message: "Could not load Omarchy theme from ~/.local/state/omarchy/current/theme/colors.toml — using lavender fallback. Check theme file and permissions.".to_string(),
+                created_at: std::time::Instant::now(),
+                kind: ToastKind::ThemeError,
+                artist_name: None,
+                positions_climbed: 0,
+                overtaken_artists: Vec::new(),
+            });
+            state.next_notification_id += 1;
         }
 
         (state, scan_task)
@@ -2301,10 +2316,27 @@ impl AppState {
             Message::CheckTheme => {
                 if crate::config::get().theme_source == "System" {
                     let current = crate::ui::theme::read_current_theme_name();
-                    if !current.is_empty() && current != self.loaded_theme_name {
+                    let needs_reload = !current.is_empty() && current != self.loaded_theme_name;
+                    if needs_reload {
                         crate::ui::theme::reload_system_theme();
                         self.iced_theme = build_iced_theme();
                         self.loaded_theme_name = current;
+                    }
+                    if crate::ui::theme::did_theme_load_fail() {
+                        let already = self.active_notifications.iter().any(|n| n.kind == ToastKind::ThemeError);
+                        if !already {
+                            self.active_notifications.push(StatsNotification {
+                                id: self.next_notification_id,
+                                title: "System Theme Unavailable".to_string(),
+                                message: "Could not load Omarchy theme from ~/.local/state/omarchy/current/theme/colors.toml — using lavender fallback. Check theme file and permissions.".to_string(),
+                                created_at: std::time::Instant::now(),
+                                kind: ToastKind::ThemeError,
+                                artist_name: None,
+                                positions_climbed: 0,
+                                overtaken_artists: Vec::new(),
+                            });
+                            self.next_notification_id += 1;
+                        }
                     }
                 }
                 Task::none()
@@ -4571,6 +4603,9 @@ impl AppState {
                             self.stats_modal_tab = StatsModalTab::Achievements;
                             self.recalculate_achievements_items();
                         }
+                        ToastKind::ThemeError => {
+                            // Theme errors have no drill-down
+                        }
                     }
                 }
                 Task::none()
@@ -6239,6 +6274,7 @@ impl AppState {
 
                 let toast_color = match n.kind {
                     ToastKind::LadderClimb | ToastKind::EnteredTop10 => theme::green(),
+                    ToastKind::ThemeError => theme::red(),
                     ToastKind::Achievement => {
                         let text_to_check = format!("{} {}", n.title, n.message).to_lowercase();
                         if text_to_check.contains("bronze") || text_to_check.contains("ribbon") {
@@ -6328,6 +6364,7 @@ impl AppState {
                     }
                     ToastKind::EnteredTop10 => crate::ui::icons::ICON_ARROW_UP,
                     ToastKind::Achievement => crate::ui::icons::ICON_TROPHY,
+                    ToastKind::ThemeError => "\u{f071}", // warning triangle
                 };
 
                 let toast_card = container(

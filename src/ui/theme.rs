@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, OnceLock};
 
 use iced::widget::container;
@@ -8,6 +9,11 @@ use iced::{Border, Color};
 // ── Palette ──────────────────────────────────────────────────────────────────
 
 static PALETTE: OnceLock<Mutex<Palette>> = OnceLock::new();
+static THEME_LOAD_FAILED: AtomicBool = AtomicBool::new(false);
+
+pub fn did_theme_load_fail() -> bool {
+    THEME_LOAD_FAILED.load(Ordering::Relaxed)
+}
 
 #[derive(Clone, Copy, Debug)]
 pub struct Palette {
@@ -186,10 +192,17 @@ pub fn load_palette_from_config() -> Palette {
             }
         }
         _ => { // "System"
-            try_load_omarchy_theme().unwrap_or_else(|| {
-                eprintln!("omatunes: Omarchy theme not found, using default lavender");
-                Palette::default_lavender()
-            })
+            match try_load_omarchy_theme() {
+                Some(p) => {
+                    THEME_LOAD_FAILED.store(false, Ordering::Relaxed);
+                    p
+                }
+                None => {
+                    THEME_LOAD_FAILED.store(true, Ordering::Relaxed);
+                    eprintln!("omatunes: Omarchy theme not found at ~/.local/state/omarchy/current/theme/colors.toml, using default lavender — check omarchy theme current and file permissions");
+                    Palette::default_lavender()
+                }
+            }
         }
     }
 }
@@ -214,7 +227,10 @@ pub fn read_current_theme_name() -> String {
         Some(h) => h,
         None => return String::new(),
     };
-    std::fs::read_to_string(home.join(".config/omarchy/current/theme.name"))
+    let state_home = std::env::var("XDG_STATE_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| home.join(".local/state"));
+    std::fs::read_to_string(state_home.join("omarchy/current/theme.name"))
         .unwrap_or_default()
         .trim()
         .to_string()
@@ -222,24 +238,32 @@ pub fn read_current_theme_name() -> String {
 
 fn try_load_omarchy_theme() -> Option<Palette> {
     let home = home_dir()?;
+    let state_home = std::env::var("XDG_STATE_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| home.join(".local/state"));
+    let current_state_dir = state_home.join("omarchy/current");
 
-    let theme_name = std::fs::read_to_string(
-        home.join(".config/omarchy/current/theme.name"),
-    )
-    .ok()
-    .map(|s| s.trim().to_string())
-    .unwrap_or_else(|| "current".to_string());
+    let theme_name_raw = std::fs::read_to_string(current_state_dir.join("theme.name"))
+        .ok()?
+        .trim()
+        .to_string();
+    if theme_name_raw.is_empty() {
+        return None;
+    }
+    // Omarchy writes theme.name lowercase (e.g. "everforest") but `omarchy theme current` prints "Everforest"
+    let theme_name = theme_name_raw.to_lowercase();
 
-    let current_path = home.join(".config/omarchy/current/theme/colors.toml");
-    let user_path    = home.join(format!(".config/omarchy/themes/{}/colors.toml",      theme_name));
-    let system_path  = home.join(format!(".local/share/omarchy/themes/{}/colors.toml", theme_name));
+    let current_path = current_state_dir.join("theme/colors.toml");
+    let user_path = home.join(format!(".config/omarchy/themes/{}/colors.toml", theme_name));
+    // System themes are in /usr/share/omarchy/themes/ (lowercase)
+    let system_path = PathBuf::from(format!("/usr/share/omarchy/themes/{}/colors.toml", theme_name));
 
     let content = std::fs::read_to_string(&current_path)
         .or_else(|_| std::fs::read_to_string(&user_path))
         .or_else(|_| std::fs::read_to_string(&system_path))
         .ok()?;
 
-    eprintln!("omatunes: loading theme \"{}\"", theme_name);
+    eprintln!("omatunes: loading theme \"{}\" from {}", theme_name_raw, current_path.display());
     parse_colors_toml(&content)
 }
 
