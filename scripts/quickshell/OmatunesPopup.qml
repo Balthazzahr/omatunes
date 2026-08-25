@@ -124,6 +124,8 @@ PopupWindow {
                     anchors.fill: parent
                     fillMode: Image.PreserveAspectCrop
                     source: popup.artworkUrl
+                    cache: false
+                    asynchronous: true
                     visible: status === Image.Ready
                 }
 

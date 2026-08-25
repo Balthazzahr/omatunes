@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
@@ -198,6 +198,8 @@ pub enum Message {
     ApplyPendingLyricOffset,
     ResetPendingLyricOffset,
     SaveTags,
+    AddGenreField,
+    RemoveGenreField(usize),
     TagEditorPrevTrack,
     TagEditorNextTrack,
     LibraryScanned(Vec<Track>),
@@ -337,6 +339,10 @@ pub enum Message {
     SettingsKaleidoscopeAxesChanged(usize),
     PickMusicFolder,
     MusicFolderPicked(Option<std::path::PathBuf>),
+    PickCoverImage,
+    CoverFilePicked(Option<std::path::PathBuf>),
+    PasteCoverImage,
+    CoverImagePasted(Result<std::path::PathBuf, String>),
 
     PlayNext(Vec<Track>),
     AddToQueue(Vec<Track>),
@@ -499,6 +505,8 @@ pub struct TagEditorState {
     pub active_tab: TagEditorTab,
     pub focused_field: Option<usize>,
     pub pending_offset: f64,
+    pub just_saved: HashSet<String>,
+    pub removed_genres: Vec<String>,
 }
 
 impl Clone for TagEditorState {
@@ -531,6 +539,8 @@ impl Clone for TagEditorState {
             active_tab: self.active_tab,
             focused_field: self.focused_field,
             pending_offset: self.pending_offset,
+            just_saved: self.just_saved.clone(),
+            removed_genres: self.removed_genres.clone(),
         }
     }
 }
@@ -684,6 +694,7 @@ pub struct AppState {
     pub achievements_search_query: String,
     pub achievements_cover_cache: std::sync::Mutex<std::collections::HashMap<String, iced::widget::image::Handle>>,
     pub achievements_items: Vec<AchievementItem>,
+    pub is_scanning: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -938,7 +949,9 @@ impl AppState {
         let music_dir = cfg.music_path();
         let scan_task = Task::perform(
             async move {
-                scan_folder(&music_dir)
+                tokio::task::spawn_blocking(move || scan_folder(&music_dir))
+                    .await
+                    .unwrap_or_default()
             },
             Message::LibraryScanned,
         );
@@ -1097,6 +1110,7 @@ impl AppState {
             achievements_search_query: String::new(),
             achievements_cover_cache: std::sync::Mutex::new(std::collections::HashMap::new()),
             achievements_items: Vec::new(),
+            is_scanning: true,
         };
 
         if let Some(cached_tracks) = crate::library::load_cache() {
@@ -1219,7 +1233,12 @@ impl AppState {
                     let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
                     let cache_art = PathBuf::from(home).join(".cache/omatunes_current_art.jpg");
                     if std::fs::write(&cache_art, cover_bytes).is_ok() {
-                        format!("file://{}", cache_art.to_string_lossy())
+                        // Cache-bust with track id + timestamp so QML Image (cache:true) reloads per track
+                        let ts = std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap_or_default()
+                            .as_millis();
+                        format!("file://{}?t={}_{}", cache_art.to_string_lossy(), track.id, ts)
                     } else {
                         String::new()
                     }
@@ -1248,14 +1267,51 @@ impl AppState {
     fn write_current_liked_status(&self) {
         let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
         let path = PathBuf::from(&home).join(".cache/omatunes_current_liked");
+        if let Some(parent) = path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
         let status = self.current_track.as_ref().map(|t| t.liked).unwrap_or(false);
-        let _ = std::fs::write(&path, if status { "1" } else { "0" });
+        let data = if status { "1" } else { "0" };
+        let tmp = path.with_extension("tmp");
+        if std::fs::write(&tmp, data).is_ok() {
+            let _ = std::fs::rename(&tmp, &path);
+        } else {
+            let _ = std::fs::write(&path, data);
+        }
 
         let state_path = PathBuf::from(&home).join(".cache/omatunes_current_state.json");
-        let _ = std::fs::write(&state_path, format!(
+        if let Some(parent) = state_path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        let json = format!(
             "{{\"liked\":{},\"shuffle\":{},\"repeat\":{}}}",
             status, self.shuffle, self.repeat
-        ));
+        );
+        let state_tmp = state_path.with_extension("tmp.json");
+        // Use .tmp.json to keep json extension for atomicity check, fallback to .tmp
+        let tmp2 = state_path.with_extension("tmp");
+        if std::fs::write(&state_tmp, &json).is_ok() {
+            let _ = std::fs::rename(&state_tmp, &state_path);
+        } else if std::fs::write(&tmp2, &json).is_ok() {
+            let _ = std::fs::rename(&tmp2, &state_path);
+        } else {
+            let _ = std::fs::write(&state_path, json.clone());
+        }
+        // Dual-write to REAL_HOME for test isolation so live QuickShell (real HOME) sees TEST's state
+        if let Ok(real_home) = std::env::var("REAL_HOME") {
+            if real_home != home {
+                let real_path = PathBuf::from(&real_home).join(".cache/omatunes_current_liked");
+                if let Some(parent) = real_path.parent() {
+                    let _ = std::fs::create_dir_all(parent);
+                }
+                let _ = std::fs::write(&real_path, data);
+                let real_state_path = PathBuf::from(&real_home).join(".cache/omatunes_current_state.json");
+                if let Some(parent) = real_state_path.parent() {
+                    let _ = std::fs::create_dir_all(parent);
+                }
+                let _ = std::fs::write(&real_state_path, json);
+            }
+        }
     }
 
     pub fn artists(&self) -> Vec<String> {
@@ -1335,7 +1391,13 @@ impl AppState {
 
         let tracks = vec![track.clone()];
         let first = &tracks[0];
-        let genre_vec: Vec<String> = first.genres().into_iter().map(|s| s.to_string()).collect();
+        let mut genre_vec: Vec<String> = first.genres().into_iter().map(|s| s.to_string()).collect();
+        // Always show at least 2 genre boxes
+        while genre_vec.len() < 2 {
+            genre_vec.push(String::new());
+        }
+        let genres_original = genre_vec.clone();
+        let apply_genres = vec![false; genre_vec.len()];
         self.show_tag_editor = Some(TagEditorState {
             tracks: tracks.clone(),
             original_tracks,
@@ -1344,8 +1406,8 @@ impl AppState {
             artist: first.artist.clone(),
             album: first.album.clone(),
             genres: genre_vec.clone(),
-            genres_original: genre_vec.clone(),
-            apply_genres: vec![true; genre_vec.len()],
+            genres_original,
+            apply_genres,
             track_number: first.track_number.map(|n| n.to_string()).unwrap_or_default(),
             disc_number: first.disc_number.map(|n| n.to_string()).unwrap_or_default(),
             cover_path: None,
@@ -1364,6 +1426,8 @@ impl AppState {
             active_tab,
             focused_field: Some(0),
             pending_offset: 0.0,
+            just_saved: HashSet::new(),
+            removed_genres: Vec::new(),
         });
     }
 
@@ -1647,15 +1711,19 @@ impl AppState {
 
             Message::PlayTrack(track) => {
                 self.queue = self.tracks.to_vec();
+                let anchor = Some(track.id);
+                self.maybe_shuffle_queue(anchor);
                 self.set_playing_context_from_current_view();
                 self.play_track_internal(track)
             }
 
             Message::PlayTracks(tracks) => {
-                if let Some(first) = tracks.first().cloned() {
+                if !tracks.is_empty() {
                     self.queue = tracks;
+                    self.maybe_shuffle_queue(None);
+                    let play_first = self.queue.first().cloned().unwrap();
                     self.set_playing_context_from_current_view();
-                    self.play_track_internal(first)
+                    self.play_track_internal(play_first)
                 } else {
                     Task::none()
                 }
@@ -1668,9 +1736,11 @@ impl AppState {
                 self.update_filtered_tracks();
                 self.playing_context = Some(PlayingContext::Album(album_name));
                 let tracks_to_play = self.tracks.to_vec();
-                if let Some(first) = tracks_to_play.first().cloned() {
+                if !tracks_to_play.is_empty() {
                     self.queue = tracks_to_play;
-                    self.play_track_internal(first)
+                    self.maybe_shuffle_queue(None);
+                    let play_first = self.queue.first().cloned().unwrap();
+                    self.play_track_internal(play_first)
                 } else {
                     Task::none()
                 }
@@ -1699,9 +1769,11 @@ impl AppState {
                             self.search_query.clear();
                             self.update_filtered_tracks();
                             let tracks_to_play = self.tracks.to_vec();
-                            if let Some(first) = tracks_to_play.first().cloned() {
+                            if !tracks_to_play.is_empty() {
                                 self.queue = tracks_to_play;
-                                return self.play_track_internal(first);
+                                self.maybe_shuffle_queue(None);
+                                let play_first = self.queue.first().cloned().unwrap();
+                                return self.play_track_internal(play_first);
                             }
                         }
                     }
@@ -1714,9 +1786,11 @@ impl AppState {
                     self.search_query.clear();
                     self.update_filtered_tracks();
                     let tracks_to_play = self.tracks.to_vec();
-                    if let Some(first) = tracks_to_play.first().cloned() {
+                    if !tracks_to_play.is_empty() {
                         self.queue = tracks_to_play;
-                        return self.play_track_internal(first);
+                        self.maybe_shuffle_queue(None);
+                        let play_first = self.queue.first().cloned().unwrap();
+                        return self.play_track_internal(play_first);
                     }
                 }
                 Task::none()
@@ -1757,10 +1831,11 @@ impl AppState {
             Message::PlayPause => {
                 match self.playback_state {
                     PlaybackState::Playing => {
-                        if let Some(ref sel) = self.selected_track {
+                        if let Some(sel) = self.selected_track.clone() {
                             if self.current_track.as_ref().map(|ct| ct.id) != Some(sel.id) {
                                 self.queue = (*self.tracks).clone();
-                                return self.play_track_internal(sel.clone());
+                                self.maybe_shuffle_queue(Some(sel.id));
+                                return self.play_track_internal(sel);
                             }
                         }
                         self.audio.send(AudioCommand::Pause);
@@ -1769,10 +1844,11 @@ impl AppState {
                         Task::none()
                     }
                     PlaybackState::Paused => {
-                        if let Some(ref sel) = self.selected_track {
+                        if let Some(sel) = self.selected_track.clone() {
                             if self.current_track.as_ref().map(|ct| ct.id) != Some(sel.id) {
                                 self.queue = (*self.tracks).clone();
-                                return self.play_track_internal(sel.clone());
+                                self.maybe_shuffle_queue(Some(sel.id));
+                                return self.play_track_internal(sel);
                             }
                         }
                         self.audio.send(AudioCommand::Resume);
@@ -1783,12 +1859,15 @@ impl AppState {
                     PlaybackState::Stopped => {
                         if let Some(sel) = self.selected_track.clone() {
                             self.queue = (*self.tracks).clone();
+                            self.maybe_shuffle_queue(Some(sel.id));
                             self.set_playing_context_from_current_view();
                             self.play_track_internal(sel)
-                        } else if let Some(first) = self.tracks.first().cloned() {
+                        } else if !self.tracks.is_empty() {
                             self.queue = (*self.tracks).clone();
+                            self.maybe_shuffle_queue(None);
+                            let play_first = self.queue.first().cloned().unwrap();
                             self.set_playing_context_from_current_view();
-                            self.play_track_internal(first)
+                            self.play_track_internal(play_first)
                         } else {
                             Task::none()
                         }
@@ -1801,6 +1880,10 @@ impl AppState {
             Message::PreviousTrack => { self.advance_track(-1) }
 
             Message::Seek(dur) => {
+                if let Some(ref ct) = self.current_track {
+                    let p = ct.path.clone();
+                    crate::library::pending::flush_one(&p);
+                }
                 self.audio.send(AudioCommand::Seek(dur));
                 self.position = dur;
                 self.last_accumulated_position = dur;
@@ -1808,6 +1891,10 @@ impl AppState {
             }
 
             Message::SeekToLyric(dur) => {
+                if let Some(ref ct) = self.current_track {
+                    let p = ct.path.clone();
+                    crate::library::pending::flush_one(&p);
+                }
                 self.audio.send(AudioCommand::Seek(dur));
                 self.position = dur;
                 self.last_accumulated_position = dur;
@@ -1821,6 +1908,10 @@ impl AppState {
                 } else {
                     (self.position + Duration::from_secs(delta_secs as u64)).min(self.duration)
                 };
+                if let Some(ref ct) = self.current_track {
+                    let p = ct.path.clone();
+                    crate::library::pending::flush_one(&p);
+                }
                 self.audio.send(AudioCommand::Seek(new_pos));
                 self.position = new_pos;
                 self.last_accumulated_position = new_pos;
@@ -1846,7 +1937,7 @@ impl AppState {
                 self.shuffle = !self.shuffle;
                 self.send_mpris(MprisUpdate::Shuffle(self.shuffle));
                 if self.shuffle && !self.queue.is_empty() {
-                    // Shuffling queue in-place, keeping the current track at index 0 or its current position
+                    // Shuffling queue in-place, keeping the current track at index 0
                     use rand::seq::SliceRandom;
                     let mut rng = rand::thread_rng();
                     let current_track_id = self.current_track.as_ref().map(|t| t.id);
@@ -1861,6 +1952,13 @@ impl AppState {
                     } else {
                         self.queue.shuffle(&mut rng);
                     }
+                    let queue_paths: Vec<PathBuf> = self.queue.iter().map(|t| t.path.clone()).collect();
+                    crate::db::write(|db| {
+                        db.last_queue_paths = queue_paths;
+                    });
+                } else if !self.shuffle && !self.queue.is_empty() {
+                    // Restore original order from filtered tracks
+                    self.queue = (*self.tracks).clone();
                     let queue_paths: Vec<PathBuf> = self.queue.iter().map(|t| t.path.clone()).collect();
                     crate::db::write(|db| {
                         db.last_queue_paths = queue_paths;
@@ -2145,6 +2243,13 @@ impl AppState {
                             self.send_mpris(MprisUpdate::Status(PlaybackStatus::Stopped));
                         }
                         AudioEvent::TrackEnded => {
+                            // Flush pending liked tag for the track that just ended (fd already closed before event)
+                            if let Some(ref ct) = self.current_track {
+                                let p = ct.path.clone();
+                                if crate::library::pending::flush_one(&p) {
+                                    eprintln!("Flushed pending liked for {}", p.display());
+                                }
+                            }
                             if self.repeat {
                                 tasks.push(self.advance_track(1));
                             } else {
@@ -2204,6 +2309,10 @@ impl AppState {
                         MprisCommand::Next     => { tasks.push(self.advance_track(1)); }
                         MprisCommand::Previous => { tasks.push(self.advance_track(-1)); }
                         MprisCommand::Stop => {
+                            if let Some(ref ct) = self.current_track {
+                                let p = ct.path.clone();
+                                crate::library::pending::flush_one(&p);
+                            }
                             self.audio.send(AudioCommand::Stop);
                             self.playback_state = PlaybackState::Stopped;
                             self.position = Duration::ZERO;
@@ -2216,6 +2325,10 @@ impl AppState {
                             self.send_mpris(MprisUpdate::Volume(v));
                         }
                         MprisCommand::SeekTo(dur) => {
+                            if let Some(ref ct) = self.current_track {
+                                let p = ct.path.clone();
+                                crate::library::pending::flush_one(&p);
+                            }
                             self.audio.send(AudioCommand::Seek(dur));
                             self.position = dur;
                             self.last_accumulated_position = dur;
@@ -2231,6 +2344,10 @@ impl AppState {
                                     (-offset_micros) as u64,
                                 ))
                             };
+                            if let Some(ref ct) = self.current_track {
+                                let p = ct.path.clone();
+                                crate::library::pending::flush_one(&p);
+                            }
                             self.audio.send(AudioCommand::Seek(new_pos));
                             self.position = new_pos;
                             self.last_accumulated_position = new_pos;
@@ -2389,9 +2506,7 @@ impl AppState {
             Message::ToggleLikeTrack(track) => {
                 self.show_context_menu = None;
                 let liked = !track.liked;
-                if let Err(e) = crate::library::scanner::write_like_status(&track.path, liked) {
-                    eprintln!("Failed to write like status to file: {e}");
-                }
+                // In-memory + db.json immediate (zero file I/O on audio file, jump-free)
                 if let Some(t) = Arc::make_mut(&mut self.all_tracks).iter_mut().find(|t| t.path == track.path) {
                     t.liked = liked;
                 }
@@ -2408,8 +2523,28 @@ impl AppState {
                         ct.liked = liked;
                     }
                 }
+                crate::db::write(|db| {
+                    db.liked.insert(track.path.clone(), liked);
+                });
+                crate::db::flush();
                 self.update_filtered_tracks();
                 self.write_current_liked_status();
+                // Queue vs immediate atomic write
+                let is_playing = self
+                    .current_track
+                    .as_ref()
+                    .map(|t| t.path == track.path)
+                    .unwrap_or(false)
+                    && !matches!(self.playback_state, crate::audio::PlaybackState::Stopped);
+                if is_playing {
+                    // Defer until safe: TrackEnded/advance/Stop/Seek/exit
+                    crate::library::pending::queue(track.path.clone(), liked);
+                } else {
+                    if let Err(e) = crate::library::scanner::write_like_status_atomic(&track.path, liked) {
+                        eprintln!("Failed to write like status to file: {e}");
+                        crate::library::pending::queue(track.path.clone(), liked);
+                    }
+                }
                 Task::none()
             }
 
@@ -2508,9 +2643,13 @@ impl AppState {
                         unique_common.push(val);
                     }
                 }
-                let genres: Vec<String> = unique_common.iter().map(|s| s.to_string()).collect();
+                let mut genres: Vec<String> = unique_common.iter().map(|s| s.to_string()).collect();
+                // Always show at least 2 genre boxes
+                while genres.len() < 2 {
+                    genres.push(String::new());
+                }
                 let genres_original: Vec<String> = genres.clone();
-                let apply_genres: Vec<bool> = vec![true; genres.len()];
+                let apply_genres: Vec<bool> = vec![false; genres.len()];
 
                 self.show_tag_editor = Some(TagEditorState {
                     tracks: tracks.clone(),
@@ -2540,6 +2679,8 @@ impl AppState {
                     active_tab: TagEditorTab::Main,
                     focused_field: Some(0),
                     pending_offset: 0.0,
+                    just_saved: HashSet::new(),
+                    removed_genres: Vec::new(),
                 });
                 iced::widget::text_input::focus(iced::widget::text_input::Id::new("id3_title"))
             }
@@ -2619,10 +2760,18 @@ impl AppState {
 
             Message::SearchCoverOnline => {
                 if let Some(ref state) = self.show_tag_editor {
-                    let artist = &state.artist;
-                    let album = &state.album;
-                    let query = format!("{} {} album art", artist, album);
-                    let encoded: String = query
+                    let artist = state.artist.trim();
+                    let album = state.album.trim();
+                    let query_raw = if !artist.is_empty() && !album.is_empty() {
+                        format!("{} {}", artist, album)
+                    } else if !album.is_empty() {
+                        album.to_string()
+                    } else if !artist.is_empty() {
+                        artist.to_string()
+                    } else {
+                        state.title.trim().to_string()
+                    };
+                    let encoded: String = query_raw
                         .chars()
                         .map(|c| {
                             if c.is_alphanumeric() {
@@ -2634,8 +2783,12 @@ impl AppState {
                             }
                         })
                         .collect();
-                    let url = format!("https://www.google.com/search?q={}&tbm=isch", encoded);
-                    let _ = std::process::Command::new("xdg-open").arg(url).spawn();
+                    // Bendodson Apple Music Artwork Finder: query + storefront
+                    let url = format!(
+                        "https://bendodson.com/projects/apple-music-artwork-finder/?query={}&storefront=us",
+                        encoded
+                    );
+                    open_url(&url);
                 }
                 Task::none()
             }
@@ -2645,6 +2798,7 @@ impl AppState {
                     state.title = val;
                     state.apply_title = true;
                     state.is_saved = false;
+                    state.just_saved.remove("title");
                 }
                 Task::none()
             }
@@ -2654,6 +2808,7 @@ impl AppState {
                     state.artist = val;
                     state.apply_artist = true;
                     state.is_saved = false;
+                    state.just_saved.remove("artist");
                 }
                 Task::none()
             }
@@ -2663,6 +2818,7 @@ impl AppState {
                     state.album = val;
                     state.apply_album = true;
                     state.is_saved = false;
+                    state.just_saved.remove("album");
                 }
                 Task::none()
             }
@@ -2673,6 +2829,7 @@ impl AppState {
                         state.genres[slot] = val;
                         state.apply_genres[slot] = true;
                         state.is_saved = false;
+                        state.just_saved.remove(&format!("genre{}", slot));
                     }
                 }
                 Task::none()
@@ -2683,6 +2840,7 @@ impl AppState {
                     state.track_number = val;
                     state.apply_track_num = true;
                     state.is_saved = false;
+                    state.just_saved.remove("track");
                 }
                 Task::none()
             }
@@ -2692,6 +2850,7 @@ impl AppState {
                     state.disc_number = val;
                     state.apply_disc_num = true;
                     state.is_saved = false;
+                    state.just_saved.remove("disc");
                 }
                 Task::none()
             }
@@ -2701,6 +2860,7 @@ impl AppState {
                     state.cover_path = Some(val);
                     state.apply_cover = true;
                     state.is_saved = false;
+                    state.just_saved.remove("cover");
                 }
                 Task::none()
             }
@@ -2718,6 +2878,7 @@ impl AppState {
                     state.year = val;
                     state.apply_year = true;
                     state.is_saved = false;
+                    state.just_saved.remove("year");
                 }
                 Task::none()
             }
@@ -2726,6 +2887,7 @@ impl AppState {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.apply_title = val;
                     state.is_saved = false;
+                    if !val { state.just_saved.remove("title"); }
                 }
                 Task::none()
             }
@@ -2734,6 +2896,7 @@ impl AppState {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.apply_artist = val;
                     state.is_saved = false;
+                    if !val { state.just_saved.remove("artist"); }
                 }
                 Task::none()
             }
@@ -2742,6 +2905,7 @@ impl AppState {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.apply_album = val;
                     state.is_saved = false;
+                    if !val { state.just_saved.remove("album"); }
                 }
                 Task::none()
             }
@@ -2750,6 +2914,7 @@ impl AppState {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.apply_year = val;
                     state.is_saved = false;
+                    if !val { state.just_saved.remove("year"); }
                 }
                 Task::none()
             }
@@ -2759,6 +2924,7 @@ impl AppState {
                     if slot < state.apply_genres.len() {
                         state.apply_genres[slot] = val;
                         state.is_saved = false;
+                        if !val { state.just_saved.remove(&format!("genre{}", slot)); }
                     }
                 }
                 Task::none()
@@ -2768,6 +2934,7 @@ impl AppState {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.apply_track_num = val;
                     state.is_saved = false;
+                    if !val { state.just_saved.remove("track"); }
                 }
                 Task::none()
             }
@@ -2776,6 +2943,7 @@ impl AppState {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.apply_disc_num = val;
                     state.is_saved = false;
+                    if !val { state.just_saved.remove("disc"); }
                 }
                 Task::none()
             }
@@ -2784,6 +2952,7 @@ impl AppState {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.apply_cover = val;
                     state.is_saved = false;
+                    if !val { state.just_saved.remove("cover"); }
                 }
                 Task::none()
             }
@@ -2810,6 +2979,15 @@ impl AppState {
                     println!("SaveTags: apply_to_album={}, updating {} tracks.",
                         state.apply_to_album, tracks_to_update.len());
 
+                    let is_playing_in_update = tracks_to_update.iter().any(|t| {
+                        self.current_track.as_ref().map(|ct| ct.path == t.path).unwrap_or(false)
+                    }) && matches!(self.playback_state, PlaybackState::Playing);
+                    let saved_pos = self.position;
+                    if is_playing_in_update {
+                        // Pause decoder before touching the file to avoid concurrent truncate
+                        self.audio.send(AudioCommand::Pause);
+                    }
+
                     for track in tracks_to_update {
                         let title = if state.apply_title { &state.title } else { &track.title };
                         let artist = if state.apply_artist { &state.artist } else { &track.artist };
@@ -2831,6 +3009,11 @@ impl AppState {
                                         // New genre: append
                                         original_parts.push(state.genres[i].clone());
                                     }
+                                }
+                            }
+                            for removed in &state.removed_genres {
+                                if let Some(pos) = original_parts.iter().position(|p| p == removed) {
+                                    original_parts.remove(pos);
                                 }
                             }
                             original_parts.retain(|p| !p.is_empty());
@@ -2940,6 +3123,9 @@ impl AppState {
                             }
                         }
                     }
+                    if is_playing_in_update {
+                        self.audio.send(AudioCommand::Seek(saved_pos));
+                    }
                 }
                 if let Some(ref mut state) = self.show_tag_editor {
                     for track in &mut state.tracks {
@@ -2947,6 +3133,23 @@ impl AppState {
                             *track = updated_track.clone();
                         }
                     }
+                    let mut saved = HashSet::new();
+                    if state.apply_title { saved.insert("title".to_string()); }
+                    if state.apply_artist { saved.insert("artist".to_string()); }
+                    if state.apply_album { saved.insert("album".to_string()); }
+                    if state.apply_year { saved.insert("year".to_string()); }
+                    if state.apply_track_num { saved.insert("track".to_string()); }
+                    if state.apply_disc_num { saved.insert("disc".to_string()); }
+                    if state.apply_cover { saved.insert("cover".to_string()); }
+                    if state.apply_lyrics { saved.insert("lyrics".to_string()); }
+                    for (i, applied) in state.apply_genres.iter().enumerate() {
+                        if *applied { saved.insert(format!("genre{}", i)); }
+                    }
+                    if !state.removed_genres.is_empty() {
+                        // Mark removal as saved for feedback even though field no longer exists
+                        saved.insert("genre_removed".to_string());
+                    }
+                    state.just_saved = saved;
                     state.apply_title = false;
                     state.apply_artist = false;
                     state.apply_album = false;
@@ -2956,10 +3159,67 @@ impl AppState {
                     state.apply_disc_num = false;
                     state.apply_cover = false;
                     state.apply_lyrics = false;
+                    state.removed_genres.clear();
                     state.is_saved = true;
                 }
                 self.cover_cache_version = self.cover_cache_version.wrapping_add(1);
                 self.update_filtered_tracks();
+                Task::none()
+            }
+
+            Message::AddGenreField => {
+                if let Some(ref mut state) = self.show_tag_editor {
+                    state.genres.push(String::new());
+                    state.genres_original.push(String::new());
+                    state.apply_genres.push(true);
+                    state.is_saved = false;
+                    state.just_saved.clear();
+                }
+                Task::none()
+            }
+
+            Message::RemoveGenreField(idx) => {
+                if let Some(ref mut state) = self.show_tag_editor {
+                    if state.genres.len() > 1 && idx < state.genres.len() {
+                        let removed_original = if idx < state.genres_original.len() {
+                            let orig = state.genres_original[idx].clone();
+                            if !orig.is_empty() { Some(orig) } else { None }
+                        } else { None };
+                        if let Some(orig) = removed_original {
+                            if !state.removed_genres.contains(&orig) {
+                                state.removed_genres.push(orig);
+                            }
+                        }
+                        state.genres.remove(idx);
+                        if idx < state.genres_original.len() {
+                            state.genres_original.remove(idx);
+                        }
+                        if idx < state.apply_genres.len() {
+                            state.apply_genres.remove(idx);
+                        }
+                        state.just_saved.remove(&format!("genre{}", idx));
+                        // Rebuild just_saved keys after removal to keep indices consistent
+                        let old: HashSet<String> = std::mem::take(&mut state.just_saved);
+                        let mut new_set = HashSet::new();
+                        for key in old {
+                            if let Some(num_str) = key.strip_prefix("genre") {
+                                if let Ok(n) = num_str.parse::<usize>() {
+                                    if n < idx {
+                                        new_set.insert(key);
+                                    } else if n > idx {
+                                        new_set.insert(format!("genre{}", n - 1));
+                                    }
+                                } else {
+                                    new_set.insert(key);
+                                }
+                            } else {
+                                new_set.insert(key);
+                            }
+                        }
+                        state.just_saved = new_set;
+                        state.is_saved = false;
+                    }
+                }
                 Task::none()
             }
 
@@ -3178,9 +3438,57 @@ impl AppState {
             }
 
             Message::LibraryScanned(tracks) => {
+                self.is_scanning = false;
                 crate::library::save_cache(&tracks);
                 let had_existing_tracks = !self.all_tracks.is_empty();
                 self.all_tracks = Arc::new(tracks);
+
+                // Liked reconciliation: db.json is source of truth, file tag is eventual mirror (mandatory every scan)
+                {
+                    let current_path = self.current_track.as_ref().map(|t| t.path.clone());
+                    let mut pending_updates: Vec<(PathBuf, bool, bool)> = Vec::new();
+                    for track in self.all_tracks.iter() {
+                        if let Some(db_liked) = crate::db::get(|db| db.liked.get(&track.path).copied()) {
+                            if db_liked != track.liked {
+                                let is_playing = Some(&track.path) == current_path.as_ref();
+                                pending_updates.push((track.path.clone(), db_liked, is_playing));
+                            }
+                        }
+                    }
+                    for (path, db_liked, is_playing) in pending_updates {
+                        if let Some(t) = Arc::make_mut(&mut self.all_tracks).iter_mut().find(|t| t.path == path) {
+                            t.liked = db_liked;
+                        }
+                        if let Some(t) = Arc::make_mut(&mut self.tracks).iter_mut().find(|t| t.path == path) {
+                            t.liked = db_liked;
+                        }
+                        for t in self.queue.iter_mut() {
+                            if t.path == path {
+                                t.liked = db_liked;
+                            }
+                        }
+                        if let Some(ref mut ct) = self.current_track {
+                            if ct.path == path {
+                                ct.liked = db_liked;
+                            }
+                        }
+                        if let Some(ref mut st) = self.selected_track {
+                            if st.path == path {
+                                st.liked = db_liked;
+                            }
+                        }
+                        if let Some(t) = Arc::make_mut(&mut self.selected_tracks).iter_mut().find(|t| t.path == path) {
+                            t.liked = db_liked;
+                        }
+                        if is_playing {
+                            crate::library::pending::queue(path, db_liked);
+                        } else if let Err(e) = crate::library::scanner::write_like_status_atomic(&path, db_liked) {
+                            eprintln!("reconciliation write failed for {}: {}", path.display(), e);
+                            crate::library::pending::queue(path, db_liked);
+                        }
+                    }
+                    self.write_current_liked_status();
+                }
 
                 crate::stats::backfill_album_data(&self.all_tracks);
                 crate::stats::backfill_achievements(&self.all_tracks);
@@ -3266,10 +3574,13 @@ impl AppState {
             }
 
             Message::RescanLibrary => {
+                self.is_scanning = true;
                 let music_dir = crate::config::get().music_path();
                 Task::perform(
                     async move {
-                        scan_folder(&music_dir)
+                        tokio::task::spawn_blocking(move || scan_folder(&music_dir))
+                            .await
+                            .unwrap_or_default()
                     },
                     Message::LibraryScanned,
                 )
@@ -4013,16 +4324,39 @@ impl AppState {
                     Key::Named(Named::Tab) => {
                         if has_tag_editor {
                             if let Some(ref mut state) = self.show_tag_editor {
-                                let fields = &[
-                                    "id3_title",
-                                    "id3_artist",
-                                    "id3_album",
-                                    "id3_genre",
-                                    "id3_track",
-                                    "id3_disc",
-                                    "id3_year",
-                                    "id3_cover",
-                                ];
+                                // If any genre has ghost suggestion, Tab completes it instead of cycling
+                                {
+                                    let mut unique_genres: Vec<String> = self.all_tracks.iter()
+                                        .flat_map(|t| {
+                                            if t.genre.contains("; ") {
+                                                t.genre.split("; ").map(|g| g.trim().to_string()).collect::<Vec<_>>()
+                                            } else { vec![t.genre.clone()] }
+                                        })
+                                        .filter(|s| !s.trim().is_empty())
+                                        .collect();
+                                    unique_genres.sort();
+                                    unique_genres.dedup();
+                                    for i in 0..state.genres.len() {
+                                        let val = state.genres[i].trim().to_string();
+                                        if val.is_empty() { continue; }
+                                        let suggestions = crate::ui::components::autocomplete::get_suggestions(&val, &unique_genres);
+                                        if let Some(first) = suggestions.first() {
+                                            if first.to_lowercase().starts_with(&val.to_lowercase()) && first.len() > val.len() {
+                                                state.genres[i] = first.clone();
+                                                state.apply_genres[i] = true;
+                                                state.is_saved = false;
+                                                state.just_saved.remove(&format!("genre{}", i));
+                                                state.focused_field = Some(3 + i);
+                                                return iced::widget::text_input::focus(iced::widget::text_input::Id::new(format!("id3_genre_{}", i)));
+                                            }
+                                        }
+                                    }
+                                }
+                                let mut fields: Vec<String> = vec!["id3_title".to_string(), "id3_artist".to_string(), "id3_album".to_string()];
+                                for i in 0..state.genres.len() {
+                                    fields.push(format!("id3_genre_{}", i));
+                                }
+                                fields.extend(["id3_track".to_string(), "id3_disc".to_string(), "id3_year".to_string(), "id3_cover".to_string()]);
                                 let current = state.focused_field.unwrap_or(0);
                                 let next = if self.modifiers.shift() {
                                     if current == 0 { fields.len() - 1 } else { current - 1 }
@@ -4030,7 +4364,7 @@ impl AppState {
                                     (current + 1) % fields.len()
                                 };
                                 state.focused_field = Some(next);
-                                return iced::widget::text_input::focus(iced::widget::text_input::Id::new(fields[next]));
+                                return iced::widget::text_input::focus(iced::widget::text_input::Id::new(fields[next].clone()));
                             }
                         } else if !has_playlist_dialog && !has_shortcuts && !has_context_menu {
                             if self.active_focus == Some(ActiveFocus::SidebarSearch) {
@@ -4104,6 +4438,9 @@ impl AppState {
                     Key::Named(Named::ArrowDown)  => return Task::done(Message::KeyboardArrowDown),
                     Key::Named(Named::F5)         => return Task::done(Message::RescanLibrary),
                     Key::Character(ref c) => {
+                        if has_tag_editor && (self.modifiers.control() || self.modifiers.command()) && c.to_lowercase() == "v" {
+                            return Task::done(Message::PasteCoverImage);
+                        }
                         if !has_playlist_dialog && !has_tag_editor {
                             match c.as_str() {
                                 "n" | "N" => return Task::done(Message::NextTrack),
@@ -4136,6 +4473,7 @@ impl AppState {
             Message::DoubleClickTrack(track) => {
                 self.selected_track = Some(track.clone());
                 self.queue = (*self.tracks).clone();
+                self.maybe_shuffle_queue(Some(track.id));
                 self.set_playing_context_from_current_view();
                 self.play_track_internal(track)
             }
@@ -4150,14 +4488,11 @@ impl AppState {
                 self.update_filtered_tracks();
                 self.playing_context = Some(PlayingContext::Artist(artist_name.clone()));
                 self.shuffle = crate::config::get().playback_defaults.artist.shuffle;
-                // Shuffle tracks of this artist
-                let mut artist_tracks = (*self.tracks).clone();
-                use rand::seq::SliceRandom;
-                let mut rng = rand::thread_rng();
-                artist_tracks.shuffle(&mut rng);
-                self.queue = artist_tracks.clone();
-                if let Some(first) = artist_tracks.first().cloned() {
-                    self.play_track_internal(first)
+                self.queue = (*self.tracks).clone();
+                if self.queue.first().is_some() {
+                    self.maybe_shuffle_queue(None);
+                    let play_first = self.queue.first().cloned().unwrap();
+                    self.play_track_internal(play_first)
                 } else {
                     Task::none()
                 }
@@ -4179,8 +4514,10 @@ impl AppState {
                 // Sort by track number ascending
                 Arc::make_mut(&mut self.tracks).sort_by_key(|t| t.track_number.unwrap_or(u32::MAX));
                 self.queue = (*self.tracks).clone();
-                if let Some(first) = self.tracks.first().cloned() {
-                    self.play_track_internal(first)
+                if self.queue.first().is_some() {
+                    self.maybe_shuffle_queue(None);
+                    let play_first = self.queue.first().cloned().unwrap();
+                    self.play_track_internal(play_first)
                 } else {
                     Task::none()
                 }
@@ -4208,8 +4545,10 @@ impl AppState {
                     self.repeat = pd.user_playlist.repeat;
                 }
                 self.queue = (*self.tracks).clone();
-                if let Some(first) = self.tracks.first().cloned() {
-                    self.play_track_internal(first)
+                if !self.queue.is_empty() {
+                    self.maybe_shuffle_queue(None);
+                    let play_first = self.queue.first().cloned().unwrap();
+                    self.play_track_internal(play_first)
                 } else {
                     Task::none()
                 }
@@ -4321,9 +4660,12 @@ impl AppState {
                 self.search_query.clear();
                 self.update_filtered_tracks();
                 self.playing_context = Some(PlayingContext::Genre(genre_name));
+                self.shuffle = crate::config::get().playback_defaults.genre.shuffle;
                 self.queue = (*self.tracks).clone();
-                if let Some(first) = self.tracks.first().cloned() {
-                    self.play_track_internal(first)
+                if !self.queue.is_empty() {
+                    self.maybe_shuffle_queue(None);
+                    let play_first = self.queue.first().cloned().unwrap();
+                    self.play_track_internal(play_first)
                 } else {
                     Task::none()
                 }
@@ -4703,6 +5045,7 @@ impl AppState {
                     state.lyrics_content.perform(val);
                     state.apply_lyrics = true;
                     state.is_saved = false;
+                    state.just_saved.remove("lyrics");
                 }
                 Task::none()
             }
@@ -4711,6 +5054,7 @@ impl AppState {
                 if let Some(ref mut state) = self.show_tag_editor {
                     state.apply_lyrics = val;
                     state.is_saved = false;
+                    if !val { state.just_saved.remove("lyrics"); }
                 }
                 Task::none()
             }
@@ -4765,13 +5109,9 @@ impl AppState {
                             }
                         }
                         let url = format!("https://lrclib.net/search/{}", encoded);
-                        let _ = std::process::Command::new("xdg-open")
-                            .arg(&url)
-                            .spawn();
+                        open_url(&url);
                     } else {
-                        let _ = std::process::Command::new("xdg-open")
-                            .arg("https://lrclib.net")
-                            .spawn();
+                        open_url("https://lrclib.net");
                     }
                 }
                 Task::none()
@@ -4948,10 +5288,13 @@ impl AppState {
                     self.show_settings = None;
                     
                     if cfg.music_path() != old_music_path {
+                        self.is_scanning = true;
                         let new_music_dir = cfg.music_path();
                         return Task::perform(
                             async move {
-                                scan_folder(&new_music_dir)
+                                tokio::task::spawn_blocking(move || scan_folder(&new_music_dir))
+                                    .await
+                                    .unwrap_or_default()
                             },
                             Message::LibraryScanned,
                         );
@@ -5316,6 +5659,111 @@ impl AppState {
                 if let Some(path) = opt {
                     if let Some(ref mut state) = self.show_settings {
                         state.music_dir = path.to_string_lossy().to_string();
+                    }
+                }
+                Task::none()
+            }
+
+            Message::PickCoverImage => {
+                return Task::perform(
+                    async {
+                        rfd::AsyncFileDialog::new()
+                            .set_title("Choose Cover Image")
+                            .add_filter("Images", &["jpg", "jpeg", "png", "webp"])
+                            .pick_file()
+                            .await
+                            .map(|h| h.path().to_path_buf())
+                    },
+                    Message::CoverFilePicked,
+                );
+            }
+
+            Message::CoverFilePicked(opt) => {
+                if let Some(path) = opt {
+                    if let Some(ref mut state) = self.show_tag_editor {
+                        state.cover_path = Some(path.to_string_lossy().to_string());
+                        state.apply_cover = true;
+                        state.is_saved = false;
+                        state.just_saved.remove("cover");
+                    }
+                }
+                Task::none()
+            }
+
+            Message::PasteCoverImage => {
+                return Task::perform(
+                    async {
+                        let (bytes, ext) = tokio::task::spawn_blocking(|| -> Result<(Vec<u8>, &'static str), String> {
+                            // 1) Try arboard (Wayland/X11)
+                            if let Ok(mut cb) = arboard::Clipboard::new() {
+                                if let Ok(img) = cb.get_image() {
+                                    let mut png_bytes = Vec::new();
+                                    let buffer = image::ImageBuffer::<image::Rgba<u8>, Vec<u8>>::from_raw(
+                                        img.width as u32,
+                                        img.height as u32,
+                                        img.bytes.to_vec(),
+                                    )
+                                    .ok_or("invalid clipboard image".to_string())?;
+                                    image::DynamicImage::ImageRgba8(buffer)
+                                        .write_to(&mut std::io::Cursor::new(&mut png_bytes), image::ImageFormat::Png)
+                                        .map_err(|e| e.to_string())?;
+                                    return Ok((png_bytes, "png"));
+                                }
+                            }
+                            // 2) Fallback: wl-paste (Wayland) — browser copies often only visible via wl-paste
+                            for (mime, ext) in [("image/png", "png"), ("image/jpeg", "jpg"), ("image/jpg", "jpg"), ("image/webp", "webp")] {
+                                if let Ok(out) = std::process::Command::new("wl-paste").arg("--type").arg(mime).output() {
+                                    if out.status.success() && !out.stdout.is_empty() {
+                                        // Validate magic
+                                        let b = &out.stdout;
+                                        let is_png = b.starts_with(&[0x89, 0x50, 0x4E, 0x47]);
+                                        let is_jpg = b.starts_with(&[0xFF, 0xD8, 0xFF]);
+                                        let is_webp = b.starts_with(b"RIFF");
+                                        if is_png || is_jpg || is_webp || b.len() > 100 {
+                                            return Ok((b.clone(), ext));
+                                        }
+                                    }
+                                }
+                                // X11 fallback
+                                if let Ok(out) = std::process::Command::new("xclip").args(["-selection", "clipboard", "-t", mime, "-o"]).output() {
+                                    if out.status.success() && !out.stdout.is_empty() {
+                                        return Ok((out.stdout, ext));
+                                    }
+                                }
+                            }
+                            // 3) Try text fallback (maybe URL copied)
+                            if let Ok(mut cb) = arboard::Clipboard::new() {
+                                if let Ok(txt) = cb.get_text() {
+                                    let t = txt.trim();
+                                    if t.starts_with("http") && (t.ends_with(".png") || t.ends_with(".jpg") || t.ends_with(".jpeg") || t.ends_with(".webp")) {
+                                        return Err(format!("clipboard contains URL, not image: {}", t));
+                                    }
+                                }
+                            }
+                            Err("clipboard has no image (try Copy image, not Copy link)".to_string())
+                        })
+                        .await
+                        .map_err(|e| e.to_string())??;
+                        let tmp = std::env::temp_dir().join(format!("omatunes_clip_{}.{}", chrono::Utc::now().timestamp_millis(), ext));
+                        std::fs::write(&tmp, &bytes).map_err(|e| e.to_string())?;
+                        Ok(tmp) as Result<std::path::PathBuf, String>
+                    },
+                    Message::CoverImagePasted,
+                );
+            }
+
+            Message::CoverImagePasted(res) => {
+                match res {
+                    Ok(path) => {
+                        if let Some(ref mut state) = self.show_tag_editor {
+                            state.cover_path = Some(path.to_string_lossy().to_string());
+                            state.apply_cover = true;
+                            state.is_saved = false;
+                            state.just_saved.remove("cover");
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("Clipboard paste failed: {}", e);
                     }
                 }
                 Task::none()
@@ -6412,6 +6860,33 @@ impl AppState {
             view_stack = view_stack.push(toasts_overlay);
         }
 
+        if self.is_scanning {
+            let scanning_card = container(
+                row![
+                    text(crate::ui::icons::ICON_REPEAT).font(crate::ui::icons::NERD_FONT_MONO).size(16).color(theme::accent()),
+                    Space::with_width(10),
+                    text("Updating library…").size(13).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()),
+                ].align_y(Alignment::Center)
+            )
+            .padding([14, 22])
+            .width(Length::Fixed(260.0))
+            .style(|_| iced::widget::container::Style {
+                background: Some(iced::Background::Color(theme::mantle())),
+                border: iced::Border { color: theme::accent(), width: 1.0, radius: 8.0.into() },
+                shadow: iced::Shadow { color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.35), offset: [0.0, 4.0].into(), blur_radius: 12.0 },
+                ..Default::default()
+            });
+
+            let scanning_overlay = container(scanning_card)
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .align_x(iced::alignment::Horizontal::Center)
+                .align_y(iced::alignment::Vertical::Bottom)
+                .padding(iced::Padding { top: 0.0, right: 0.0, bottom: 24.0, left: 0.0 });
+
+            view_stack = view_stack.push(scanning_overlay);
+        }
+
         view_stack.into()
     }
 
@@ -6932,7 +7407,35 @@ impl AppState {
         .into()
     }
 
+    fn maybe_shuffle_queue(&mut self, anchor: Option<i64>) {
+        if !self.shuffle || self.queue.is_empty() {
+            return;
+        }
+        use rand::seq::SliceRandom;
+        let mut rng = rand::thread_rng();
+        if let Some(id) = anchor {
+            if let Some(pos) = self.queue.iter().position(|t| t.id == id) {
+                let item = self.queue.remove(pos);
+                self.queue.shuffle(&mut rng);
+                self.queue.insert(0, item);
+                let queue_paths: Vec<PathBuf> = self.queue.iter().map(|t| t.path.clone()).collect();
+                crate::db::write(|db| db.last_queue_paths = queue_paths);
+                return;
+            }
+        }
+        self.queue.shuffle(&mut rng);
+        let queue_paths: Vec<PathBuf> = self.queue.iter().map(|t| t.path.clone()).collect();
+        crate::db::write(|db| db.last_queue_paths = queue_paths);
+    }
+
     fn advance_track(&mut self, delta: i32) -> Task<Message> {
+        // Flush pending liked tag for the track we're leaving (fd will be cancelled before next Play)
+        if let Some(ref ct) = self.current_track {
+            let p = ct.path.clone();
+            if crate::library::pending::flush_one(&p) {
+                eprintln!("Flushed pending liked on advance for {}", p.display());
+            }
+        }
         if self.queue.is_empty() {
             return Task::none();
         }
@@ -7094,6 +7597,34 @@ impl AppState {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+fn open_url(url: &str) {
+    // Check default browser first — if Vivaldi, try direct launch to avoid Chromium fallback
+    let is_vivaldi_default = std::process::Command::new("xdg-mime")
+        .arg("query")
+        .arg("default")
+        .arg("x-scheme-handler/https")
+        .output()
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string() == "vivaldi-stable.desktop")
+        .unwrap_or(false);
+    if is_vivaldi_default {
+        if std::process::Command::new("vivaldi-stable").arg(url).spawn().is_ok() {
+            return;
+        }
+        if std::process::Command::new("/usr/bin/vivaldi-stable").arg(url).spawn().is_ok() {
+            return;
+        }
+    }
+    // gio respects mimeapps.list (we now copy it in test script)
+    if std::process::Command::new("gio").arg("open").arg(url).spawn().is_ok() {
+        return;
+    }
+    if std::process::Command::new("xdg-open").arg(url).spawn().is_ok() {
+        return;
+    }
+    // Final fallback: try Vivaldi directly even if not default
+    let _ = std::process::Command::new("vivaldi-stable").arg(url).spawn();
+}
 
 fn music_subfolders(music_dir: &PathBuf) -> Vec<PathBuf> {
     let mut folders: Vec<PathBuf> = std::fs::read_dir(music_dir)

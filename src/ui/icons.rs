@@ -89,6 +89,10 @@ pub const ICON_ARROW_UP:     &str = "\u{f062}";  // nf-fa-arrow_up
 pub const ICON_ARROW_DOWN:   &str = "\u{f063}";  // nf-fa-arrow_down
 pub const ICON_FIRE:         &str = "\u{f06d}";  // nf-fa-fire
 
+// Table sort icons (FontAwesome — always in Nerd Fonts)
+pub const ICON_SORT_UP:      &str = "\u{f0de}";  // nf-fa-sort_asc / caret up
+pub const ICON_SORT_DOWN:    &str = "\u{f0dd}";  // nf-fa-sort_desc / caret down
+
 pub fn get_award_image_bytes(period: &str, tier: &str) -> &'static [u8] {
     let (p, t) = match tier {
         "Bronze Trophy" => ("Yearly", "Bronze"),

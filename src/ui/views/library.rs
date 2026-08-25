@@ -1056,17 +1056,18 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
         let sort_col = table_col_to_sort_col(col);
         
         let is_sorted = state.sort_column == Some(sort_col);
-        let arrow = if is_sorted {
-            if state.sort_ascending { " ▲" } else { " ▼" }
+        let btn_content: Element<'_, Message> = if is_sorted {
+            let arrow = if state.sort_ascending { crate::ui::icons::ICON_SORT_UP } else { crate::ui::icons::ICON_SORT_DOWN };
+            row![
+                text(label).size(11).font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()),
+                Space::with_width(4),
+                text(arrow).size(10).font(crate::ui::icons::NERD_FONT_MONO).color(theme::accent()),
+            ].align_y(Alignment::Center).into()
         } else {
-            ""
+            text(label).size(11).font(crate::ui::icons::UI_FONT_BOLD).color(theme::subtext()).into()
         };
-        let txt = text(format!("{label}{arrow}"))
-            .size(11)
-            .font(crate::ui::icons::UI_FONT_BOLD)
-            .color(if is_sorted { theme::accent() } else { theme::subtext() });
-            
-        let btn = button(txt)
+
+        let btn = button(btn_content)
             .style(iced::widget::button::text)
             .padding(0)
             .width(width)

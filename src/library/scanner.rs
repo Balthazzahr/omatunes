@@ -28,7 +28,16 @@ const COVER_FILENAMES: &[&str] = &[
 /// When `is_liked` is false, all of the above are removed.
 /// Note: POPM is intentionally omitted (ID3v2 rejects `ItemValue::Text` for POPM).
 pub fn write_like_status(path: &Path, is_liked: bool) -> Result<()> {
-    let mut tagged_file = Probe::open(path)?.read()?;
+    write_like_status_atomic(path, is_liked)
+}
+
+/// Atomic variant: copy → save → rename (same dir, same FS).
+/// Fixes corruption where save_to_path(&tmp) on an empty tmp would write tag-only file.
+pub fn write_like_status_atomic(path: &Path, is_liked: bool) -> Result<()> {
+    let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("mp3");
+    let tmp = path.with_extension(format!("tmp.{}", ext));
+    std::fs::copy(path, &tmp)?;
+    let mut tagged_file = Probe::open(&tmp)?.read()?;
 
     if tagged_file.primary_tag_mut().is_none() {
         tagged_file.insert_tag(Tag::new(tagged_file.primary_tag_type()));
@@ -50,7 +59,8 @@ pub fn write_like_status(path: &Path, is_liked: bool) -> Result<()> {
         ));
     }
 
-    tagged_file.save_to_path(path, WriteOptions::default())?;
+    tagged_file.save_to_path(&tmp, WriteOptions::default())?;
+    std::fs::rename(&tmp, path)?;
     Ok(())
 }
 
@@ -241,10 +251,29 @@ fn read_tags(path: &Path) -> Result<TrackInfo> {
         .map(|s| s.to_string())
         .unwrap_or_else(|| unknown.to_string());
 
-    let lyrics = tags
+    let mut lyrics = tags
         .and_then(|t| t.get_string(&lofty::tag::ItemKey::Lyrics))
         .map(|s| s.to_string())
         .unwrap_or_default();
+    // Fallback: sidecar .lrc file with same stem (e.g. song.lrc next to song.flac)
+    if lyrics.trim().is_empty() {
+        let lrc_path = path.with_extension("lrc");
+        let lrc_path_upper = path.with_extension("LRC");
+        let candidate = if lrc_path.exists() {
+            Some(lrc_path)
+        } else if lrc_path_upper.exists() {
+            Some(lrc_path_upper)
+        } else {
+            None
+        };
+        if let Some(p) = candidate {
+            if let Ok(s) = std::fs::read_to_string(&p) {
+                if !s.trim().is_empty() {
+                    lyrics = s;
+                }
+            }
+        }
+    }
 
     let liked = tags
         .map(|t| {
@@ -339,7 +368,12 @@ pub fn write_tags(
     }
 
     tagged_file.remove(lofty::tag::TagType::Id3v1);
-    tagged_file.save_to_path(path, Default::default())?;
+    // Atomic: copy → save on tmp → rename (same dir, same FS) — preserve extension for Probe
+    let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("mp3");
+    let tmp = path.with_extension(format!("tmp.{}", ext));
+    std::fs::copy(path, &tmp)?;
+    tagged_file.save_to_path(&tmp, Default::default())?;
+    std::fs::rename(&tmp, path)?;
     Ok(())
 }
 

@@ -215,6 +215,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3d036a3c4ab069c7b410a2ce876bd74808d2d0888a82667669f8e783a898bf1"
 
 [[package]]
+name = "arboard"
+version = "3.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0348a1c054491f4bfe6ab86a7b6ab1e44e45d899005de92f58b3df180b36ddaf"
+dependencies = [
+ "clipboard-win",
+ "image 0.25.10",
+ "log",
+ "objc2 0.6.4",
+ "objc2-app-kit 0.3.2",
+ "objc2-core-foundation",
+ "objc2-core-graphics",
+ "objc2-foundation 0.3.2",
+ "parking_lot 0.12.5",
+ "percent-encoding",
+ "windows-sys 0.59.0",
+ "x11rb",
+]
+
+[[package]]
 name = "arg_enum_proc_macro"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3172,6 +3192,7 @@ dependencies = [
  "bitflags 2.13.0",
  "block2 0.6.2",
  "objc2 0.6.4",
+ "objc2-core-graphics",
  "objc2-foundation 0.3.2",
 ]
 
@@ -3447,9 +3468,10 @@ dependencies = [
 
 [[package]]
 name = "omatunes"
-version = "1.1.1"
+version = "1.2.0"
 dependencies = [
  "anyhow",
+ "arboard",
  "async-trait",
  "chrono",
  "cpal",

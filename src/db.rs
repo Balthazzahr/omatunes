@@ -98,6 +98,8 @@ pub fn default_column_order() -> Vec<TableColumn> {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct OmatunesDb {
     pub play_counts: HashMap<PathBuf, u32>,
+    #[serde(default)]
+    pub liked: HashMap<PathBuf, bool>,
     pub playlists: HashMap<String, Vec<PathBuf>>,
     #[serde(default)]
     pub recently_played: Vec<(PathBuf, String)>,
@@ -158,6 +160,7 @@ impl Default for OmatunesDb {
         let hidden: Vec<TableColumn> = all_cols.iter().filter(|c| !defaults.contains(c)).copied().collect();
         OmatunesDb {
             play_counts: HashMap::default(),
+            liked: HashMap::default(),
             playlists: HashMap::default(),
             recently_played: Vec::default(),
             hidden_artists_albums: Vec::default(),

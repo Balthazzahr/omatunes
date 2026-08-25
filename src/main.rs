@@ -23,6 +23,9 @@ fn main() -> iced::Result {
     let res = app::run();
     // Best-effort synchronous flush on normal exit (covers close via window X, SIGTERM, etc.).
     // Does not cover SIGKILL (kill -9) — for that, high-value writes now flush() immediately (see db.rs).
+    // Liked pending writes: db.json already has liked state (crash-safe), file tag is eventual mirror
+    // flush_sync drains any pending liked tag writes for the currently playing track (fd now closed)
+    crate::library::pending::flush_sync();
     db::flush_sync();
     stats::flush_sync();
     res
