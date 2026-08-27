@@ -155,6 +155,22 @@ pub fn save_cache(tracks: &[Track]) {
 }
 
 
+pub fn downscale_cover(raw_bytes: &[u8], max_dim: u32) -> Vec<u8> {
+    if raw_bytes.len() < 100_000 {
+        return raw_bytes.to_vec();
+    }
+    if let Ok(img) = image::load_from_memory(raw_bytes) {
+        if img.width() > max_dim || img.height() > max_dim {
+            let resized = img.resize(max_dim, max_dim, image::imageops::FilterType::Triangle);
+            let mut out = std::io::Cursor::new(Vec::new());
+            if resized.write_to(&mut out, image::ImageFormat::Jpeg).is_ok() {
+                return out.into_inner();
+            }
+        }
+    }
+    raw_bytes.to_vec()
+}
+
 /// Load cover art for a track: embedded tag first, then cover.jpg in the folder.
 pub fn load_cover(path: &Path) -> Option<Vec<u8>> {
     let tagged = Probe::open(path).ok()?.read().ok()?;
@@ -167,7 +183,8 @@ pub fn load_cover(path: &Path) -> Option<Vec<u8>> {
         })
         .map(|p| p.data().to_vec())
     });
-    embedded.or_else(|| cover_from_folder(path))
+    let raw = embedded.or_else(|| cover_from_folder(path))?;
+    Some(downscale_cover(&raw, 512))
 }
 
 // ── Internal ───────────────────────────────────────────────────────────────────

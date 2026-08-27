@@ -7257,7 +7257,7 @@ impl AppState {
             }),
         ];
 
-        if matches!(self.playback_state, PlaybackState::Playing) {
+        if matches!(self.playback_state, PlaybackState::Playing) && self.right_panel_tab == Some(RightPanelTab::Visualizer) {
             base_subs.push(iced::time::every(Duration::from_millis(33)).map(|_| Message::PollSpectrum));
         }
 
