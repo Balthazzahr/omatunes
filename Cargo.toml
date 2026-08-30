@@ -17,7 +17,7 @@ symphonia = { version = "0.5", features = ["all"] }
 opus = "0.3.1"
 
 # Audio — output
-cpal = "0.15"
+cpal = { version = "0.18", features = ["pipewire", "pulseaudio"] }
 
 # Tags / metadata
 lofty = "0.21"
