@@ -3,7 +3,6 @@ use std::sync::OnceLock;
 static LOCALE: OnceLock<&'static Strings> = OnceLock::new();
 
 pub struct Strings {
-    pub sidebar_folders:  &'static str,
     pub no_track:         &'static str,
     pub no_tracks_found:  &'static str,
     pub select_folder:    &'static str,
@@ -23,7 +22,6 @@ impl Strings {
 }
 
 static EN: Strings = Strings {
-    sidebar_folders:  "Folders",
     no_track:         "No track",
     no_tracks_found:  "No tracks found",
     select_folder:    "Select a folder",

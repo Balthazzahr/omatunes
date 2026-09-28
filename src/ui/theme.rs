@@ -142,13 +142,6 @@ pub fn hex_to_color(s: &str) -> Option<Color> {
     Some(hex(r, g, b))
 }
 
-pub fn color_to_hex(c: Color) -> String {
-    let r = (c.r * 255.0).round() as u8;
-    let g = (c.g * 255.0).round() as u8;
-    let b = (c.b * 255.0).round() as u8;
-    format!("#{:02x}{:02x}{:02x}", r, g, b)
-}
-
 fn palette_mutex() -> &'static Mutex<Palette> {
     PALETTE.get_or_init(|| {
         Mutex::new(load_palette_from_config())
@@ -452,7 +445,6 @@ color_fn!(accent,   accent);
 color_fn!(green,    green);
 color_fn!(red,      red);
 color_fn!(yellow,   yellow);
-color_fn!(blue,     blue);
 
 // ── Utilities ──────────────────────────────────────────────────────────────────
 

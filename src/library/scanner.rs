@@ -22,15 +22,6 @@ const COVER_FILENAMES: &[&str] = &[
     "folder.png", "Folder.png",
 ];
 
-/// Write like/rating metadata to an audio file using the unified generic tag API.
-///
-/// Writes RATING=100, xLIKE=1.
-/// When `is_liked` is false, all of the above are removed.
-/// Note: POPM is intentionally omitted (ID3v2 rejects `ItemValue::Text` for POPM).
-pub fn write_like_status(path: &Path, is_liked: bool) -> Result<()> {
-    write_like_status_atomic(path, is_liked)
-}
-
 /// Atomic variant: copy → save → rename (same dir, same FS).
 /// Fixes corruption where save_to_path(&tmp) on an empty tmp would write tag-only file.
 pub fn write_like_status_atomic(path: &Path, is_liked: bool) -> Result<()> {

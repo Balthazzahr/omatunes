@@ -62,8 +62,6 @@ pub enum AudioCommand {
     Stop,
     Seek(Duration),
     SetVolume(f32),
-    Next,
-    Previous,
 }
 
 #[derive(Debug, Clone)]
@@ -268,8 +266,6 @@ fn audio_thread(
                         }
                     });
                 }
-
-                Some(_) => {}
             }
         }
     });

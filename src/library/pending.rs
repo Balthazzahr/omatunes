@@ -26,20 +26,6 @@ pub fn drain_all() -> Vec<(PathBuf, bool)> {
     m.drain().collect()
 }
 
-/// Peek without removing (for reconciliation).
-pub fn snapshot() -> Vec<(PathBuf, bool)> {
-    let m = map().lock().unwrap();
-    m.iter().map(|(k, v)| (k.clone(), *v)).collect()
-}
-
-pub fn is_empty() -> bool {
-    map().lock().unwrap().is_empty()
-}
-
-pub fn len() -> usize {
-    map().lock().unwrap().len()
-}
-
 /// Flush a single pending entry via atomic copy→save→rename.
 /// Returns true if flushed, false if nothing pending or error.
 pub fn flush_one(path: &PathBuf) -> bool {
@@ -54,21 +40,6 @@ pub fn flush_one(path: &PathBuf) -> bool {
         return false;
     }
     true
-}
-
-/// Flush all pending entries (for non-playing bulk or exit).
-pub fn flush_all() -> usize {
-    let entries = drain_all();
-    let mut n = 0;
-    for (path, liked) in entries {
-        if crate::library::scanner::write_like_status_atomic(&path, liked).is_ok() {
-            n += 1;
-        } else {
-            // Re-queue failed
-            queue(path, liked);
-        }
-    }
-    n
 }
 
 /// Synchronous flush for exit (main.rs).

@@ -1,5 +1,4 @@
 
-use std::path::Path;
 use omatunes::library::scanner::scan_folder;
 
 fn main() {

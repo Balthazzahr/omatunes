@@ -55,16 +55,3 @@ pub struct Album {
     pub year: Option<u32>,
     pub cover_data: Option<Vec<u8>>,
 }
-
-#[derive(Debug, Clone)]
-pub struct Artist {
-    pub id: i64,
-    pub name: String,
-}
-
-#[derive(Debug, Clone)]
-pub struct Playlist {
-    pub id: i64,
-    pub name: String,
-    pub track_count: usize,
-}

@@ -145,7 +145,7 @@ impl<'a> SpectrumView<'a> {
 
             // Floating peak limiter with realistic gravity bounce off rising spectrograph bars
             let mut peak_amp = amp;
-            let mut peak_vel = 0.0_f32;
+            let _peak_vel = 0.0_f32;
 
             // Trace history to compute peak trajectory with gravity acceleration and restitution bounce
             for (hist_idx, hist_bands) in self.history.iter().enumerate().take(16) {
@@ -585,7 +585,7 @@ impl<'a> SpectrumView<'a> {
         let num_points = 32;
 
         for c in 0..num_curtains {
-            let curtain_t = (c as f32 + 1.0) / num_curtains as f32;
+            let _curtain_t = (c as f32 + 1.0) / num_curtains as f32;
             let curtain_x_start = (c as f32 / num_curtains as f32) * width;
             let curtain_width = width * 0.35;
 
@@ -642,8 +642,6 @@ impl<'a> SpectrumView<'a> {
         // Neon Synthwave Color Tokens
         let neon_magenta = Color::from_rgb(1.0, 0.0, 0.50); // #ff007f
         let neon_cyan = Color::from_rgb(0.0, 0.95, 1.0);     // #00f3ff
-        let neon_purple = Color::from_rgb(0.50, 0.0, 0.85);   // #8000d9
-        let sunset_orange = Color::from_rgb(1.0, 0.40, 0.0); // #ff6600
         let sunset_yellow = Color::from_rgb(1.0, 0.85, 0.10); // #ffdc1a
 
         // 1. Smooth Progressive Sky Gradient (Black & Dark Blue at top -> Deep Purple in middle -> Warm Sunset Orange near horizon)
