@@ -34,6 +34,7 @@ pub fn render_suggestions(
                     text(suggestion.clone())
                         .size(10)
                         .color(theme::accent())
+                        .font(crate::ui::icons::ui_font_for(suggestion))
                 )
                 .on_press(on_select(suggestion.clone()))
                 .style(theme::secondary_button)

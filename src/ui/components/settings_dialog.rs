@@ -1,9 +1,12 @@
+use std::sync::OnceLock;
+
 use iced::widget::{button, checkbox, column, container, pick_list, radio, row, scrollable, slider, text, text_input, Space};
 use iced::{Alignment, Element, Length};
 
 use crate::app::{Message, SettingsState, SettingsTab};
+use crate::font_index::{FontInfo, ScriptClass};
 use crate::ui::theme;
-use crate::ui::icons::{ICON_LIBRARY, ICON_SLIDERS, ICON_MONITOR, ICON_PALETTE, ICON_KEYBOARD, ICON_FOLDER, ICON_AUTO_SCAN, ICON_VOLUME_HIGH, ICON_CHECK, ICON_TIMES, NERD_FONT_MONO, UI_FONT_BOLD, UI_FONT};
+use crate::ui::icons::{ICON_LIBRARY, ICON_SLIDERS, ICON_MONITOR, ICON_PALETTE, ICON_KEYBOARD, ICON_FOLDER, ICON_AUTO_SCAN, ICON_VOLUME_HIGH, ICON_CHECK, ICON_TIMES, ICON_SORT_UP, ICON_SORT_DOWN, NERD_FONT_MONO, ui_font, ui_font_bold};
 
 fn tab_button<'a>(
     icon: &'static str,
@@ -17,7 +20,7 @@ fn tab_button<'a>(
                 if is_selected { theme::accent() } else { theme::overlay0() }
             ),
             Space::with_width(8),
-            text(label).font(UI_FONT_BOLD).size(14).color(
+            text(label).font(ui_font_bold()).size(14).color(
                 if is_selected { theme::text() } else { theme::subtext() }
             ),
         ]
@@ -47,11 +50,75 @@ fn tab_button<'a>(
 }
 
 fn field_label(label: &'static str) -> Element<'static, Message> {
-    text(label).size(12).font(UI_FONT_BOLD).color(theme::subtext()).into()
+    text(label).size(12).font(ui_font_bold()).color(theme::subtext()).into()
 }
 
 fn section_header(label: &'static str) -> Element<'static, Message> {
-    text(label).size(15).font(UI_FONT_BOLD).color(theme::accent()).into()
+    text(label).size(15).font(ui_font_bold()).color(theme::accent()).into()
+}
+
+/// All installed font families, probed exactly once per process.
+///
+/// `font_index::fonts()` costs ~29 ms on first call (a cmap probe per family)
+/// and is a `OnceLock` internally, but we cache the `&'static` result here so
+/// the settings dialog never re-probes and never pays for it on a hot path.
+/// The single probe happens the first time the settings dialog is opened.
+fn installed_fonts() -> &'static Vec<FontInfo> {
+    static CACHE: OnceLock<&'static Vec<FontInfo>> = OnceLock::new();
+    *CACHE.get_or_init(|| crate::font_index::fonts())
+}
+
+/// Fallback font list used only when the system scan finds nothing. Built
+/// lazily and cached; these families carry no coverage data (empty `classes`),
+/// so the browser shows them without sample glyphs.
+fn fallback_fonts() -> &'static Vec<FontInfo> {
+    static CACHE: OnceLock<Vec<FontInfo>> = OnceLock::new();
+    CACHE.get_or_init(|| {
+        crate::ui::icons::AVAILABLE_FONT_FAMILIES
+            .iter()
+            .map(|f| FontInfo {
+                family: f.to_string(),
+                classes: Vec::new(),
+                path: std::path::PathBuf::new(),
+            })
+            .collect()
+    })
+}
+
+/// Every script class in a stable order, for the coverage legend.
+const ALL_SCRIPT_CLASSES: &[ScriptClass] = &[
+    ScriptClass::Latin,
+    ScriptClass::Cjk,
+    ScriptClass::Hangul,
+    ScriptClass::Arabic,
+    ScriptClass::Cyrillic,
+    ScriptClass::Greek,
+    ScriptClass::Hebrew,
+    ScriptClass::Devanagari,
+    ScriptClass::Thai,
+    ScriptClass::Emoji,
+    ScriptClass::NerdSymbols,
+];
+
+/// Build an `iced::Font` for a family name, interning the name so
+/// `Family::Name`'s `'static` bound is satisfied. The leak is bounded by the
+/// number of installed families (~295) and memoized by `intern_family`.
+fn font_for_family(family: &str) -> iced::Font {
+    iced::Font {
+        family: iced::font::Family::Name(crate::ui::icons::intern_family(family)),
+        weight: iced::font::Weight::Normal,
+        stretch: iced::font::Stretch::Normal,
+        style: iced::font::Style::Normal,
+    }
+}
+
+/// A small square icon button matching the dialog's secondary-button look.
+fn icon_button(icon: &'static str, message: Message) -> Element<'static, Message> {
+    button(text(icon).font(NERD_FONT_MONO).size(12).color(theme::overlay0()))
+        .on_press(message)
+        .padding([2, 6])
+        .style(theme::secondary_button)
+        .into()
 }
 
 pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
@@ -159,7 +226,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
 
         SettingsTab::Playback => {
             let vol_slider = slider(0.0..=1.0f32, state.initial_volume, Message::SettingsInitialVolumeChanged)
-                .step(0.01);
+                .step(0.01_f32);
             let vol_label = text(format!("{:.0}%", state.initial_volume * 100.0))
                 .size(12)
                 .color(theme::text());
@@ -167,9 +234,9 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
             let mut defaults_table = column![
                 Space::with_height(8),
                 row![
-                    text("Context").font(UI_FONT_BOLD).size(12).color(theme::subtext()).width(Length::FillPortion(3)),
-                    text("Shuffle").font(UI_FONT_BOLD).size(12).color(theme::subtext()).width(Length::FillPortion(1)),
-                    text("Repeat").font(UI_FONT_BOLD).size(12).color(theme::subtext()).width(Length::FillPortion(1)),
+                    text("Context").font(ui_font_bold()).size(12).color(theme::subtext()).width(Length::FillPortion(3)),
+                    text("Shuffle").font(ui_font_bold()).size(12).color(theme::subtext()).width(Length::FillPortion(1)),
+                    text("Repeat").font(ui_font_bold()).size(12).color(theme::subtext()).width(Length::FillPortion(1)),
                 ]
                 .align_y(Alignment::Center)
                 .spacing(8),
@@ -219,7 +286,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                         row![
                             text(*icon).font(NERD_FONT_MONO).size(12).color(theme::overlay0()),
                             Space::with_width(6),
-                            text(*label).font(UI_FONT).size(13).color(theme::text()),
+                            text(*label).font(ui_font()).size(13).color(theme::text()),
                         ]
                         .align_y(Alignment::Center)
                         .width(Length::FillPortion(3)),
@@ -274,7 +341,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
 
         SettingsTab::Display => {
             let scale_slider = slider(0.5..=2.5f32, state.font_scale, Message::SettingsFontScaleChanged)
-                .step(0.05);
+                .step(0.05_f32);
             let scale_label = text(format!("{:.2}x", state.font_scale)).size(12).color(theme::text());
 
             let show_achievements_cb = checkbox(
@@ -291,18 +358,234 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
             .on_toggle(Message::SettingsShowToastsChanged)
             .size(16);
 
+            // ── Font section ─────────────────────────────────────────────────
+            // Real installed families, or the hardcoded list if the scan found
+            // nothing (coverage data is empty in that case).
+            let installed: &[FontInfo] = if installed_fonts().is_empty() {
+                fallback_fonts()
+            } else {
+                installed_fonts()
+            };
+
+            // Scripts that NO installed font covers (e.g. Emoji on this machine).
+            let uncovered: Vec<ScriptClass> = ALL_SCRIPT_CLASSES
+                .iter()
+                .copied()
+                .filter(|c| !installed.iter().any(|f| f.classes.contains(c)))
+                .collect();
+
+            let search_lc = state.font_search.trim().to_lowercase();
+            let filtered: Vec<&FontInfo> = installed
+                .iter()
+                .filter(|f| search_lc.is_empty() || f.family.to_lowercase().contains(&search_lc))
+                .collect();
+
+            let font_search_input = text_input("Search installed fonts", &state.font_search)
+                .on_input(Message::SettingsFontSearchChanged)
+                .padding(6)
+                .size(12)
+                .width(Length::Fill);
+
+            // Font browser: one row per installed family. The family name and its
+            // coverage sample glyphs are both rendered in the font itself, so a
+            // font that cannot draw a script shows tofu for it — coverage is
+            // visible at a glance without reading.
+            let mut font_list = column![].spacing(2);
+            for info in &filtered {
+                let is_primary = info.family == state.font_family;
+                let name_color = if is_primary { theme::accent() } else { theme::text() };
+                let font = font_for_family(&info.family);
+                let samples: String = info.classes.iter().map(|c| c.sample()).collect();
+                let sample_cell = if samples.is_empty() {
+                    text("no special coverage").size(10).color(theme::overlay0())
+                } else {
+                    text(samples).font(font).size(11).color(theme::overlay0())
+                };
+                font_list = font_list.push(
+                    button(
+                        row![
+                            text(info.family.clone()).font(font).size(13).color(name_color).width(Length::Fill),
+                            sample_cell,
+                        ]
+                        .align_y(Alignment::Center)
+                        .padding([4, 8]),
+                    )
+                    .on_press(Message::SettingsFontFamilyChanged(info.family.clone()))
+                    .width(Length::Fill)
+                    .style(move |_t: &iced::Theme, status: iced::widget::button::Status| {
+                        let hovered = status == iced::widget::button::Status::Hovered
+                            || status == iced::widget::button::Status::Pressed;
+                        iced::widget::button::Style {
+                            background: if is_primary {
+                                Some(iced::Background::Color(theme::with_alpha(theme::accent(), 0.10)))
+                            } else if hovered {
+                                Some(iced::Background::Color(theme::surface0()))
+                            } else {
+                                None
+                            },
+                            text_color: name_color,
+                            border: iced::Border { radius: 4.0.into(), ..Default::default() },
+                            ..Default::default()
+                        }
+                    }),
+                );
+            }
+            if filtered.is_empty() {
+                font_list = font_list.push(
+                    text("No installed fonts match the search.").size(11).color(theme::overlay0()),
+                );
+            }
+
+            // Where the selected font actually lives on disk. Dimmed and
+            // single-line: this is the first thing worth checking when a font
+            // you installed does not appear in the list above.
+            let primary_path = installed
+                .iter()
+                .find(|f| f.family == state.font_family)
+                .map(|f| f.path.display().to_string())
+                .unwrap_or_default();
+            if !primary_path.is_empty() {
+                font_list = font_list.push(
+                    text(format!("file: {primary_path}"))
+                        .size(10)
+                        .color(theme::overlay0()),
+                );
+            }
+
+            // Coverage legend: each sample glyph (rendered in a font that covers
+            // it) paired with its label, so the glyphs above are readable.
+            let half = (ALL_SCRIPT_CLASSES.len() + 1) / 2;
+            let mut legend_left = column![].spacing(0);
+            let mut legend_right = column![].spacing(0);
+            for (i, class) in ALL_SCRIPT_CLASSES.iter().enumerate() {
+                let entry: Element<'a, Message> = row![
+                    text(class.sample())
+                        .font(crate::ui::icons::ui_font_for(class.sample()))
+                        .size(10)
+                        .width(Length::Fixed(18.0))
+                        .color(theme::subtext()),
+                    text(class.label()).size(10).color(theme::overlay0()),
+                ]
+                .spacing(4)
+                .align_y(Alignment::Center)
+                .into();
+                if i < half {
+                    legend_left = legend_left.push(entry);
+                } else {
+                    legend_right = legend_right.push(entry);
+                }
+            }
+            let legend = row![legend_left, Space::with_width(16), legend_right]
+                .align_y(Alignment::Start);
+
+            // Fallback chain editor.
+            let add_options: Vec<String> = installed
+                .iter()
+                .map(|f| f.family.clone())
+                .filter(|f| !state.font_fallback.contains(f))
+                .collect();
+            let add_pick = pick_list(
+                add_options,
+                None::<String>,
+                Message::SettingsFontFallbackAdd,
+            )
+            .placeholder("Add a font to the chain...")
+            .padding(6)
+            .width(Length::Fill);
+
+            let apply_btn = button(text("Apply Suggested Chain").size(12).color(theme::text()))
+                .on_press(Message::SettingsFontFallbackApplySuggested)
+                .padding([6, 12])
+                .style(theme::secondary_button);
+
+            let mut chain_col = column![
+                field_label("Fallback Font Chain"),
+                Space::with_height(4),
+                text("When the primary font lacks a glyph, these fonts are tried in order. Leave empty for automatic — the app picks a font that covers the text.")
+                    .size(11)
+                    .color(theme::overlay0()),
+                Space::with_height(8),
+                row![add_pick, Space::with_width(8), apply_btn].align_y(Alignment::Center),
+                Space::with_height(8),
+            ]
+            .spacing(0);
+
+            if state.font_fallback.is_empty() {
+                chain_col = chain_col.push(
+                    text("Automatic — the app picks a font that covers the text.")
+                        .size(11)
+                        .color(theme::overlay0()),
+                );
+            } else {
+                for (i, family) in state.font_fallback.iter().enumerate() {
+                    chain_col = chain_col.push(
+                        row![
+                            text(format!("{}.", i + 1)).size(11).color(theme::overlay0()).width(Length::Fixed(20.0)),
+                            text(family.clone()).font(font_for_family(family)).size(12).color(theme::text()).width(Length::Fill),
+                            icon_button(ICON_SORT_UP, Message::SettingsFontFallbackMove(i, true)),
+                            icon_button(ICON_SORT_DOWN, Message::SettingsFontFallbackMove(i, false)),
+                            icon_button(ICON_TIMES, Message::SettingsFontFallbackRemove(i)),
+                        ]
+                        .align_y(Alignment::Center)
+                        .spacing(6),
+                    );
+                }
+            }
+
+            // Sample check: render a real CJK/Korean/emoji string in the primary
+            // font so missing coverage is visible, and say so plainly.
+            let sample_text = "音楽 한글 \u{1F600}";
+            let missing = crate::font_index::missing_scripts(sample_text, &state.font_family);
+            let sample_render = text(sample_text)
+                .font(font_for_family(&state.font_family))
+                .size(14)
+                .color(theme::text());
+            let sample_caption: Element<'a, Message> = if missing.is_empty() {
+                text("Primary font covers the sample text.").size(10).color(theme::overlay0()).into()
+            } else {
+                let names: Vec<String> = missing.iter().map(|c| c.label().to_string()).collect();
+                let mut msg = format!(
+                    "Primary font does not cover: {}. A fallback font will be used.",
+                    names.join(", ")
+                );
+                for c in &missing {
+                    if uncovered.contains(c) {
+                        msg.push_str(&format!(" (No installed font covers {}.)", c.label()));
+                    }
+                }
+                text(msg).size(10).color(theme::yellow()).into()
+            };
+
             scrollable(
                 column![
                     section_header("Display"),
                     Space::with_height(16),
                     row![
-                        text("Aa").font(UI_FONT_BOLD).size(14).color(theme::overlay0()),
+                        text("Aa").font(ui_font_bold()).size(14).color(theme::overlay0()),
                         Space::with_width(6),
                         field_label("Font Scale (Zoom)"),
                     ].align_y(Alignment::Center),
                     Space::with_height(6),
                     row![scale_slider, Space::with_width(12), scale_label].align_y(Alignment::Center),
                     Space::with_height(20),
+                    row![
+                        text("Ab").font(ui_font_bold()).size(14).color(theme::overlay0()),
+                        Space::with_width(6),
+                        field_label("Interface Font"),
+                    ].align_y(Alignment::Center),
+                    Space::with_height(6),
+                    font_search_input,
+                    Space::with_height(6),
+                    scrollable(font_list).height(Length::Fixed(150.0)),
+                    Space::with_height(6),
+                    legend,
+                    Space::with_height(4),
+                    text("Icons always use Nerd Font.").size(11).color(theme::overlay0()),
+                    Space::with_height(12),
+                    chain_col,
+                    Space::with_height(8),
+                    sample_render,
+                    sample_caption,
                     row![
                         text("\u{f053f}").font(NERD_FONT_MONO).size(14).color(theme::overlay0()),
                         Space::with_width(6),
@@ -477,7 +760,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
 
                     let value_display = text(format!("{} (derived)", hex_val))
                         .size(11)
-                        .font(UI_FONT_BOLD)
+                        .font(ui_font_bold())
                         .color(theme::overlay0());
 
                     let label_col = text(label)
@@ -515,7 +798,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                     let mut warning_list = column![
                         text("Poor Contrast Detected:")
                             .size(11)
-                            .font(UI_FONT_BOLD)
+                            .font(ui_font_bold())
                             .color(theme::yellow()),
                         Space::with_height(2),
                     ]
@@ -874,7 +1157,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                 row![
                     text(keys)
                         .width(Length::Fixed(130.0))
-                        .font(UI_FONT_BOLD)
+                        .font(ui_font_bold())
                         .color(theme::accent())
                         .size(13),
                     text(desc).color(theme::text()).size(13),
@@ -1004,7 +1287,7 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
         row![
             text("App Settings")
                 .size(20)
-                .font(UI_FONT_BOLD)
+                .font(ui_font_bold())
                 .color(theme::accent()),
             Space::with_width(Length::Fill),
             close_btn,

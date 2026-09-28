@@ -311,6 +311,12 @@ pub enum Message {
     SettingsSeekStepChanged(String),
     SettingsVolumeStepChanged(f32),
     SettingsFontScaleChanged(f32),
+    SettingsFontFamilyChanged(String),
+    SettingsFontSearchChanged(String),
+    SettingsFontFallbackAdd(String),
+    SettingsFontFallbackRemove(usize),
+    SettingsFontFallbackMove(usize, bool),
+    SettingsFontFallbackApplySuggested,
     SettingsShowAchievementsInUiChanged(bool),
     SettingsShowToastsChanged(bool),
     SettingsSave,
@@ -394,6 +400,9 @@ pub struct SettingsState {
     pub seek_step: String,
     pub volume_step: f32,
     pub font_scale: f32,
+    pub font_family: String,
+    pub font_search: String,
+    pub font_fallback: Vec<String>,
     pub initial_volume: f32,
     pub playback_defaults: crate::config::PlaybackDefaults,
     pub auto_scan: crate::config::AutoScanConfig,
@@ -4240,6 +4249,9 @@ impl AppState {
                     seek_step: cfg.seek_step.to_string(),
                     volume_step: cfg.volume_step,
                     font_scale: self.font_scale,
+                    font_family: cfg.font_family.clone(),
+                    font_search: String::new(),
+                    font_fallback: cfg.font_fallback.clone(),
                     initial_volume: cfg.volume,
                     playback_defaults: cfg.playback_defaults.clone(),
                     auto_scan: cfg.auto_scan.clone(),
@@ -5125,6 +5137,9 @@ impl AppState {
                     seek_step: cfg.seek_step.to_string(),
                     volume_step: cfg.volume_step,
                     font_scale: self.font_scale,
+                    font_family: cfg.font_family.clone(),
+                    font_search: String::new(),
+                    font_fallback: cfg.font_fallback.clone(),
                     initial_volume: cfg.volume,
                     playback_defaults: cfg.playback_defaults.clone(),
                     auto_scan: cfg.auto_scan.clone(),
@@ -5199,6 +5214,68 @@ impl AppState {
                 Task::none()
             }
 
+            Message::SettingsFontFamilyChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.font_family = val.clone();
+                    crate::config::update_font_family(&val);
+                }
+                Task::none()
+            }
+
+            Message::SettingsFontSearchChanged(val) => {
+                if let Some(ref mut state) = self.show_settings {
+                    state.font_search = val;
+                }
+                Task::none()
+            }
+
+            Message::SettingsFontFallbackAdd(font) => {
+                if let Some(ref mut state) = self.show_settings {
+                    if !state.font_fallback.contains(&font) {
+                        state.font_fallback.push(font.clone());
+                        crate::config::update_font_fallback(&state.font_fallback);
+                    }
+                }
+                Task::none()
+            }
+
+            Message::SettingsFontFallbackRemove(index) => {
+                if let Some(ref mut state) = self.show_settings {
+                    if index < state.font_fallback.len() {
+                        state.font_fallback.remove(index);
+                        crate::config::update_font_fallback(&state.font_fallback);
+                    }
+                }
+                Task::none()
+            }
+
+            Message::SettingsFontFallbackMove(index, up) => {
+                if let Some(ref mut state) = self.show_settings {
+                    let len = state.font_fallback.len();
+                    if len > 1 {
+                        let new_index = if up {
+                            index.saturating_sub(1)
+                        } else {
+                            (index + 1).min(len - 1)
+                        };
+                        if new_index != index {
+                            state.font_fallback.swap(index, new_index);
+                            crate::config::update_font_fallback(&state.font_fallback);
+                        }
+                    }
+                }
+                Task::none()
+            }
+
+            Message::SettingsFontFallbackApplySuggested => {
+                if let Some(ref mut state) = self.show_settings {
+                    let suggested = crate::font_index::suggested_chain();
+                    state.font_fallback = suggested.clone();
+                    crate::config::update_font_fallback(&suggested);
+                }
+                Task::none()
+            }
+
             Message::SettingsShowAchievementsInUiChanged(val) => {
                 if let Some(ref mut state) = self.show_settings {
                     state.show_achievements_in_ui = val;
@@ -5239,6 +5316,8 @@ impl AppState {
                     }
                     cfg.volume_step = state.volume_step;
                     cfg.font_scale = Some(state.font_scale);
+                    cfg.font_family = state.font_family.clone();
+                    cfg.font_fallback = state.font_fallback.clone();
                     cfg.volume = state.initial_volume;
                     cfg.playback_defaults = state.playback_defaults.clone();
                     cfg.auto_scan = state.auto_scan.clone();
@@ -6138,7 +6217,7 @@ impl AppState {
         }
 
         // Period breakdown popup overlay
-        if let Some(ref breakdown) = self.show_period_breakdown {
+        if let Some(ref _breakdown) = self.show_period_breakdown {
             if let Some(ref song_view) = self.breakdown_song_view {
                 view_stack = view_stack.push(
                     crate::ui::views::player::song_breakdown_view(
@@ -6208,7 +6287,7 @@ impl AppState {
                         text("Add to Playlist")
                             .size(14)
                             .color(theme::subtext())
-                            .font(crate::ui::icons::UI_FONT_BOLD)
+                            .font(crate::ui::icons::ui_font_bold())
                     ].spacing(4)
                 )
                 .on_press(Message::TogglePlaylistMenuExpanded)
@@ -6503,7 +6582,7 @@ impl AppState {
                         text("Show / Hide:")
                             .size(13)
                             .color(theme::subtext())
-                            .font(crate::ui::icons::UI_FONT_BOLD),
+                            .font(crate::ui::icons::ui_font_bold()),
                         Space::with_height(4)
                     ].spacing(2);
 
@@ -6595,7 +6674,7 @@ impl AppState {
                         button(
                             text("Reset Default Order")
                                 .size(13)
-                                .font(crate::ui::icons::UI_FONT_BOLD)
+                                .font(crate::ui::icons::ui_font_bold())
                                 .color(theme::accent())
                         )
                         .on_press(Message::ResetColumnOrder)
@@ -6608,7 +6687,7 @@ impl AppState {
                         button(
                             text("Reset Default Columns")
                                 .size(13)
-                                .font(crate::ui::icons::UI_FONT_BOLD)
+                                .font(crate::ui::icons::ui_font_bold())
                                 .color(theme::accent())
                         )
                         .on_press(Message::ResetDefaultVisibility)
@@ -6635,7 +6714,7 @@ impl AppState {
                 row![
                     text(title)
                         .size(15)
-                        .font(crate::ui::icons::UI_FONT_BOLD)
+                        .font(crate::ui::icons::ui_font_bold())
                         .color(theme::accent()),
                     Space::with_width(Length::Fill),
                     button(text("\u{f00d}").font(crate::ui::icons::NERD_FONT_MONO).color(theme::red()).size(14))
@@ -6730,7 +6809,7 @@ impl AppState {
                 let mut msg_col = column![].spacing(2);
                 for line in msg_lines {
                     let mut line_color = theme::text();
-                    let mut line_font = crate::ui::icons::UI_FONT;
+                    let mut line_font = crate::ui::icons::ui_font();
 
                     if line.contains('\u{f062}') {
                         line_color = theme::green();
@@ -6761,7 +6840,7 @@ impl AppState {
                                 continue;
                             }
                             let font = if idx % 2 == 1 {
-                                crate::ui::icons::UI_FONT_BOLD
+                                crate::ui::icons::ui_font_bold()
                             } else {
                                 line_font
                             };
@@ -6810,7 +6889,7 @@ impl AppState {
                             Space::with_width(8),
                             text(&n.title)
                                 .size(14)
-                                .font(crate::ui::icons::UI_FONT_BOLD)
+                                .font(crate::ui::icons::ui_font_bold())
                                 .color(toast_color)
                                 .width(Length::Fill),
                             close_btn,
@@ -6850,7 +6929,7 @@ impl AppState {
                 row![
                     text(crate::ui::icons::ICON_REPEAT).font(crate::ui::icons::NERD_FONT_MONO).size(16).color(theme::accent()),
                     Space::with_width(10),
-                    text("Updating library…").size(13).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()),
+                    text("Updating library…").size(13).font(crate::ui::icons::ui_font_bold()).color(theme::text()),
                 ].align_y(Alignment::Center)
             )
             .padding([14, 22])
@@ -6899,7 +6978,7 @@ impl AppState {
         let header = row![
             text(format!("Queue ({queue_count})"))
                 .size(12)
-                .font(crate::ui::icons::UI_FONT_BOLD)
+                .font(crate::ui::icons::ui_font_bold())
                 .color(theme::subtext())
                 .width(Length::Fill),
             button(
@@ -7134,14 +7213,14 @@ impl AppState {
     fn shortcuts_modal_view(&self) -> Element<'_, Message> {
         let title = text("Keyboard Shortcuts")
             .size(20)
-            .font(crate::ui::icons::UI_FONT_BOLD)
+            .font(crate::ui::icons::ui_font_bold())
             .color(theme::accent());
 
         let row_item = |keys: &'static str, desc: &'static str| {
             row![
                 text(keys)
                     .width(Length::Fixed(120.0))
-                    .font(crate::ui::icons::UI_FONT_BOLD)
+                    .font(crate::ui::icons::ui_font_bold())
                     .color(theme::accent())
                     .size(13),
                 text(desc)
@@ -7382,7 +7461,7 @@ impl AppState {
                 text("omatunes")
                     .color(theme::accent())
                     .size(16)
-                    .font(crate::ui::icons::UI_FONT_BOLD),
+                    .font(crate::ui::icons::ui_font_bold()),
             ]
             .align_y(Alignment::Center),
         )
@@ -7702,7 +7781,9 @@ pub fn run() -> iced::Result {
         .subscription(AppState::subscription)
         .font(include_bytes!("../assets/JetBrainsMonoNerdFontMono-Regular.ttf"))
         .default_font(iced::Font {
-            family: iced::font::Family::Name("JetBrainsMono Nerd Font Mono"),
+            family: iced::font::Family::Name(
+                crate::ui::icons::resolve_font_family(&crate::config::get().font_family)
+            ),
             weight: iced::font::Weight::Normal,
             stretch: iced::font::Stretch::Normal,
             style: iced::font::Style::Normal,

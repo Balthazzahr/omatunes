@@ -127,6 +127,11 @@ pub struct Config {
     pub depth_warp_speed: f32,
     #[serde(default = "default_kaleidoscope_axes")]
     pub kaleidoscope_axes: usize,
+    #[serde(default = "default_font_family")]
+    pub font_family: String,
+    /// Ordered font fallback chain. Empty means "auto-discover".
+    #[serde(default)]
+    pub font_fallback: Vec<String>,
 }
 
 impl Default for Config {
@@ -138,6 +143,8 @@ impl Default for Config {
             seek_step:   5,
             volume_step: 0.05,
             font_scale:  Some(1.0),
+            font_family: default_font_family(),
+            font_fallback: Vec::new(),
             theme_source: "System".into(),
             theme_preset: "Nord".into(),
             custom_theme: None,
@@ -181,6 +188,16 @@ pub fn get() -> Config {
     guard.clone()
 }
 
+/// Borrow the font settings without cloning the whole `Config`.
+///
+/// `Config` has 26 fields and 5 heap allocations, so calling [`get`] per
+/// rendered text element allocates every frame. The font resolver runs in
+/// exactly that path, so it borrows instead.
+pub fn with_font_settings<R>(f: impl FnOnce(&str, &[String]) -> R) -> R {
+    let guard = CONFIG.get_or_init(|| Mutex::new(read_or_default())).lock().unwrap();
+    f(&guard.font_family, &guard.font_fallback)
+}
+
 pub fn save(cfg: Config) {
     let mut guard = CONFIG.get_or_init(|| Mutex::new(read_or_default())).lock().unwrap();
     *guard = cfg.clone();
@@ -193,7 +210,19 @@ pub fn save(cfg: Config) {
 pub fn update_font_scale(scale: f32) {
     let mut current = get();
     current.font_scale = Some(scale);
-    save(current);
+    save(current)
+}
+
+pub fn update_font_family(family: &str) {
+    let mut current = get();
+    current.font_family = family.to_string();
+    save(current)
+}
+
+pub fn update_font_fallback(chain: &[String]) {
+    let mut current = get();
+    current.font_fallback = chain.to_vec();
+    save(current)
 }
 
 fn read_or_default() -> Config {
@@ -269,10 +298,18 @@ theme_source = "System"
 
 # Theme preset (used when theme_source = "Preset")
 theme_preset = "Nord"
+# font_family = "JetBrainsMono Nerd Font Mono"
+
+# Ordered font fallback chain, first match wins. Empty = auto-detect.
+# font_fallback = ["Noto Sans CJK JP", "Noto Color Emoji"]
 "#;
 
 fn default_show_achievements_in_ui() -> bool {
     true
+}
+
+fn default_font_family() -> String {
+    "JetBrainsMono Nerd Font Mono".to_string()
 }
 
 fn default_show_toasts() -> bool {
@@ -309,4 +346,43 @@ fn default_depth_warp_speed() -> f32 {
 
 fn default_kaleidoscope_axes() -> usize {
     8
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Config;
+
+    /// A pre-existing `~/.config/omatunes/config.toml` has no `font_fallback`
+    /// key. It must still deserialize, yielding an empty (auto-discover) chain.
+    #[test]
+    fn legacy_config_without_font_fallback_still_parses() {
+        let legacy = r#"
+music_dir = "~/Music"
+volume = 0.8
+language = "auto"
+seek_step = 5
+volume_step = 0.05
+theme_source = "System"
+theme_preset = "Nord"
+font_family = "JetBrainsMono Nerd Font Mono"
+"#;
+
+        let cfg: Config = toml::from_str(legacy).expect("legacy config must deserialize");
+        assert_eq!(cfg.font_family, "JetBrainsMono Nerd Font Mono");
+        assert!(cfg.font_fallback.is_empty());
+    }
+
+    /// An explicit chain round-trips through serialize/deserialize.
+    #[test]
+    fn font_fallback_round_trips() {
+        let chain = vec!["Noto Sans CJK JP".to_string(), "Noto Color Emoji".to_string()];
+        let mut cfg = Config::default();
+        cfg.font_fallback = chain.clone();
+
+        let encoded = toml::to_string_pretty(&cfg).expect("config serializes");
+        assert!(encoded.contains("font_fallback"), "encoded config: {encoded}");
+
+        let decoded: Config = toml::from_str(&encoded).expect("config deserializes");
+        assert_eq!(decoded.font_fallback, chain);
+    }
 }

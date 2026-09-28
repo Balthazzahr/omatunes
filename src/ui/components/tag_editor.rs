@@ -21,6 +21,7 @@ pub fn view<'a>(
         text_input("Title", &state.title)
             .id(iced::widget::text_input::Id::new("id3_title"))
             .on_input(Message::UpdateTagFieldTitle)
+            .font(crate::ui::icons::ui_font_for(&state.title))
             .padding(8)
             .style(move |_: &iced::Theme, _: iced::widget::text_input::Status| iced::widget::text_input::Style {
                 background: iced::Background::Color(theme::base()),
@@ -37,6 +38,7 @@ pub fn view<'a>(
         text_input("Artist", &state.artist)
             .id(iced::widget::text_input::Id::new("id3_artist"))
             .on_input(Message::UpdateTagFieldArtist)
+            .font(crate::ui::icons::ui_font_for(&state.artist))
             .padding(8)
             .style(move |_: &iced::Theme, _: iced::widget::text_input::Status| iced::widget::text_input::Style {
                 background: iced::Background::Color(theme::base()),
@@ -53,6 +55,7 @@ pub fn view<'a>(
         text_input("Album", &state.album)
             .id(iced::widget::text_input::Id::new("id3_album"))
             .on_input(Message::UpdateTagFieldAlbum)
+            .font(crate::ui::icons::ui_font_for(&state.album))
             .padding(8)
             .style(move |_: &iced::Theme, _: iced::widget::text_input::Status| iced::widget::text_input::Style {
                 background: iced::Background::Color(theme::base()),
@@ -191,9 +194,9 @@ pub fn view<'a>(
     });
 
     let cover_input = {
-        let browse_tip = iced::widget::tooltip(browse_btn, container(text("Browse for image").size(11).font(crate::ui::icons::UI_FONT).color(theme::text())).padding([4, 8]).style(|_| iced::widget::container::Style { background: Some(iced::Background::Color(theme::surface0())), border: iced::Border { color: theme::overlay0(), width: 1.0, radius: 4.0.into() }, ..Default::default() }), iced::widget::tooltip::Position::Top);
-        let search_tip = iced::widget::tooltip(search_btn, container(text("Search artwork online").size(11).font(crate::ui::icons::UI_FONT).color(theme::text())).padding([4, 8]).style(|_| iced::widget::container::Style { background: Some(iced::Background::Color(theme::surface0())), border: iced::Border { color: theme::overlay0(), width: 1.0, radius: 4.0.into() }, ..Default::default() }), iced::widget::tooltip::Position::Top);
-        let paste_tip = iced::widget::tooltip(paste_btn, container(text("Paste from clipboard").size(11).font(crate::ui::icons::UI_FONT).color(theme::text())).padding([4, 8]).style(|_| iced::widget::container::Style { background: Some(iced::Background::Color(theme::surface0())), border: iced::Border { color: theme::overlay0(), width: 1.0, radius: 4.0.into() }, ..Default::default() }), iced::widget::tooltip::Position::Top);
+        let browse_tip = iced::widget::tooltip(browse_btn, container(text("Browse for image").size(11).font(crate::ui::icons::ui_font()).color(theme::text())).padding([4, 8]).style(|_| iced::widget::container::Style { background: Some(iced::Background::Color(theme::surface0())), border: iced::Border { color: theme::overlay0(), width: 1.0, radius: 4.0.into() }, ..Default::default() }), iced::widget::tooltip::Position::Top);
+        let search_tip = iced::widget::tooltip(search_btn, container(text("Search artwork online").size(11).font(crate::ui::icons::ui_font()).color(theme::text())).padding([4, 8]).style(|_| iced::widget::container::Style { background: Some(iced::Background::Color(theme::surface0())), border: iced::Border { color: theme::overlay0(), width: 1.0, radius: 4.0.into() }, ..Default::default() }), iced::widget::tooltip::Position::Top);
+        let paste_tip = iced::widget::tooltip(paste_btn, container(text("Paste from clipboard").size(11).font(crate::ui::icons::ui_font()).color(theme::text())).padding([4, 8]).style(|_| iced::widget::container::Style { background: Some(iced::Background::Color(theme::surface0())), border: iced::Border { color: theme::overlay0(), width: 1.0, radius: 4.0.into() }, ..Default::default() }), iced::widget::tooltip::Position::Top);
         let cover_saved = state.just_saved.contains("cover");
         container(
             row![
@@ -224,7 +227,7 @@ pub fn view<'a>(
     let tab_btn = |tab: crate::app::TagEditorTab, label: &'static str| {
         let is_active = state.active_tab == tab;
         
-        button(container(text(label).font(crate::ui::icons::UI_FONT_BOLD).size(12)).center_x(Length::Fill).center_y(Length::Fill))
+        button(container(text(label).font(crate::ui::icons::ui_font_bold()).size(12)).center_x(Length::Fill).center_y(Length::Fill))
             .on_press(Message::SelectTagEditorTab(tab))
             .width(Length::FillPortion(1))
             .height(36.0)
@@ -355,8 +358,8 @@ pub fn view<'a>(
                 };
                 let ghost_box = container(
                     row![
-                        text(genre_val).font(crate::ui::icons::UI_FONT).size(14).color(iced::Color::TRANSPARENT),
-                        text(ghost_suffix.clone()).font(crate::ui::icons::UI_FONT).size(14).color(theme::overlay0()),
+                        text(genre_val.clone()).font(crate::ui::icons::ui_font_for(genre_val)).size(14).color(iced::Color::TRANSPARENT),
+                        text(ghost_suffix.clone()).font(crate::ui::icons::ui_font_for(&ghost_suffix)).size(14).color(theme::overlay0()),
                     ].align_y(Alignment::Center)
                 )
                 .padding(8)
@@ -369,6 +372,7 @@ pub fn view<'a>(
                 let input_field = text_input(&placeholder, genre_val)
                     .id(iced::widget::text_input::Id::new(format!("id3_genre_{}", i)))
                     .on_input(move |v| Message::UpdateTagFieldGenre(i, v))
+                    .font(crate::ui::icons::ui_font_for(genre_val))
                     .padding(8)
                     .style(|_: &iced::Theme, _: iced::widget::text_input::Status| iced::widget::text_input::Style {
                         background: iced::Background::Color(iced::Color::TRANSPARENT),
@@ -486,6 +490,9 @@ pub fn view<'a>(
                 ].align_y(Alignment::Center).spacing(6)
             );
     } else {
+        // `Content` has no `&str` view; one clone per frame while this modal is
+        // open is the price of routing the buffer through the fallback resolver.
+        let lyrics_text = state.lyrics_content.text();
         if let Some(track) = state.tracks.first() {
             let duration_str = track.duration_str();
             let title = if track.title.trim().is_empty() {
@@ -498,7 +505,7 @@ pub fn view<'a>(
                     Space::with_width(24),
                     text(format!("{} ({})", title, duration_str))
                         .size(13)
-                        .font(crate::ui::icons::UI_FONT_BOLD)
+                        .font(crate::ui::icons::ui_font_for_bold(&title))
                         .color(theme::accent())
                 ]
             ).push(Space::with_height(6));
@@ -523,6 +530,7 @@ pub fn view<'a>(
                     container(
                         iced::widget::text_editor(&state.lyrics_content)
                             .on_action(Message::UpdateTagFieldLyrics)
+                            .font(crate::ui::icons::ui_font_for(&lyrics_text))
                             .height(Length::Fixed(240.0))
                     )
                     .style(move |_| iced::widget::container::Style {
@@ -582,10 +590,10 @@ pub fn view<'a>(
     let header_row = row![
         text("Edit ID3 Tags")
             .size(18)
-            .font(crate::ui::icons::UI_FONT_BOLD)
+            .font(crate::ui::icons::ui_font_bold())
             .color(theme::accent()),
         Space::with_width(Length::Fill),
-        button(text("X").size(14).font(crate::ui::icons::UI_FONT_BOLD).color(theme::subtext()))
+        button(text("X").size(14).font(crate::ui::icons::ui_font_bold()).color(theme::subtext()))
             .on_press(Message::CloseTagEditor)
             .style(|_theme: &iced::Theme, status: iced::widget::button::Status| {
                 let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
