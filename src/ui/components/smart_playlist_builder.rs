@@ -2,7 +2,7 @@ use iced::widget::{button, column, container, row, text, text_input, Space, chec
 use iced::{Alignment, Element, Length};
 use crate::app::{Message, SmartPlaylistBuilderEvent};
 use crate::ui::theme;
-use crate::library::smart_playlist::{RuleField, RuleOperator, DateUnit, SmartPlaylistOrder, SmartPlaylistRule, SmartPlaylist};
+use crate::library::smart_playlist::{RuleField, RuleOperator, DateUnit, SmartPlaylistOrder, SmartPlaylistRule};
 use crate::ui::components::autocomplete::{get_suggestions, render_suggestions};
 
 #[derive(Debug, Clone)]
@@ -232,14 +232,14 @@ pub fn view<'a>(
 ) -> Element<'a, Message> {
     let title_text = text(if state.editing_name.is_some() { "Edit Smart Playlist" } else { "Create Smart Playlist" })
         .size(20)
-        .font(crate::ui::icons::UI_FONT_BOLD)
+        .font(crate::ui::icons::ui_font_bold())
         .color(theme::text());
 
     let name_field = column![
         text("Playlist Name")
             .size(12)
             .color(theme::subtext())
-            .font(crate::ui::icons::UI_FONT_BOLD),
+            .font(crate::ui::icons::ui_font_bold()),
         text_input("Name", &state.name)
             .on_input(|s| Message::SmartPlaylistBuilderMsg(SmartPlaylistBuilderEvent::NameChanged(s)))
             .padding(8)
@@ -392,7 +392,7 @@ pub fn view<'a>(
         row![
             text("+ Add Rule")
                 .size(12)
-                .font(crate::ui::icons::UI_FONT_BOLD)
+                .font(crate::ui::icons::ui_font_bold())
                 .color(theme::accent())
         ]
     )
@@ -402,7 +402,7 @@ pub fn view<'a>(
 
     let options_title = text("Playlist Options")
         .size(14)
-        .font(crate::ui::icons::UI_FONT_BOLD)
+        .font(crate::ui::icons::ui_font_bold())
         .color(theme::text());
 
     let limit_chk = checkbox("Limit to", state.limit_enabled)
@@ -440,7 +440,7 @@ pub fn view<'a>(
         text("Save")
             .size(13)
             .color(theme::base())
-            .font(crate::ui::icons::UI_FONT_BOLD)
+            .font(crate::ui::icons::ui_font_bold())
     )
     .on_press(Message::SmartPlaylistBuilderMsg(SmartPlaylistBuilderEvent::Save))
     .style(theme::primary_button)
@@ -472,7 +472,7 @@ pub fn view<'a>(
         text("Rules (Match ALL of the following rules)")
             .size(12)
             .color(theme::subtext())
-            .font(crate::ui::icons::UI_FONT_BOLD),
+            .font(crate::ui::icons::ui_font_bold()),
         Space::with_height(8),
         rules_col,
         Space::with_height(12),
@@ -494,11 +494,4 @@ pub fn view<'a>(
         .width(Length::Fill)
         .height(Length::Fill)
         .into()
-}
-
-// Map custom ToggleLimit message wrapper to compile cleanly
-#[derive(Debug, Clone)]
-pub enum SmartPlaylistBuilderEventEx {
-    ToggleLimit(bool),
-    LimitStrChanged(String),
 }

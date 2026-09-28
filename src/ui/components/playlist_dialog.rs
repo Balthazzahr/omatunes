@@ -17,7 +17,7 @@ pub fn view(state: &PlaylistDialogState) -> Element<'static, Message> {
     let mut content = column![
         text(title_text)
             .size(18)
-            .font(crate::ui::icons::UI_FONT_BOLD)
+            .font(crate::ui::icons::ui_font_bold())
             .color(theme::accent()),
         Space::with_height(12),
     ];
@@ -26,6 +26,7 @@ pub fn view(state: &PlaylistDialogState) -> Element<'static, Message> {
         PlaylistDialogMode::Create => {
             let name_input = text_input("Playlist Name", &state.name_input)
                 .on_input(Message::PlaylistInputChanged)
+                .font(icons::ui_font_for(&state.name_input))
                 .padding(8);
 
             content = content.push(text("Name").size(12).color(theme::subtext()))
@@ -35,15 +36,16 @@ pub fn view(state: &PlaylistDialogState) -> Element<'static, Message> {
         PlaylistDialogMode::CreateWithTrack(track) => {
             let name_input = text_input("Playlist Name", &state.name_input)
                 .on_input(Message::PlaylistInputChanged)
+                .font(icons::ui_font_for(&state.name_input))
                 .padding(8);
 
             content = content.push(text("Name").size(12).color(theme::subtext()))
                 .push(name_input)
                 .push(Space::with_height(8))
-                .push(text(format!("Song: {}", track.title)).size(11).color(theme::overlay0()))
+                .push(text(format!("Song: {}", track.title)).size(11).color(theme::overlay0()).font(icons::ui_font_for(&track.title)))
                 .push(Space::with_height(16));
         }
-        PlaylistDialogMode::AddTrack(track) => {
+        PlaylistDialogMode::AddTrack(_) => {
             if custom_playlists.is_empty() {
                 content = content.push(text("No custom playlists found. Create one first!").size(14).color(theme::red()))
                     .push(Space::with_height(12));
@@ -51,9 +53,10 @@ pub fn view(state: &PlaylistDialogState) -> Element<'static, Message> {
                 let current_selection = state.selected_playlist.clone().unwrap_or_else(|| custom_playlists[0].clone());
                 let select_dropdown = pick_list(
                     custom_playlists.clone(),
-                    Some(current_selection),
+                    Some(current_selection.clone()),
                     Message::PlaylistDialogSelect,
                 )
+                .font(icons::ui_font_for(&current_selection))
                 .padding(8)
                 .width(402);
 
@@ -67,6 +70,7 @@ pub fn view(state: &PlaylistDialogState) -> Element<'static, Message> {
         PlaylistDialogMode::Rename(_) => {
             let name_input = text_input("New Playlist Name", &state.name_input)
                 .on_input(Message::PlaylistInputChanged)
+                .font(icons::ui_font_for(&state.name_input))
                 .padding(8);
 
             content = content.push(text("New Name").size(12).color(theme::subtext()))

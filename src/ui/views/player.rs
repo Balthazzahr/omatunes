@@ -16,7 +16,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     let btn_slot_height = if is_allowed { tab_strip_height / 3.0 } else { 0.0 };
     // button = icon(28) + padding([4,8]) vertical = 28 + 8 = 36px
     let btn_content_height = 28.0 + 8.0; // icon_size + vertical_padding
-    let centering_space = if is_allowed { (btn_slot_height - btn_content_height) / 2.0 } else { 0.0 };
+    let _centering_space = if is_allowed { (btn_slot_height - btn_content_height) / 2.0 } else { 0.0 };
 
     // 1. Determine which track to display (active track or selected track as queue fallback)
     let is_playing_or_paused = !matches!(state.playback_state, PlaybackState::Stopped);
@@ -36,13 +36,10 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         let title_text = track.title.clone();
 
         let song_btn = button(
-            text(title_text)
+            text(title_text.clone())
                 .color(title_style)
                 .size(24)
-                .font(iced::Font {
-                    weight: iced::font::Weight::Bold,
-                    ..crate::ui::icons::UI_FONT
-                })
+                .font(icons::ui_font_for_bold(&title_text))
         )
         .on_press(Message::FocusSongName)
         .style(iced::widget::button::text)
@@ -52,6 +49,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             text(&track.artist)
                 .color(theme::subtext())
                 .size(16)
+                .font(icons::ui_font_for(&track.artist))
         )
         .on_press(Message::FocusArtistName)
         .style(iced::widget::button::text)
@@ -79,9 +77,10 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
 
         let album_label = track.album.clone();
         let album_btn = button(
-            text(album_label)
+            text(album_label.clone())
                 .color(theme::subtext())
                 .size(16)
+                .font(icons::ui_font_for(&album_label))
         )
         .on_press(Message::FocusAlbumName)
         .style(iced::widget::button::text)
@@ -165,14 +164,14 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
 
     // Right-aligned volume control
     let vol_slider = slider(0.0..=1.0f32, state.volume, Message::VolumeChanged)
-        .step(0.01)
+        .step(0.01_f32)
         .width(vol_slider_width);
 
     let vol_percent = (state.volume * 100.0).round() as u32;
     let vol_tooltip_text = format!("{}%", vol_percent);
 
     let vol_slider_with_tooltip = tooltip(vol_slider, text(vol_tooltip_text), iced::widget::tooltip::Position::Top)
-        .style(|theme: &iced::Theme| iced::widget::container::Style {
+        .style(|_theme: &iced::Theme| iced::widget::container::Style {
             background: Some(iced::Background::Color(theme::surface0())),
             border: iced::Border {
                 color: theme::overlay0(),
@@ -292,7 +291,7 @@ pub fn tab_strip(state: &AppState) -> Element<'_, Message> {
         let tooltip_content = container(
             text(tooltip_text)
                 .size(13)
-                .font(crate::ui::icons::UI_FONT)
+                .font(crate::ui::icons::ui_font())
                 .color(theme::text())
         )
         .padding(8)
@@ -336,76 +335,6 @@ pub fn tab_strip(state: &AppState) -> Element<'_, Message> {
         ..Default::default()
     })
     .into()
-}
-
-fn render_stat_row(label: String, value: String) -> Element<'static, Message> {
-    row![
-        text(label).font(crate::ui::icons::UI_FONT).color(theme::subtext()).width(Length::Fixed(180.0)),
-        text(value).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).align_x(iced::alignment::Horizontal::Right).width(Length::Fill),
-    ]
-    .align_y(Alignment::Center)
-    .padding([4, 0])
-    .into()
-}
-
-fn render_leaderboard_minutes(title: String, entries: Vec<(String, f64)>) -> Element<'static, Message> {
-    let mut col = column![
-        text(title).font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
-        Space::with_height(6),
-    ].spacing(2);
-    
-    if entries.is_empty() {
-        col = col.push(text("No stats yet").font(crate::ui::icons::UI_FONT).color(theme::overlay0()));
-    } else {
-        for (idx, (name, mins)) in entries.into_iter().enumerate() {
-            let rank = idx + 1;
-            let medal_color = match rank {
-                1 => theme::yellow(),
-                2 => theme::text(),
-                3 => theme::red(),
-                _ => theme::subtext(),
-            };
-            
-            let row_item = row![
-                text(format!("{rank}.")).font(crate::ui::icons::UI_FONT_BOLD).color(medal_color).width(Length::Fixed(24.0)),
-                text(name).font(crate::ui::icons::UI_FONT).color(theme::text()).width(Length::Fixed(200.0)),
-                text(format!("{:.1}m", mins)).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).align_x(iced::alignment::Horizontal::Right).width(Length::Fill),
-            ]
-            .align_y(Alignment::Center);
-            col = col.push(row_item);
-        }
-    }
-    col.into()
-}
-
-fn render_leaderboard_counts(title: String, entries: Vec<(String, u32)>) -> Element<'static, Message> {
-    let mut col = column![
-        text(title).font(crate::ui::icons::UI_FONT_BOLD).color(theme::accent()).size(14),
-        Space::with_height(6),
-    ].spacing(2);
-    
-    if entries.is_empty() {
-        col = col.push(text("No stats yet").font(crate::ui::icons::UI_FONT).color(theme::overlay0()));
-    } else {
-        for (idx, (name, count)) in entries.into_iter().enumerate() {
-            let rank = idx + 1;
-            let medal_color = match rank {
-                1 => theme::yellow(),
-                2 => theme::text(),
-                3 => theme::red(),
-                _ => theme::subtext(),
-            };
-            
-            let row_item = row![
-                text(format!("{rank}.")).font(crate::ui::icons::UI_FONT_BOLD).color(medal_color).width(Length::Fixed(24.0)),
-                text(name).font(crate::ui::icons::UI_FONT).color(theme::text()).width(Length::Fixed(200.0)),
-                text(format!("{count} plays")).font(crate::ui::icons::UI_FONT_BOLD).color(theme::text()).align_x(iced::alignment::Horizontal::Right).width(Length::Fill),
-            ]
-            .align_y(Alignment::Center);
-            col = col.push(row_item);
-        }
-    }
-    col.into()
 }
 
 pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
@@ -596,9 +525,13 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
 
                              let mut text_col = column![].spacing(2).align_x(Alignment::Center).width(Length::Fill);
                              for sub_line in sub_lines {
-                                 let txt = text(sub_line)
+                                 let txt = text(sub_line.clone())
                                      .size(font_size)
-                                     .font(if is_active { crate::ui::icons::UI_FONT_BOLD } else { crate::ui::icons::UI_FONT })
+                                     .font(if is_active {
+                                         icons::ui_font_for_bold(&sub_line)
+                                     } else {
+                                         icons::ui_font_for(&sub_line)
+                                     })
                                      .width(Length::Fill)
                                      .align_x(iced::alignment::Horizontal::Center);
                                  text_col = text_col.push(txt);
@@ -658,6 +591,7 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
                                 text(track.lyrics.clone())
                                     .color(theme::text())
                                     .size(17)
+                                    .font(icons::ui_font_for(&track.lyrics))
                             )
                             .width(Length::Fill)
                             .padding(12)
@@ -871,7 +805,7 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                 .color(if is_active { theme::accent() } else { theme::subtext() }),
             Space::with_width(6),
             text(*label)
-                .font(crate::ui::icons::UI_FONT_BOLD)
+                .font(crate::ui::icons::ui_font_bold())
                 .size(18)
                 .color(if is_active { theme::accent() } else { theme::subtext() }),
         ]
@@ -945,7 +879,7 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
 
         let mut col = column![
             text(title)
-                .font(crate::ui::icons::UI_FONT_BOLD)
+                .font(crate::ui::icons::ui_font_bold())
                 .size(text_size)
                 .color(theme::subtext()),
             Space::with_height(6),
@@ -956,7 +890,7 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
         if items.is_empty() {
             col = col.push(
                 text("No data yet")
-                    .font(crate::ui::icons::UI_FONT)
+                    .font(crate::ui::icons::ui_font())
                     .size(small_size)
                     .color(theme::overlay0())
             );
@@ -1064,8 +998,8 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                             .size(text_size)
                             .color(name_color),
                         Space::with_width(4),
-                        text(display_name)
-                            .font(crate::ui::icons::UI_FONT)
+                        text(display_name.clone())
+                            .font(crate::ui::icons::ui_font_for(&display_name))
                             .size(text_size)
                             .color(name_color)
                             .width(Length::Fill),
@@ -1089,12 +1023,12 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
                 let row_item = row![
                     name_btn.width(Length::Fill),
                     text(format!("({})", count))
-                        .font(crate::ui::icons::UI_FONT)
+                        .font(crate::ui::icons::ui_font())
                         .size(small_size)
                         .color(sub_color),
                     Space::with_width(8),
                     text(format_hours(*mins))
-                        .font(crate::ui::icons::UI_FONT_BOLD)
+                        .font(crate::ui::icons::ui_font_bold())
                         .size(text_size)
                         .color(sub_color)
                         .align_x(iced::alignment::Horizontal::Right),
@@ -1152,7 +1086,7 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
     let tab_selector = row![
         button(
             text("Leaderboards")
-                .font(crate::ui::icons::UI_FONT_BOLD)
+                .font(crate::ui::icons::ui_font_bold())
                 .size(20)
         )
         .on_press(Message::SelectStatsModalTab(crate::app::StatsModalTab::Leaderboard))
@@ -1170,7 +1104,7 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
         Space::with_width(12),
         button(
             text("Achievements")
-                .font(crate::ui::icons::UI_FONT_BOLD)
+                .font(crate::ui::icons::ui_font_bold())
                 .size(20)
         )
         .on_press(Message::SelectStatsModalTab(crate::app::StatsModalTab::Achievements))
@@ -1199,15 +1133,15 @@ pub fn period_breakdown_view(state: &crate::app::AppState) -> Element<'_, Messag
             row![
                 Space::with_width(Length::Fill),
                 text(&breakdown.period_label)
-                    .font(crate::ui::icons::UI_FONT_BOLD)
+                    .font(crate::ui::icons::ui_font_bold())
                     .size(15)
                     .color(theme::accent()),
                 text(" - ")
-                    .font(crate::ui::icons::UI_FONT_BOLD)
+                    .font(crate::ui::icons::ui_font_bold())
                     .size(15)
                     .color(theme::subtext()),
                 text(format!("{} Tracks | {} played", breakdown.total_plays, format_header_time(breakdown.total_minutes)))
-                    .font(crate::ui::icons::UI_FONT_BOLD)
+                    .font(crate::ui::icons::ui_font_bold())
                     .size(15)
                     .color(theme::subtext()),
                 Space::with_width(Length::Fill),
@@ -1331,13 +1265,11 @@ fn get_genre_cover_data(genre: &str, tracks: &[crate::library::models::Track]) -
 }
 
 fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
-    use crate::stats::EarnedAchievement;
-    
     let make_sub_tab = |label: &'static str, tab: crate::app::AchievementsSubTab| {
         let is_active = state.achievements_sub_tab == tab;
         button(
             text(label)
-                .font(crate::ui::icons::UI_FONT_BOLD)
+                .font(crate::ui::icons::ui_font_bold())
                 .size(16)
         )
         .on_press(Message::SelectAchievementsSubTab(tab))
@@ -1357,7 +1289,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
         let is_active = state.achievements_sort == sort;
         button(
             text(label)
-                .font(crate::ui::icons::UI_FONT)
+                .font(crate::ui::icons::ui_font())
                 .size(13)
         )
         .on_press(Message::SelectAchievementsSort(sort))
@@ -1393,7 +1325,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
         search_input,
         Space::with_width(Length::Fill),
         row![
-            text("Sort:").font(crate::ui::icons::UI_FONT).size(13).color(theme::subtext()),
+            text("Sort:").font(crate::ui::icons::ui_font()).size(13).color(theme::subtext()),
             Space::with_width(6),
             make_sort_btn("Level", crate::app::AchievementsSort::AchievementLevel),
             Space::with_width(4),
@@ -1428,7 +1360,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
     let suggestions_bar: Element<'_, Message> = if !suggestions.is_empty() {
         let mut sug_row = row![
             text("Suggestions:")
-                .font(crate::ui::icons::UI_FONT)
+                .font(crate::ui::icons::ui_font())
                 .size(11)
                 .color(theme::subtext()),
             Space::with_width(6)
@@ -1437,7 +1369,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
         for sug in suggestions {
             let sug_clone = sug.clone();
             sug_row = sug_row.push(
-                button(text(sug).font(crate::ui::icons::UI_FONT).size(11))
+                button(text(sug.clone()).font(crate::ui::icons::ui_font_for(&sug)).size(11))
                     .on_press(Message::AchievementsSearchChanged(sug_clone))
                     .padding([2, 8])
                     .style(move |_, status| {
@@ -1468,13 +1400,13 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
 
     if filtered_items.is_empty() {
         list_col = list_col.push(
-            container(text("No items found").font(crate::ui::icons::UI_FONT).color(theme::overlay0()))
+            container(text("No items found").font(crate::ui::icons::ui_font()).color(theme::overlay0()))
                 .padding(24)
                 .width(Length::Fill)
                 .align_x(iced::alignment::Horizontal::Center)
         );
     } else {
-        for (idx, item) in page_items.enumerate() {
+        for (_idx, item) in page_items.enumerate() {
             // Note: Since there are exactly 3 visible items per page, we render artwork for all of them.
             // Caching handles ensures 0% texture decoding overhead per frame.
             let cache_key = format!("{:?}:{}", state.achievements_sub_tab, item.name);
@@ -1579,7 +1511,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
             for i in 0..5 {
                 let thresh = thresholds[i];
                 let achieved = item.plays >= thresh;
-                let tier_name = crate::stats::TIERS[i];
+                let _tier_name = crate::stats::TIERS[i];
                 
                 let dot_char = match i {
                     0 | 1 | 2 => crate::ui::icons::ICON_TROPHY,
@@ -1602,7 +1534,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                 let tooltip_body: Element<'_, Message> = container(
                     column![
                         text(format!("{} plays", thresh))
-                            .font(crate::ui::icons::UI_FONT_BOLD)
+                            .font(crate::ui::icons::ui_font_bold())
                             .size(14)
                             .color(theme::text()),
                         text(if achieved {
@@ -1610,7 +1542,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                         } else {
                             format!("{} more plays to earn", remaining)
                         })
-                            .font(crate::ui::icons::UI_FONT)
+                            .font(crate::ui::icons::ui_font())
                             .size(11)
                             .color(theme::subtext()),
                     ]
@@ -1676,7 +1608,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
             let current_plays_bar: Element<Message> = if label_f <= 0.05 {
                 row![
                     text(format!("{} plays", item.plays))
-                        .font(crate::ui::icons::UI_FONT_BOLD)
+                        .font(crate::ui::icons::ui_font_bold())
                         .size(11)
                         .color(theme::accent()),
                     Space::with_width(Length::Fill)
@@ -1685,7 +1617,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                 row![
                     Space::with_width(Length::Fill),
                     text(format!("{} plays", item.plays))
-                        .font(crate::ui::icons::UI_FONT_BOLD)
+                        .font(crate::ui::icons::ui_font_bold())
                         .size(11)
                         .color(theme::accent())
                 ].into()
@@ -1693,7 +1625,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
                 row![
                     Space::new(Length::FillPortion((label_f * 100.0) as u16), Length::Shrink),
                     text(format!("{} plays", item.plays))
-                        .font(crate::ui::icons::UI_FONT_BOLD)
+                        .font(crate::ui::icons::ui_font_bold())
                         .size(11)
                         .color(theme::accent()),
                     Space::new(Length::FillPortion(((1.0 - label_f) * 100.0) as u16), Length::Shrink)
@@ -1704,7 +1636,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
 
             let right_col = column![
                 text(item.name.clone())
-                    .font(crate::ui::icons::UI_FONT_BOLD)
+                    .font(crate::ui::icons::ui_font_for_bold(&item.name))
                     .size(20)
                     .color(title_color)
                     .align_x(iced::alignment::Horizontal::Center)
@@ -1763,12 +1695,12 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
     let has_next = state.achievements_offset + 5 < total_items;
 
     let prev_btn = if has_previous {
-        button(text("Previous Page").font(crate::ui::icons::UI_FONT_BOLD).size(13))
+        button(text("Previous Page").font(crate::ui::icons::ui_font_bold()).size(13))
             .on_press(Message::ShowPreviousAchievements)
             .padding([6, 12])
             .style(crate::ui::theme::secondary_button)
     } else {
-        button(text("Previous Page").font(crate::ui::icons::UI_FONT_BOLD).size(13))
+        button(text("Previous Page").font(crate::ui::icons::ui_font_bold()).size(13))
             .padding([6, 12])
             .style(|_, _| iced::widget::button::Style {
                 text_color: theme::overlay0(),
@@ -1777,12 +1709,12 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
     };
 
     let next_btn = if has_next {
-        button(text("Next Page").font(crate::ui::icons::UI_FONT_BOLD).size(13))
+        button(text("Next Page").font(crate::ui::icons::ui_font_bold()).size(13))
             .on_press(Message::ShowMoreAchievements)
             .padding([6, 12])
             .style(crate::ui::theme::secondary_button)
     } else {
-        button(text("Next Page").font(crate::ui::icons::UI_FONT_BOLD).size(13))
+        button(text("Next Page").font(crate::ui::icons::ui_font_bold()).size(13))
             .padding([6, 12])
             .style(|_, _| iced::widget::button::Style {
                 text_color: theme::overlay0(),
@@ -1797,7 +1729,7 @@ fn achievements_tab_view(state: &crate::app::AppState) -> Element<'_, Message> {
         prev_btn,
         Space::with_width(16),
         text(format!("Page {} of {}", page_num, total_pages))
-            .font(crate::ui::icons::UI_FONT)
+            .font(crate::ui::icons::ui_font())
             .size(13)
             .color(theme::subtext()),
         Space::with_width(16),
@@ -1891,13 +1823,13 @@ pub fn song_breakdown_view(
                 .color(theme::text()),
             Space::with_width(6),
             column![
-                text(item.title)
-                    .font(crate::ui::icons::UI_FONT)
+                text(item.title.clone())
+                    .font(crate::ui::icons::ui_font_for(&item.title))
                     .size(text_size)
                     .color(name_color)
                     .width(Length::Fill),
-                text(subtitle)
-                    .font(crate::ui::icons::UI_FONT)
+                text(subtitle.clone())
+                    .font(crate::ui::icons::ui_font_for(&subtitle))
                     .size(small_size)
                     .color(theme::subtext())
                     .width(Length::Fill),
@@ -1905,7 +1837,7 @@ pub fn song_breakdown_view(
             .spacing(0)
             .width(Length::Fill),
             text(stats_text)
-                .font(crate::ui::icons::UI_FONT)
+                .font(crate::ui::icons::ui_font())
                 .size(small_size)
                 .color(theme::overlay0())
                 .align_x(iced::alignment::Horizontal::Right),
@@ -1979,7 +1911,7 @@ pub fn song_breakdown_view(
             back_btn(Message::CloseBreakdownSongView),
             Space::with_width(12),
             text(format!("{} \u{2014} Song Breakdown", name))
-                .font(crate::ui::icons::UI_FONT_BOLD)
+                .font(crate::ui::icons::ui_font_for_bold(name))
                 .size(20)
                 .color(theme::accent()),
             Space::with_width(Length::Fill),
@@ -1988,7 +1920,7 @@ pub fn song_breakdown_view(
         .align_y(Alignment::Center),
         Space::with_height(16),
         text(format!("Top {} songs by play count", total_items.min(100)))
-            .font(crate::ui::icons::UI_FONT)
+            .font(crate::ui::icons::ui_font())
             .size(14)
             .color(theme::subtext()),
         Space::with_height(12),

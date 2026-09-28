@@ -2,6 +2,7 @@ mod app;
 mod audio;
 mod config;
 mod db;
+mod font_index;
 mod library;
 mod locale;
 mod paths;
