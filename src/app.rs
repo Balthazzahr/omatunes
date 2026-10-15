@@ -64,6 +64,7 @@ pub enum ToastKind {
     EnteredTop10,
     Achievement,
     ThemeError,
+    LibraryUpdate,
 }
 
 #[derive(Debug, Clone)]
@@ -3576,7 +3577,7 @@ impl AppState {
                         title: "Library Updated".to_string(),
                         message: format!("Library scan complete. {} tracks loaded.", count),
                         created_at: std::time::Instant::now(),
-                        kind: ToastKind::EnteredTop10,
+                        kind: ToastKind::LibraryUpdate,
                         artist_name: None,
                         positions_climbed: 0,
                         overtaken_artists: Vec::new(),
@@ -4958,8 +4959,8 @@ impl AppState {
                             self.stats_modal_tab = StatsModalTab::Achievements;
                             self.recalculate_achievements_items();
                         }
-                        ToastKind::ThemeError => {
-                            // Theme errors have no drill-down
+                        ToastKind::ThemeError | ToastKind::LibraryUpdate => {
+                            // Notifications with no drill-down
                         }
                     }
                 }
@@ -6734,7 +6735,7 @@ impl AppState {
                 });
 
                 let toast_color = match n.kind {
-                    ToastKind::LadderClimb | ToastKind::EnteredTop10 => theme::green(),
+                    ToastKind::LadderClimb | ToastKind::EnteredTop10 | ToastKind::LibraryUpdate => theme::green(),
                     ToastKind::ThemeError => theme::red(),
                     ToastKind::Achievement => {
                         let text_to_check = format!("{} {}", n.title, n.message).to_lowercase();
@@ -6826,6 +6827,7 @@ impl AppState {
                     ToastKind::EnteredTop10 => crate::ui::icons::ICON_ARROW_UP,
                     ToastKind::Achievement => crate::ui::icons::ICON_TROPHY,
                     ToastKind::ThemeError => "\u{f071}", // warning triangle
+                    ToastKind::LibraryUpdate => crate::ui::icons::ICON_AUTO_SCAN,
                 };
 
                 let toast_card = container(
