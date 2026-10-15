@@ -26,6 +26,7 @@ omaTUNES is a native Wayland music player and library manager built in Rust for 
 - **Audio Visualizer 2.0 & Motion Trails.** Real-time FFT spectrum analysis with 9 visually distinct canvas rendering modes (Mirrored Spectrograph with gravity-bouncing peak limiters, Radial Pulse, Liquid Ribbon, Particle Constellation web, Hyperdrive Depth Tunnel flight, Rolling Plains, Kaleidoscope Mirror, Cosmic Aurora plasma curtains, and Retro Synthwave Horizon). Features customizable visualizer background modes (Theme Default, Custom RGB with interactive sliders, Muted Reactive Pulse), mode-specific customization settings, random mode dice selector button (`\ue270`), decaying ghost motion trails, audio sensitivity, and spectrum color shifting via Settings.
 - **Theming System.** Follow your Omarchy system theme live, pick from built-in presets (Nord, Catppuccin, Dracula, Gruvbox, Everforest, Monokai), or build your own — omaTUNES derives the supporting shades automatically using proper WCAG contrast math, so your custom theme never ends up with unreadable text.
 - **Bulk Metadata Editing.** Select a stack of tracks, check only the fields you want to change, and apply edits across an entire album in one go — with autocomplete pulled straight from your existing library tags.
+- **Multilingual Font Fallback & CJK/Emoji Coverage.** Built-in multi-script fallback engine powered by `fontdb` and `ttf-parser`. Dynamically detects glyph coverage across installed fonts to eliminate tofu boxes in Japanese, Chinese, Korean, Arabic, Cyrillic, and Emoji metadata, configured through a dedicated font browser in Settings → Fonts.
 - **Desktop & Quickshell Integration.** Full MPRIS2 D-Bus support, a ready-to-go Waybar module, and a native **Quickshell Player Module** featuring an interactive mini-player pop-up window with live timeline scrubbing, volume controls, liked status tracking, and active shuffle/repeat highlights.
 - **Non-Destructive Library Handling.** No forced re-organization, no renaming your folders, no importing into some walled-off library format. omaTUNES reads your music exactly where it already lives.
 
@@ -271,5 +272,5 @@ The full list — including focus navigation and dialog shortcuts — is in the 
 ---
 
 ## License
-
-MIT
+ 
+Released under the [MIT License](LICENSE).
