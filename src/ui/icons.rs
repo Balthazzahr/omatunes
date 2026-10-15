@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+use std::sync::{OnceLock, RwLock};
+
 use iced::{Font, font::Weight};
 
 /// Nerd Font loaded from the system.
@@ -14,18 +17,130 @@ pub const NERD_FONT_MONO: Font = Font {
     ..NERD_FONT
 };
 
-/// Base UI font — same family as Waybar/Omarchy.
-pub const UI_FONT: Font = Font {
-    family: iced::font::Family::Name("JetBrainsMono Nerd Font Mono"),
-    weight: Weight::Normal,
-    stretch: iced::font::Stretch::Normal,
-    style: iced::font::Style::Normal,
-};
+/// System interface font family (default: JetBrainsMono Nerd Font Mono).
+pub const SYSTEM_FONT_FAMILY: &str = "JetBrainsMono Nerd Font Mono";
 
-pub const UI_FONT_BOLD: Font = Font {
-    weight: Weight::Bold,
-    ..UI_FONT
-};
+/// Available font families for user selection in Settings > Display.
+pub const AVAILABLE_FONT_FAMILIES: &[&str] = &[
+    "JetBrainsMono Nerd Font Mono",
+    "JetBrainsMono Nerd Font",
+    "GeistMono Nerd Font Mono",
+    "BlexMono Nerd Font Mono",
+    "Adwaita Mono",
+    "DejaVu Sans Mono",
+    "Monospace",
+];
+
+/// Resolve a font family name to its static literal family string.
+/// Known names map directly; unknown names fall back to SYSTEM_FONT_FAMILY.
+pub fn resolve_font_family(name: &str) -> &'static str {
+    match name {
+        "JetBrainsMono Nerd Font Mono" => "JetBrainsMono Nerd Font Mono",
+        "JetBrainsMono Nerd Font" => "JetBrainsMono Nerd Font",
+        "GeistMono Nerd Font Mono" => "GeistMono Nerd Font Mono",
+        "BlexMono Nerd Font Mono" => "BlexMono Nerd Font Mono",
+        "Adwaita Mono" => "Adwaita Mono",
+        "DejaVu Sans Mono" => "DejaVu Sans Mono",
+        "Monospace" => "Monospace",
+        _ => SYSTEM_FONT_FAMILY,
+    }
+}
+
+/// Interned family-name cache.
+///
+/// `iced::font::Family::Name` wants a `&'static str`, but the fallback resolver
+/// hands back a runtime `String`. Leaking each render call would grow without
+/// bound in a per-frame path, so every distinct name is leaked exactly once and
+/// memoized here. The key space is bounded by the number of *distinct installed
+/// font family names* (~295 on a typical desktop), so the total leak is
+/// bounded by that count plus the name lengths — kilobytes, once per process.
+fn family_cache() -> &'static RwLock<HashMap<&'static str, &'static str>> {
+    static CACHE: OnceLock<RwLock<HashMap<&'static str, &'static str>>> = OnceLock::new();
+    CACHE.get_or_init(|| {
+        // Seed with the hardcoded constants so interning never produces a
+        // duplicate pointer for a name we already hold statically.
+        RwLock::new(
+            AVAILABLE_FONT_FAMILIES
+                .iter()
+                .map(|f| (*f, *f))
+                .collect(),
+        )
+    })
+}
+
+/// Return a `&'static str` equal to `name`, interning it on first sight.
+///
+/// Cache hit (the overwhelmingly common path) is one `RwLock` read plus a hash
+/// lookup and allocates nothing.
+pub fn intern_family(name: &str) -> &'static str {
+    if let Ok(cache) = family_cache().read() {
+        if let Some(hit) = cache.get(name) {
+            return hit;
+        }
+    }
+
+    // Miss: intern once. Two racers may both leak here; the loser's copy is
+    // unreachable, which costs at most one extra bounded allocation.
+    let leaked: &'static str = Box::leak(name.to_string().into_boxed_str());
+    if let Ok(mut cache) = family_cache().write() {
+        if let Some(existing) = cache.get(name) {
+            return existing;
+        }
+        cache.insert(leaked, leaked);
+    }
+    leaked
+}
+
+/// Font for rendering `text`, falling back to a covering family when the
+/// configured font lacks glyphs.
+pub fn ui_font_for(text: &str) -> iced::Font {
+    let family = crate::config::with_font_settings(|primary, chain| {
+        crate::font_index::pick_font_for(text, resolve_font_family(primary), chain)
+    });
+    let family = intern_family(&family);
+    Font {
+        family: iced::font::Family::Name(family),
+        weight: Weight::Normal,
+        stretch: iced::font::Stretch::Normal,
+        style: iced::font::Style::Normal,
+    }
+}
+
+/// Bold counterpart of [`ui_font_for`], mirroring [`ui_font_bold`]'s weight.
+pub fn ui_font_for_bold(text: &str) -> iced::Font {
+    let family = crate::config::with_font_settings(|primary, chain| {
+        crate::font_index::pick_font_for(text, resolve_font_family(primary), chain)
+    });
+    let family = intern_family(&family);
+    Font {
+        family: iced::font::Family::Name(family),
+        weight: Weight::Bold,
+        stretch: iced::font::Stretch::Normal,
+        style: iced::font::Style::Normal,
+    }
+}
+
+/// UI font, family resolved from config at runtime.
+pub fn ui_font() -> iced::Font {
+    let family = resolve_font_family(&crate::config::get().font_family);
+    Font {
+        family: iced::font::Family::Name(family),
+        weight: Weight::Normal,
+        stretch: iced::font::Stretch::Normal,
+        style: iced::font::Style::Normal,
+    }
+}
+
+/// Bold UI font, family resolved from config at runtime.
+pub fn ui_font_bold() -> iced::Font {
+    let family = resolve_font_family(&crate::config::get().font_family);
+    Font {
+        family: iced::font::Family::Name(family),
+        weight: Weight::Bold,
+        stretch: iced::font::Stretch::Normal,
+        style: iced::font::Style::Normal,
+    }
+}
 
 // Font Awesome codepoints (Nerd Fonts tier 1 — universal across any Nerd Font)
 pub const ICON_PLAY:     &str = "\u{f04b}";  //
@@ -34,22 +149,15 @@ pub const ICON_PREV:     &str = "\u{f048}";  //
 pub const ICON_NEXT:     &str = "\u{f051}";  //
 pub const ICON_SHUFFLE:  &str = "\u{f074}";  //
 pub const ICON_REPEAT:   &str = "\u{f021}";  //
-pub const ICON_REPEAT_ONE: &str = "\u{f1b8}";  //
 pub const ICON_VOL_UP:   &str = "\u{f028}";  //
-pub const ICON_VOL_MUTE: &str = "\u{f026}";  //
 pub const ICON_MUSIC:    &str = "\u{f001}";  //
 pub const ICON_LIST:       &str = "\u{f0cb8}"; // nf-md-playlist_music
 pub const ICON_PLAYLIST_PLUS: &str = "\u{f0412}"; // nf-md-playlist_plus
 pub const ICON_HEART:      &str = "\u{f004}";  //
 pub const ICON_PLUS:       &str = "\u{f067}";  //
-pub const ICON_TRASH:      &str = "\u{f1f8}";  //
-pub const ICON_COPY:       &str = "\u{f0c5}";  //
 pub const ICON_PODIUM:     &str = "\u{f0d25}"; //
 pub const ICON_VISUALIZER: &str = "\u{f147d}"; // waveform
 pub const ICON_LYRICS:     &str = "\u{f0370}"; // nf-md-microphone_variant
-pub const ICON_STATS:      &str = "\u{f0126}"; // nf-md-chart-bar
-pub const ICON_CALENDAR_TODAY: &str = "\u{f00ea}"; // nf-md-calendar-today
-pub const ICON_CALENDAR_MONTH: &str = "\u{f0e17}"; // nf-md-calendar-month
 pub const ICON_TROPHY:      &str = "\u{f091}"; // trophy (nf-fa-trophy)
 pub const ICON_LIBRARY:     &str = "\u{f0330}"; // nf-md-library
 pub const ICON_WAND:       &str = "\u{ebcf}";  // magic wand (nf-cod-wand)
@@ -57,13 +165,9 @@ pub const ICON_BOLT:       &str = "\u{f0e7}";  // bolt/flash
 pub const ICON_PERSON:     &str = "\u{f4ff}";  // artist/person icon (nf-oct-person)
 pub const ICON_CD:         &str = "\u{e271}";  // compact disc (nf-md-disc)
 pub const ICON_TAG:        &str = "\u{f02b}";  // tag
-pub const ICON_CLOCK:      &str = "\u{f017}";  // clock (nf-fa-clock_o)
 pub const ICON_CALENDAR_DAY:  &str = "\u{f00ed}"; // nf-md-calendar
 pub const ICON_CALENDAR_WEEK: &str = "\u{f272}";  // nf-fa-calendar_minus_o
 pub const ICON_CALENDAR_MONTH_FA: &str = "\u{f073}"; // nf-fa-calendar
-pub const ICON_TROPHY_FA:     &str = "\u{f091}"; // trophy (nf-fa-trophy)
-pub const ICON_AWARD:         &str = "\u{f559}"; // award ribbon (nf-fa-award)
-pub const ICON_MEDAL:         &str = "\u{f5a2}"; // medal with star (nf-fa-medal)
 pub const ICON_CALENDAR_YEAR:  &str = "\u{ee46}"; // globe/earth
 pub const ICON_ALL_TIME:      &str = "\u{f0d25}"; // podium (nf-fa-podium)
 pub const ICON_CROWN:         &str = "\u{edeb}"; // nf-cod-crown
@@ -83,10 +187,7 @@ pub const ICON_TIMES:         &str = "\u{f00d}";  // nf-fa-times
 pub const ICON_GLOBE:         &str = "\u{f0ac}";  // nf-fa-globe
 
 // Toast / milestone icons
-pub const ICON_HEADPHONES:   &str = "\u{f025}";  // nf-fa-headphones — Bronze
-pub const ICON_STAR:         &str = "\u{f005}";  // nf-fa-star — Silver
 pub const ICON_ARROW_UP:     &str = "\u{f062}";  // nf-fa-arrow_up
-pub const ICON_ARROW_DOWN:   &str = "\u{f063}";  // nf-fa-arrow_down
 pub const ICON_FIRE:         &str = "\u{f06d}";  // nf-fa-fire
 
 // Table sort icons (FontAwesome — always in Nerd Fonts)

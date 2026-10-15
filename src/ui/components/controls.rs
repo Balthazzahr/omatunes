@@ -34,7 +34,7 @@ pub fn playback_controls<'a>(
         container(
             text(label)
                 .size(12)
-                .font(icons::UI_FONT)
+                .font(icons::ui_font())
                 .color(theme::text()),
         )
         .padding([4, 8])

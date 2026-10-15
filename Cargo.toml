@@ -68,6 +68,12 @@ chrono = { version = "0.4", features = ["serde"] }
 env_logger = "0.11"
 log = "0.4"
 
+# Installed font enumeration + glyph coverage (fallback chain resolver)
+fontdb = "0.16"
+# Pinned to the exact version fontdb already pulls in, so it unifies into the
+# existing build instead of compiling a second copy.
+ttf-parser = "0.20"
+
 [profile.release]
 opt-level = 3
 lto = true

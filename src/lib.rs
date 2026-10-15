@@ -2,6 +2,7 @@ pub mod app;
 pub mod audio;
 pub mod config;
 pub mod db;
+pub mod font_index;
 pub mod library;
 pub mod locale;
 pub mod paths;
