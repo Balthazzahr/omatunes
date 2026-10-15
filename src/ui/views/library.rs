@@ -42,20 +42,13 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     };
 
     let drag_handle = mouse_area(
-        container(
-            container(Space::new(Length::Fixed(2.0), Length::Fill))
-                .style(move |_| iced::widget::container::Style {
-                    background: Some(iced::Background::Color(if state.dragging_sidebar || state.is_hovering_sidebar_resizer { theme::accent() } else { theme::surface0() })),
-                    ..Default::default()
-                })
-        )
-        .width(6.0)
-        .height(Length::Fill)
-        .center_x(Length::Fixed(6.0))
-        .style(|_| iced::widget::container::Style {
-            background: Some(iced::Background::Color(theme::base())),
-            ..Default::default()
-        })
+        container(Space::new(Length::Fixed(1.0), Length::Fill))
+            .width(Length::Fixed(1.0))
+            .height(Length::Fill)
+            .style(move |_| iced::widget::container::Style {
+                background: Some(iced::Background::Color(if state.dragging_sidebar || state.is_hovering_sidebar_resizer { theme::accent() } else { theme::surface0() })),
+                ..Default::default()
+            })
     )
     .on_press(Message::SidebarDragStart)
     .on_enter(Message::HoverSidebarResizer(true))
@@ -78,7 +71,7 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
     let tab_btn = |mode: ViewMode, icon: &'static str, label: &'static str, width: f32| {
         let is_active = state.view_mode == mode && state.selected_playlist.is_none();
         let btn_icon = text(icon)
-            .size(18)
+            .size(21)
             .font(crate::ui::icons::NERD_FONT_MONO);
         
         let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
@@ -88,22 +81,23 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
                 let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
                 iced::widget::button::Style {
-                    background: Some(iced::Background::Color(if is_hovered {
-                        theme::lerp_color(theme::mantle(), theme::surface0(), 0.65)
+                    background: if is_hovered {
+                        Some(iced::Background::Color(theme::with_alpha(theme::surface0(), 0.5)))
                     } else {
-                        theme::lerp_color(theme::mantle(), theme::surface0(), 0.30)
-                    })),
+                        None
+                    },
                     border: iced::Border {
-                        color: if is_active { theme::accent() } else { theme::surface0() },
-                        width: 1.0,
-                        radius: 8.0.into(),
+                        radius: 6.0.into(),
+                        ..Default::default()
                     },
-                    text_color: if is_active { theme::accent() } else { theme::subtext() },
-                    shadow: iced::Shadow {
-                        color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.3),
-                        offset: [0.0, 2.0].into(),
-                        blur_radius: 6.0,
+                    text_color: if is_active {
+                        theme::accent()
+                    } else if is_hovered {
+                        theme::text()
+                    } else {
+                        theme::subtext()
                     },
+                    shadow: iced::Shadow::default(),
                 }
             })
             .padding(0);
@@ -671,7 +665,7 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
     let playlist_tab_btn = |tab: crate::app::PlaylistTab, icon: &'static str, width: f32, tooltip_text: &'static str| {
         let is_active = state.playlist_tab == tab && (state.selected_playlist.is_some() || tab == crate::app::PlaylistTab::Smart);
         let btn_icon = text(icon)
-            .size(18)
+            .size(21)
             .font(crate::ui::icons::NERD_FONT_MONO);
         
         let btn = button(container(btn_icon).center_x(Length::Fill).center_y(Length::Fill))
@@ -681,22 +675,23 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
             .style(move |_theme: &iced::Theme, status: iced::widget::button::Status| {
                 let is_hovered = status == iced::widget::button::Status::Hovered || status == iced::widget::button::Status::Pressed;
                 iced::widget::button::Style {
-                    background: Some(iced::Background::Color(if is_hovered {
-                        theme::lerp_color(theme::mantle(), theme::surface0(), 0.65)
+                    background: if is_hovered {
+                        Some(iced::Background::Color(theme::with_alpha(theme::surface0(), 0.5)))
                     } else {
-                        theme::lerp_color(theme::mantle(), theme::surface0(), 0.30)
-                    })),
+                        None
+                    },
                     border: iced::Border {
-                        color: if is_active { theme::accent() } else { theme::surface0() },
-                        width: 1.0,
-                        radius: 8.0.into(),
+                        radius: 6.0.into(),
+                        ..Default::default()
                     },
-                    text_color: if is_active { theme::accent() } else { theme::subtext() },
-                    shadow: iced::Shadow {
-                        color: iced::Color::from_rgba(0.0, 0.0, 0.0, 0.3),
-                        offset: [0.0, 2.0].into(),
-                        blur_radius: 6.0,
+                    text_color: if is_active {
+                        theme::accent()
+                    } else if is_hovered {
+                        theme::text()
+                    } else {
+                        theme::subtext()
                     },
+                    shadow: iced::Shadow::default(),
                 }
             })
             .padding(0);
@@ -854,20 +849,13 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
     }
 
     let playlist_drag_handle = mouse_area(
-        container(
-            container(Space::new(Length::Fill, Length::Fixed(2.0)))
-                .style(move |_| iced::widget::container::Style {
-                    background: Some(iced::Background::Color(if state.dragging_playlist_split || state.is_hovering_playlist_resizer { theme::accent() } else { theme::surface0() })),
-                    ..Default::default()
-                })
-        )
-        .width(Length::Fill)
-        .height(6.0)
-        .center_y(Length::Fixed(6.0))
-        .style(|_| iced::widget::container::Style {
-            background: Some(iced::Background::Color(theme::mantle())),
-            ..Default::default()
-        })
+        container(Space::new(Length::Fill, Length::Fixed(1.0)))
+            .width(Length::Fill)
+            .height(Length::Fixed(1.0))
+            .style(move |_| iced::widget::container::Style {
+                background: Some(iced::Background::Color(if state.dragging_playlist_split || state.is_hovering_playlist_resizer { theme::accent() } else { theme::surface0() })),
+                ..Default::default()
+            })
     )
     .on_press(Message::PlaylistDragStart)
     .on_enter(Message::HoverPlaylistResizer(true))
@@ -898,28 +886,42 @@ fn folder_sidebar(state: &AppState) -> Element<'_, Message> {
         .padding(4)
         .style(theme::sidebar_list);
 
-    container(
+    let top_sidebar = container(
         column![
             filter_tabs,
             Space::with_height(4),
             permanent_sidebar_search_bar,
             Space::with_height(4),
             sidebar_items_container,
-            playlist_drag_handle,
-            Space::with_height(8),
-            container(
-                column![
-                    playlist_tabs,
-                    Space::with_height(6),
-                    playlists_area_col,
-                ]
-                .height(Length::Fill)
-                .width(Length::Fill)
-            )
-            .width(Length::Fill)
-            .height(Length::Fixed(state.playlist_height)),
         ]
-        .padding(8),
+        .spacing(0)
+    )
+    .padding(iced::Padding { top: 8.0, right: 8.0, bottom: 6.0, left: 8.0 })
+    .width(Length::Fill)
+    .height(Length::Fill);
+
+    let bottom_sidebar = container(
+        column![
+            playlist_tabs,
+            Space::with_height(6),
+            playlists_area_col,
+        ]
+        .height(Length::Fill)
+        .width(Length::Fill)
+    )
+    .padding(iced::Padding { top: 6.0, right: 8.0, bottom: 8.0, left: 8.0 })
+    .width(Length::Fill)
+    .height(Length::Fixed(state.playlist_height));
+
+    container(
+        column![
+            top_sidebar,
+            playlist_drag_handle,
+            bottom_sidebar,
+        ]
+        .spacing(0)
+        .width(Length::Fill)
+        .height(Length::Fill)
     )
     .style(theme::sidebar)
     .width(state.sidebar_width.round())
@@ -1095,11 +1097,7 @@ fn track_list_view(state: &AppState) -> Element<'_, Message> {
     )
     .style(|_| iced::widget::container::Style {
         background: Some(iced::Background::Color(theme::mantle())),
-        border: iced::Border {
-            color: theme::surface0(),
-            width: 1.0,
-            radius: 0.0.into(),
-        },
+        border: iced::Border::default(),
         ..Default::default()
     })
     .width(Length::Fill);

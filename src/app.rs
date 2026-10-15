@@ -1621,91 +1621,223 @@ impl AppState {
         let sort_ascending = self.sort_ascending;
 
         if group_by != crate::db::GroupBy::None || sort_column.is_some() {
-            Arc::make_mut(&mut self.tracks).sort_by(|a, b| {
-                // 1. Sort by group key first if grouping is active
-                if group_by != crate::db::GroupBy::None {
-                    let key_a = match group_by {
-                        crate::db::GroupBy::Album => a.album.to_lowercase(),
-                        crate::db::GroupBy::Artist => a.artist.to_lowercase(),
-                        crate::db::GroupBy::Genre => a.primary_genre().to_lowercase(),
-                        crate::db::GroupBy::Year => a.year.map(|y| y.to_string()).unwrap_or_default(),
-                        crate::db::GroupBy::None => unreachable!(),
-                    };
-                    let key_b = match group_by {
-                        crate::db::GroupBy::Album => b.album.to_lowercase(),
-                        crate::db::GroupBy::Artist => b.artist.to_lowercase(),
-                        crate::db::GroupBy::Genre => b.primary_genre().to_lowercase(),
-                        crate::db::GroupBy::Year => b.year.map(|y| y.to_string()).unwrap_or_default(),
-                        crate::db::GroupBy::None => unreachable!(),
-                    };
-                    let cmp_group = key_a.cmp(&key_b);
-                    if cmp_group != std::cmp::Ordering::Equal {
-                        return cmp_group;
-                    }
-                }
-
-                // 2. Sort by column within group
-                if let Some(col) = sort_column {
-                    let cmp = match col {
-                        SortColumn::TrackNumber => {
-                            let a_dc = a.disc_number.unwrap_or(0);
-                            let b_dc = b.disc_number.unwrap_or(0);
-                            let cmp_dc = a_dc.cmp(&b_dc);
-                            if cmp_dc == std::cmp::Ordering::Equal {
-                                let a_num = a.track_number.unwrap_or(u32::MAX);
-                                let b_num = b.track_number.unwrap_or(u32::MAX);
-                                a_num.cmp(&b_num)
-                            } else {
-                                cmp_dc
-                            }
-                        }
-                        SortColumn::Title => a.title.to_lowercase().cmp(&b.title.to_lowercase()),
-                        SortColumn::Artist => a.artist.to_lowercase().cmp(&b.artist.to_lowercase()),
-                        SortColumn::Album => a.album.to_lowercase().cmp(&b.album.to_lowercase()),
-                        SortColumn::Genre => a.genre.to_lowercase().cmp(&b.genre.to_lowercase()),
-                        SortColumn::Year => {
-                            let a_yr = a.year.unwrap_or(u32::MAX);
-                            let b_yr = b.year.unwrap_or(u32::MAX);
-                            a_yr.cmp(&b_yr)
-                        }
-                        SortColumn::DiscNumber => {
-                            let a_dc = a.disc_number.unwrap_or(u32::MAX);
-                            let b_dc = b.disc_number.unwrap_or(u32::MAX);
-                            let cmp_dc = a_dc.cmp(&b_dc);
-                            if cmp_dc == std::cmp::Ordering::Equal {
-                                let a_num = a.track_number.unwrap_or(u32::MAX);
-                                let b_num = b.track_number.unwrap_or(u32::MAX);
-                                a_num.cmp(&b_num)
-                            } else {
-                                cmp_dc
-                            }
-                        }
-                        SortColumn::Duration => a.duration.cmp(&b.duration),
-                        SortColumn::Plays => a.play_count.cmp(&b.play_count),
-                        SortColumn::DatePlayed => {
-                            let a_dp = a.date_played.as_deref().unwrap_or("");
-                            let b_dp = b.date_played.as_deref().unwrap_or("");
-                            a_dp.cmp(b_dp)
-                        }
-                        SortColumn::Liked => a.liked.cmp(&b.liked),
-                    };
-                    if sort_ascending { cmp } else { cmp.reverse() }
-                } else {
-                    // Default layout sorting (Disc, then Track number)
-                    let a_dc = a.disc_number.unwrap_or(0);
-                    let b_dc = b.disc_number.unwrap_or(0);
-                    let cmp_dc = a_dc.cmp(&b_dc);
-                    if cmp_dc == std::cmp::Ordering::Equal {
-                        let a_num = a.track_number.unwrap_or(u32::MAX);
-                        let b_num = b.track_number.unwrap_or(u32::MAX);
-                        a_num.cmp(&b_num)
-                    } else {
-                        cmp_dc
-                    }
-                }
-            });
+            Self::sort_tracks(Arc::make_mut(&mut self.tracks).as_mut_slice(), group_by, sort_column, sort_ascending);
         }
     }
+
+pub fn sort_tracks(tracks: &mut [Track], group_by: crate::db::GroupBy, sort_column: Option<SortColumn>, sort_ascending: bool) {
+    if group_by == crate::db::GroupBy::None && sort_column.is_none() {
+        return;
+    }
+
+    let album_metadata: Option<HashMap<String, (u32, String)>> = if group_by == crate::db::GroupBy::Album {
+        let mut map = HashMap::new();
+        for t in tracks.iter() {
+            let entry = map.entry(t.album.clone()).or_insert((u32::MAX, String::new()));
+            if let Some(y) = t.year {
+                if y < entry.0 {
+                    entry.0 = y;
+                }
+            }
+            if entry.1.is_empty() && !t.artist.trim().is_empty() {
+                entry.1 = t.artist.to_lowercase();
+            }
+        }
+        Some(map)
+    } else {
+        None
+    };
+
+    let compare_tracks_by_col = |a: &Track, b: &Track, col: SortColumn| -> std::cmp::Ordering {
+        match col {
+            SortColumn::TrackNumber => {
+                let a_dc = a.disc_number.unwrap_or(0);
+                let b_dc = b.disc_number.unwrap_or(0);
+                let cmp_dc = a_dc.cmp(&b_dc);
+                if cmp_dc == std::cmp::Ordering::Equal {
+                    let a_num = a.track_number.unwrap_or(u32::MAX);
+                    let b_num = b.track_number.unwrap_or(u32::MAX);
+                    a_num.cmp(&b_num)
+                } else {
+                    cmp_dc
+                }
+            }
+            SortColumn::Title => a.title.to_lowercase().cmp(&b.title.to_lowercase()),
+            SortColumn::Artist => a.artist.to_lowercase().cmp(&b.artist.to_lowercase()),
+            SortColumn::Album => a.album.to_lowercase().cmp(&b.album.to_lowercase()),
+            SortColumn::Genre => a.genre.to_lowercase().cmp(&b.genre.to_lowercase()),
+            SortColumn::Year => {
+                let a_yr = a.year.unwrap_or(u32::MAX);
+                let b_yr = b.year.unwrap_or(u32::MAX);
+                a_yr.cmp(&b_yr)
+            }
+            SortColumn::DiscNumber => {
+                let a_dc = a.disc_number.unwrap_or(u32::MAX);
+                let b_dc = b.disc_number.unwrap_or(u32::MAX);
+                let cmp_dc = a_dc.cmp(&b_dc);
+                if cmp_dc == std::cmp::Ordering::Equal {
+                    let a_num = a.track_number.unwrap_or(u32::MAX);
+                    let b_num = b.track_number.unwrap_or(u32::MAX);
+                    a_num.cmp(&b_num)
+                } else {
+                    cmp_dc
+                }
+            }
+            SortColumn::Duration => a.duration.cmp(&b.duration),
+            SortColumn::Plays => a.play_count.cmp(&b.play_count),
+            SortColumn::DatePlayed => {
+                let a_dp = a.date_played.as_deref().unwrap_or("");
+                let b_dp = b.date_played.as_deref().unwrap_or("");
+                a_dp.cmp(b_dp)
+            }
+            SortColumn::Liked => a.liked.cmp(&b.liked),
+        }
+    };
+
+    let default_track_order = |a: &Track, b: &Track| -> std::cmp::Ordering {
+        let a_dc = a.disc_number.unwrap_or(0);
+        let b_dc = b.disc_number.unwrap_or(0);
+        let cmp_dc = a_dc.cmp(&b_dc);
+        if cmp_dc == std::cmp::Ordering::Equal {
+            let a_num = a.track_number.unwrap_or(u32::MAX);
+            let b_num = b.track_number.unwrap_or(u32::MAX);
+            let cmp_num = a_num.cmp(&b_num);
+            if cmp_num == std::cmp::Ordering::Equal {
+                a.title.to_lowercase().cmp(&b.title.to_lowercase())
+            } else {
+                cmp_num
+            }
+        } else {
+            cmp_dc
+        }
+    };
+
+    tracks.sort_by(|a, b| {
+        if group_by != crate::db::GroupBy::None {
+            let is_same_group = match group_by {
+                crate::db::GroupBy::Album => a.album == b.album,
+                crate::db::GroupBy::Artist => a.artist.to_lowercase() == b.artist.to_lowercase(),
+                crate::db::GroupBy::Genre => a.primary_genre().to_lowercase() == b.primary_genre().to_lowercase(),
+                crate::db::GroupBy::Year => a.year == b.year,
+                crate::db::GroupBy::None => unreachable!(),
+            };
+
+            if !is_same_group {
+                let cmp_group = match group_by {
+                    crate::db::GroupBy::Album => {
+                        let meta_map = album_metadata.as_ref().unwrap();
+                        let meta_a = meta_map.get(&a.album).cloned().unwrap_or((u32::MAX, String::new()));
+                        let meta_b = meta_map.get(&b.album).cloned().unwrap_or((u32::MAX, String::new()));
+
+                        match sort_column {
+                            Some(SortColumn::Year) => {
+                                let cmp_year = meta_a.0.cmp(&meta_b.0);
+                                let res = if cmp_year == std::cmp::Ordering::Equal {
+                                    a.album.to_lowercase().cmp(&b.album.to_lowercase())
+                                } else {
+                                    cmp_year
+                                };
+                                if sort_ascending { res } else { res.reverse() }
+                            }
+                            Some(SortColumn::Artist) => {
+                                let cmp_art = meta_a.1.cmp(&meta_b.1);
+                                let res = if cmp_art == std::cmp::Ordering::Equal {
+                                    a.album.to_lowercase().cmp(&b.album.to_lowercase())
+                                } else {
+                                    cmp_art
+                                };
+                                if sort_ascending { res } else { res.reverse() }
+                            }
+                            Some(SortColumn::Album) => {
+                                let res = a.album.to_lowercase().cmp(&b.album.to_lowercase());
+                                if sort_ascending { res } else { res.reverse() }
+                            }
+                            Some(SortColumn::Genre) => {
+                                let res = a.primary_genre().to_lowercase().cmp(&b.primary_genre().to_lowercase());
+                                if sort_ascending { res } else { res.reverse() }
+                            }
+                            _ => {
+                                // Default album order: alphabetical
+                                a.album.to_lowercase().cmp(&b.album.to_lowercase())
+                            }
+                        }
+                    }
+                    crate::db::GroupBy::Artist => {
+                        let res = a.artist.to_lowercase().cmp(&b.artist.to_lowercase());
+                        if sort_column == Some(SortColumn::Artist) && !sort_ascending {
+                            res.reverse()
+                        } else {
+                            res
+                        }
+                    }
+                    crate::db::GroupBy::Genre => {
+                        let res = a.primary_genre().to_lowercase().cmp(&b.primary_genre().to_lowercase());
+                        if sort_column == Some(SortColumn::Genre) && !sort_ascending {
+                            res.reverse()
+                        } else {
+                            res
+                        }
+                    }
+                    crate::db::GroupBy::Year => {
+                        let res = a.year.unwrap_or(u32::MAX).cmp(&b.year.unwrap_or(u32::MAX));
+                        if sort_column == Some(SortColumn::Year) && !sort_ascending {
+                            res.reverse()
+                        } else {
+                            res
+                        }
+                    }
+                    crate::db::GroupBy::None => unreachable!(),
+                };
+
+                return cmp_group;
+            }
+
+            // Tracks are in the same group!
+            match group_by {
+                crate::db::GroupBy::Album => {
+                    match sort_column {
+                        Some(col @ (SortColumn::Title | SortColumn::Duration | SortColumn::TrackNumber | SortColumn::Plays | SortColumn::DatePlayed | SortColumn::Liked)) => {
+                            let cmp = compare_tracks_by_col(a, b, col);
+                            let res = if sort_ascending { cmp } else { cmp.reverse() };
+                            if res == std::cmp::Ordering::Equal {
+                                default_track_order(a, b)
+                            } else {
+                                res
+                            }
+                        }
+                        _ => default_track_order(a, b),
+                    }
+                }
+                _ => {
+                    if let Some(col) = sort_column {
+                        let cmp = compare_tracks_by_col(a, b, col);
+                        let res = if sort_ascending { cmp } else { cmp.reverse() };
+                        if res == std::cmp::Ordering::Equal {
+                            default_track_order(a, b)
+                        } else {
+                            res
+                        }
+                    } else {
+                        default_track_order(a, b)
+                    }
+                }
+            }
+        } else {
+            // No grouping active: sort purely by column (or default)
+            if let Some(col) = sort_column {
+                let cmp = compare_tracks_by_col(a, b, col);
+                let res = if sort_ascending { cmp } else { cmp.reverse() };
+                if res == std::cmp::Ordering::Equal {
+                    default_track_order(a, b)
+                } else {
+                    res
+                }
+            } else {
+                default_track_order(a, b)
+            }
+        }
+    });
+}
 
 
     fn update(&mut self, message: Message) -> Task<Message> {
@@ -2053,6 +2185,10 @@ impl AppState {
             }
 
             Message::PollAudio => {
+                if matches!(self.playback_state, PlaybackState::Playing) && self.right_panel_tab != Some(RightPanelTab::Visualizer) {
+                    self.animation_tick = self.animation_tick.wrapping_add(2);
+                }
+
                 // Auto-expire toasts older than 8 seconds
                 self.active_notifications.retain(|n| n.created_at.elapsed() < Duration::from_secs(8));
 
@@ -6175,26 +6311,19 @@ impl AppState {
         }
 
         let player_drag_handle = mouse_area(
-            container(
-                container(Space::new(Length::Fill, Length::Fixed(1.0)))
-                    .style(move |_| iced::widget::container::Style {
-                        background: Some(iced::Background::Color(
-                            if self.dragging_player_split || self.is_hovering_player_resizer {
-                                theme::accent()
-                            } else {
-                                theme::surface0()
-                            }
-                        )),
-                        ..Default::default()
-                    })
-            )
-            .width(Length::Fill)
-            .height(6.0)
-            .center_y(Length::Fixed(6.0))
-            .style(|_| iced::widget::container::Style {
-                background: Some(iced::Background::Color(theme::base())),
-                ..Default::default()
-            })
+            container(Space::new(Length::Fill, Length::Fixed(1.0)))
+                .width(Length::Fill)
+                .height(Length::Fixed(1.0))
+                .style(move |_| iced::widget::container::Style {
+                    background: Some(iced::Background::Color(
+                        if self.dragging_player_split || self.is_hovering_player_resizer {
+                            theme::accent()
+                        } else {
+                            theme::surface0()
+                        }
+                    )),
+                    ..Default::default()
+                })
         )
         .on_press(Message::PlayerDragStart)
         .on_enter(Message::HoverPlayerResizer(true))
@@ -7843,3 +7972,112 @@ pub fn run() -> iced::Result {
         })
         .run_with(AppState::new)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+    use std::time::Duration;
+
+    fn make_test_track(id: i64, title: &str, artist: &str, album: &str, year: Option<u32>, track_no: u32, duration_secs: u64) -> Track {
+        Track {
+            id,
+            path: PathBuf::from(format!("/music/{title}.mp3")),
+            title: title.to_string(),
+            artist: artist.to_string(),
+            album: album.to_string(),
+            album_id: 1,
+            track_number: Some(track_no),
+            disc_number: Some(1),
+            duration: Duration::from_secs(duration_secs),
+            cover_data: None,
+            genre: "Rock".to_string(),
+            year,
+            play_count: 0,
+            liked: false,
+            date_played: None,
+            lyrics: String::new(),
+        }
+    }
+
+    #[test]
+    fn test_album_grouping_sort_by_year_asc_and_desc() {
+        let t1 = make_test_track(1, "Come Together", "The Beatles", "Abbey Road", Some(1969), 1, 259);
+        let t2 = make_test_track(2, "Something", "The Beatles", "Abbey Road", Some(1969), 2, 182);
+        let t3 = make_test_track(3, "Lucy in the Sky", "The Beatles", "Sgt. Pepper", Some(1967), 2, 208);
+        let t4 = make_test_track(4, "A Day in the Life", "The Beatles", "Sgt. Pepper", Some(1967), 1, 337);
+
+        let mut tracks = vec![t1.clone(), t2.clone(), t3.clone(), t4.clone()];
+
+        // Sort by Year Ascending
+        AppState::sort_tracks(&mut tracks, crate::db::GroupBy::Album, Some(SortColumn::Year), true);
+
+        // 1967 (Sgt. Pepper) must come first, and its tracks in track_number order
+        assert_eq!(tracks[0].album, "Sgt. Pepper");
+        assert_eq!(tracks[0].track_number, Some(1)); // A Day in the Life
+        assert_eq!(tracks[1].album, "Sgt. Pepper");
+        assert_eq!(tracks[1].track_number, Some(2)); // Lucy in the Sky
+
+        // 1969 (Abbey Road) must come second, and its tracks in track_number order
+        assert_eq!(tracks[2].album, "Abbey Road");
+        assert_eq!(tracks[2].track_number, Some(1)); // Come Together
+        assert_eq!(tracks[3].album, "Abbey Road");
+        assert_eq!(tracks[3].track_number, Some(2)); // Something
+
+        // Sort by Year Descending
+        AppState::sort_tracks(&mut tracks, crate::db::GroupBy::Album, Some(SortColumn::Year), false);
+
+        // 1969 (Abbey Road) must come first, tracks in track_number order
+        assert_eq!(tracks[0].album, "Abbey Road");
+        assert_eq!(tracks[0].track_number, Some(1));
+        assert_eq!(tracks[1].album, "Abbey Road");
+        assert_eq!(tracks[1].track_number, Some(2));
+
+        // 1967 (Sgt. Pepper) must come second, tracks in track_number order
+        assert_eq!(tracks[2].album, "Sgt. Pepper");
+        assert_eq!(tracks[2].track_number, Some(1));
+        assert_eq!(tracks[3].album, "Sgt. Pepper");
+        assert_eq!(tracks[3].track_number, Some(2));
+    }
+
+    #[test]
+    fn test_album_grouping_sort_by_title_and_duration_intra_group() {
+        let t1 = make_test_track(1, "Something", "The Beatles", "Abbey Road", Some(1969), 2, 182);
+        let t2 = make_test_track(2, "Come Together", "The Beatles", "Abbey Road", Some(1969), 1, 259);
+        let t3 = make_test_track(3, "Lucy in the Sky", "The Beatles", "Sgt. Pepper", Some(1967), 2, 208);
+        let t4 = make_test_track(4, "A Day in the Life", "The Beatles", "Sgt. Pepper", Some(1967), 1, 337);
+
+        let mut tracks = vec![t1, t2, t3, t4];
+
+        // Sort by Title Ascending within Album grouping
+        AppState::sort_tracks(&mut tracks, crate::db::GroupBy::Album, Some(SortColumn::Title), true);
+
+        // Abbey Road tracks stay grouped, sorted alphabetically (Come Together then Something)
+        assert_eq!(tracks[0].album, "Abbey Road");
+        assert_eq!(tracks[0].title, "Come Together");
+        assert_eq!(tracks[1].album, "Abbey Road");
+        assert_eq!(tracks[1].title, "Something");
+
+        // Sgt. Pepper tracks stay grouped, sorted alphabetically (A Day in the Life then Lucy in the Sky)
+        assert_eq!(tracks[2].album, "Sgt. Pepper");
+        assert_eq!(tracks[2].title, "A Day in the Life");
+        assert_eq!(tracks[3].album, "Sgt. Pepper");
+        assert_eq!(tracks[3].title, "Lucy in the Sky");
+
+        // Sort by Duration Ascending within Album grouping
+        AppState::sort_tracks(&mut tracks, crate::db::GroupBy::Album, Some(SortColumn::Duration), true);
+
+        // Inside Abbey Road: 182s (Something) before 259s (Come Together)
+        assert_eq!(tracks[0].album, "Abbey Road");
+        assert_eq!(tracks[0].title, "Something");
+        assert_eq!(tracks[1].album, "Abbey Road");
+        assert_eq!(tracks[1].title, "Come Together");
+
+        // Inside Sgt. Pepper: 208s (Lucy) before 337s (A Day in the Life)
+        assert_eq!(tracks[2].album, "Sgt. Pepper");
+        assert_eq!(tracks[2].title, "Lucy in the Sky");
+        assert_eq!(tracks[3].album, "Sgt. Pepper");
+        assert_eq!(tracks[3].title, "A Day in the Life");
+    }
+}
+

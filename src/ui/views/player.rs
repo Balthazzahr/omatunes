@@ -655,28 +655,20 @@ pub fn right_panel(state: &AppState) -> Option<Element<'_, Message>> {
         .width(Length::Fixed(state.right_panel_width))
         .height(Length::Fixed(state.player_height));
 
-    // Add a draggable resize handle between player and panel
     let panel_drag_handle = mouse_area(
-        container(
-            container(Space::new(Length::Fixed(1.0), Length::Fill))
-                .style(move |_| iced::widget::container::Style {
-                    background: Some(iced::Background::Color(
-                        if state.dragging_right_panel || state.is_hovering_right_panel_resizer {
-                            theme::accent()
-                        } else {
-                            iced::Color::TRANSPARENT
-                        }
-                    )),
-                    ..Default::default()
-                })
-        )
-        .width(4.0)
-        .height(Length::Fill)
-        .center_x(Length::Fixed(4.0))
-        .style(|_| iced::widget::container::Style {
-            background: Some(iced::Background::Color(iced::Color::TRANSPARENT)),
-            ..Default::default()
-        })
+        container(Space::new(Length::Fixed(1.0), Length::Fill))
+            .width(Length::Fixed(1.0))
+            .height(Length::Fill)
+            .style(move |_| iced::widget::container::Style {
+                background: Some(iced::Background::Color(
+                    if state.dragging_right_panel || state.is_hovering_right_panel_resizer {
+                        theme::accent()
+                    } else {
+                        theme::surface0()
+                    }
+                )),
+                ..Default::default()
+            })
     )
     .on_press(Message::RightPanelDragStart)
     .on_enter(Message::HoverRightPanelResizer(true))

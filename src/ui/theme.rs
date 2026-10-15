@@ -532,7 +532,7 @@ pub fn header(_: &iced::Theme) -> container::Style {
 pub fn sidebar(_: &iced::Theme) -> container::Style {
     container::Style {
         background: Some(iced::Background::Color(mantle())),
-        border: Border { color: surface0(), width: 1.0, radius: 0.0.into() },
+        border: Border::default(),
         ..Default::default()
     }
 }
@@ -548,7 +548,7 @@ pub fn selected_row(_: &iced::Theme) -> container::Style {
 pub fn player_panel(_: &iced::Theme) -> container::Style {
     container::Style {
         background: Some(iced::Background::Color(mantle())),
-        border: Border { color: surface0(), width: 1.0, radius: 0.0.into() },
+        border: Border::default(),
         ..Default::default()
     }
 }
@@ -676,11 +676,7 @@ pub fn save_button_saved(_: &iced::Theme, _status: iced::widget::button::Status)
 pub fn sidebar_list(_: &iced::Theme) -> container::Style {
     container::Style {
         background: Some(iced::Background::Color(base())),
-        border: Border {
-            color: surface0(),
-            width: 1.0,
-            radius: 4.0.into(),
-        },
+        border: Border::default(),
         ..Default::default()
     }
 }
