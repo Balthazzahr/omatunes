@@ -278,7 +278,7 @@ Running `install.sh` automatically detects your environment and copies the neces
 
 ### Enabling the Module
 
-- **Omarchy v4**: Add `"omatunes"` to your panel module list (`modules`, `modules-left`, `modules-center`, or `modules-right`) in `~/.config/omarchy/shell.json`.
+- **Omarchy v4**: Run `omarchy plugin enable omatunes --section center` (or `omarchy plugin add ... --enable` for the git-managed install). The widget is then referenced by `{"id": "omatunes"}` under `bar.layout` in `~/.config/omarchy/shell.json`.
 - **Standalone Quickshell**: Import `./modules/omatunes` and instantiate `OmatunesWidget {}` in `~/.config/quickshell/shell.qml`.
 
 ### Module Features & Mouse Controls
@@ -353,7 +353,12 @@ OmaTUNES includes a native **Quickshell** player module (`OmatunesWidget.qml` & 
 
 ### Installation
 
-Run the automated installer script included in the repository:
+**Omarchy v4 (recommended)** — installs the bar widget as a git-managed shell plugin:
+```bash
+omarchy plugin add https://github.com/Balthazzahr/omatunes.git --enable
+```
+
+**Fallback:** run the automated installer script included in the repository:
 ```bash
 ./scripts/quickshell/install.sh
 ```
@@ -372,22 +377,29 @@ cp scripts/quickshell/manifest.json ~/.config/omarchy/plugins/omatunes/
 
 ### Enabling the Module
 
-#### For Omarchy v4 / Omarchy Shell Users (`~/.config/omarchy/shell.json`)
-Open your `~/.config/omarchy/shell.json` file in a text editor. Add `"omatunes"` to your preferred panel module array (`modules`, `modules-left`, `modules-center`, or `modules-right` depending on your theme style, such as Pure or Default):
+#### For Omarchy v4 / Omarchy Shell Users
+
+If you installed with `omarchy plugin add ... --enable`, the widget is already in your bar; use `omarchy bar move omatunes --section center` to move it. After a manual copy (`install.sh` or the `cp` commands above), enable it explicitly:
+
+```bash
+omarchy plugin enable omatunes --section center
+```
+
+or add it by hand to `~/.config/omarchy/shell.json` (note: `modules-left`/`modules-center` are Waybar keys — Omarchy's shell uses `bar.layout`):
 
 ```json
 {
-  "panel": {
-    "modules-center": [
-      "clock",
-      "omatunes",
-      "system-tray"
-    ]
+  "bar": {
+    "layout": {
+      "center": [
+        { "id": "omatunes" }
+      ]
+    }
   }
 }
 ```
 
-> **Omarchy v4 Note**: `install.sh` registers `BarWidget.qml` under `~/.config/omarchy/plugins/omatunes/`. Omarchy automatically resolves `"omatunes"` in `shell.json` to this plugin.
+> **Omarchy v4 Note**: The shell discovers `~/.config/omarchy/plugins/omatunes/manifest.json` automatically; the widget only renders once its id appears in `bar.layout` in `shell.json`.
 
 #### For Standalone Quickshell Users (`~/.config/quickshell/shell.qml`)
 If you are using custom Quickshell without Omarchy, add the import statement and place `OmatunesWidget {}` into your bar structure:

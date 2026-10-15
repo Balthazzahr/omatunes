@@ -15,6 +15,7 @@
     "displayName": "OmaTUNES",
     "description": "OmaTUNES player widget with pop-up controls",
     "category": "Media",
-    "allowMultiple": false
+    "allowMultiple": false,
+    "defaultSection": "center"
   }
 }

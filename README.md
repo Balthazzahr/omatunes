@@ -85,7 +85,15 @@ Full Waybar config below, and CSS styling details in the [User Manual](USER_MANU
 
 ### 3. Install the Quickshell widget (optional)
 
-If you use **Quickshell** or **Omarchy v4**, run the automated installer script to copy the widget and pop-up card files into place:
+**Omarchy v4 (recommended)** — installs the bar widget as a git-managed shell plugin:
+
+```bash
+omarchy plugin add https://github.com/Balthazzahr/omatunes.git --enable
+```
+
+`--enable` asks which bar section to place it in and wires it into `~/.config/omarchy/shell.json`. Later upstream updates land with `omarchy plugin update omatunes`.
+
+**Standalone Quickshell / manual install** — run the automated installer script to copy the widget and pop-up card files into place:
 
 ```bash
 # Clone or navigate to the repository
@@ -157,9 +165,23 @@ For CSS styling, see the [Waybar Integration section](USER_MANUAL.md#waybar-inte
 
 omaTUNES includes a native **Quickshell Player Module** and an **Omarchy v4 Bar Plugin** with an interactive pop-up control card.
 
-> **FYI for Omarchy v4 Users**: `install.sh` automatically copies the required `BarWidget.qml` & `manifest.json` files directly into `~/.config/omarchy/plugins/omatunes/`.
+> **FYI for Omarchy v4 Users**: The repo root carries a plugin `manifest.json`, so Omarchy's plugin manager can install it directly with `omarchy plugin add`. The `install.sh` script remains available as a manual fallback and copies `BarWidget.qml` & `manifest.json` into `~/.config/omarchy/plugins/omatunes/`.
 
 ### Quick Install
+
+**Omarchy v4 (recommended):**
+
+```bash
+omarchy plugin add https://github.com/Balthazzahr/omatunes.git --enable
+```
+
+This clones the repo into `~/.config/omarchy/plugins/omatunes/`, validates it against Omarchy's plugin schema, and enables the bar widget. Update it later with:
+
+```bash
+omarchy plugin update omatunes
+```
+
+**Fallback / standalone Quickshell:**
 
 ```bash
 # Clone or navigate to the repository
@@ -169,24 +191,38 @@ cd omatunes
 # Run the automated installer for Quickshell & Omarchy v4
 bash scripts/quickshell/install.sh
 ```
-Then add "omatunes" to your bar layout configuration (~/.config/omarchy/shell.json or ~/.config/quickshell/shell.qml).
 
 ### Enabling the Module
 
-#### For Omarchy v4 / Omarchy Shell Users (`~/.config/omarchy/shell.json`)
-Open your `~/.config/omarchy/shell.json` configuration file and add `"omatunes"` to your desired panel bar section (e.g. `modules`, `modules-left`, `modules-center`, or `modules-right` depending on your layout style, such as Pure or Default):
+#### For Omarchy v4 / Omarchy Shell Users
+
+If you installed with `omarchy plugin add ... --enable`, the widget is already in your bar. To change its section later:
+
+```bash
+omarchy bar move omatunes --section center
+```
+
+If you installed with `install.sh` (manual copy), enable it explicitly:
+
+```bash
+omarchy plugin enable omatunes --section center
+```
+
+or add it by hand to the bar layout in `~/.config/omarchy/shell.json` (note: `modules-left`/`modules-center` are Waybar keys — Omarchy's shell uses `bar.layout`):
 
 ```json
 {
-  "panel": {
-    "modules-center": [
-      "omatunes"
-    ]
+  "bar": {
+    "layout": {
+      "center": [
+        { "id": "omatunes" }
+      ]
+    }
   }
 }
 ```
 
-> **Note**: Omarchy v4 plugin manifests auto-register the plugin named `omatunes` when installed via `install.sh`. Adding `"omatunes"` to any module array in your `shell.json` renders the bar widget.
+> **Note**: The shell discovers `~/.config/omarchy/plugins/omatunes/manifest.json` automatically; the widget only renders once its id appears in `bar.layout` in `shell.json`.
 
 #### For Standalone Quickshell Users (`~/.config/quickshell/shell.qml`)
 If you use standard Quickshell without Omarchy, import the module directory and place `OmatunesWidget {}` into your bar layout:

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "omatunes",
+  "name": "OmaTUNES Player",
+  "version": "1.0.9",
+  "author": "OmaTUNES",
+  "description": "Native OmaTUNES Wayland media player bar widget and popup controls",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "scripts/quickshell/BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "OmaTUNES",
+    "description": "OmaTUNES player widget with pop-up controls",
+    "category": "Media",
+    "allowMultiple": false,
+    "defaultSection": "center"
+  }
+}
