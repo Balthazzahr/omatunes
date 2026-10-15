@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use anyhow::{anyhow, Result};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use cpal::{SampleFormat, SampleRate, StreamConfig};
+use cpal::{SampleFormat, StreamConfig};
 use symphonia::core::audio::SampleBuffer;
 use symphonia::core::codecs::{DecoderOptions, CODEC_TYPE_NULL};
 use symphonia::core::errors::Error as SymphoniaError;
@@ -123,7 +123,7 @@ fn audio_thread(
 
     let stream_config = StreamConfig {
         channels:    OUTPUT_CHANNELS,
-        sample_rate: SampleRate(OUTPUT_RATE),
+        sample_rate: OUTPUT_RATE,
         buffer_size: cpal::BufferSize::Default,
     };
 
@@ -147,7 +147,7 @@ fn audio_thread(
             let vol2     = shared_vol.clone();
             let vis2     = sample_buffer.clone();
             device.build_output_stream(
-                &stream_config,
+                stream_config,
                 move |data: &mut [i16], _| {
                     let mut tmp = vec![0f32; data.len()];
                     fill_output(&mut tmp, &pcm2, &paused2, &vol2, &vis2);
@@ -159,7 +159,7 @@ fn audio_thread(
             )
         }
         _ => device.build_output_stream(
-            &stream_config,
+            stream_config,
             move |data: &mut [f32], _| fill_output(data, &pcm_cb, &paused_cb, &vol_cb, &vis_cb),
             err_fn, None,
         ),
