@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 static CONFIG: OnceLock<Mutex<Config>> = OnceLock::new();
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
+#[serde(default)]
 pub struct CustomThemeConfig {
     pub base: String,
     pub mantle: String,
@@ -39,6 +40,7 @@ impl Default for CustomThemeConfig {
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
+#[serde(default)]
 pub struct PlaybackDefault {
     pub shuffle: bool,
     pub repeat: bool,
@@ -51,6 +53,7 @@ impl Default for PlaybackDefault {
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
+#[serde(default)]
 pub struct PlaybackDefaults {
     pub album: PlaybackDefault,
     pub artist: PlaybackDefault,
@@ -72,10 +75,9 @@ impl Default for PlaybackDefaults {
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
+#[serde(default)]
 pub struct AutoScanConfig {
-    #[serde(default)]
     pub mode: String,
-    #[serde(default)]
     pub interval_minutes: u64,
 }
 
@@ -97,40 +99,23 @@ pub struct Config {
     pub theme_source: String,
     pub theme_preset: String,
     pub custom_theme: Option<CustomThemeConfig>,
-    #[serde(default)]
     pub playback_defaults: PlaybackDefaults,
-    #[serde(default)]
     pub auto_scan: AutoScanConfig,
-    #[serde(default = "default_show_achievements_in_ui")]
     pub show_achievements_in_ui: bool,
-    #[serde(default = "default_show_toasts")]
     pub show_toasts: bool,
-    #[serde(default)]
     pub visualizer_mode: usize,
-    #[serde(default = "default_visualizer_sensitivity")]
     pub visualizer_sensitivity: f32,
-    #[serde(default = "default_ghost_trail_length")]
     pub ghost_trail_length: usize,
-    #[serde(default = "default_ghost_decay")]
     pub ghost_decay: f32,
-    #[serde(default = "default_color_shift_speed")]
     pub color_shift_speed: f32,
-    #[serde(default = "default_spectrograph_bar_count")]
     pub spectrograph_bar_count: usize,
-    #[serde(default)]
     pub visualizer_bg_mode: usize, // 0 = Theme, 1 = Custom RGB, 2 = Muted Reactive
-    #[serde(default = "default_visualizer_bg_color")]
     pub visualizer_bg_color: String,
-    #[serde(default)]
     pub aurora_preset: usize, // 0 = Emerald Glow, 1 = Solar Flare, 2 = Polar Pink & Blue
-    #[serde(default = "default_depth_warp_speed")]
     pub depth_warp_speed: f32,
-    #[serde(default = "default_kaleidoscope_axes")]
     pub kaleidoscope_axes: usize,
-    #[serde(default = "default_font_family")]
     pub font_family: String,
     /// Ordered font fallback chain. Empty means "auto-discover".
-    #[serde(default)]
     pub font_fallback: Vec<String>,
 }
 
@@ -304,48 +289,8 @@ theme_preset = "Nord"
 # font_fallback = ["Noto Sans CJK JP", "Noto Color Emoji"]
 "#;
 
-fn default_show_achievements_in_ui() -> bool {
-    true
-}
-
 fn default_font_family() -> String {
     "JetBrainsMono Nerd Font Mono".to_string()
-}
-
-fn default_show_toasts() -> bool {
-    true
-}
-
-fn default_visualizer_sensitivity() -> f32 {
-    1.0
-}
-
-fn default_ghost_trail_length() -> usize {
-    8
-}
-
-fn default_ghost_decay() -> f32 {
-    0.45
-}
-
-fn default_color_shift_speed() -> f32 {
-    1.0
-}
-
-fn default_spectrograph_bar_count() -> usize {
-    64
-}
-
-fn default_visualizer_bg_color() -> String {
-    "#0f0f1a".to_string()
-}
-
-fn default_depth_warp_speed() -> f32 {
-    1.0
-}
-
-fn default_kaleidoscope_axes() -> usize {
-    8
 }
 
 #[cfg(test)]
@@ -370,6 +315,11 @@ font_family = "JetBrainsMono Nerd Font Mono"
         let cfg: Config = toml::from_str(legacy).expect("legacy config must deserialize");
         assert_eq!(cfg.font_family, "JetBrainsMono Nerd Font Mono");
         assert!(cfg.font_fallback.is_empty());
+        assert_eq!(cfg.ghost_trail_length, 8);
+        assert_eq!(cfg.spectrograph_bar_count, 64);
+        assert_eq!(cfg.visualizer_sensitivity, 1.0);
+        assert_eq!(cfg.auto_scan.mode, "manual");
+        assert_eq!(cfg.auto_scan.interval_minutes, 15);
     }
 
     /// An explicit chain round-trips through serialize/deserialize.
@@ -384,5 +334,31 @@ font_family = "JetBrainsMono Nerd Font Mono"
 
         let decoded: Config = toml::from_str(&encoded).expect("config deserializes");
         assert_eq!(decoded.font_fallback, chain);
+    }
+
+    #[test]
+    fn partial_auto_scan_deserialization_defaults() {
+        let toml_str = r#"
+music_dir = "~/Music"
+[auto_scan]
+mode = "periodic"
+"#;
+        let cfg: Config = toml::from_str(toml_str).expect("config must parse");
+        assert_eq!(cfg.auto_scan.mode, "periodic");
+        assert_eq!(cfg.auto_scan.interval_minutes, 15);
+    }
+
+    #[test]
+    fn partial_custom_theme_defaults() {
+        let toml_str = r##"
+music_dir = "~/Music"
+[custom_theme]
+accent = "#ff007f"
+"##;
+        let cfg: Config = toml::from_str(toml_str).expect("config must parse");
+        let ct = cfg.custom_theme.expect("custom theme should be present");
+        assert_eq!(ct.accent, "#ff007f");
+        assert_eq!(ct.base, "#11111b");
+        assert_eq!(ct.text, "#cdd6f4");
     }
 }
