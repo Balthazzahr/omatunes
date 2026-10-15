@@ -221,29 +221,41 @@ pub fn reload_system_theme() {
     *palette_mutex().lock().unwrap() = load_palette_from_config();
 }
 
+fn get_homes() -> Vec<PathBuf> {
+    let mut homes = Vec::new();
+    if let Some(h) = home_dir() {
+        homes.push(h);
+    }
+    if let Ok(rh) = std::env::var("REAL_HOME") {
+        let p = PathBuf::from(rh);
+        if !homes.contains(&p) {
+            homes.push(p);
+        }
+    }
+    homes
+}
+
 /// Return the name of the currently configured Omarchy theme (for change detection).
 pub fn read_current_theme_name() -> String {
-    let home = match home_dir() {
-        Some(h) => h,
-        None => return String::new(),
-    };
-    let state_home = std::env::var("XDG_STATE_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| home.join(".local/state"));
-    std::fs::read_to_string(state_home.join("omarchy/current/theme.name"))
-        .or_else(|_| std::fs::read_to_string(home.join(".config/omarchy/current/theme.name")))
-        .unwrap_or_default()
-        .trim()
-        .to_string()
+    let homes = get_homes();
+    for home in &homes {
+        let state_home = std::env::var("XDG_STATE_HOME")
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| home.join(".local/state"));
+        if let Ok(name) = std::fs::read_to_string(state_home.join("omarchy/current/theme.name"))
+            .or_else(|_| std::fs::read_to_string(home.join(".config/omarchy/current/theme.name")))
+        {
+            let trimmed = name.trim();
+            if !trimmed.is_empty() {
+                return trimmed.to_string();
+            }
+        }
+    }
+    String::new()
 }
 
 fn try_load_omarchy_theme() -> Option<Palette> {
-    let home = home_dir()?;
-    let state_home = std::env::var("XDG_STATE_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| home.join(".local/state"));
-    let current_state_dir = state_home.join("omarchy/current");
-
+    let homes = get_homes();
     let theme_name_raw = read_current_theme_name();
     let theme_name = if theme_name_raw.is_empty() {
         "current".to_string()
@@ -251,22 +263,27 @@ fn try_load_omarchy_theme() -> Option<Palette> {
         theme_name_raw.to_lowercase()
     };
 
-    let current_state_path = current_state_dir.join("theme/colors.toml");
-    let current_config_path = home.join(".config/omarchy/current/theme/colors.toml");
-    let user_path = home.join(format!(".config/omarchy/themes/{}/colors.toml", theme_name));
-    let system_path = PathBuf::from(format!("/usr/share/omarchy/themes/{}/colors.toml", theme_name));
-    let local_share_path = home.join(format!(".local/share/omarchy/themes/{}/colors.toml", theme_name));
+    let mut candidate_paths = Vec::new();
+    for home in &homes {
+        let state_home = std::env::var("XDG_STATE_HOME")
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| home.join(".local/state"));
+        candidate_paths.push(state_home.join("omarchy/current/theme/colors.toml"));
+        candidate_paths.push(home.join(".config/omarchy/current/theme/colors.toml"));
+        candidate_paths.push(home.join(format!(".config/omarchy/themes/{}/colors.toml", theme_name)));
+        candidate_paths.push(home.join(format!(".local/share/omarchy/themes/{}/colors.toml", theme_name)));
+    }
+    candidate_paths.push(PathBuf::from(format!("/usr/share/omarchy/themes/{}/colors.toml", theme_name)));
 
-    let (content, loaded_path) = std::fs::read_to_string(&current_state_path)
-        .map(|c| (c, current_state_path.display().to_string()))
-        .or_else(|_| std::fs::read_to_string(&current_config_path).map(|c| (c, current_config_path.display().to_string())))
-        .or_else(|_| std::fs::read_to_string(&user_path).map(|c| (c, user_path.display().to_string())))
-        .or_else(|_| std::fs::read_to_string(&system_path).map(|c| (c, system_path.display().to_string())))
-        .or_else(|_| std::fs::read_to_string(&local_share_path).map(|c| (c, local_share_path.display().to_string())))
-        .ok()?;
-
-    eprintln!("omatunes: loading theme \"{}\" from {}", theme_name, loaded_path);
-    parse_colors_toml(&content)
+    for path in candidate_paths {
+        if let Ok(content) = std::fs::read_to_string(&path) {
+            eprintln!("omatunes: loading theme \"{}\" from {}", theme_name, path.display());
+            if let Some(pal) = parse_colors_toml(&content) {
+                return Some(pal);
+            }
+        }
+    }
+    None
 }
 
 fn parse_colors_toml(content: &str) -> Option<Palette> {

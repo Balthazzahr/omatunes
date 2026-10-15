@@ -53,6 +53,7 @@ impl ScriptClass {
     }
 
     /// Single-char sample to render next to the label in the UI.
+    #[allow(dead_code)]
     pub fn sample(&self) -> &'static str {
         match self {
             ScriptClass::Latin => "A",

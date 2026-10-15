@@ -11,6 +11,7 @@ export HOME="$TEST_ROOT/home"
 export XDG_CONFIG_HOME="$TEST_ROOT/config"
 export XDG_DATA_HOME="$TEST_ROOT/data"
 export XDG_CACHE_HOME="$TEST_ROOT/cache"
+export XDG_STATE_HOME="$REAL_HOME/.local/state"
 # Copy mimeapps so xdg-mime / gio still resolve Vivaldi as default in isolated HOME
 mkdir -p "$XDG_CONFIG_HOME"
 if [ -f "$REAL_HOME/.config/mimeapps.list" ]; then

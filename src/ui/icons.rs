@@ -31,18 +31,15 @@ pub const AVAILABLE_FONT_FAMILIES: &[&str] = &[
     "Monospace",
 ];
 
-/// Resolve a font family name to its static literal family string.
-/// Known names map directly; unknown names fall back to SYSTEM_FONT_FAMILY.
+pub const ICON_FONT: &str = "\u{f031}"; // nf-fa-font
+
+/// Resolve a font family name to its static interned family string.
 pub fn resolve_font_family(name: &str) -> &'static str {
-    match name {
-        "JetBrainsMono Nerd Font Mono" => "JetBrainsMono Nerd Font Mono",
-        "JetBrainsMono Nerd Font" => "JetBrainsMono Nerd Font",
-        "GeistMono Nerd Font Mono" => "GeistMono Nerd Font Mono",
-        "BlexMono Nerd Font Mono" => "BlexMono Nerd Font Mono",
-        "Adwaita Mono" => "Adwaita Mono",
-        "DejaVu Sans Mono" => "DejaVu Sans Mono",
-        "Monospace" => "Monospace",
-        _ => SYSTEM_FONT_FAMILY,
+    let trimmed = name.trim();
+    if trimmed.is_empty() {
+        SYSTEM_FONT_FAMILY
+    } else {
+        intern_family(trimmed)
     }
 }
 
@@ -235,6 +232,20 @@ pub fn get_award_image_bytes(period: &str, tier: &str) -> &'static [u8] {
         ("All-Time", "Legendary") => include_bytes!("../../assets/award_all_time_legendary.png"),
         
         _ => include_bytes!("../../assets/award_daily_bronze.png"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_resolve_font_family_dynamic() {
+        assert_eq!(resolve_font_family(""), SYSTEM_FONT_FAMILY);
+        assert_eq!(resolve_font_family("   "), SYSTEM_FONT_FAMILY);
+        assert_eq!(resolve_font_family("JetBrainsMono Nerd Font Mono"), "JetBrainsMono Nerd Font Mono");
+        assert_eq!(resolve_font_family("Noto Sans CJK JP"), "Noto Sans CJK JP");
+        assert_eq!(resolve_font_family("Custom Installed Font"), "Custom Installed Font");
     }
 }
 

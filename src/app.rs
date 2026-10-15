@@ -389,6 +389,7 @@ pub enum SettingsTab {
     Library,
     Playback,
     Display,
+    Fonts,
     Theme,
     Visualizer,
     Shortcuts,
