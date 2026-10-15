@@ -1,5 +1,7 @@
 # Ignore build artifacts from Cargo
 target/
+*.tar.gz
+*.zip
 
 # Private development docs — keep local only, not on public GitHub
 AGENTS.md
