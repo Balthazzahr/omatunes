@@ -691,6 +691,7 @@ pub struct AppState {
     pub show_queue_popover: bool,
     pub queue_scroll_id: scrollable::Id,
     pub last_accumulated_position: Duration,
+    pub last_mpris_pos_sent: Option<Duration>,
     pub show_period_breakdown: Option<crate::stats::PeriodBreakdown>,
     pub breakdown_period_idx: usize,
     pub breakdown_song_view: Option<(String, String)>,
@@ -1104,6 +1105,7 @@ impl AppState {
             show_queue_popover: false,
             queue_scroll_id: scrollable::Id::unique(),
             last_accumulated_position: Duration::ZERO,
+            last_mpris_pos_sent: None,
             show_period_breakdown: None,
             breakdown_period_idx: 0,
             breakdown_song_view: None,
@@ -1898,6 +1900,8 @@ impl AppState {
                 self.audio.send(AudioCommand::Seek(dur));
                 self.position = dur;
                 self.last_accumulated_position = dur;
+                self.last_mpris_pos_sent = Some(dur);
+                self.send_mpris(MprisUpdate::Position(dur));
                 Task::none()
             }
 
@@ -1909,6 +1913,8 @@ impl AppState {
                 self.audio.send(AudioCommand::Seek(dur));
                 self.position = dur;
                 self.last_accumulated_position = dur;
+                self.last_mpris_pos_sent = Some(dur);
+                self.send_mpris(MprisUpdate::Position(dur));
                 self.right_panel_tab_user_scrolled = false;
                 Task::none()
             }
@@ -1926,6 +1932,8 @@ impl AppState {
                 self.audio.send(AudioCommand::Seek(new_pos));
                 self.position = new_pos;
                 self.last_accumulated_position = new_pos;
+                self.last_mpris_pos_sent = Some(new_pos);
+                self.send_mpris(MprisUpdate::Position(new_pos));
                 Task::none()
             }
 
@@ -2045,6 +2053,9 @@ impl AppState {
             }
 
             Message::PollAudio => {
+                // Auto-expire toasts older than 8 seconds
+                self.active_notifications.retain(|n| n.created_at.elapsed() < Duration::from_secs(8));
+
                 // Hourly check
                 let current_hour = {
                     use chrono::Timelike;
@@ -2062,7 +2073,18 @@ impl AppState {
                         AudioEvent::Progress { position, duration } => {
                             self.position = position;
                             self.duration = duration;
-                            self.send_mpris(MprisUpdate::Position(position));
+
+                            let should_send_mpris = match self.last_mpris_pos_sent {
+                                None => true,
+                                Some(last) => {
+                                    // Throttle D-Bus updates to ~1s cadence, but send immediately if rewound/looped
+                                    position.saturating_sub(last) >= Duration::from_secs(1) || position < last
+                                }
+                            };
+                            if should_send_mpris {
+                                self.last_mpris_pos_sent = Some(position);
+                                self.send_mpris(MprisUpdate::Position(position));
+                            }
 
                             let current_secs = position.as_secs();
                             let old_secs = crate::db::get(|db| db.last_position_secs);
@@ -2251,6 +2273,7 @@ impl AppState {
                             self.playback_state = PlaybackState::Stopped;
                             self.position = Duration::ZERO;
                             self.last_accumulated_position = Duration::ZERO;
+                            self.last_mpris_pos_sent = None;
                             self.send_mpris(MprisUpdate::Status(PlaybackStatus::Stopped));
                         }
                         AudioEvent::TrackEnded => {
@@ -2343,6 +2366,7 @@ impl AppState {
                             self.audio.send(AudioCommand::Seek(dur));
                             self.position = dur;
                             self.last_accumulated_position = dur;
+                            self.last_mpris_pos_sent = Some(dur);
                             self.send_mpris(MprisUpdate::Position(dur));
                         }
                         MprisCommand::SeekRelative(offset_micros) => {
@@ -2362,6 +2386,7 @@ impl AppState {
                             self.audio.send(AudioCommand::Seek(new_pos));
                             self.position = new_pos;
                             self.last_accumulated_position = new_pos;
+                            self.last_mpris_pos_sent = Some(new_pos);
                             self.send_mpris(MprisUpdate::Position(new_pos));
                         }
                     }
@@ -7643,6 +7668,7 @@ impl AppState {
         self.position = Duration::ZERO;
         self.duration = Duration::ZERO;
         self.last_accumulated_position = Duration::ZERO;
+        self.last_mpris_pos_sent = Some(Duration::ZERO);
         self.current_track_play_counted = false;
         self.notify_mpris_track(PlaybackStatus::Playing);
 

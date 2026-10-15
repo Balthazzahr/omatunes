@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 
-use rustfft::{num_complex::Complex, FftPlanner};
+use rustfft::{num_complex::Complex, Fft, FftPlanner};
 
 pub const NUM_BANDS: usize = 144;
 const FFT_SIZE: usize = 2048;
@@ -11,7 +11,7 @@ const FREQ_MAX: f32 = 20000.0;
 const SAMPLE_RATE: f32 = 48000.0;
 
 pub struct SpectrumAnalyzer {
-    planner: FftPlanner<f32>,
+    fft: Arc<dyn Fft<f32>>,
     sample_buffer: Arc<Mutex<VecDeque<f32>>>,
     peak_hold: [f32; NUM_BANDS],
     smoothed: [f32; NUM_BANDS],
@@ -19,8 +19,10 @@ pub struct SpectrumAnalyzer {
 
 impl SpectrumAnalyzer {
     pub fn new(sample_buffer: Arc<Mutex<VecDeque<f32>>>) -> Self {
+        let mut planner = FftPlanner::new();
+        let fft = planner.plan_fft_forward(FFT_SIZE);
         SpectrumAnalyzer {
-            planner: FftPlanner::new(),
+            fft,
             sample_buffer,
             peak_hold: [1e-6; NUM_BANDS],
             smoothed: [0.0; NUM_BANDS],
@@ -39,8 +41,6 @@ impl SpectrumAnalyzer {
         let peak = samples.iter().cloned().map(f32::abs).fold(1e-6f32, f32::max);
         let samples: Vec<f32> = samples.iter().map(|s| s / peak).collect();
 
-        let fft = self.planner.plan_fft_forward(FFT_SIZE);
-
         let mut input: Vec<Complex<f32>> = samples
             .iter()
             .enumerate()
@@ -54,7 +54,7 @@ impl SpectrumAnalyzer {
             })
             .collect();
 
-        fft.process(&mut input);
+        self.fft.process(&mut input);
 
         let half = FFT_SIZE / 2;
         let magnitudes: Vec<f32> = input[..half]

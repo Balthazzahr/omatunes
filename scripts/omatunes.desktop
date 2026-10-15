@@ -4,7 +4,7 @@ Type=Application
 Name=omaTUNES
 GenericName=Music Player
 Comment=Native Wayland music player and library manager
-Exec=omatunes
+Exec=env WGPU_BACKEND=gl,vulkan omatunes
 Icon=omatunes
 Terminal=false
 StartupNotify=true

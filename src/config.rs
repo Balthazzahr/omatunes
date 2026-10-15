@@ -188,7 +188,13 @@ pub fn save(cfg: Config) {
     *guard = cfg.clone();
     if let Ok(toml_str) = toml::to_string_pretty(&cfg) {
         let path = config_path();
-        std::fs::write(path, toml_str).ok();
+        if let Some(dir) = path.parent() {
+            std::fs::create_dir_all(dir).ok();
+        }
+        let tmp = path.with_extension("tmp");
+        if std::fs::write(&tmp, toml_str).is_ok() {
+            let _ = std::fs::rename(&tmp, &path);
+        }
     }
 }
 
