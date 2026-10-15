@@ -147,6 +147,20 @@ pub fn view<'a>(state: &'a SettingsState) -> Element<'a, Message> {
                 panel = panel.push(interval_input);
             }
 
+            panel = panel.push(Space::with_height(16));
+            panel = panel.push(
+                button(
+                    row![
+                        text(ICON_AUTO_SCAN).font(NERD_FONT_MONO).size(14),
+                        Space::with_width(8),
+                        text("Rescan Library Now (F5)").size(13).font(UI_FONT_BOLD),
+                    ].align_y(Alignment::Center)
+                )
+                .on_press(Message::RescanLibrary)
+                .style(theme::secondary_button)
+                .padding([8, 16])
+            );
+
             scrollable(column![panel].spacing(0).padding(iced::Padding {
                 top: 0.0,
                 right: 8.0,

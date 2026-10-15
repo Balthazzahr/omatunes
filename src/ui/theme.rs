@@ -231,6 +231,7 @@ pub fn read_current_theme_name() -> String {
         .map(PathBuf::from)
         .unwrap_or_else(|_| home.join(".local/state"));
     std::fs::read_to_string(state_home.join("omarchy/current/theme.name"))
+        .or_else(|_| std::fs::read_to_string(home.join(".config/omarchy/current/theme.name")))
         .unwrap_or_default()
         .trim()
         .to_string()
@@ -243,27 +244,28 @@ fn try_load_omarchy_theme() -> Option<Palette> {
         .unwrap_or_else(|_| home.join(".local/state"));
     let current_state_dir = state_home.join("omarchy/current");
 
-    let theme_name_raw = std::fs::read_to_string(current_state_dir.join("theme.name"))
-        .ok()?
-        .trim()
-        .to_string();
-    if theme_name_raw.is_empty() {
-        return None;
-    }
-    // Omarchy writes theme.name lowercase (e.g. "everforest") but `omarchy theme current` prints "Everforest"
-    let theme_name = theme_name_raw.to_lowercase();
+    let theme_name_raw = read_current_theme_name();
+    let theme_name = if theme_name_raw.is_empty() {
+        "current".to_string()
+    } else {
+        theme_name_raw.to_lowercase()
+    };
 
-    let current_path = current_state_dir.join("theme/colors.toml");
+    let current_state_path = current_state_dir.join("theme/colors.toml");
+    let current_config_path = home.join(".config/omarchy/current/theme/colors.toml");
     let user_path = home.join(format!(".config/omarchy/themes/{}/colors.toml", theme_name));
-    // System themes are in /usr/share/omarchy/themes/ (lowercase)
     let system_path = PathBuf::from(format!("/usr/share/omarchy/themes/{}/colors.toml", theme_name));
+    let local_share_path = home.join(format!(".local/share/omarchy/themes/{}/colors.toml", theme_name));
 
-    let content = std::fs::read_to_string(&current_path)
-        .or_else(|_| std::fs::read_to_string(&user_path))
-        .or_else(|_| std::fs::read_to_string(&system_path))
+    let (content, loaded_path) = std::fs::read_to_string(&current_state_path)
+        .map(|c| (c, current_state_path.display().to_string()))
+        .or_else(|_| std::fs::read_to_string(&current_config_path).map(|c| (c, current_config_path.display().to_string())))
+        .or_else(|_| std::fs::read_to_string(&user_path).map(|c| (c, user_path.display().to_string())))
+        .or_else(|_| std::fs::read_to_string(&system_path).map(|c| (c, system_path.display().to_string())))
+        .or_else(|_| std::fs::read_to_string(&local_share_path).map(|c| (c, local_share_path.display().to_string())))
         .ok()?;
 
-    eprintln!("omatunes: loading theme \"{}\" from {}", theme_name_raw, current_path.display());
+    eprintln!("omatunes: loading theme \"{}\" from {}", theme_name, loaded_path);
     parse_colors_toml(&content)
 }
 
@@ -277,18 +279,16 @@ fn parse_colors_toml(content: &str) -> Option<Palette> {
         let key = key.trim().to_string();
         let val = val.trim();
 
-        let hex6 = if let Some(pos) = val.find('#') {
+        let hex_str = if let Some(pos) = val.find('#') {
             let after = &val[pos + 1..];
             let end = after.find(|c: char| !c.is_ascii_hexdigit()).unwrap_or(after.len());
-            after[..end.min(6)].to_string()
+            after[..end].to_string()
         } else {
-            val.trim_matches('"').chars().take(6).collect()
+            val.trim_matches('"').to_string()
         };
 
-        if hex6.len() == 6 {
-            if let Some(c) = parse_hex_str(&hex6) {
-                map.insert(key, c);
-            }
+        if let Some(c) = parse_hex_str(&hex_str) {
+            map.insert(key, c);
         }
     }
 
@@ -296,12 +296,23 @@ fn parse_colors_toml(content: &str) -> Option<Palette> {
     let fg     = *map.get("foreground")?;
     let accent = *map.get("accent")?;
 
-    let c8 = map.get("color8").copied()
+    let c8 = map.get("color8")
+        .or_else(|| map.get("muted"))
+        .or_else(|| map.get("selection"))
+        .copied()
         .unwrap_or_else(|| lerp_color(bg, fg, 0.3));
 
     let is_dark = luminance(bg) < 0.5;
     let (mantle, surface0) = if is_dark {
-        (lerp_color(bg, c8, 0.10), lerp_color(bg, c8, 0.40))
+        (
+            map.get("dark_background")
+                .or_else(|| map.get("darker_background"))
+                .copied()
+                .unwrap_or_else(|| lerp_color(bg, c8, 0.10)),
+            map.get("lighter_background")
+                .copied()
+                .unwrap_or_else(|| lerp_color(bg, c8, 0.40)),
+        )
     } else {
         (lerp_color(bg, fg, 0.05), lerp_color(bg, fg, 0.18))
     };
@@ -312,21 +323,32 @@ fn parse_colors_toml(content: &str) -> Option<Palette> {
         surface0,
         overlay0: c8,
         text: fg,
-        subtext:  map.get("color15").copied()
+        subtext: map.get("color15")
+            .or_else(|| map.get("light_foreground"))
+            .copied()
             .unwrap_or_else(|| lerp_color(fg, c8, 0.3)),
         accent,
-        red:    map.get("color1").copied().unwrap_or_else(|| hex(0xf3, 0x8b, 0xa8)),
-        green:  map.get("color2").copied().unwrap_or_else(|| hex(0xa6, 0xe3, 0xa1)),
-        yellow: map.get("color3").copied().unwrap_or_else(|| hex(0xf9, 0xe2, 0xaf)),
-        blue:   map.get("color4").copied().unwrap_or_else(|| hex(0x89, 0xb4, 0xfa)),
+        red:    map.get("color1").or_else(|| map.get("red")).copied().unwrap_or_else(|| hex(0xf3, 0x8b, 0xa8)),
+        green:  map.get("color2").or_else(|| map.get("green")).copied().unwrap_or_else(|| hex(0xa6, 0xe3, 0xa1)),
+        yellow: map.get("color3").or_else(|| map.get("yellow")).copied().unwrap_or_else(|| hex(0xf9, 0xe2, 0xaf)),
+        blue:   map.get("color4").or_else(|| map.get("blue")).copied().unwrap_or_else(|| hex(0x89, 0xb4, 0xfa)),
     })
 }
 
 fn parse_hex_str(s: &str) -> Option<Color> {
-    let r = u8::from_str_radix(&s[0..2], 16).ok()?;
-    let g = u8::from_str_radix(&s[2..4], 16).ok()?;
-    let b = u8::from_str_radix(&s[4..6], 16).ok()?;
-    Some(hex(r, g, b))
+    if s.len() == 3 {
+        let r = u8::from_str_radix(&s[0..1], 16).ok()?;
+        let g = u8::from_str_radix(&s[1..2], 16).ok()?;
+        let b = u8::from_str_radix(&s[2..3], 16).ok()?;
+        return Some(hex(r * 17, g * 17, b * 17));
+    }
+    if s.len() >= 6 {
+        let r = u8::from_str_radix(&s[0..2], 16).ok()?;
+        let g = u8::from_str_radix(&s[2..4], 16).ok()?;
+        let b = u8::from_str_radix(&s[4..6], 16).ok()?;
+        return Some(hex(r, g, b));
+    }
+    None
 }
 
 pub fn luminance(c: Color) -> f32 {
@@ -645,6 +667,56 @@ pub fn sidebar_list(_: &iced::Theme) -> container::Style {
         ..Default::default()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_omarchy_v4_colors_toml() {
+        let content = r##"
+            mode = "dark"
+            accent = "#99d1db"
+            selection = "#f2d5cf"
+            muted = "#626880"
+            background = "#303446"
+            dark_background = "#35394b"
+            lighter_background = "#51576d"
+            foreground = "#f2d5cf"
+            light_foreground = "#c6d0f5"
+            red = "#f28fad"
+            green = "#a6d189"
+            yellow = "#e5c890"
+            blue = "#8caaee"
+        "##;
+        let pal = parse_colors_toml(content).expect("Should parse Omarchy v4 theme");
+        assert_eq!(pal.base, hex(0x30, 0x34, 0x46));
+        assert_eq!(pal.text, hex(0xf2, 0xd5, 0xcf));
+        assert_eq!(pal.accent, hex(0x99, 0xd1, 0xdb));
+        assert_eq!(pal.overlay0, hex(0x62, 0x68, 0x80));
+        assert_eq!(pal.mantle, hex(0x35, 0x39, 0x4b));
+        assert_eq!(pal.surface0, hex(0x51, 0x57, 0x6d));
+        assert_eq!(pal.subtext, hex(0xc6, 0xd0, 0xf5));
+        assert_eq!(pal.red, hex(0xf2, 0x8f, 0xad));
+        assert_eq!(pal.green, hex(0xa6, 0xd1, 0x89));
+        assert_eq!(pal.yellow, hex(0xe5, 0xc8, 0x90));
+        assert_eq!(pal.blue, hex(0x8c, 0xaa, 0xee));
+    }
+
+    #[test]
+    fn test_parse_3digit_hex() {
+        let content = r##"
+            background = "#123"
+            foreground = "#fff"
+            accent = "#f00"
+        "##;
+        let pal = parse_colors_toml(content).expect("Should parse 3-digit hex");
+        assert_eq!(pal.base, hex(0x11, 0x22, 0x33));
+        assert_eq!(pal.text, hex(0xff, 0xff, 0xff));
+        assert_eq!(pal.accent, hex(0xff, 0x00, 0x00));
+    }
+}
+
 
 
 

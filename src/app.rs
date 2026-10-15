@@ -3568,6 +3568,19 @@ impl AppState {
                             }
                         }
                     }
+                } else {
+                    let count = self.all_tracks.len();
+                    self.next_notification_id += 1;
+                    self.active_notifications.push(StatsNotification {
+                        id: self.next_notification_id,
+                        title: "Library Updated".to_string(),
+                        message: format!("Library scan complete. {} tracks loaded.", count),
+                        created_at: std::time::Instant::now(),
+                        kind: ToastKind::EnteredTop10,
+                        artist_name: None,
+                        positions_climbed: 0,
+                        overtaken_artists: Vec::new(),
+                    });
                 }
 
                 Task::none()
