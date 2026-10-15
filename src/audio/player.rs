@@ -220,7 +220,6 @@ fn audio_thread(
                 Some(AudioCommand::Seek(pos)) => {
                     if let Some(path) = current_path.clone() {
                         cancel.store(true, Ordering::SeqCst);
-                        paused.store(false, Ordering::SeqCst);
                         pcm.lock().unwrap().clear();
 
                         let new_cancel = Arc::new(AtomicBool::new(false));
@@ -444,18 +443,6 @@ fn decode_file(
             stereo
         };
 
-        sample_count += samples.len() as u64 / 2;
-
-
-        let position = Duration::from_secs_f64(sample_count as f64 / OUTPUT_RATE as f64);
-        let duration = if let (Some(tb), Some(nf)) = (time_base, n_frames) {
-            Duration::from_secs_f64(nf as f64 * tb.numer as f64 / tb.denom as f64)
-        } else {
-            // Opus/OGG: duration unknown until EOF, mirror position so UI stays responsive
-            position
-        };
-        let _ = event_tx.send(AudioEvent::Progress { position, duration });
-
         loop {
             if cancel.load(Ordering::SeqCst) {
                 return Ok(false);
@@ -466,7 +453,42 @@ fn decode_file(
             std::thread::sleep(Duration::from_millis(5));
         }
 
-        pcm.lock().unwrap().extend(samples);
+        sample_count += samples.len() as u64 / 2;
+        let buffered_frames = {
+            let mut guard = pcm.lock().unwrap();
+            guard.extend(samples);
+            guard.len() as u64 / 2
+        };
+
+        let played_frames = sample_count.saturating_sub(buffered_frames);
+        let position = Duration::from_secs_f64(played_frames as f64 / OUTPUT_RATE as f64);
+        let duration = if let (Some(tb), Some(nf)) = (time_base, n_frames) {
+            Duration::from_secs_f64(nf as f64 * tb.numer as f64 / tb.denom as f64)
+        } else {
+            // Opus/OGG: duration unknown until EOF, mirror position so UI stays responsive
+            position
+        };
+        let _ = event_tx.send(AudioEvent::Progress { position, duration });
+    }
+
+    // Drain remaining buffered PCM audio so the track does not end prematurely
+    loop {
+        if cancel.load(Ordering::SeqCst) {
+            return Ok(false);
+        }
+        let remaining_frames = pcm.lock().unwrap().len() as u64 / 2;
+        if remaining_frames == 0 {
+            break;
+        }
+        let played_frames = sample_count.saturating_sub(remaining_frames);
+        let position = Duration::from_secs_f64(played_frames as f64 / OUTPUT_RATE as f64);
+        let duration = if let (Some(tb), Some(nf)) = (time_base, n_frames) {
+            Duration::from_secs_f64(nf as f64 * tb.numer as f64 / tb.denom as f64)
+        } else {
+            position
+        };
+        let _ = event_tx.send(AudioEvent::Progress { position, duration });
+        std::thread::sleep(Duration::from_millis(50));
     }
 
     Ok(true)
